@@ -4,50 +4,47 @@ title: Quick Reference
 description: Luau and Rive cheat sheet
 ---
 
-# Quick Reference
+# Luau & Rive Quick Reference Card
 
-Essential syntax at a glance.
+## Luau Basics
 
-## Variables
-
+### Variables
 ```lua
 local name = "value"      -- Local (always use)
 local num: number = 42    -- With type annotation
 ```
 
-## Types
-
+### Types
 | Type | Example |
 |------|---------|
-| `nil` | `nil` |
-| `boolean` | `true`, `false` |
-| `number` | `42`, `3.14`, `0xFF` |
-| `string` | `"hello"`, `` `interp {x}` `` |
-| `table` | `{}`, `{1,2,3}` |
-| `function` | `function() end` |
+| nil | `nil` |
+| boolean | `true`, `false` |
+| number | `42`, `3.14`, `0xFF`, `0b1010` |
+| string | `"hello"`, `'world'`, `` `interp {x}` `` |
+| table | `{}`, `{1,2,3}`, `{a=1, b=2}` |
+| function | `function() end` |
 
-## Operators
-
+### Operators
 ```lua
 -- Arithmetic
 + - * / // (floor) % ^
-
--- Compound
-+= -= *= /= //= %= ^=
-
--- String
-.. (concat)  # (length)
 
 -- Comparison
 == ~= < > <= >=
 
 -- Logical
 and or not
+
+-- Compound
++= -= *= /= //= %= ^= ..=
+
+-- String
+.. (concat)  # (length)
 ```
 
-## Control Flow
-
+### Control Flow
 ```lua
+-- If statement
 if x > 0 then
     -- code
 elseif x < 0 then
@@ -56,50 +53,306 @@ else
     -- code
 end
 
--- If expression
-local status = if health > 50 then "Good" else "Bad"
+-- If expression (no 'end')
+local result = if x > 0 then "pos" else "non-pos"
 
 -- For loop
-for i = 1, 10 do print(i) end
+for i = 1, 10 do end
+for i = 10, 1, -1 do end
+for k, v in table do end
 
--- Iterator loop
-for key, value in pairs(table) do print(key, value) end
+-- While/Repeat
+while condition do end
+repeat until condition
+
+-- Break/Continue
+break     -- Exit loop
+continue  -- Skip iteration
 ```
 
-## Functions
-
+### Functions
 ```lua
-local function greet(name: string): string
-    return `Hello, {name}!`
+-- Definition
+local function name(a: number, b: string): boolean
+    return true
+end
+
+-- Multiple returns
+local function minMax(a, b)
+    return math.min(a, b), math.max(a, b)
+end
+local min, max = minMax(5, 10)
+
+-- Variadic
+local function sum(...)
+    local args = {...}
 end
 ```
 
-## Rive Node Script Template
+### Tables
+```lua
+-- Array
+local arr = {"a", "b", "c"}
+arr[1]  -- "a" (1-indexed!)
+#arr    -- 3
 
+-- Dictionary
+local dict = {key = "value"}
+dict.key    -- "value"
+dict["key"] -- "value"
+
+-- Common functions
+table.insert(t, v)      -- Append
+table.insert(t, i, v)   -- Insert at index
+table.remove(t, i)      -- Remove at index
+table.find(t, v)        -- Find index of value
+table.clone(t)          -- Shallow copy
+table.freeze(t)         -- Make read-only
+```
+
+### Iteration
+```lua
+-- Array (ordered)
+for i, v in ipairs(arr) do end
+
+-- Dictionary (unordered)
+for k, v in pairs(dict) do end
+
+-- Generalized (preferred)
+for k, v in table do end
+```
+
+---
+
+## Type System
+
+### Mode Directives
+```lua
+--!strict    -- Full type checking (recommended)
+--!nonstrict -- Partial checking
+--!nocheck   -- No checking
+```
+
+### Type Annotations
+```lua
+local x: number = 5
+local function fn(a: string): boolean end
+
+-- Custom types
+type Point = {x: number, y: number}
+export type PublicType = {...}
+
+-- Union
+type StringOrNumber = string | number
+
+-- Optional
+type MaybeString = string?  -- string | nil
+
+-- Intersection
+type Combined = TypeA & TypeB
+
+-- Generics
+function first<T>(arr: {T}): T? end
+```
+
+---
+
+## Rive Scripting
+
+### Node Script Template
 ```lua
 --!strict
 
-type MyScript = {
-    speed: Input<number>,
-    color: Input<Color>,
+export type MyScript = {
+    value: number,
+    input: Input<number>,
 }
+
+function init(self: MyScript): boolean
+    return true
+end
+
+function advance(self: MyScript, seconds: number): boolean
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+end
 
 return function(): Node<MyScript>
     return {
-        speed = 100,
-        color = Color.rgba(255, 0, 0, 255),
-        
-        onStart = function(self)
-            print("Started!")
-        end,
-        
-        onUpdate = function(self, delta)
-            -- Called every frame
-        end,
-        
-        onDraw = function(self, renderer)
-            -- Custom drawing
-        end,
+        init = init,
+        advance = advance,
+        draw = draw,
+        value = 0,
+        input = 0,
     }
 end
+```
+
+### Lifecycle Order
+1. `init(self)` - Once at start
+2. `update(self)` - When inputs change
+3. `advance(self, seconds)` - Every frame
+4. `draw(self, renderer)` - Every frame, after advance
+
+### Input Types
+```lua
+Input<number>
+Input<boolean>
+Input<string>
+Input<Color>
+Input<Data.ViewModelName>
+Input<Artboard<Data.ArtboardVM|}|}
+```
+
+### Core Types
+
+**Vector** (alias: Vec2D)
+```lua
+Vector.xy(x, y)         -- Create vector
+Vector.origin()         -- (0, 0)
+vec.x, vec.y            -- Read-only components
+vec[1], vec[2]          -- Index access
+vec + vec2              -- Add vectors
+vec * scalar            -- Scale
+vec:length()            -- Magnitude
+vec:normalized()        -- Unit vector
+vec:distance(other)     -- Distance
+vec:lerp(other, t)      -- Interpolate (instance method)
+```
+
+**Color** (static accessors)
+```lua
+Color.rgba(r, g, b, a)  -- 0-255 each
+Color.rgb(r, g, b)
+Color.lerp(c1, c2, t)
+Color.red(c)            -- Get red channel
+Color.red(c, value)     -- Returns new color with red set
+Color.green(c), Color.blue(c), Color.alpha(c)  -- Same pattern
+Color.opacity(c)        -- 0.0-1.0 (get/set)
+```
+
+**Mat2D**
+```lua
+Mat2D.identity()
+Mat2D.withTranslation(x, y)
+Mat2D.withRotation(radians)
+Mat2D.withScale(x, y)
+mat1 * mat2  -- Combine
+mat:invert()
+```
+
+### Drawing API
+
+**Path**
+```lua
+local path = Path.new()
+path:moveTo(Vector.xy(x, y))
+path:lineTo(Vector.xy(x, y))
+path:quadTo(control, endPt)
+path:cubicTo(c1, c2, endPt)
+path:close()
+path:reset()
+```
+
+**Paint**
+```lua
+local paint = Paint.new()
+paint.style = "fill" | "stroke"
+paint.color = Color.rgba(...)
+paint.thickness = 3  -- stroke only
+paint.cap = "round" | "butt" | "square"
+paint.join = "round" | "bevel" | "miter"
+```
+
+**Renderer**
+```lua
+renderer:save()
+renderer:restore()
+renderer:transform(mat)
+renderer:clipPath(path)
+renderer:drawPath(path, paint)
+```
+
+### Pointer Events
+```lua
+function onPointerDown(self, event: PointerEvent)
+    event.position.x
+    event.position.y
+    event.id
+    event:hit()        -- Consume event
+    event:hit(true)    -- Pass through
+end
+
+-- In factory:
+pointerDown = onPointerDown,
+pointerUp = onPointerUp,
+pointerMove = onPointerMove,
+pointerExit = onPointerExit,
+```
+
+---
+
+## Common Patterns
+
+### Delta Time Movement
+```lua
+self.x += self.speed * seconds  -- Correct!
+self.x += self.speed            -- Wrong!
+```
+
+### Cached Graphics (init once)
+```lua
+function init(self)
+    self.path = Path.new()  -- Create once
+    self.paint = Paint.new()
+end
+
+function draw(self, renderer)
+    renderer:drawPath(self.path, self.paint)  -- Reuse
+end
+```
+
+### Timer Pattern
+```lua
+self.elapsed += seconds
+if self.elapsed >= self.duration then
+    -- Timer fired!
+    self.elapsed = 0  -- Reset if repeating
+end
+```
+
+### Lerp (Linear Interpolation)
+```lua
+local function lerp(a, b, t)
+    return a + (b - a) * t
+end
+-- t=0 returns a, t=1 returns b
+```
+
+### OOP Double Cast
+```lua
+return (self :: any) :: MyType
+```
+
+---
+
+## Math Helpers
+
+```lua
+math.sin(radians)
+math.cos(radians)
+math.rad(degrees)     -- Convert deg to rad
+math.deg(radians)     -- Convert rad to deg
+math.pi
+math.abs(x)
+math.min(a, b)
+math.max(a, b)
+math.floor(x)
+math.ceil(x)
+math.sqrt(x)
+math.random()         -- 0 to 1
+math.random(n)        -- 1 to n
+math.random(a, b)     -- a to b
 ```
