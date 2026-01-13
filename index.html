@@ -155,6 +155,30 @@
             color: var(--primary);
         }
 
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-muted);
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Mobile */
         @media (max-width: 768px) {
             .header {
@@ -230,11 +254,22 @@
     </header>
 
     <main class="main-content">
+        <div class="loading-indicator" id="loading">
+            <div class="spinner"></div>
+            <p>Loading course...</p>
+            <p style="margin-top: 1rem; font-size: 0.8rem;">
+                <a href="https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/course.md" target="_blank" style="color: var(--primary);">
+                    Open in new tab if loading takes too long →
+                </a>
+            </p>
+        </div>
         <iframe
             class="course-frame"
+            id="course-iframe"
             src="https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/course.md"
             title="LERP Interactive Course"
-            loading="lazy"
+            allow="clipboard-read; clipboard-write"
+            onload="document.getElementById('loading').style.display='none';"
         ></iframe>
     </main>
 
