@@ -39,15 +39,21 @@ Welcome to **LERP** - a comprehensive, interactive course for mastering Rive scr
 This course is built with [LiaScript](https://liascript.github.io/), providing:
 
 * **Interactive Quizzes** - Test your knowledge as you go
-* **Executable Code** - Edit and run examples (where supported)
-* **Progress Tracking** - Check off completed sections
+* **Code Examples** - Copy to Rive Editor to try them
+* **Progress Tracking** - Your progress is saved in your browser
 * **Text-to-Speech** - Listen to content if preferred
 
 **Navigation:**
 
-- Use the **sidebar** to jump between modules
+- Use the **sidebar** (☰ menu) to jump between modules
 - Use **arrow keys** or swipe to navigate pages
-- Click **speaker icon** for audio narration
+- Click **speaker icon** 🔊 for audio narration
+
+**Tips:**
+
+- **Try code examples**: Copy code blocks and paste into the Rive Editor's script panel
+- **Reset quizzes**: Click ☰ menu → Settings → Reset Progress to retry quizzes
+- **Reference docs**: Use the header links for Full Guide, API Ref, Quick Ref
 
 ---
 
@@ -134,7 +140,7 @@ local PI = 3.14159
 
 ### Exercise: Your First Variables
 
-Try modifying this code:
+Copy this code to a **Node Script** in Rive Editor and try modifying it:
 
 ``` lua
 --!strict
@@ -147,7 +153,7 @@ print(greeting .. ", " .. target .. "!")
 print("The answer is: " .. count)
 ```
 
-What happens if you change `greeting` to your name?
+> 💡 **Try it**: Change `greeting` to your name. What output do you see in Rive's console?
 
     [[Your answer here]]
 
