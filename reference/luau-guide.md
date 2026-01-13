@@ -18,6 +18,12 @@ script:   https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js
 
 > *From zero to hero - master Rive scripting with Luau*
 
+---
+
+**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [API Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/api-reference.md) | [Quick Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/quick-reference.md)
+
+---
+
 This comprehensive guide is designed to equip you with the knowledge and skills necessary to master Rive scripting using the Luau programming language. It provides a structured path from the foundational concepts of Luau to advanced techniques for creating dynamic, interactive experiences within the Rive environment.
 
 ---

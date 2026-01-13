@@ -15,9 +15,9 @@ script:   https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js
 
 > A comprehensive reference for the Rive Luau API. Organized by object type with consistent documentation patterns.
 
-**Companion Resources:**
-- Main Guide: `luau_guide_v1.4.md` (concepts and tutorials)
-- Quick Reference: `QUICK_REFERENCE.md` (cheat sheet)
+---
+
+**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [Full Guide](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/luau-guide.md) | [Quick Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/quick-reference.md)
 
 ---
 
