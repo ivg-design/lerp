@@ -1,0 +1,180 @@
+.quiz {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.question {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.questionIcon {
+  flex-shrink: 0;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  color: var(--ifm-font-color-base);
+}
+
+.option:hover:not(:disabled) {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary-lightest);
+}
+
+.option.selected {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary-lightest);
+}
+
+.option.correct {
+  border-color: var(--ifm-color-success);
+  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
+}
+
+.option.incorrect {
+  border-color: var(--ifm-color-danger);
+  background: var(--ifm-color-danger-lightest, rgba(255, 68, 68, 0.1));
+}
+
+.option:disabled {
+  cursor: default;
+}
+
+.optionLetter {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ifm-color-emphasis-200);
+  font-size: 0.8rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.textInput {
+  margin-bottom: 1rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+}
+
+.input.codeInput {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+.input.correct {
+  border-color: var(--ifm-color-success);
+}
+
+.input.incorrect {
+  border-color: var(--ifm-color-danger);
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.submitBtn,
+.resetBtn {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitBtn {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--ifm-color-primary-dark);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.resetBtn {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-font-color-base);
+}
+
+.resetBtn:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.feedback {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.correctFeedback {
+  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
+  color: var(--ifm-color-success-darkest, #00c853);
+}
+
+.incorrectFeedback {
+  background: var(--ifm-color-danger-lightest, rgba(255, 68, 68, 0.1));
+  color: var(--ifm-color-danger-darkest, #ff4444);
+}
+
+.feedbackIcon {
+  font-size: 1.1rem;
+}
+
+.explanation {
+  margin-top: 0.5rem;
+  font-weight: 400;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}

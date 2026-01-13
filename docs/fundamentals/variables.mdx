@@ -1,0 +1,173 @@
+---
+sidebar_position: 1
+title: Variables and Scope
+description: Understanding variables, scope, and closures in Luau
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+import Exercise from '@site/src/components/Exercise';
+
+# Variables and Scope
+
+Luau syntax is clean and minimalist. Statements do not require semicolons at the end of lines.
+
+## Comments
+
+```lua
+-- This is a single-line comment
+
+--[[
+This is a
+multi-line comment
+]]
+```
+
+## Variable Declaration
+
+In Luau, the concept of **scope** is critical. Scope determines where a variable is accessible.
+
+```lua
+-- Global variable (AVOID THIS!)
+gravity = 9.8
+
+-- Local variable (PREFERRED)
+local speed = 50
+```
+
+### Global vs Local Variables
+
+| Type | Declaration | Scope | Recommendation |
+|------|-------------|-------|----------------|
+| **Global** | `name = value` | Everywhere | ❌ Avoid |
+| **Local** | `local name = value` | Current block | ✅ Always use |
+
+:::danger Avoid Global Variables
+Global variables can lead to naming collisions and make code harder to trace and debug. Always use `local` unless you have a very specific reason not to.
+:::
+
+## Block Scope
+
+Variables are scoped to the **block** where they are defined (a function, loop, or `do...end` block):
+
+```lua
+local function calculate()
+    local result = 10  -- Only exists inside this function
+
+    if result > 5 then
+        local message = "High"  -- Only exists inside this if block
+        print(message)
+    end
+
+    -- print(message)  -- Error: 'message' is out of scope here
+end
+```
+
+### Explicit Scope with `do ... end`
+
+Create explicit scopes to limit variable lifetime:
+
+```lua
+do
+    local temp = 42
+    print(temp)
+end
+-- print(temp)  -- Error: temp is out of scope
+```
+
+## Closures and Upvalues
+
+Functions capture variables from their surrounding scope (**upvalues**). This enables **closures**:
+
+```lua
+local function makeCounter()
+    local count = 0
+    return function()
+        count += 1
+        return count
+    end
+end
+
+local nextCount = makeCounter()
+print(nextCount())  -- 1
+print(nextCount())  -- 2
+print(nextCount())  -- 3
+```
+
+:::tip Closures in Rive
+Closures are especially useful in Rive for callbacks, stateful helpers, and maintaining state between frames.
+:::
+
+## Exercise
+
+<Exercise
+  title="Create a Counter"
+  code={`--!strict
+
+local function makeCounter()
+    local count = 0
+    return function()
+        count += 1
+        return count
+    end
+end
+
+local counter = makeCounter()
+print(counter())  -- What does this print?
+print(counter())  -- What about this?`}
+  task="Create a second counter with makeCounter() and verify it has its own independent count."
+  hint="Each call to makeCounter() creates a new closure with its own count variable."
+  solution={`--!strict
+
+local function makeCounter()
+    local count = 0
+    return function()
+        count += 1
+        return count
+    end
+end
+
+local counter1 = makeCounter()
+local counter2 = makeCounter()
+
+print(counter1())  -- 1
+print(counter1())  -- 2
+print(counter2())  -- 1 (independent!)
+print(counter1())  -- 3`}
+/>
+
+## Knowledge Check
+
+<Quiz
+  question="What keyword should you always use when declaring variables?"
+  id="vars-q1"
+  type="code"
+  answer="local"
+  explanation="Always use 'local' to avoid global namespace pollution."
+/>
+
+<Quiz
+  question="What does a closure capture?"
+  id="vars-q2"
+  options={[
+    { text: "Only function arguments" },
+    { text: "Variables from the surrounding scope (upvalues)", correct: true },
+    { text: "Global variables only" },
+    { text: "Nothing - closures are stateless" },
+  ]}
+  explanation="Closures capture variables from their surrounding scope, called upvalues. This allows them to maintain state."
+/>
+
+<Quiz
+  question="What is the result of: 10 // 3"
+  id="vars-q3"
+  type="code"
+  answer="3"
+  explanation="The // operator is floor division - it divides and rounds down to the nearest integer."
+/>
+
+## Next Up
+
+Now let's explore Luau's data types:
+
+**[→ Data Types](/fundamentals/data-types)**

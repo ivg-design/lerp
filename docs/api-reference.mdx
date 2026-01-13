@@ -1,0 +1,118 @@
+---
+sidebar_position: 100
+title: API Reference
+description: Complete Rive Luau API documentation
+---
+
+# API Reference
+
+Complete reference for the Rive Luau API.
+
+## Core Types
+
+### Vector {#vector}
+
+2D vector type (alias: `Vec2D`).
+
+```lua
+local pos = Vector.xy(100, 200)
+print(pos.x, pos.y)  -- 100, 200
+
+local origin = Vector.origin()  -- (0, 0)
+local lerped = pos:lerp(origin, 0.5)  -- (50, 100)
+```
+
+| Method | Description |
+|--------|-------------|
+| `Vector.xy(x, y)` | Create vector |
+| `Vector.origin()` | Create (0, 0) |
+| `vec.x`, `vec.y` | Read-only components |
+| `vec:lerp(other, t)` | Interpolate |
+
+### Color {#color}
+
+RGBA color type.
+
+```lua
+local red = Color.rgba(255, 0, 0, 255)
+local blue = Color.hex("#0000FF")
+local blended = Color.lerp(red, blue, 0.5)
+```
+
+| Method | Description |
+|--------|-------------|
+| `Color.rgba(r, g, b, a)` | Create (0-255 range) |
+| `Color.rgb(r, g, b)` | Opaque color |
+| `Color.hex("#RRGGBB")` | From hex string |
+| `Color.lerp(a, b, t)` | Interpolate |
+
+### Mat2D {#mat2d}
+
+2D transformation matrix.
+
+```lua
+local m = Mat2D.identity()
+local translated = Mat2D.fromTranslation(Vector.xy(10, 20))
+```
+
+## Drawing API
+
+### Path {#path}
+
+Vector path for drawing shapes.
+
+```lua
+local path = Path.new()
+path:moveTo(Vector.xy(0, 0))
+path:lineTo(Vector.xy(100, 0))
+path:lineTo(Vector.xy(100, 100))
+path:close()
+```
+
+### Paint {#paint}
+
+Fill and stroke styling.
+
+```lua
+local paint = Paint.new()
+paint.color = Color.rgba(255, 0, 0, 255)
+paint.style = "fill"  -- or "stroke"
+paint.thickness = 2
+```
+
+### Renderer {#renderer}
+
+Drawing context.
+
+```lua
+renderer:save()
+renderer:transform(mat)
+renderer:drawPath(path, paint)
+renderer:restore()
+```
+
+## Scene Objects
+
+### Artboard {#artboard}
+
+The main canvas where animations live.
+
+```lua
+local artboard = self.artboard
+local width = artboard.width
+local height = artboard.height
+```
+
+### ViewModel {#viewmodel}
+
+Data binding container for sharing properties.
+
+```lua
+-- Access ViewModel properties
+local vm = self.viewModel
+local playerName = vm.name
+```
+
+---
+
+*Full API documentation being migrated...*

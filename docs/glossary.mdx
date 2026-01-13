@@ -1,0 +1,84 @@
+---
+sidebar_position: 102
+title: Glossary
+description: Key terms and definitions
+---
+
+# Glossary
+
+Key terms used throughout the course.
+
+## A
+
+### Artboard {#artboard}
+The canvas in Rive where animations are created. Each artboard can contain its own animations, state machines, and scripts.
+
+## C
+
+### Closure {#closure}
+A function that captures variables from its surrounding scope (upvalues), allowing it to maintain state.
+
+### Color {#color}
+Rive's RGBA color type. Created with `Color.rgba(r, g, b, a)` or `Color.hex("#RRGGBB")`.
+
+## G
+
+### Generic {#generic}
+A type parameter that allows functions and types to work with multiple data types while maintaining type safety.
+
+## I
+
+### Input {#input}
+A wrapper type `Input<T>` that makes a script property bindable to Rive's data binding system.
+
+## L
+
+### late() {#late}
+A special Rive initializer used for properties that will be bound at runtime rather than initialized immediately.
+
+## M
+
+### Metatable {#metatable}
+A table that defines special behavior for another table, such as how it responds to operators or index access.
+
+### Metamethod {#metamethod}
+A function in a metatable that defines special behavior (e.g., `__index`, `__add`, `__tostring`).
+
+## N
+
+### Node Protocol {#node-protocol}
+The primary Rive script type that attaches to scene nodes and can implement logic and custom drawing.
+
+## P
+
+### Paint {#paint}
+Rive's styling object for fills and strokes. Controls color, stroke width, and style.
+
+### Path {#path}
+Rive's vector path type for creating custom shapes through commands like `moveTo`, `lineTo`, `close`.
+
+## R
+
+### Renderer {#renderer}
+The drawing context provided to `onDraw` callbacks for custom rendering.
+
+## S
+
+### Strict Mode {#strict-mode}
+Enabled with `--!strict`, this mode activates Luau's type checker for compile-time error detection.
+
+## U
+
+### Upvalue {#upvalue}
+A variable from an outer scope that is captured by a closure.
+
+### Util Protocol {#util-protocol}
+A Rive script type for creating reusable modules that can be imported by other scripts.
+
+## V
+
+### Vector {#vector}
+Rive's 2D vector type (alias: `Vec2D`). Created with `Vector.xy(x, y)`.
+
+### ViewModel {#viewmodel}
+Rive's data binding container that allows properties to be shared between scripts and external code.

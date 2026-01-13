@@ -1,0 +1,105 @@
+---
+sidebar_position: 101
+title: Quick Reference
+description: Luau and Rive cheat sheet
+---
+
+# Quick Reference
+
+Essential syntax at a glance.
+
+## Variables
+
+```lua
+local name = "value"      -- Local (always use)
+local num: number = 42    -- With type annotation
+```
+
+## Types
+
+| Type | Example |
+|------|---------|
+| `nil` | `nil` |
+| `boolean` | `true`, `false` |
+| `number` | `42`, `3.14`, `0xFF` |
+| `string` | `"hello"`, `` `interp {x}` `` |
+| `table` | `{}`, `{1,2,3}` |
+| `function` | `function() end` |
+
+## Operators
+
+```lua
+-- Arithmetic
++ - * / // (floor) % ^
+
+-- Compound
++= -= *= /= //= %= ^=
+
+-- String
+.. (concat)  # (length)
+
+-- Comparison
+== ~= < > <= >=
+
+-- Logical
+and or not
+```
+
+## Control Flow
+
+```lua
+if x > 0 then
+    -- code
+elseif x < 0 then
+    -- code
+else
+    -- code
+end
+
+-- If expression
+local status = if health > 50 then "Good" else "Bad"
+
+-- For loop
+for i = 1, 10 do print(i) end
+
+-- Iterator loop
+for key, value in pairs(table) do print(key, value) end
+```
+
+## Functions
+
+```lua
+local function greet(name: string): string
+    return `Hello, {name}!`
+end
+```
+
+## Rive Node Script Template
+
+```lua
+--!strict
+
+type MyScript = {
+    speed: Input<number>,
+    color: Input<Color>,
+}
+
+return function(): Node<MyScript>
+    return {
+        speed = 100,
+        color = Color.rgba(255, 0, 0, 255),
+        
+        onStart = function(self)
+            print("Started!")
+        end,
+        
+        onUpdate = function(self, delta)
+            -- Called every frame
+        end,
+        
+        onDraw = function(self, renderer)
+            -- Custom drawing
+        end,
+    }
+end
+```

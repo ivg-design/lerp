@@ -1,0 +1,92 @@
+---
+sidebar_position: 1
+title: Welcome to LERP
+description: Luau Education for Rive Professionals - From zero to hero
+slug: /
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+
+# LERP: Luau Education for Rive Professionals
+
+> *From zero to hero - master Rive scripting with Luau*
+
+Welcome to **LERP** - your comprehensive, interactive journey to mastering Rive scripting.
+
+## What You'll Learn
+
+This course takes you from absolute beginner to confident Rive scripter:
+
+- ✅ **Luau fundamentals** - Variables, types, functions, tables
+- ✅ **Type system mastery** - Strict mode, annotations, generics
+- ✅ **Object-oriented patterns** - Metatables, classes, inheritance
+- ✅ **Rive integration** - Protocols, inputs, lifecycle
+- ✅ **Drawing API** - <Term>Path</Term>, <Term>Paint</Term>, <Term>Renderer</Term>
+- ✅ **Advanced techniques** - Events, instantiation, optimization
+
+## How This Course Works
+
+### Interactive Learning
+
+Each section includes:
+- **Explanations** with cross-linked terms (click any <Term to="/glossary">highlighted term</Term>)
+- **Code examples** ready to copy into Rive Editor
+- **Quizzes** to test understanding
+- **Exercises** with hints and solutions
+
+### Navigation
+
+- Use the **sidebar** to jump between sections
+- Click **linked terms** to see definitions
+- Use the **search** (Ctrl/Cmd + K) to find anything
+
+## Quick Start Quiz
+
+Let's see what you already know!
+
+<Quiz
+  question="What scripting language does Rive use?"
+  id="intro-q1"
+  options={[
+    { text: "JavaScript" },
+    { text: "Python" },
+    { text: "Luau", correct: true },
+    { text: "TypeScript" },
+  ]}
+  explanation="Rive uses Luau, a fast, safe scripting language derived from Lua 5.1, primarily developed by Roblox."
+/>
+
+<Quiz
+  question="What directive enables strict type checking in Luau?"
+  id="intro-q2"
+  type="code"
+  answer="--!strict"
+  explanation="Adding --!strict at the top of your script enables Luau's type checker."
+/>
+
+<Quiz
+  question="Which of these is a Rive Drawing API type?"
+  id="intro-q3"
+  options={[
+    { text: "Canvas" },
+    { text: "Path", correct: true },
+    { text: "Context2D" },
+    { text: "Graphics" },
+  ]}
+  explanation="Path is one of the core Drawing API types in Rive, along with Paint and Renderer."
+/>
+
+## Ready to Begin?
+
+Start your journey with Part 1:
+
+**[→ Welcome to Rive Scripting](/getting-started/welcome)**
+
+Or jump to any section using the sidebar.
+
+---
+
+:::tip Pro Tip
+Bookmark the [Quick Reference](/quick-reference) for fast syntax lookups while coding!
+:::

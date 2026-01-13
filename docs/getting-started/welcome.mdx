@@ -1,0 +1,69 @@
+---
+sidebar_position: 1
+title: Welcome to Rive Scripting
+description: Introduction to Rive scripting and what it enables
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+import Exercise from '@site/src/components/Exercise';
+
+# Welcome to Rive Scripting
+
+Rive is a powerful tool for creating interactive graphics that run anywhere. Traditionally, Rive animations are driven by **Timelines** and the **State Machine**, which are excellent for predefined motion and transitions.
+
+However, complex interactivity, procedural generation, dynamic layouts, and game logic often require **programmatic control**.
+
+## What Scripting Enables
+
+Rive Scripting allows you to embed code directly within the Rive Editor, executing logic in real-time alongside your designs. This bridges the gap between design and development.
+
+| Without Scripting | With Scripting |
+|-------------------|----------------|
+| Predefined animations | Dynamic, data-driven motion |
+| Fixed interactions | Complex game logic |
+| Static layouts | Responsive, procedural layouts |
+| Limited user input | Full interactivity |
+
+## The Rive AI Coding Agent
+
+Rive includes an **AI Coding Agent** built directly into the Editor. This assistant can help you:
+
+- 🤖 Create new scripts from natural language descriptions
+- ✏️ Edit and refactor existing code
+- 💡 Explain unfamiliar script logic
+- 🐛 Debug issues by analyzing your code
+
+The AI agent has seamless integration with Rive's scripting engine—no API keys, external apps, or setup required. It understands the Rive API and can generate correctly-typed code that works with your <Term>Artboard</Term>s and <Term>ViewModel</Term>s.
+
+## Knowledge Check
+
+<Quiz
+  question="What does Rive scripting enable that State Machines alone cannot?"
+  id="welcome-q1"
+  options={[
+    { text: "Playing animations" },
+    { text: "Procedural generation and complex logic", correct: true },
+    { text: "Faster rendering" },
+    { text: "Better compression" },
+  ]}
+  explanation="While State Machines handle predefined transitions, scripting enables procedural generation, complex game logic, and dynamic behaviors."
+/>
+
+<Quiz
+  question="What tool is built into the Rive Editor to help with scripting?"
+  id="welcome-q2"
+  options={[
+    { text: "GitHub Copilot" },
+    { text: "ChatGPT" },
+    { text: "AI Coding Agent", correct: true },
+    { text: "TypeScript compiler" },
+  ]}
+  explanation="Rive has a built-in AI Coding Agent that understands the Rive API and can help write, edit, and debug scripts."
+/>
+
+## Next Steps
+
+Now that you understand what Rive scripting can do, let's learn about the language that powers it:
+
+**[→ Why Luau?](/getting-started/why-luau)**

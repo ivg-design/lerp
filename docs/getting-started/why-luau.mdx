@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+title: Why Luau?
+description: The power of typed scripting in design
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+
+# Why Luau?
+
+Rive selected **Luau** (pronounced "Loo-ow") as its scripting language. Luau is a fast, small, safe, and gradually typed scripting language derived from Lua 5.1, primarily developed and maintained by Roblox.
+
+## Why Luau for a Design Tool?
+
+### 🚀 Performance and Size
+
+Real-time graphics demand efficiency. Luau's highly optimized Virtual Machine (VM) ensures scripts run quickly without causing frame drops, and its small footprint is crucial for web deployment.
+
+### 🔌 Embeddability
+
+Luau is designed to be easily integrated into larger C++ applications, like the Rive Editor and its various runtimes (iOS, Android, Web, Flutter, etc.).
+
+### 📝 Gradual Typing (The Key Advantage)
+
+This is the cornerstone of the Rive scripting experience. While Luau can be written dynamically (like JavaScript or standard Lua), it supports a robust type system:
+
+- **Robustness**: Types help catch errors before the animation even runs. If you try to assign a <Term>Color</Term> where a number is expected, the editor flags it immediately.
+
+- **Tooling**: Rive generates Luau type definitions **directly from its C++ engine APIs**—paths, shapes, transforms, artboards, view models, and more. This powers accurate autocomplete (IntelliSense).
+
+### 🎯 Simple Semantics
+
+Based on Lua, the syntax is minimalist and accessible, making it easier for designers and new programmers to learn.
+
+## Luau vs Other Languages
+
+| Feature | Luau | JavaScript | Python |
+|---------|------|------------|--------|
+| Type System | Gradual (optional) | Dynamic | Dynamic |
+| Performance | Very fast | Fast | Slower |
+| Bundle Size | ~200KB | Large | N/A |
+| Learning Curve | Easy | Medium | Easy |
+| Rive Integration | Native | N/A | N/A |
+
+## Knowledge Check
+
+<Quiz
+  question="What language is Luau derived from?"
+  id="why-luau-q1"
+  options={[
+    { text: "JavaScript" },
+    { text: "Python" },
+    { text: "Lua 5.1", correct: true },
+    { text: "Ruby" },
+  ]}
+/>
+
+<Quiz
+  question="Who primarily develops and maintains Luau?"
+  id="why-luau-q2"
+  options={[
+    { text: "Rive" },
+    { text: "Meta" },
+    { text: "Roblox", correct: true },
+    { text: "Google" },
+  ]}
+  explanation="Luau was created and is maintained by Roblox, though it's open source and used by Rive and others."
+/>
+
+<Quiz
+  question="What does 'gradual typing' mean?"
+  id="why-luau-q3"
+  options={[
+    { text: "Types that change over time" },
+    { text: "Types are always required" },
+    { text: "Types are optional but provide benefits when used", correct: true },
+    { text: "Types are automatically inferred" },
+  ]}
+  explanation="Gradual typing means you can choose to add types where helpful, but they're not required. The type checker helps catch errors when types are provided."
+/>
+
+## Ready to Code?
+
+Now let's dive into Luau fundamentals and start writing code:
+
+**[→ Variables and Scope](/fundamentals/variables)**

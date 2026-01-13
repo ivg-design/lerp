@@ -1,0 +1,49 @@
+---
+sidebar_position: 2
+title: Data Types
+description: Understanding Luau's fundamental data types
+---
+
+# Data Types
+
+Luau is dynamically typed by default, meaning a variable can hold a value of any type.
+
+## Fundamental Types
+
+| Type | Example | Description |
+|------|---------|-------------|
+| `nil` | `nil` | Absence of value |
+| `boolean` | `true`, `false` | Logical values |
+| `number` | `42`, `3.14`, `0xFF` | All numbers (double-precision) |
+| `string` | `"hello"`, `'world'` | Text |
+| `table` | `{}`, `{1,2,3}` | Arrays and dictionaries |
+| `function` | `function() end` | Callable code |
+
+## Number Literals
+
+```lua
+local decimal = 123
+local float = 3.14159
+local hex = 0xFF           -- 255
+local binary = 0b1010      -- 10
+local readable = 1_000_000 -- Underscores for readability
+```
+
+## Strings
+
+```lua
+local single = 'Hello'
+local double = "World"
+local multi = [[
+  Multi-line
+  string
+]]
+
+-- String interpolation (Luau feature!)
+local name = "Player"
+local greeting = `Hello, {name}!`  -- "Hello, Player!"
+```
+
+---
+
+**[→ Next: Operators](/fundamentals/operators)**
