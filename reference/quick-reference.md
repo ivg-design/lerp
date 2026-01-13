@@ -14,7 +14,7 @@ comment:  Quick reference card for Luau syntax and Rive API - essential patterns
 
 ---
 
-**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [Full Guide](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/luau-guide.md) | [API Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/api-reference.md)
+**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [Full Guide](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/guide/index.md) | [API Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/api-reference.md)
 
 ---
 

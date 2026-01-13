@@ -17,7 +17,7 @@ script:   https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js
 
 ---
 
-**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [Full Guide](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/luau-guide.md) | [Quick Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/quick-reference.md)
+**Navigation:** [← Back to Course](https://forge.mograph.life/apps/lerp/) | [Full Guide](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/guide/index.md) | [Quick Reference](https://liascript.github.io/course/?https://forge.mograph.life/apps/lerp/reference/quick-reference.md)
 
 ---
 
