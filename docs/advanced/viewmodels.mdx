@@ -5,6 +5,7 @@ description: Binding scripts to ViewModels for reactive data-driven animations
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # ViewModels
 
@@ -73,12 +74,19 @@ All getters return `nil` if the property doesn't exist. Always check before usin
 
 ---
 
-## Exercise 1: Read and Display ViewModel Data
-
-**Goal**: Read properties from the main ViewModel and use them in your script.
-
-```lua
---!strict
+<Exercise
+  id="advanced-viewmodel-1"
+  title="Exercise 1: Read and Display ViewModel Data"
+  difficulty={2}
+  hint="Use context:viewModel() to get the VM, then vm:getNumber('score') to get the property. Access .value to read the current value."
+  expectedAnswer="viewmodel"
+  explanation="ViewModels provide reactive properties that scripts can read. Use context:viewModel() in init, then access properties with getNumber(), getString(), etc."
+  task="Complete the init function to get the ViewModel and score property, then read its value."
+  expectedOutput={`ViewModel connected!
+Score property found: 50
+ANSWER: viewmodel`}
+  code={`--!strict
+-- Read a score property from the main ViewModel
 
 export type ScoreDisplay = {
     vm: ViewModel?,
@@ -89,13 +97,21 @@ export type ScoreDisplay = {
 }
 
 function init(self: ScoreDisplay, context: Context): boolean
-    self.vm = context:viewModel()
     self.barWidth = 0
 
+    -- TODO 1: Get the ViewModel using context:viewModel()
+    self.vm = nil  -- Replace with context:viewModel()
+
     if self.vm then
-        self.scoreProp = self.vm:getNumber("score")
+        print("ViewModel connected!")
+
+        -- TODO 2: Get the score property using vm:getNumber("score")
+        self.scoreProp = nil  -- Replace with self.vm:getNumber("score")
+
         if self.scoreProp then
-            self.barWidth = self.scoreProp.value * 2
+            -- TODO 3: Read the value and set barWidth = value * 2
+            print(\`Score property found: {self.scoreProp.value}\`)
+            print("ANSWER: viewmodel")
         end
     end
 
@@ -130,12 +146,28 @@ return function(): Node<ScoreDisplay>
         draw = draw,
         vm = nil,
         scoreProp = nil,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
         barWidth = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Get the ViewModel
+self.vm = context:viewModel()
+
+-- TODO 2: Get the score property
+self.scoreProp = self.vm:getNumber("score")
+
+-- TODO 3: Read the value
+self.barWidth = self.scoreProp.value * 2`}
+>
+**Premise:** You're building a score display that reads data from the artboard's ViewModel.
+
+**Use Case:** ViewModels let external code (your app, state machines) drive animation data. Score displays, health bars, and progress indicators all use this pattern.
+</Exercise>
+
+**Editor setup:**
+1. Create a ViewModel with a `score` number property (default: 50)
+2. Bind the ViewModel to your artboard
 
 :::warning Path Reset Location
 In this example, `path:reset()` is in `draw` for simplicity. For production code, move path updates to `advance` to avoid potential rendering artifacts.
@@ -148,12 +180,19 @@ In this example, `path:reset()` is in `draw` for simplicity. For production code
 
 ---
 
-## Exercise 2: Writing to ViewModel Properties
-
-**Goal**: Update ViewModel properties from your script to drive animations.
-
-```lua
---!strict
+<Exercise
+  id="advanced-viewmodel-2"
+  title="Exercise 2: Writing to ViewModel Properties"
+  difficulty={2}
+  hint="Assign to .value to write: self.xProp.value = newValue. Use sine/cosine with time for smooth oscillation."
+  expectedAnswer="writing"
+  explanation="ViewModel properties are read/write. Assign to .value to update them—changes automatically propagate to all bound visual elements."
+  task="Complete the advance function to animate the position properties using sine and cosine waves."
+  expectedOutput={`Position driver initialized
+Driving position...
+ANSWER: writing`}
+  code={`--!strict
+-- Drive ViewModel position properties from script
 
 export type PositionDriver = {
     vm: ViewModel?,
@@ -169,6 +208,7 @@ function init(self: PositionDriver, context: Context): boolean
     if self.vm then
         self.xProp = self.vm:getNumber("posX")
         self.yProp = self.vm:getNumber("posY")
+        print("Position driver initialized")
     end
 
     return true
@@ -177,12 +217,19 @@ end
 function advance(self: PositionDriver, seconds: number): boolean
     self.time += seconds
 
+    -- TODO 1: Write to xProp.value using sin(time) * 100
     if self.xProp then
-        self.xProp.value = math.sin(self.time) * 100
+        -- self.xProp.value = math.sin(self.time) * 100
     end
 
+    -- TODO 2: Write to yProp.value using cos(time * 1.5) * 50
     if self.yProp then
-        self.yProp.value = math.cos(self.time * 1.5) * 50
+        -- self.yProp.value = math.cos(self.time * 1.5) * 50
+    end
+
+    if math.floor(self.time) == 1 and math.floor(self.time - seconds) < 1 then
+        print("Driving position...")
+        print("ANSWER: writing")
     end
 
     return true
@@ -201,8 +248,25 @@ return function(): Node<PositionDriver>
         yProp = nil,
         time = 0,
     }
+end`}
+  solution={`-- TODO 1: Write to xProp
+if self.xProp then
+    self.xProp.value = math.sin(self.time) * 100
 end
-```
+
+-- TODO 2: Write to yProp
+if self.yProp then
+    self.yProp.value = math.cos(self.time * 1.5) * 50
+end`}
+>
+**Premise:** You're creating a position driver that controls an element's movement through ViewModel properties.
+
+**Use Case:** Scripts can animate visual elements indirectly by writing to ViewModel properties that are bound to layer transforms, colors, or other visual attributes.
+</Exercise>
+
+**Editor setup:**
+1. Add `posX` and `posY` number properties to your ViewModel
+2. Bind these properties to an element's transform in the artboard
 
 **Key points:**
 - Write to `.value` to update the property
@@ -211,12 +275,19 @@ end
 
 ---
 
-## Exercise 3: Listening for Property Changes
-
-**Goal**: React when external code (runtime, state machine) changes a ViewModel property.
-
-```lua
---!strict
+<Exercise
+  id="advanced-viewmodel-3"
+  title="Exercise 3: Listening for Property Changes"
+  difficulty={2}
+  hint="Use property:addListener(function() ... end) to register a callback. Inside the callback, read the new value and update visuals."
+  expectedAnswer="listener"
+  explanation="Listeners make scripts reactive to external changes. When the runtime or state machine updates a property, your listener callback fires automatically."
+  task="Complete the init function to register a listener that changes color when the mode property changes."
+  expectedOutput={`Listener registered for mode
+Mode changed to: active
+ANSWER: listener`}
+  code={`--!strict
+-- React to ViewModel property changes with listeners
 
 export type ChangeListener = {
     vm: ViewModel?,
@@ -235,14 +306,15 @@ function init(self: ChangeListener, context: Context): boolean
         if self.modeProp then
             self.currentMode = self.modeProp.value
 
-            self.modeProp:addListener(function()
-                self.currentMode = self.modeProp.value
-                if self.currentMode == "active" then
-                    self.paint.color = Color.rgb(255, 100, 100)
-                else
-                    self.paint.color = Color.rgb(100, 100, 255)
-                end
-            end)
+            -- TODO: Register a listener using self.modeProp:addListener(function() ... end)
+            -- Inside the callback:
+            --   1. Update self.currentMode = self.modeProp.value
+            --   2. Print "Mode changed to: {self.currentMode}"
+            --   3. If mode == "active", set paint color to red (255, 100, 100)
+            --   4. Otherwise set paint color to blue (100, 100, 255)
+            --   5. Print "ANSWER: listener" when mode changes
+
+            print("Listener registered for mode")
         end
     end
 
@@ -269,11 +341,30 @@ return function(): Node<ChangeListener>
         vm = nil,
         modeProp = nil,
         currentMode = "idle",
-        paint = Paint.new(),
-        path = Path.new(),
+        paint = late(),
+        path = late(),
     }
-end
-```
+end`}
+  solution={`-- Register the listener
+self.modeProp:addListener(function()
+    self.currentMode = self.modeProp.value
+    print(\`Mode changed to: {self.currentMode}\`)
+    if self.currentMode == "active" then
+        self.paint.color = Color.rgb(255, 100, 100)
+    else
+        self.paint.color = Color.rgb(100, 100, 255)
+    end
+    print("ANSWER: listener")
+end)`}
+>
+**Premise:** You're building a reactive component that changes appearance when a ViewModel property changes.
+
+**Use Case:** Listeners enable event-driven behavior—changing states, triggering animations, or updating visuals when external code modifies ViewModel properties.
+</Exercise>
+
+**Editor setup:**
+1. Add a `mode` string property to your ViewModel (default: "idle")
+2. Use a state machine or runtime code to change it to "active"
 
 **Key points:**
 - `addListener()` registers a callback that fires on property changes
@@ -282,12 +373,20 @@ end
 
 ---
 
-## Exercise 4: Firing Triggers
-
-**Goal**: Use triggers for one-shot events (play sound, spawn particle, etc.).
-
-```lua
---!strict
+<Exercise
+  id="advanced-viewmodel-4"
+  title="Exercise 4: Firing Triggers"
+  difficulty={2}
+  hint="Use vm:getTrigger('name') to get a trigger. Register listener with :addListener(function() ... end). Fire with :fire()."
+  expectedAnswer="trigger"
+  explanation="Triggers are one-shot events with no persistent value. Use them for notifications like collisions, button presses, or animation completions."
+  task="Complete the init function to get the trigger, register a listener, and implement a pointerDown handler to fire it."
+  expectedOutput={`Trigger listener registered
+Hit trigger fired! Count: 1
+Hit trigger fired! Count: 2
+ANSWER: trigger`}
+  code={`--!strict
+-- Use triggers for one-shot events
 
 export type TriggerDemo = {
     vm: ViewModel?,
@@ -302,13 +401,16 @@ function init(self: TriggerDemo, context: Context): boolean
     self.vm = context:viewModel()
 
     if self.vm then
-        self.hitTrigger = self.vm:getTrigger("onHit")
+        -- TODO 1: Get the trigger using self.vm:getTrigger("onHit")
+        self.hitTrigger = nil  -- Replace with getTrigger
 
         if self.hitTrigger then
-            self.hitTrigger:addListener(function()
-                self.clickCount += 1
-                print(`Hit trigger fired! Count: {self.clickCount}`)
-            end)
+            -- TODO 2: Register a listener that:
+            --   1. Increments clickCount
+            --   2. Prints "Hit trigger fired! Count: {count}"
+            --   3. Prints "ANSWER: trigger" when count reaches 2
+
+            print("Trigger listener registered")
         end
     end
 
@@ -324,6 +426,14 @@ function init(self: TriggerDemo, context: Context): boolean
     return true
 end
 
+function pointerDown(self: TriggerDemo, event: PointerEvent)
+    -- TODO 3: Fire the trigger when clicked
+    -- if self.hitTrigger then
+    --     self.hitTrigger:fire()
+    -- end
+    event:hit()
+end
+
 function draw(self: TriggerDemo, renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
@@ -331,23 +441,40 @@ end
 return function(): Node<TriggerDemo>
     return {
         init = init,
+        pointerDown = pointerDown,
         draw = draw,
         vm = nil,
         hitTrigger = nil,
         clickCount = 0,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Get the trigger
+self.hitTrigger = self.vm:getTrigger("onHit")
 
-**To fire a trigger from your script:**
+-- TODO 2: Register listener
+self.hitTrigger:addListener(function()
+    self.clickCount += 1
+    print(\`Hit trigger fired! Count: {self.clickCount}\`)
+    if self.clickCount == 2 then
+        print("ANSWER: trigger")
+    end
+end)
 
-```lua
+-- TODO 3: Fire the trigger in pointerDown
 if self.hitTrigger then
     self.hitTrigger:fire()
-end
-```
+end`}
+>
+**Premise:** You're building a clickable component that fires a trigger event when pressed.
+
+**Use Case:** Triggers communicate events between scripts, state machines, and runtime code—perfect for buttons, collision notifications, and animation cues.
+</Exercise>
+
+**Editor setup:**
+1. Add an `onHit` trigger to your ViewModel
+2. Optionally connect the trigger to a state machine transition
 
 **Key points:**
 - Triggers are one-shot events with no persistent value
@@ -356,12 +483,19 @@ end
 
 ---
 
-## Exercise 5: Nested ViewModel Inputs
-
-**Goal**: Use script inputs to bind to nested ViewModels.
-
-```lua
---!strict
+<Exercise
+  id="advanced-viewmodel-5"
+  title="Exercise 5: Nested ViewModel Inputs"
+  difficulty={3}
+  hint="Use Input<Data.YourViewModelName> in the type. Access properties like self.character.posX.value. Use late() in the factory."
+  expectedAnswer="nested"
+  explanation="Input<Data.X> binds to a specific ViewModel instance assigned in the editor. Access its properties directly using dot notation."
+  task="Complete the advance function to animate the character's position using the nested ViewModel properties."
+  expectedOutput={`Character controller ready
+Animating character...
+ANSWER: nested`}
+  code={`--!strict
+-- Control a nested ViewModel using script inputs
 
 export type CharacterController = {
     character: Input<Data.Character>,
@@ -371,15 +505,22 @@ export type CharacterController = {
 
 function init(self: CharacterController): boolean
     self.time = 0
+    print("Character controller ready")
     return true
 end
 
 function advance(self: CharacterController, seconds: number): boolean
     self.time += seconds
 
-    local offset = math.sin(self.time * self.speed) * 80
-    self.character.posX.value = offset
-    self.character.posY.value = math.cos(self.time * self.speed * 0.7) * 40
+    -- TODO 1: Calculate horizontal offset using sin(time * speed) * 80
+    -- TODO 2: Write to self.character.posX.value
+    -- TODO 3: Calculate vertical offset using cos(time * speed * 0.7) * 40
+    -- TODO 4: Write to self.character.posY.value
+
+    if math.floor(self.time) == 1 and math.floor(self.time - seconds) < 1 then
+        print("Animating character...")
+        print("ANSWER: nested")
+    end
 
     return true
 end
@@ -396,8 +537,16 @@ return function(): Node<CharacterController>
         speed = 2.0,
         time = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1-4: Animate character position
+local offset = math.sin(self.time * self.speed) * 80
+self.character.posX.value = offset
+self.character.posY.value = math.cos(self.time * self.speed * 0.7) * 40`}
+>
+**Premise:** You're building a character controller that drives a nested ViewModel's position properties.
+
+**Use Case:** Nested ViewModels let you create reusable components (characters, UI elements) that scripts can control independently.
+</Exercise>
 
 **Editor setup:**
 1. Create a `Character` ViewModel with `posX` and `posY` number properties

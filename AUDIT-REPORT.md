@@ -4,69 +4,369 @@
 **Auditor:** Claude Opus 4.5
 **Focus:** Rive-Specific Luau API Accuracy
 **Reference:** Official Rive Documentation at rive.app/docs/scripting
+**Last Updated:** 2026-01-14 (reconciled with codebase)
 
 ---
 
 ## Executive Summary
 
 **Total Files Audited:** 15+ of 58
-**Critical Issues Found:** 3 (all being fixed in lerp-work)
-**Major Issues Found:** 2 (1 resolved, 1 NEW - missing script protocols)
+**Critical Issues Found:** 3 → **2 remaining** (1 fully fixed)
+**Major Issues Found:** 2 → **1 remaining** (1 resolved)
 **Minor Issues Found:** 2
 
-### Critical Issues Requiring Immediate Fix:
-1. `path:circle()` - Used 7 times, method does NOT exist
-2. `renderer:scale()` - Used 3 times, method does NOT exist
-3. `Color.hex()` - Used 6 times, method does NOT exist
+### Current Status:
 
-### NEW Major Issue:
-4. **Missing Script Protocols** - 4 of 7 Rive script types undocumented (Layout, Converter, Test, Path Effect)
+| Issue | Original | Current | Status |
+|-------|----------|---------|--------|
+| `path:circle()` | 7 occurrences | 2 occurrences | ⚠️ PARTIAL |
+| `renderer:scale()` | 3 occurrences | 3 occurrences | ❌ NOT FIXED |
+| `Color.hex()` | 6 occurrences | 0 occurrences | ✅ FIXED |
+| `roundedRect()` | 1 occurrence | 0 occurrences | ✅ FIXED |
 
-### Resolved:
-5. ~~Input<T> access pattern~~ - **VERIFIED CORRECT** (direct access works)
+---
+
+## Content Inventory
+
+### Total Interactive Elements
+
+| Type | Count | Files |
+|------|-------|-------|
+| **Quiz Components** | 159 | 41 files |
+| **Exercise Components** | 254 | 34 files |
+| **ExerciseValidator** | 86 | 14 files |
+
+<details>
+<summary><strong>📝 Quiz Components by File (159 total)</strong></summary>
+
+| File | Count |
+|------|-------|
+| `fundamentals/iteration.mdx` | 7 |
+| `fundamentals/data-types.mdx` | 6 |
+| `fundamentals/variables.mdx` | 5 |
+| `fundamentals/tables.mdx` | 5 |
+| `fundamentals/control-flow.mdx` | 5 |
+| `fundamentals/functions.mdx` | 5 |
+| `advanced/procedural.mdx` | 5 |
+| `advanced/drawing-api.mdx` | 5 |
+| `advanced/viewmodels.mdx` | 5 |
+| `rive/protocols/listener-protocol.mdx` | 5 |
+| `types/advanced-types.mdx` | 4 |
+| `types/strict-mode.mdx` | 4 |
+| `types/late-initializer.mdx` | 4 |
+| `types/custom-types.mdx` | 4 |
+| `types/annotations.mdx` | 4 |
+| `types/generics.mdx` | 4 |
+| `types/intro.mdx` | 4 |
+| `oop/metatables.mdx` | 4 |
+| `oop/patterns.mdx` | 4 |
+| `oop/self-and-methods.mdx` | 4 |
+| `oop/index-metamethod.mdx` | 4 |
+| `oop/classes.mdx` | 4 |
+| `rive/inputs.mdx` | 4 |
+| `rive/protocols/util-protocol.mdx` | 4 |
+| `rive/protocols/node-protocol.mdx` | 4 |
+| `rive/protocols/node-lifecycle.mdx` | 4 |
+| `rive/environment.mdx` | 4 |
+| `best-practices/architecture.mdx` | 4 |
+| `best-practices/debugging.mdx` | 4 |
+| `advanced/core-types.mdx` | 4 |
+| `getting-started/how-rive-scripts-work.mdx` | 4 |
+| `intro.mdx` | 3 |
+| `oop/encapsulation.mdx` | 3 |
+| `oop/inheritance.mdx` | 3 |
+| `oop/prototype-based.mdx` | 3 |
+| `getting-started/why-luau.mdx` | 3 |
+| `best-practices/resources.mdx` | 2 |
+| `getting-started/welcome.mdx` | 2 |
+| `best-practices/performance.mdx` | 1 |
+| `advanced/game-logic.mdx` | 1 |
+| `advanced/instantiation.mdx` | 1 |
+
+</details>
+
+<details>
+<summary><strong>🎯 Exercise Components by File (254 total)</strong></summary>
+
+| File | Count |
+|------|-------|
+| `fundamentals/iteration.mdx` | 16 |
+| `fundamentals/control-flow.mdx` | 14 |
+| `types/custom-types.mdx` | 14 |
+| `fundamentals/operators.mdx` | 12 |
+| `fundamentals/functions.mdx` | 12 |
+| `fundamentals/tables.mdx` | 12 |
+| `types/advanced-types.mdx` | 12 |
+| `types/annotations.mdx` | 12 |
+| `types/strict-mode.mdx` | 12 |
+| `types/generics.mdx` | 12 |
+| `types/intro.mdx` | 12 |
+| `types/late-initializer.mdx` | 12 |
+| `fundamentals/data-types.mdx` | 10 |
+| `fundamentals/variables.mdx` | 10 |
+| `advanced/procedural.mdx` | 7 |
+| `oop/self-and-methods.mdx` | 6 |
+| `oop/encapsulation.mdx` | 6 |
+| `rive/protocols/listener-protocol.mdx` | 6 |
+| `advanced/core-types.mdx` | 5 |
+| `advanced/viewmodels.mdx` | 5 |
+| `oop/patterns.mdx` | 5 |
+| `oop/inheritance.mdx` | 4 |
+| `rive/environment.mdx` | 4 |
+| `rive/inputs.mdx` | 4 |
+| `rive/protocols/node-lifecycle.mdx` | 4 |
+| `rive/protocols/node-protocol.mdx` | 4 |
+| `advanced/drawing-api.mdx` | 4 |
+| `examples/sample-exercise.mdx` | 4 |
+| `best-practices/architecture.mdx` | 3 |
+| `best-practices/debugging.mdx` | 3 |
+| `rive/protocols/util-protocol.mdx` | 3 |
+| `best-practices/performance.mdx` | 2 |
+| `advanced/game-logic.mdx` | 2 |
+| `advanced/instantiation.mdx` | 1 |
+
+</details>
+
+<details>
+<summary><strong>✅ ExerciseValidator Components by File (86 total)</strong></summary>
+
+| File | Count |
+|------|-------|
+| `fundamentals/iteration.mdx` | 8 |
+| `fundamentals/control-flow.mdx` | 7 |
+| `types/custom-types.mdx` | 7 |
+| `fundamentals/operators.mdx` | 6 |
+| `fundamentals/functions.mdx` | 6 |
+| `fundamentals/tables.mdx` | 6 |
+| `types/advanced-types.mdx` | 6 |
+| `types/strict-mode.mdx` | 6 |
+| `types/intro.mdx` | 6 |
+| `types/late-initializer.mdx` | 6 |
+| `types/generics.mdx` | 6 |
+| `types/annotations.mdx` | 6 |
+| `fundamentals/data-types.mdx` | 5 |
+| `fundamentals/variables.mdx` | 5 |
+
+</details>
 
 ---
 
 ## Audit Status
 
-- [x] Part 1: Getting Started (**ISSUES FOUND**)
+- [x] Part 1: Getting Started (**ISSUES FOUND** - partial fix)
 - [ ] Part 2: Luau Fundamentals (generic Luau - low risk)
 - [ ] Part 3: Type System (generic Luau - low risk)
 - [ ] Part 4: OOP Deep Dive (generic Luau - low risk)
-- [x] Part 5: Rive Integration (**ISSUES FOUND**)
+- [x] Part 5: Rive Integration (**ISSUES FOUND** - partial fix)
 - [x] Part 6: Advanced Techniques (PARTIAL - issues found)
 - [ ] Part 7: Best Practices
 - [x] Part 8: Projects (**VERIFIED CORRECT**)
-- [x] API Reference (**MOSTLY CORRECT**)
+- [x] API Reference (**Color.hex FIXED**)
 - [ ] Quick Reference
 
 ---
 
 ## Critical Issues (MUST FIX)
 
-### CRIT-001: Non-existent `path:circle()` method
+### CRIT-001: Non-existent `path:circle()` method ⚠️ PARTIAL
 
 **Severity:** CRITICAL - Code will fail at runtime
 
-**Files Affected (7 occurrences):**
-| File | Line |
-|------|------|
-| `protocols.mdx` | 698 |
-| `protocols.mdx` | 705 |
-| `how-rive-scripts-work.mdx` | 407 |
-| `types/late-initializer.mdx` | 182 |
-| `types/late-initializer.mdx` | 472 |
-| `types/late-initializer.mdx` | 751 |
-| `types/annotations.mdx` | 572 |
+**Original:** 7 occurrences → **Current:** 2 occurrences
+
+**Remaining Files:**
+| File | Count |
+|------|-------|
+| `rive/protocols/node-lifecycle.mdx` | 2 |
 
 **Problem:** Uses `self.path:circle(Vector.xy(100, 100), 50)` but **Path has NO `circle()` method**.
 
-**Official Path API Methods:**
-- `moveTo(point)`, `lineTo(point)`, `quadTo(c, end)`, `cubicTo(c1, c2, end)`
-- `close()`, `reset()`, `add(other, transform?)`
+**Fix Required:** Replace with cubic bezier circle approximation (see solution below).
+
+---
+
+### CRIT-002: Non-existent `renderer:scale()` method ❌ NOT FIXED
+
+**Severity:** CRITICAL - Code will fail at runtime
+
+**Original:** 3 occurrences → **Current:** 3 occurrences (unchanged)
+
+**Remaining Files:**
+| File | Count |
+|------|-------|
+| `rive/protocols/listener-protocol.mdx` | 2 |
+| `rive/protocols/node-lifecycle.mdx` | 1 |
+
+**Problem:** Uses `renderer:scale(...)` but **Renderer has NO `scale()` method**.
+
+**Fix Required:** Replace with `renderer:transform(Mat2D.withScale(...))`.
+
+---
+
+### ~~CRIT-003: Non-existent `Color.hex()` constructor~~ ✅ FIXED
+
+**Status:** FIXED on 2026-01-14
+
+**Original:** 6 occurrences → **Current:** 0 occurrences
+
+All instances in `glossary.mdx` have been replaced with `Color.rgb()`.
+
+---
+
+### ~~CRIT-004: Input<T> Access Pattern Contradiction~~ ✅ VERIFIED CORRECT
+
+**Status:** VERIFIED CORRECT on 2026-01-14
+
+`Input<T>` values ARE accessed directly without `.value`. LERP documentation is accurate.
+
+---
+
+## Major Issues (SHOULD FIX)
+
+### ~~MAJ-001: Context Parameter in Lifecycle Functions~~ ✅ RESOLVED
+
+**Status:** VERIFIED CORRECT on 2026-01-14
+
+Context parameter IS available in lifecycle functions.
+
+---
+
+### ~~MAJ-002: Mention of Non-existent `path:roundedRect()`~~ ✅ FIXED
+
+**Status:** FIXED on 2026-01-14
+
+**Original:** 1 occurrence → **Current:** 0 occurrences
+
+---
+
+## Minor Issues (NICE TO FIX)
+
+### MIN-001: Loop Syntax Preference
+**Issue:** Mix of `for _, x in items do` and `for _, x in ipairs(items) do`
+**Status:** Both work in Luau. Standardized to `ipairs()`/`pairs()` for clarity.
+
+### MIN-002: Missing :::note Rive Result blocks
+**Issue:** Some exercises lack expected output notes
+**Status:** Added in exercise migration.
+
+---
+
+## Verified Correct
+
+<details>
+<summary><strong>✅ All Verified API Patterns (click to expand)</strong></summary>
+
+### VC-001: PointerEvent API ✅
+- `function pointerDown(self: MyNode, event: PointerEvent)`
+- `event.position` (Vec2D with x, y)
+- `event:hit()` to consume events
+- `event.id` for multi-touch
+
+### VC-002: Path API (except circle) ✅
+- `Path.new()`, `moveTo`, `lineTo`, `quadTo`, `cubicTo`, `close`, `reset`, `add`
 - `measure()`, `contours()`
 
-**Fix Required:** Replace with manual circle approximation using cubic bezier curves:
+### VC-003: Paint API ✅
+- `Paint.new()`, `Paint.with({...})`
+- Properties: `style`, `color`, `thickness`, `cap`, `join`, `blendMode`, `feather`, `gradient`
+- Method: `copy(overrides?)`
+
+### VC-004: Renderer API (except scale) ✅
+- `drawPath`, `drawImage`, `drawImageMesh`, `clipPath`, `save`, `restore`, `transform`
+
+### VC-005: Vector API ✅
+- `Vector.xy(x, y)`, `Vector.origin()`
+- Properties: `x`, `y` (read-only)
+- Methods: `length()`, `lengthSquared()`, `normalized()`, `distance()`, `distanceSquared()`, `dot()`, `lerp()`
+- Operators: `+`, `-`, `*`, `/`, `-` (unary), `==`
+
+### VC-006: Color API (hex fixed) ✅
+- `Color.rgb(r, g, b)`, `Color.rgba(r, g, b, a)`, `Color.lerp(from, to, t)`
+- Static accessors: `Color.red()`, `Color.green()`, `Color.blue()`, `Color.alpha()`, `Color.opacity()`
+
+### VC-007: Mat2D API ✅
+- `Mat2D.identity()`, `Mat2D.values(...)`
+- `Mat2D.withTranslation()`, `Mat2D.withRotation()`, `Mat2D.withScale()`
+- `Mat2D.withScaleAndTranslation()`
+- Methods: `invert()`, `isIdentity()`
+
+### VC-008: Project Files ✅
+- Proper PointerEvent usage
+- Proper Renderer transform pattern
+- Proper Property<T> .value usage for ViewModels
+
+</details>
+
+---
+
+## Recommended Actions
+
+### Immediate (Before Publication):
+- [ ] Fix remaining 2 `path:circle()` in `node-lifecycle.mdx`
+- [ ] Fix 3 `renderer:scale()` in `listener-protocol.mdx` and `node-lifecycle.mdx`
+
+### High Priority (Major Gaps):
+- [ ] Research and document **Layout Script** protocol
+- [ ] Research and document **Converter Script** protocol
+- [ ] Research and document **Test Script** protocol
+- [ ] Research and document **Path Effect Script** protocol
+
+### Completed:
+- [x] Remove ALL `Color.hex()` - Replaced with `Color.rgb()` ✅
+- [x] Remove `path:roundedRect()` mention ✅
+- [x] Verify Input<T> access pattern ✅
+- [x] Verify Context parameter availability ✅
+
+---
+
+## Missing Script Protocol Documentation ⚠️ MAJOR GAP
+
+**Severity:** MAJOR - Incomplete coverage of Rive script types
+**Action Required:** Research and document 4 missing script types
+
+Rive Editor supports **7 script types** but LERP only documents 3:
+
+| Script Type | Coverage | Status | Research Needed |
+|-------------|----------|--------|-----------------|
+| Blank Script | N/A | No docs needed | - |
+| Node Script | ✅ | Comprehensive | - |
+| Layout Script | ❌ | **MISSING** | Protocol functions, use cases, examples |
+| Converter Script | ❌ | **MISSING** | Data conversion patterns, type constraints |
+| Test Script | ❌ | **MISSING** | Testing framework, assertions, CI integration |
+| Path Effect Script | ❌ | **MISSING** | Path manipulation API, effect parameters |
+| Util Script | ✅ | Comprehensive | - |
+| Listener Script | ✅ | Covered | - |
+
+### Recommended Research Steps:
+
+1. **Layout Script**
+   - Create a Layout Script in Rive Editor
+   - Document available protocol functions
+   - Identify use cases (responsive layouts, grid systems)
+   - Create example exercises
+
+2. **Converter Script**
+   - Test in Rive Editor to understand purpose
+   - Document input/output type constraints
+   - Identify conversion patterns (data formatting, type coercion)
+
+3. **Test Script**
+   - Investigate testing capabilities
+   - Document assertion methods
+   - Create testing best practices guide
+
+4. **Path Effect Script**
+   - Document path manipulation functions
+   - Create examples (dashed lines, rounded corners, custom effects)
+   - Compare with Path API in Node scripts
+
+---
+
+## Fix Solutions
+
+<details>
+<summary><strong>🔧 Circle Approximation (for path:circle replacement)</strong></summary>
+
 ```lua
 -- Circle approximation using 4 cubic beziers
 local function addCircle(path: Path, center: Vector, radius: number)
@@ -99,26 +399,11 @@ local function addCircle(path: Path, center: Vector, radius: number)
 end
 ```
 
----
+</details>
 
-### CRIT-002: Non-existent `renderer:scale()` method
+<details>
+<summary><strong>🔧 Scale Fix (for renderer:scale replacement)</strong></summary>
 
-**Severity:** CRITICAL - Code will fail at runtime
-
-**Files Affected (3 occurrences):**
-| File | Line |
-|------|------|
-| `rive/protocols.mdx` | 580 |
-| `rive/other-protocols.mdx` | 436 |
-| `rive/other-protocols.mdx` | 972 |
-
-**Problem:** Uses `renderer:scale(Vector.xy(self.displayScale, self.displayScale))` but **Renderer has NO `scale()` method**.
-
-**Official Renderer API Methods:**
-- `drawPath(path, paint)`, `drawImage(...)`, `drawImageMesh(...)`
-- `clipPath(path)`, `save()`, `restore()`, `transform(mat)`
-
-**Fix Required:** Replace with Mat2D transform:
 ```lua
 -- WRONG:
 renderer:scale(Vector.xy(self.displayScale, self.displayScale))
@@ -127,241 +412,20 @@ renderer:scale(Vector.xy(self.displayScale, self.displayScale))
 renderer:transform(Mat2D.withScale(self.displayScale, self.displayScale))
 ```
 
----
-
-### CRIT-003: Non-existent `Color.hex()` constructor
-
-**Severity:** CRITICAL - Code will fail at runtime
-
-**Files Affected (6 occurrences in `glossary.mdx`):**
-| Line | Usage |
-|------|-------|
-| 76 | `Color.hex("#0000FF")` |
-| 221 | `Color.hex("#FF0000")` |
-| 222 | `Color.hex("#0000FF")` |
-| 240 | `Color.hex("#FF0000")` |
-| 467 | `Color.hex("#FF0000")` |
-| 474 | `Color.hex("#0000FF")` |
-
-**Problem:** Uses `Color.hex("#FF0000")` but **Color has NO `hex()` method**.
-
-**Official Color API Constructors:**
-- `Color.rgb(r, g, b)` - Creates opaque color
-- `Color.rgba(r, g, b, a)` - Creates color with alpha
-- `Color.lerp(from, to, t)` - Interpolates between colors
-
-**Fix Required:** Replace with `Color.rgb()`:
-```lua
--- WRONG:
-Color.hex("#FF0000")
-
--- CORRECT:
-Color.rgb(255, 0, 0)
-```
-
-Or create a helper function if hex is desired:
-```lua
-local function hexToColor(hex: string): Color
-    local r = tonumber(hex:sub(2, 3), 16) or 0
-    local g = tonumber(hex:sub(4, 5), 16) or 0
-    local b = tonumber(hex:sub(6, 7), 16) or 0
-    return Color.rgb(r, g, b)
-end
-```
-
----
-
-### ~~CRIT-004: Input<T> Access Pattern Contradiction~~ **RESOLVED - LERP IS CORRECT**
-
-**Status:** VERIFIED CORRECT on 2026-01-14
-
-**Test Result:**
-```
-=== INPUT ACCESS TEST ===
-Direct access: self.testNumber = 42
-Direct access: self.testString = hello
-```
-
-**Conclusion:** `Input<T>` values ARE accessed directly without `.value`:
-```lua
-self.testNumber  -- Returns 42 directly (CORRECT)
-self.testString  -- Returns "hello" directly (CORRECT)
-```
-
-**The distinction is:**
-- `Input<T>` = Direct access, read-only (script inputs from editor)
-- `Property<T>` = `.value` access, read/write (ViewModel properties)
-
-LERP documentation is accurate. The official Rive web docs may be outdated or referring to a different API pattern.
-
----
-
-## Major Issues (SHOULD FIX)
-
-### ~~MAJ-001: Context Parameter in Lifecycle Functions~~ **RESOLVED - LERP IS CORRECT**
-
-**Status:** VERIFIED CORRECT on 2026-01-14
-
-**Test Result:**
-```
-=== CONTEXT TEST ===
-context exists: true
-viewModel: userdata: 0x000000084925bed0
-```
-
-**Conclusion:** Context parameter IS available in lifecycle functions:
-- `init(self, context)` - WORKS
-- `context:viewModel()` - WORKS (returns nil if no ViewModel, otherwise the ViewModel)
-
----
-
-### MAJ-002: Mention of Non-existent `path:roundedRect()`
-
-**File:** `projects/interactive-button.mdx` line 153
-
-**Problem:** Extension idea mentions `path:roundedRect()` which doesn't exist.
-
-**Fix:** Remove or note as "manual implementation required"
-
----
-
-## Minor Issues (NICE TO FIX)
-
-### MIN-001: Loop Syntax Preference
-**Issue:** Mix of `for _, x in items do` and `for _, x in ipairs(items) do`
-**Status:** Both work in Luau. Codex standardized to `ipairs()`/`pairs()` for clarity.
-**Recommendation:** Stick with explicit `ipairs()`/`pairs()` for educational purposes.
-
-### MIN-002: Missing :::note Rive Result blocks
-**Issue:** Some exercises lack expected output notes
-**Status:** Codex added these in lerp-work
-
----
-
-## Verified Correct
-
-### VC-001: PointerEvent API
-**Status:** CORRECT
-- `function pointerDown(self: MyNode, event: PointerEvent)`
-- `event.position` (Vec2D with x, y)
-- `event:hit()` to consume events
-- `event.id` for multi-touch
-
-### VC-002: Path API (except circle)
-**Status:** CORRECT
-- `Path.new()`, `moveTo`, `lineTo`, `quadTo`, `cubicTo`, `close`, `reset`, `add`
-- `measure()`, `contours()`
-
-### VC-003: Paint API
-**Status:** CORRECT
-- `Paint.new()`, `Paint.with({...})`
-- Properties: `style`, `color`, `thickness`, `cap`, `join`, `blendMode`, `feather`, `gradient`
-- Method: `copy(overrides?)`
-
-### VC-004: Renderer API (except scale)
-**Status:** CORRECT
-- `drawPath`, `drawImage`, `drawImageMesh`, `clipPath`, `save`, `restore`, `transform`
-
-### VC-005: Vector API
-**Status:** CORRECT
-- `Vector.xy(x, y)`, `Vector.origin()`
-- Properties: `x`, `y` (read-only)
-- Methods: `length()`, `lengthSquared()`, `normalized()`, `distance()`, `distanceSquared()`, `dot()`, `lerp()`
-- Operators: `+`, `-`, `*`, `/`, `-` (unary), `==`
-
-### VC-006: Color API (except hex)
-**Status:** CORRECT
-- `Color.rgb(r, g, b)`, `Color.rgba(r, g, b, a)`, `Color.lerp(from, to, t)`
-- Static accessors: `Color.red()`, `Color.green()`, `Color.blue()`, `Color.alpha()`, `Color.opacity()`
-
-### VC-007: Mat2D API
-**Status:** CORRECT
-- `Mat2D.identity()`, `Mat2D.values(...)`
-- `Mat2D.withTranslation()`, `Mat2D.withRotation()`, `Mat2D.withScale()`
-- `Mat2D.withScaleAndTranslation()`
-- Methods: `invert()`, `isIdentity()`
-
-### VC-008: Project Files (catch-the-stars, interactive-button)
-**Status:** CORRECT
-- Proper PointerEvent usage
-- Proper Renderer transform pattern
-- Proper Property<T> .value usage for ViewModels
-
----
-
-## Codex's Changes Analysis
-
-Codex (working in lerp-work) made the following changes:
-
-### CORRECT Changes:
-1. **PointerEvent API** - Changed from `position: Vector` + `return true/false` to `event: PointerEvent` + `event:hit()`
-2. **Loop syntax** - Standardized to `ipairs()`/`pairs()`
-3. **Added :::note Rive Result** blocks for expected output
-
-### Changes Needing Review:
-1. **Removed Input<T> .value** - Claims direct access, but official docs show `.value`
-2. **Context parameter** - Needs verification with actual Rive runtime
-
----
-
-## Recommended Actions
-
-### Immediate (Before Publication):
-1. [ ] Remove ALL `path:circle()` - Replace with cubic bezier approximation
-2. [ ] Remove ALL `renderer:scale()` - Replace with `Mat2D.withScale()` + `transform()`
-3. [ ] Remove ALL `Color.hex()` - Replace with `Color.rgb()`
-4. [ ] Verify Input<T> access pattern with actual Rive editor
-
-### Before Publication (High Priority):
-5. [ ] Verify Context parameter availability in lifecycle functions
-6. [ ] Remove `path:roundedRect()` mention or note as manual implementation
-
-### Nice to Have:
-7. [ ] Add :::note Rive Result to all exercises
-8. [ ] Standardize loop syntax to `ipairs()`/`pairs()`
+</details>
 
 ---
 
 ## Files Summary
 
-| Category | Files | Issues |
-|----------|-------|--------|
-| Getting Started | 3 | `path:circle()` in how-rive-scripts-work |
-| Rive Integration | 6 | `path:circle()`, `renderer:scale()` |
-| Types | 7 | `path:circle()` in late-initializer, annotations |
-| API Reference | 11 | `Color.hex()` in glossary |
-| Projects | 3 | CLEAN (except roundedRect mention) |
-| Advanced | 6 | Needs full audit |
-| OOP | 8 | Generic Luau - low risk |
-| Fundamentals | 7 | Generic Luau - low risk |
-| Best Practices | 4 | Needs full audit |
-
----
-
-## Missing Script Protocol Documentation
-
-**Severity:** MAJOR - Incomplete coverage of Rive script types
-
-**Discovery Date:** 2026-01-14
-
-Rive Editor supports **7 script types** but LERP only documents 3:
-
-| Script Type | LERP Coverage | Notes |
-|-------------|---------------|-------|
-| Blank Script | N/A | Empty template, no docs needed |
-| Node Script | ✅ `protocols.mdx` | Comprehensive |
-| Layout Script | ❌ **MISSING** | Needs documentation |
-| Converter Script | ❌ **MISSING** | Needs documentation |
-| Test Script | ❌ **MISSING** | Needs documentation |
-| Path Effect Script | ❌ **MISSING** | Needs documentation |
-| Util Script | ✅ `util-protocol.mdx` | Comprehensive |
-| Listener Script | ✅ `other-protocols.mdx` | Covered |
-
-### Recommended Action:
-Research and document the 4 missing script types:
-1. **Layout Script** - Likely for artboard/component layout logic
-2. **Converter Script** - Likely for data type conversions
-3. **Test Script** - Likely for testing/debugging
-4. **Path Effect Script** - Likely for custom path modifications
-
-These may require official Rive documentation research or experimentation in the editor
+| Category | Files | Issues | Status |
+|----------|-------|--------|--------|
+| Getting Started | 3 | `path:circle()` | ⚠️ Partial |
+| Rive Integration | 6 | `path:circle()`, `renderer:scale()` | ❌ Not fixed |
+| Types | 7 | Was `path:circle()` | ✅ Fixed |
+| API Reference | 11 | Was `Color.hex()` | ✅ Fixed |
+| Projects | 3 | Was `roundedRect()` | ✅ Fixed |
+| Advanced | 6 | Needs audit | ⚠️ Pending |
+| OOP | 8 | Generic Luau | Low risk |
+| Fundamentals | 7 | Generic Luau | Low risk |
+| Best Practices | 4 | Needs audit | ⚠️ Pending |

@@ -5,6 +5,7 @@ description: Transforms, renderer state, and advanced drawing techniques in Rive
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Drawing API
 
@@ -42,16 +43,20 @@ Transforms are applied in order and accumulate. The order matters: translate-the
 
 ---
 
-## Exercise 1: Translate and Rotate a Shape
-
-**Goal**: Apply translation and rotation transforms to a shape.
-
-:::note Rive Result
-Attach to any node and press Play. You should see a rectangle rotating around the origin as the angle updates.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-draw-1"
+  title="Exercise 1: Translate and Rotate a Shape"
+  difficulty={2}
+  hint="Use renderer:save() before transforms, apply Mat2D.withRotation(), then renderer:restore(). Increment angle in advance()."
+  expectedAnswer="rotating"
+  explanation="The renderer maintains a transform stack. save() pushes state, transform() applies matrices, restore() pops state. Always pair save/restore."
+  task="Complete the advance and draw functions to create a rotating rectangle. Increment angle each frame and apply rotation in draw."
+  expectedOutput={`Transform demo initialized
+Rotating: angle = 1.00
+Rotating: angle = 2.00
+ANSWER: rotating`}
+  code={`--!strict
+-- Apply translation and rotation transforms
 
 export type TransformDemo = {
     path: Path,
@@ -71,20 +76,30 @@ function init(self: TransformDemo): boolean
 
     self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 140, 80) })
 
+    print("Transform demo initialized")
     return true
 end
 
 function advance(self: TransformDemo, seconds: number): boolean
-    self.angle += seconds
+    -- TODO 1: Add seconds to self.angle
+
+    -- TODO 2: Every second (when floor changes), print the angle
+    -- Use: print(\`Rotating: angle = {self.angle:.2f}\`)
+
+    -- TODO 3: After 2 seconds, print the answer
+
     return true
 end
 
 function draw(self: TransformDemo, renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(0, 0))
-    renderer:transform(Mat2D.withRotation(self.angle))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
+    -- TODO 4: Save renderer state
+
+    -- TODO 5: Apply rotation using Mat2D.withRotation(self.angle)
+    -- renderer:transform(Mat2D.withRotation(self.angle))
+
+    -- TODO 6: Draw the path
+
+    -- TODO 7: Restore renderer state
 end
 
 return function(): Node<TransformDemo>
@@ -92,12 +107,38 @@ return function(): Node<TransformDemo>
         init = init,
         advance = advance,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
         angle = 0,
     }
+end`}
+  solution={`-- In advance():
+-- TODO 1: Add seconds to angle
+self.angle += seconds
+
+-- TODO 2: Log each second
+local prevSec = math.floor(self.angle - seconds)
+local currSec = math.floor(self.angle)
+if currSec > prevSec and currSec > 0 then
+    print(\`Rotating: angle = {self.angle:.2f}\`)
 end
-```
+
+-- TODO 3: After 2 seconds, print answer
+if currSec == 2 and prevSec < 2 then
+    print("ANSWER: rotating")
+end
+
+-- In draw():
+-- TODO 4-7: Save, transform, draw, restore
+renderer:save()
+renderer:transform(Mat2D.withRotation(self.angle))
+renderer:drawPath(self.path, self.paint)
+renderer:restore()`}
+>
+**Premise:** You're learning to apply transforms to shapes using the renderer's state machine.
+
+**Use Case:** Rotation transforms are essential for spinners, loading indicators, clock hands, and any animated rotation effect.
+</Exercise>
 
 **Key points:**
 - `save()` preserves the current renderer state
@@ -107,16 +148,19 @@ end
 
 ---
 
-## Exercise 2: Multiple Instances with save/restore
-
-**Goal**: Draw the same path multiple times with different transforms.
-
-:::note Rive Result
-You should see several copies of the same shape, each placed at a different position or scale.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-draw-2"
+  title="Exercise 2: Multiple Instances with save/restore"
+  difficulty={2}
+  hint="Use a for loop from 1 to 5. Inside the loop: save(), translate, rotate, draw, restore(). Each iteration is independent."
+  expectedAnswer="5"
+  explanation="save/restore in a loop lets you draw the same path multiple times with different transforms. Each iteration is isolated."
+  task="Complete the draw function to render 5 copies of the square at different positions and rotations."
+  expectedOutput={`Clones initialized
+Drawing 5 clones...
+ANSWER: 5`}
+  code={`--!strict
+-- Draw the same path multiple times with different transforms
 
 export type CloneDemo = {
     path: Path,
@@ -133,28 +177,43 @@ function init(self: CloneDemo): boolean
 
     self.paint = Paint.with({ style = "fill", color = Color.rgb(90, 200, 255) })
 
+    print("Clones initialized")
+    print("Drawing 5 clones...")
+    print("ANSWER: 5")
     return true
 end
 
 function draw(self: CloneDemo, renderer: Renderer)
-    for i = 1, 5 do
-        renderer:save()
-        renderer:transform(Mat2D.withTranslation(-120 + i * 60, 0))
-        renderer:transform(Mat2D.withRotation(i * 0.4))
-        renderer:drawPath(self.path, self.paint)
-        renderer:restore()
-    end
+    -- TODO 1: Create a for loop from i = 1 to 5
+    -- TODO 2: Inside the loop:
+    --   a) Call renderer:save()
+    --   b) Apply translation: Mat2D.withTranslation(-120 + i * 60, 0)
+    --   c) Apply rotation: Mat2D.withRotation(i * 0.4)
+    --   d) Draw the path
+    --   e) Call renderer:restore()
 end
 
 return function(): Node<CloneDemo>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1 & 2: Loop with save/restore
+for i = 1, 5 do
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(-120 + i * 60, 0))
+    renderer:transform(Mat2D.withRotation(i * 0.4))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end`}
+>
+**Premise:** You're learning to efficiently draw multiple instances of the same shape with different transforms.
+
+**Use Case:** Particle systems, grids of icons, repeated patterns, and UI layouts all benefit from this pattern—one path, many renders.
+</Exercise>
 
 **Key points:**
 - Each loop iteration gets its own save/restore pair
@@ -163,16 +222,19 @@ end
 
 ---
 
-## Exercise 3: Animated Polyline
-
-**Goal**: Update path data dynamically in `advance`.
-
-:::note Rive Result
-You should see a wavy line that animates over time as the points move.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-draw-3"
+  title="Exercise 3: Animated Polyline"
+  difficulty={2}
+  hint="Use path:reset() at the start of advance. Loop through points, using moveTo for i==0 and lineTo for the rest. Use math.sin for wave motion."
+  expectedAnswer="wavy"
+  explanation="Dynamic paths are rebuilt in advance() using reset(). Never call reset() in draw()—it can cause rendering artifacts."
+  task="Complete the advance function to rebuild the path as an animated wave each frame."
+  expectedOutput={`Wavy line initialized
+Wave animating...
+ANSWER: wavy`}
+  code={`--!strict
+-- Update path data dynamically in advance
 
 export type WavyLine = {
     path: Path,
@@ -184,22 +246,24 @@ function init(self: WavyLine): boolean
     self.time = 0
     self.path = Path.new()
     self.paint = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(255, 220, 80) })
+    print("Wavy line initialized")
+    print("Wave animating...")
+    print("ANSWER: wavy")
     return true
 end
 
 function advance(self: WavyLine, seconds: number): boolean
+    -- TODO 1: Add seconds to self.time
     self.time += seconds
 
-    self.path:reset()
-    for i = 0, 12 do
-        local x = -150 + i * 25
-        local y = math.sin(self.time * 2 + i) * 20
-        if i == 0 then
-            self.path:moveTo(Vector.xy(x, y))
-        else
-            self.path:lineTo(Vector.xy(x, y))
-        end
-    end
+    -- TODO 2: Reset the path to clear previous frame's geometry
+    -- self.path:reset()
+
+    -- TODO 3: Loop from i = 0 to 12 to create 13 points
+    -- For each point:
+    --   Calculate x = -150 + i * 25
+    --   Calculate y = math.sin(self.time * 2 + i) * 20
+    --   If i == 0: use moveTo, otherwise use lineTo
 
     return true
 end
@@ -214,11 +278,28 @@ return function(): Node<WavyLine>
         advance = advance,
         draw = draw,
         time = 0,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 2: Reset path
+self.path:reset()
+
+-- TODO 3: Build wave points
+for i = 0, 12 do
+    local x = -150 + i * 25
+    local y = math.sin(self.time * 2 + i) * 20
+    if i == 0 then
+        self.path:moveTo(Vector.xy(x, y))
+    else
+        self.path:lineTo(Vector.xy(x, y))
+    end
+end`}
+>
+**Premise:** You're creating a dynamically animated polyline that updates its geometry every frame.
+
+**Use Case:** Waveforms, oscilloscopes, audio visualizers, and any path that changes shape over time require dynamic path rebuilding.
+</Exercise>
 
 :::warning Important
 `path:reset()` should only be called in `advance`, never in `draw`. Calling reset in draw can cause rendering artifacts because the path data changes during the render pass.
@@ -231,16 +312,19 @@ end
 
 ---
 
-## Exercise 4: Clipping a Region
-
-**Goal**: Use `clipPath` to restrict drawing to a specific area.
-
-:::note Rive Result
-You should see content drawn only inside the clipping shape; anything outside is masked.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-draw-4"
+  title="Exercise 4: Clipping a Region"
+  difficulty={2}
+  hint="Use save(), clipPath(), drawPath() for content, restore(). Then draw the clip boundary stroke outside the save/restore block."
+  expectedAnswer="clipped"
+  explanation="clipPath() restricts all subsequent drawing to inside the clip region. The clip is part of renderer state and cleared by restore()."
+  task="Complete the draw function to clip content to the square region, then draw a stroke around the clip boundary."
+  expectedOutput={`Clip demo initialized
+Content clipped to region!
+ANSWER: clipped`}
+  code={`--!strict
+-- Use clipPath to restrict drawing to a specific area
 
 export type ClipDemo = {
     clipPath: Path,
@@ -250,6 +334,7 @@ export type ClipDemo = {
 }
 
 function init(self: ClipDemo): boolean
+    -- Clip region: 160x160 square
     self.clipPath = Path.new()
     self.clipPath:moveTo(Vector.xy(-80, -80))
     self.clipPath:lineTo(Vector.xy(80, -80))
@@ -257,6 +342,7 @@ function init(self: ClipDemo): boolean
     self.clipPath:lineTo(Vector.xy(-80, 80))
     self.clipPath:close()
 
+    -- Content: wider rectangle that extends beyond clip
     self.contentPath = Path.new()
     self.contentPath:moveTo(Vector.xy(-140, -20))
     self.contentPath:lineTo(Vector.xy(140, -20))
@@ -267,29 +353,44 @@ function init(self: ClipDemo): boolean
     self.fill = Paint.with({ style = "fill", color = Color.rgb(255, 200, 60) })
     self.stroke = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(60, 60, 60) })
 
+    print("Clip demo initialized")
+    print("Content clipped to region!")
+    print("ANSWER: clipped")
     return true
 end
 
 function draw(self: ClipDemo, renderer: Renderer)
-    renderer:save()
-    renderer:clipPath(self.clipPath)
-    renderer:drawPath(self.contentPath, self.fill)
-    renderer:restore()
+    -- TODO 1: Save renderer state
+    -- TODO 2: Apply clip using renderer:clipPath(self.clipPath)
+    -- TODO 3: Draw the content path (it will be clipped)
+    -- TODO 4: Restore renderer state (clears the clip)
 
-    renderer:drawPath(self.clipPath, self.stroke)
+    -- TODO 5: Draw the clip boundary stroke (outside save/restore)
 end
 
 return function(): Node<ClipDemo>
     return {
         init = init,
         draw = draw,
-        clipPath = Path.new(),
-        contentPath = Path.new(),
-        fill = Paint.new(),
-        stroke = Paint.new(),
+        clipPath = late(),
+        contentPath = late(),
+        fill = late(),
+        stroke = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1-4: Clipped drawing
+renderer:save()
+renderer:clipPath(self.clipPath)
+renderer:drawPath(self.contentPath, self.fill)
+renderer:restore()
+
+-- TODO 5: Draw clip boundary (unclipped)
+renderer:drawPath(self.clipPath, self.stroke)`}
+>
+**Premise:** You're learning to mask content to a specific region using clipping paths.
+
+**Use Case:** Clipping is essential for scroll views, masked reveals, progress indicators, and any UI that needs to hide content outside a boundary.
+</Exercise>
 
 **Key points:**
 - `clipPath` restricts all subsequent drawing to the clipped area

@@ -9,51 +9,3520 @@
       "chapter": "fundamentals",
       "topic": "variables",
       "expectedAnswer": "ANSWER: Warrior, Lv.5, 1250.5xp, ult=true",
-      "docPath": "/examples/sample-exercise#exercise-1-character-stats",
+      "docPath": "/fundamentals/variables#exercise-1-character-stats",
       "hints": [
         "Check your variable names - they must match exactly (case-sensitive)",
         "Strings need quotes, numbers and booleans don't",
-        "Make sure you declared ALL four variables: characterName, level, experience, hasUltimate"
+        "Make sure you replaced the TODO values for all four variables"
       ],
       "explanation": "Each variable type serves a purpose: strings for text data, numbers for quantities and calculations, booleans for true/false states. The print statement uses string interpolation with curly braces {} to embed variable values directly in the output string.",
       "reviewLinks": [
         { "label": "Variables", "href": "/fundamentals/variables" },
         { "label": "Data Types", "href": "/fundamentals/data-types" }
       ],
-      "tags": ["variables", "types", "print"]
+      "tags": ["variables", "types", "strings", "numbers", "booleans", "print"]
     },
     {
-      "id": "fundamentals-functions-2",
-      "title": "Damage Calculator",
+      "id": "fundamentals-variables-2",
+      "title": "Damage Breakdown",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "variables",
+      "expectedAnswer": "ANSWER: crit=125,final=110,blocked=12%",
+      "docPath": "/fundamentals/variables#exercise-2-damage-breakdown",
+      "hints": [
+        "Compute critDamage first, then subtract armor for finalDamage",
+        "Use math.floor(...) to keep percentBlocked as an integer",
+        "The blocked percent should be 12 for these numbers"
+      ],
+      "explanation": "critDamage is baseDamage multiplied by the crit multiplier, finalDamage subtracts armor, and percentBlocked is the armor as a percentage of critDamage. math.floor keeps the output stable and avoids long decimals.",
+      "reviewLinks": [
+        { "label": "Variables", "href": "/fundamentals/variables" },
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["math", "operators", "percentages", "interpolation"]
+    },
+    {
+      "id": "fundamentals-variables-3",
+      "title": "Score Updates",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "variables",
+      "expectedAnswer": "ANSWER: 75",
+      "docPath": "/fundamentals/variables#exercise-3-score-updates",
+      "hints": [
+        "Use all four compound operators in the order given",
+        "Floor division (//=) rounds down to an integer",
+        "The final score should be 75"
+      ],
+      "explanation": "Compound assignment operators update the same variable without repeating its name. Applying the steps in order produces 75: 100 + 50 = 150, *2 = 300, -75 = 225, //3 = 75.",
+      "reviewLinks": [
+        { "label": "Variables", "href": "/fundamentals/variables" },
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["compound-assignments", "math", "state"]
+    },
+    {
+      "id": "fundamentals-variables-4",
+      "title": "Status Line Formatting",
       "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "variables",
+      "expectedAnswer": "ANSWER: Shadowblade | gold=250 | quests=3 | hours=1.5",
+      "docPath": "/fundamentals/variables#exercise-4-status-line-formatting",
+      "hints": [
+        "hoursPlayed is minutesPlayed / 60",
+        "Use backticks with { } interpolation",
+        "Match the spacing and separators exactly"
+      ],
+      "explanation": "Interpolation builds one formatted string from multiple values. With 90 minutes, hoursPlayed is 1.5, and the status line must match the exact format to validate.",
+      "reviewLinks": [
+        { "label": "String Interpolation", "href": "/fundamentals/variables" },
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["strings", "interpolation", "formatting"]
+    },
+    {
+      "id": "fundamentals-variables-5",
+      "title": "Heal Logic",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "variables",
+      "expectedAnswer": "ANSWER: low=true, heal=true, critical=false",
+      "docPath": "/fundamentals/variables#exercise-5-heal-logic",
+      "hints": [
+        "Low health is true when health <= 30",
+        "canHeal requires low health AND potion AND not stunned",
+        "Critical is true if health <= 10 OR percent <= 0.1"
+      ],
+      "explanation": "The values are derived from boolean logic and comparisons. With health 25, the low-health check passes, potion is available, and stunned is false, so canHeal is true while critical is false.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" },
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["booleans", "logic", "conditions"]
+    },
+    {
+      "id": "fundamentals-datatypes-1",
+      "title": "Type Snapshot",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "datatypes",
+      "expectedAnswer": "ANSWER: nil,true,42,Score,3,function",
+      "docPath": "/fundamentals/data-types#exercise-1-type-snapshot",
+      "hints": [
+        "isActive should be true and count should be 42",
+        "label must be exactly \"Score\"",
+        "points must contain three numbers so #points is 3"
+      ],
+      "explanation": "The summary combines type() checks with actual values. Setting the requested values produces nil,true,42,Score,3,function in order.",
+      "reviewLinks": [
+        { "label": "Data Types", "href": "/fundamentals/data-types" },
+        { "label": "Variables", "href": "/fundamentals/variables" }
+      ],
+      "tags": ["types", "type", "tables", "functions", "booleans"]
+    },
+    {
+      "id": "fundamentals-datatypes-2",
+      "title": "Truthiness Check",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "datatypes",
+      "expectedAnswer": "ANSWER: zero=true,empty=true,nil=false",
+      "docPath": "/fundamentals/data-types#exercise-2-truthiness-check",
+      "hints": [
+        "Only false and nil are falsy in Luau",
+        "0 is truthy",
+        "An empty string is truthy"
+      ],
+      "explanation": "Luau treats 0 and empty strings as truthy. Using if-checks on those values yields true, while nil yields false.",
+      "reviewLinks": [
+        { "label": "Data Types", "href": "/fundamentals/data-types" },
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["booleans", "truthiness", "conditions"]
+    },
+    {
+      "id": "fundamentals-datatypes-3",
+      "title": "Label Builder",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "datatypes",
+      "expectedAnswer": "ANSWER: Player Nova (Lv.7) - HP 85/100 | Player Nova (Lv.7) - HP 85/100",
+      "docPath": "/fundamentals/data-types#exercise-3-label-builder",
+      "hints": [
+        "concatLabel must use the .. operator",
+        "interpLabel must use backticks with { } placeholders",
+        "Both labels should match exactly"
+      ],
+      "explanation": "Both concatenation and interpolation should produce the same formatted label. The output includes both strings to confirm they match.",
+      "reviewLinks": [
+        { "label": "Data Types", "href": "/fundamentals/data-types" },
+        { "label": "Variables", "href": "/fundamentals/variables" }
+      ],
+      "tags": ["strings", "interpolation", "concatenation", "formatting"]
+    },
+    {
+      "id": "fundamentals-datatypes-4",
+      "title": "Number Formats",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "datatypes",
+      "expectedAnswer": "ANSWER: hex=255,bin=10,sum=265,readable=1000000",
+      "docPath": "/fundamentals/data-types#exercise-4-number-formats",
+      "hints": [
+        "0xFF equals 255",
+        "0b1010 equals 10",
+        "sum should be 265"
+      ],
+      "explanation": "Hex and binary literals are just numeric values. Setting hexValue to 0xFF and binaryValue to 0b1010 makes their sum 265, while readableValue uses underscores for clarity.",
+      "reviewLinks": [
+        { "label": "Data Types", "href": "/fundamentals/data-types" },
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["numbers", "hex", "binary", "readability"]
+    },
+    {
+      "id": "fundamentals-datatypes-5",
+      "title": "Nil Defaults",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "datatypes",
+      "expectedAnswer": "ANSWER: name=Guest,lives=3,hasName=false",
+      "docPath": "/fundamentals/data-types#exercise-5-nil-defaults",
+      "hints": [
+        "Use inputName or \"Guest\"",
+        "Use inputLives or 3",
+        "hasName should be false when inputName is nil"
+      ],
+      "explanation": "The `or` operator supplies defaults when a value is nil. Since both inputs are nil, the default name is Guest and lives is 3, and hasName is false.",
+      "reviewLinks": [
+        { "label": "Data Types", "href": "/fundamentals/data-types" },
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["nil", "defaults", "optionals"]
+    },
+    {
+      "id": "fundamentals-operators-1",
+      "title": "Damage Math",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: total=21,rem=1,pow=8",
+      "docPath": "/fundamentals/operators#exercise-1-damage-math",
+      "hints": [
+        "raw = 12 + 5 - 3",
+        "total is raw * 1.5",
+        "21 % 4 equals 1"
+      ],
+      "explanation": "Arithmetic operators compute the final result: raw is 14, total is 21, remainder is 1, and 2^3 is 8.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["arithmetic", "modulo", "exponent", "math"]
+    },
+    {
+      "id": "fundamentals-operators-2",
+      "title": "Comparison Gate",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: boss=true,alive=true,critical=true,diff=true",
+      "docPath": "/fundamentals/operators#exercise-2-comparison-gate",
+      "hints": [
+        "level 12 is >= 10",
+        "health 8 is > 0 and <= 10",
+        "Use ~= for not equal"
+      ],
+      "explanation": "All comparisons evaluate to true for the given inputs, producing a fully true flag set.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" },
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["comparisons", "booleans", "conditions"]
+    },
+    {
+      "id": "fundamentals-operators-3",
+      "title": "Access Logic",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: enter=true,hide=false",
+      "docPath": "/fundamentals/operators#exercise-3-access-logic",
+      "hints": [
+        "canEnter requires hasKey and not alarmOn and not guardPresent",
+        "shouldHide uses alarmOn or guardPresent"
+      ],
+      "explanation": "With alarm off and no guard, canEnter is true and shouldHide is false.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["logic", "and-or-not", "conditions"]
+    },
+    {
+      "id": "fundamentals-operators-4",
+      "title": "Motion Stepper",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: pos=34,vel=16",
+      "docPath": "/fundamentals/operators#exercise-4-motion-stepper",
+      "hints": [
+        "Apply each step in order",
+        "position updates happen three times",
+        "velocity is doubled after the second update"
+      ],
+      "explanation": "The updates yield position 34 and velocity 16 after the final step.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["compound-assignments", "state", "motion"]
+    },
+    {
+      "id": "fundamentals-operators-5",
+      "title": "UI Label Assembly",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: HP: 85/100|len=10",
+      "docPath": "/fundamentals/operators#exercise-5-ui-label-assembly",
+      "hints": [
+        "Use the .. operator to build the label",
+        "The label text is exactly \"HP: 85/100\""
+      ],
+      "explanation": "Concatenation builds the label and #label computes its length, which is 10 characters.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["strings", "length", "concatenation"]
+    },
+    {
+      "id": "fundamentals-operators-6",
+      "title": "Precedence Check",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "operators",
+      "expectedAnswer": "ANSWER: d=14,g=20,r=512,l=64",
+      "docPath": "/fundamentals/operators#exercise-6-precedence-check",
+      "hints": [
+        "Multiplication happens before addition",
+        "Exponentiation is right-associative",
+        "Parentheses force left grouping"
+      ],
+      "explanation": "Default order yields 14 and 512, while explicit grouping yields 20 and 64.",
+      "reviewLinks": [
+        { "label": "Operators", "href": "/fundamentals/operators" }
+      ],
+      "tags": ["precedence", "grouping", "exponents"]
+    },
+    {
+      "id": "fundamentals-controlflow-1",
+      "title": "Health Tier",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: Medium",
+      "docPath": "/fundamentals/control-flow#exercise-1-health-tier",
+      "hints": [
+        "Check health from lowest to highest thresholds",
+        "health 45 falls in the <= 70 range"
+      ],
+      "explanation": "The ordered chain maps health 45 to the Medium tier.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["if-elseif", "thresholds", "state"]
+    },
+    {
+      "id": "fundamentals-controlflow-2",
+      "title": "Inline Labels",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: C,20,Expert",
+      "docPath": "/fundamentals/control-flow#exercise-2-inline-labels",
+      "hints": [
+        "Score 75 maps to grade C",
+        "Premium true gives 20",
+        "Level 5 maps to Expert"
+      ],
+      "explanation": "Inline conditionals produce C, 20, and Expert for the given values.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["inline-if", "labels", "conditions"]
+    },
+    {
+      "id": "fundamentals-controlflow-3",
+      "title": "Loop Totals",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: sum=55,evens=5",
+      "docPath": "/fundamentals/control-flow#exercise-3-loop-totals",
+      "hints": [
+        "Sum 1..10 is 55",
+        "Even numbers in 1..10 are 2,4,6,8,10"
+      ],
+      "explanation": "The loop sums the range and counts five even numbers.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["for-loop", "sum", "count"]
+    },
+    {
+      "id": "fundamentals-controlflow-4",
+      "title": "While Countdown",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: steps=3,energy=0",
+      "docPath": "/fundamentals/control-flow#exercise-4-while-countdown",
+      "hints": [
+        "Loop while energy > 0",
+        "Decrement energy and increment steps each time"
+      ],
+      "explanation": "Three iterations reduce energy from 3 to 0 and steps to 3.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["while-loop", "countdown"]
+    },
+    {
+      "id": "fundamentals-controlflow-5",
+      "title": "Repeat Until",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: attempts=3,success=true",
+      "docPath": "/fundamentals/control-flow#exercise-5-repeat-until",
+      "hints": [
+        "repeat runs at least once",
+        "Set success to true when attempts >= 3"
+      ],
+      "explanation": "The loop repeats until the third attempt, when success becomes true.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["repeat-until", "retry", "loop"]
+    },
+    {
+      "id": "fundamentals-controlflow-6",
+      "title": "Break and Continue",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: sum=12,count=4",
+      "docPath": "/fundamentals/control-flow#exercise-6-break-and-continue",
+      "hints": [
+        "Skip multiples of 3",
+        "Break when i == 6"
+      ],
+      "explanation": "The loop processes 1,2,4,5 then breaks at 6, giving sum 12 and count 4.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["break", "continue", "loops"]
+    },
+    {
+      "id": "fundamentals-controlflow-7",
+      "title": "State Switch",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "controlflow",
+      "expectedAnswer": "ANSWER: state=wounded,stamina=15",
+      "docPath": "/fundamentals/control-flow#exercise-7-state-switch",
+      "hints": [
+        "health 25 maps to wounded",
+        "Regenerate stamina when not dead"
+      ],
+      "explanation": "The ordered chain sets state to wounded and the stamina regen adds 5, resulting in 15.",
+      "reviewLinks": [
+        { "label": "Control Flow", "href": "/fundamentals/control-flow" }
+      ],
+      "tags": ["state", "if-elseif", "conditions"]
+    },
+    {
+      "id": "fundamentals-functions-1",
+      "title": "Damage Function",
+      "difficulty": 1,
       "chapter": "fundamentals",
       "topic": "functions",
       "expectedAnswer": "ANSWER: 100,150,200,200",
-      "docPath": "/fundamentals/functions#exercise-2-damage-calculator",
+      "docPath": "/fundamentals/functions#exercise-1-damage-function",
       "hints": [
-        "The critical multiplier should be exactly 2, not 1.5 or 2.0",
-        "Use inline if: (if isCritical then 2 else 1)",
-        "Check that your function returns a value"
+        "Use (if isCritical then 2 else 1) as the multiplier",
+        "Multiply baseDamage by weaponMultiplier first"
       ],
-      "tags": ["functions", "parameters", "return-types", "conditionals"]
+      "explanation": "The function multiplies base damage by the weapon multiplier and doubles it when critical, producing the four expected outputs.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["functions", "math", "conditionals"]
     },
     {
-      "id": "fundamentals-advance-3",
-      "title": "Pulse Animation",
+      "id": "fundamentals-functions-2",
+      "title": "Typed Formatters",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: $99.99,25",
+      "docPath": "/fundamentals/functions#exercise-2-typed-formatters",
+      "hints": [
+        "Use interpolation for the currency string",
+        "Percent is (value / total) * 100"
+      ],
+      "explanation": "The formatter returns \"$99.99\" and the percent of 50/200 is 25.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["types", "formatting", "math"]
+    },
+    {
+      "id": "fundamentals-functions-3",
+      "title": "Closure Counter",
       "difficulty": 2,
       "chapter": "fundamentals",
-      "topic": "advance",
-      "expectedAnswer": "ANSWER: time=2.0, scale=0.93",
-      "docPath": "/fundamentals/state#exercise-3-pulse-animation",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: 1,2,3",
+      "docPath": "/fundamentals/functions#exercise-3-closure-counter",
       "hints": [
-        "Make sure you're accumulating time with += not =",
-        "The formula is: 1.0 + 0.2 * math.sin(self.time * 2)",
-        "Wait for the console to show time=2.0, then copy that line"
+        "Increment count before returning it",
+        "The counter starts at 0"
       ],
-      "tags": ["advance", "state", "animation", "math.sin"]
+      "explanation": "Each call increments the captured count, yielding 1, 2, and 3.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["closures", "state", "functions"]
+    },
+    {
+      "id": "fundamentals-functions-4",
+      "title": "Update Helper",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: 1",
+      "docPath": "/fundamentals/functions#exercise-4-update-helper",
+      "hints": [
+        "Update state.progress inside addProgress",
+        "Three calls should sum to 1.0"
+      ],
+      "explanation": "The helper adds 0.25, 0.25, and 0.5 to reach 1.0.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["helpers", "state", "self"]
+    },
+    {
+      "id": "fundamentals-functions-5",
+      "title": "Lerp Factory",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: 25,50",
+      "docPath": "/fundamentals/functions#exercise-5-lerp-factory",
+      "hints": [
+        "Use start + (end - start) * t",
+        "0.25 and 0.5 should produce 25 and 50"
+      ],
+      "explanation": "The lerp factory returns a function that interpolates between 0 and 100, yielding 25 and 50.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["factory", "lerp", "interpolation"]
+    },
+    {
+      "id": "fundamentals-functions-6",
+      "title": "Clamp Utility",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: 100,0,0.5",
+      "docPath": "/fundamentals/functions#exercise-6-clamp-utility",
+      "hints": [
+        "clamp should return min or max when out of range",
+        "mapRange should return 0.5 for 50 in 0..100"
+      ],
+      "explanation": "Clamp limits values to the range, and mapRange scales 50 to 0.5.",
+      "reviewLinks": [
+        { "label": "Functions", "href": "/fundamentals/functions" }
+      ],
+      "tags": ["clamp", "utilities", "mapping"]
+    },
+    {
+      "id": "fundamentals-tables-1",
+      "title": "Array Basics",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: total=60,len=3",
+      "docPath": "/fundamentals/tables#exercise-1-array-basics",
+      "hints": [
+        "Use {10, 20, 30} for the array",
+        "Sum all three values"
+      ],
+      "explanation": "The array has three values and their sum is 60, so total=60 and len=3.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["arrays", "sum", "tables"]
+    },
+    {
+      "id": "fundamentals-tables-2",
+      "title": "Dictionary Lookup",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: Astra,true",
+      "docPath": "/fundamentals/tables#exercise-2-dictionary-lookup",
+      "hints": [
+        "ready is true when level >= 10 and unlocked",
+        "Use profile.level and profile.unlocked"
+      ],
+      "explanation": "Astra is level 12 and unlocked, so ready is true.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["dictionaries", "tables", "lookup"]
+    },
+    {
+      "id": "fundamentals-tables-3",
+      "title": "Insert and Remove",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: len=3,removed=4",
+      "docPath": "/fundamentals/tables#exercise-3-insert-and-remove",
+      "hints": [
+        "Insert 4, then remove the last item",
+        "After remove, length should be 3"
+      ],
+      "explanation": "Adding 4 and removing it returns the list to length 3 and removed=4.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["table.insert", "table.remove", "arrays"]
+    },
+    {
+      "id": "fundamentals-tables-4",
+      "title": "Copy vs Reference",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: original=1,copy=9",
+      "docPath": "/fundamentals/tables#exercise-4-copy-vs-reference",
+      "hints": [
+        "Create a new table and copy fields",
+        "Change copy.x without affecting original.x"
+      ],
+      "explanation": "A real copy keeps the original unchanged while the copy can be modified.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["references", "copy", "tables"]
+    },
+    {
+      "id": "fundamentals-tables-5",
+      "title": "Nested Tables",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: Rin,100",
+      "docPath": "/fundamentals/tables#exercise-5-nested-tables",
+      "hints": [
+        "Access player.stats.hp and player.stats.mp",
+        "80 + 20 = 100"
+      ],
+      "explanation": "Nested access yields hp 80 and mp 20 for a total of 100.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["nested", "tables", "data-structures"]
+    },
+    {
+      "id": "fundamentals-tables-6",
+      "title": "Sorting Tables",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "tables",
+      "expectedAnswer": "ANSWER: min=2,max=9",
+      "docPath": "/fundamentals/tables#exercise-6-sorting-tables",
+      "hints": [
+        "Use table.sort on the scores array",
+        "First value is min, last value is max"
+      ],
+      "explanation": "Sorting ascending makes 2 the min and 9 the max.",
+      "reviewLinks": [
+        { "label": "Tables", "href": "/fundamentals/tables" }
+      ],
+      "tags": ["table.sort", "arrays", "ordering"]
+    },
+    {
+      "id": "fundamentals-iteration-1",
+      "title": "Range Loop",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 15",
+      "docPath": "/fundamentals/iteration#exercise-1-range-loop",
+      "hints": [
+        "Use `for i = 1, 5 do`",
+        "Add i to sum on each iteration",
+        "The sum of 1..5 is 15"
+      ],
+      "explanation": "Numeric for loops include both endpoints, so 1 through 5 totals 15.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["loops", "for", "sum", "iteration"]
+    },
+    {
+      "id": "fundamentals-iteration-2",
+      "title": "Step Loop",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 30",
+      "docPath": "/fundamentals/iteration#exercise-2-step-loop",
+      "hints": [
+        "Use `for i = 2, 10, 2 do`",
+        "Add each i to sum",
+        "2 + 4 + 6 + 8 + 10 = 30"
+      ],
+      "explanation": "A step loop hits only the even values from 2 to 10, which sum to 30.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["loops", "for", "step", "iteration", "sum"]
+    },
+    {
+      "id": "fundamentals-iteration-3",
+      "title": "ipairs Total",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 30",
+      "docPath": "/fundamentals/iteration#exercise-3-ipairs-total",
+      "hints": [
+        "Use `for _, value in ipairs(scores) do`",
+        "Add each value to total",
+        "5 + 10 + 15 = 30"
+      ],
+      "explanation": "ipairs iterates array values in order, yielding a total of 30.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["ipairs", "arrays", "loops", "sum"]
+    },
+    {
+      "id": "fundamentals-iteration-4",
+      "title": "pairs Count",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 2",
+      "docPath": "/fundamentals/iteration#exercise-4-pairs-count",
+      "hints": [
+        "Iterate with `for _, value in pairs(flags) do`",
+        "Increment enabled when value is true",
+        "There are two true flags"
+      ],
+      "explanation": "pairs walks key/value entries; two flags are true so enabled is 2.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["pairs", "dictionaries", "loops", "count"]
+    },
+    {
+      "id": "fundamentals-iteration-5",
+      "title": "Nested Loop Grid",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 12",
+      "docPath": "/fundamentals/iteration#exercise-5-nested-loop-grid",
+      "hints": [
+        "Outer loop is rows 1..3",
+        "Inner loop is cols 1..4",
+        "3 * 4 = 12"
+      ],
+      "explanation": "Nested loops visit every grid cell; a 3x4 grid has 12 cells.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["nested-loops", "grids", "iteration", "count"]
+    },
+    {
+      "id": "fundamentals-iteration-6",
+      "title": "Break Search",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 9",
+      "docPath": "/fundamentals/iteration#exercise-6-break-search",
+      "hints": [
+        "Loop through values in order",
+        "When value > 5, store it and break",
+        "The first match is 9"
+      ],
+      "explanation": "break exits at the first value over 5, which is 9.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["break", "search", "loops", "early-exit"]
+    },
+    {
+      "id": "fundamentals-iteration-7",
+      "title": "Continue Filter",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: sum=12,count=3",
+      "docPath": "/fundamentals/iteration#exercise-7-continue-filter",
+      "hints": [
+        "Use continue when value < 0",
+        "Add only positive values",
+        "Sum should be 12 and count 3"
+      ],
+      "explanation": "Skipping negatives leaves 3, 4, and 5 for a sum of 12 and count 3.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["continue", "filters", "loops", "conditions"]
+    },
+    {
+      "id": "fundamentals-iteration-8",
+      "title": "String Iteration",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "iteration",
+      "expectedAnswer": "ANSWER: 2",
+      "docPath": "/fundamentals/iteration#exercise-8-string-iteration",
+      "hints": [
+        "Loop from 1 to #name",
+        "Use name:sub(i, i) to get each character",
+        "The vowels in \"Rive\" are i and e"
+      ],
+      "explanation": "Iterating characters and counting vowels finds i and e, giving 2.",
+      "reviewLinks": [
+        { "label": "Iteration", "href": "/fundamentals/iteration" }
+      ],
+      "tags": ["strings", "iteration", "loops", "count"]
+    },
+
+    {
+      "id": "types-intro-1",
+      "title": "Strict Mode Guard",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: remaining=75",
+      "docPath": "/types/intro#exercise-1-strict-mode-guard",
+      "hints": [
+        "Keep damage as a number, not a string",
+        "Set damage to 25 before subtraction",
+        "100 - 25 = 75"
+      ],
+      "explanation": "Strict mode enforces numeric math, so using damage 25 yields remaining 75.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["strict-mode", "types", "numbers", "init"]
+    },
+    {
+      "id": "types-intro-2",
+      "title": "Typed Variables",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: label=Pulse,level=7,active=true",
+      "docPath": "/types/intro#exercise-2-typed-variables",
+      "hints": [
+        "label is a string, level is a number, active is a boolean",
+        "Keep the provided values exactly",
+        "Output should list label, level, and active"
+      ],
+      "explanation": "Correct annotations and values produce the formatted label, level, and active output.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["annotations", "variables", "strings", "booleans"]
+    },
+    {
+      "id": "types-intro-3",
+      "title": "Typed Function",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: opacity=0.6",
+      "docPath": "/types/intro#exercise-3-typed-function",
+      "hints": [
+        "Return value * multiplier",
+        "0.8 * 0.75 = 0.6",
+        "Keep the function signature as numbers -> number"
+      ],
+      "explanation": "The typed helper returns 0.6 when scaling 0.8 by 0.75.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["functions", "annotations", "math"]
+    },
+    {
+      "id": "types-intro-4",
+      "title": "Inference Snapshot",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: label=string,frames=number,weight=number,len=3",
+      "docPath": "/types/intro#exercise-4-inference-snapshot",
+      "hints": [
+        "Use type(label) and type(frames)",
+        "Use type(weights[1]) and #weights",
+        "Format exactly as label=string,frames=number,weight=number,len=3"
+      ],
+      "explanation": "Type inference identifies the value types without explicit annotations, and the summary string confirms them.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["type-inference", "type", "tables", "strings"]
+    },
+    {
+      "id": "types-intro-5",
+      "title": "Type Refinement",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: doubled=6",
+      "docPath": "/types/intro#exercise-5-type-refinement",
+      "hints": [
+        "Check type(raw) == 'string'",
+        "Use tonumber to convert",
+        "3 * 2 = 6"
+      ],
+      "explanation": "Refining the union to a number yields a doubled value of 6.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["union", "refinement", "tonumber", "types"]
+    },
+    {
+      "id": "types-intro-6",
+      "title": "Rive State Type",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "intro",
+      "expectedAnswer": "ANSWER: label=Orbit,progress=0.75,playing=true",
+      "docPath": "/types/intro#exercise-6-rive-state-type",
+      "hints": [
+        "Set label to Orbit",
+        "Set progress to 0.75",
+        "Set playing to true"
+      ],
+      "explanation": "Typed state fields store the assigned values and print in the requested order.",
+      "reviewLinks": [
+        { "label": "Type Annotations & Inference", "href": "/types/intro" }
+      ],
+      "tags": ["state", "export-type", "booleans", "numbers"]
+    },
+    {
+      "id": "types-annotations-1",
+      "title": "Exported State Shape",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: label=Glow,opacity=0.8,enabled=true",
+      "docPath": "/types/annotations#exercise-1-exported-state-shape",
+      "hints": [
+        "Set label to Glow",
+        "Set opacity to 0.8",
+        "Set enabled to true"
+      ],
+      "explanation": "The exported state fields hold the assigned values and render the expected output.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["export-type", "state", "annotations"]
+    },
+    {
+      "id": "types-annotations-2",
+      "title": "Typed Range Table",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: range=12",
+      "docPath": "/types/annotations#exercise-2-typed-range-table",
+      "hints": [
+        "Set min to 3 and max to 15",
+        "Range is max - min",
+        "Keep bounds typed as Range"
+      ],
+      "explanation": "With min 3 and max 15, the range is 12.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["type-alias", "tables", "numbers"]
+    },
+    {
+      "id": "types-annotations-3",
+      "title": "Input Defaults",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: boost=3",
+      "docPath": "/types/annotations#exercise-3-input-defaults",
+      "hints": [
+        "Input defaults are 1.5 and true",
+        "boost uses speed * 2 when enabled",
+        "Input values are read-only"
+      ],
+      "explanation": "With speed 1.5 and enabled true, boost is 3.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["Input", "defaults", "numbers"]
+    },
+    {
+      "id": "types-annotations-4",
+      "title": "Input to State",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: smoothed=1.8",
+      "docPath": "/types/annotations#exercise-4-input-to-state",
+      "hints": [
+        "Multiply speed by 0.9",
+        "Store the result in smoothed",
+        "smoothed is initialized with late()"
+      ],
+      "explanation": "Reading speed 2.0 and multiplying by 0.9 produces 1.8.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["Input", "late", "derived"]
+    },
+    {
+      "id": "types-annotations-5",
+      "title": "Input Label to Status",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: status=Orbit ready",
+      "docPath": "/types/annotations#exercise-5-input-label-to-status",
+      "hints": [
+        "Read the label from self.label",
+        "Concatenate a space and 'ready'",
+        "The default label is Orbit"
+      ],
+      "explanation": "Using the input label and suffix builds the status string 'Orbit ready'.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["Input", "strings", "formatting"]
+    },
+    {
+      "id": "types-annotations-6",
+      "title": "Function Field Annotation",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "annotations",
+      "expectedAnswer": "ANSWER: Glow:4",
+      "docPath": "/types/annotations#exercise-6-function-field-annotation",
+      "hints": [
+        "Return label .. ':' .. value",
+        "Keep the function signature typed",
+        "Use the provided parameters"
+      ],
+      "explanation": "The formatter returns 'Glow:4' when given the label and value.",
+      "reviewLinks": [
+        { "label": "Type Annotations", "href": "/types/annotations" }
+      ],
+      "tags": ["functions", "annotations", "formatting"]
+    },
+    {
+      "id": "types-strictmode-1",
+      "title": "Parse Text Safely",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: remaining=75",
+      "docPath": "/types/strict-mode#exercise-1-parse-text-safely",
+      "hints": [
+        "Convert damageText with tonumber",
+        "If conversion fails, keep damage at 0",
+        "100 - 25 = 75"
+      ],
+      "explanation": "Parsing the text into a number keeps strict mode happy and yields remaining 75.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["strict-mode", "tonumber", "strings", "numbers"]
+    },
+    {
+      "id": "types-strictmode-2",
+      "title": "Optional Label",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: label=Default",
+      "docPath": "/types/strict-mode#exercise-2-optional-label",
+      "hints": [
+        "hint is nil",
+        "Use a fallback string",
+        "Default should be 'Default'"
+      ],
+      "explanation": "With a nil hint, the fallback string is used for the label.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["optional", "nil", "strict-mode"]
+    },
+    {
+      "id": "types-strictmode-3",
+      "title": "Return Paths",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: critical=true",
+      "docPath": "/types/strict-mode#exercise-3-return-paths",
+      "hints": [
+        "Return true when hp <= 10",
+        "Return false otherwise",
+        "hp is 8"
+      ],
+      "explanation": "With hp 8, the helper returns true for the critical check.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["functions", "booleans", "strict-mode"]
+    },
+    {
+      "id": "types-strictmode-4",
+      "title": "Literal Union Mode",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: mode=run",
+      "docPath": "/types/strict-mode#exercise-4-literal-union-mode",
+      "hints": [
+        "Set mode to 'run'",
+        "Keep the Mode type",
+        "Use one of the allowed literals"
+      ],
+      "explanation": "The mode is limited to the literal union and is set to 'run'.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["literal-union", "strict-mode", "strings"]
+    },
+    {
+      "id": "types-strictmode-5",
+      "title": "Table Shape Enforcement",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: ratio=4",
+      "docPath": "/types/strict-mode#exercise-5-table-shape-enforcement",
+      "hints": [
+        "Set hp to 80 and mp to 20",
+        "Ratio is hp / mp",
+        "Keep the Stats type"
+      ],
+      "explanation": "With hp 80 and mp 20, the ratio is 4.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["tables", "types", "numbers"]
+    },
+    {
+      "id": "types-strictmode-6",
+      "title": "Input Safety",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "strictmode",
+      "expectedAnswer": "ANSWER: adjusted=3",
+      "docPath": "/types/strict-mode#exercise-6-input-safety",
+      "hints": [
+        "Read speed from the Input",
+        "Compute speed * 1.2",
+        "2.5 * 1.2 = 3"
+      ],
+      "explanation": "Adjusted is derived from the input speed and equals 3.",
+      "reviewLinks": [
+        { "label": "Strict Mode", "href": "/types/strict-mode" }
+      ],
+      "tags": ["Input", "late", "strict-mode"]
+    },
+    {
+      "id": "types-customtypes-1",
+      "title": "Stats Alias",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: total=120",
+      "docPath": "/types/custom-types#exercise-1-stats-alias",
+      "hints": [
+        "Set hp to 90 and mp to 30",
+        "Total is hp + mp",
+        "Keep the Stats alias"
+      ],
+      "explanation": "The Stats alias holds 90 and 30, totaling 120.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["type-alias", "tables", "numbers"]
+    },
+    {
+      "id": "types-customtypes-2",
+      "title": "Nested Types",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: name=Beacon,pos=30",
+      "docPath": "/types/custom-types#exercise-2-nested-types",
+      "hints": [
+        "Set name to Beacon",
+        "Set x to 12 and y to 18",
+        "12 + 18 = 30"
+      ],
+      "explanation": "The nested Transform produces a position sum of 30 for Beacon.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["nested-types", "tables", "strings", "numbers"]
+    },
+    {
+      "id": "types-customtypes-3",
+      "title": "Array Alias",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: avg=4",
+      "docPath": "/types/custom-types#exercise-3-array-alias",
+      "hints": [
+        "Use points {2, 4, 6}",
+        "Average is total / count",
+        "12 / 3 = 4"
+      ],
+      "explanation": "The typed array averages to 4 when using 2, 4, and 6.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["arrays", "type-alias", "average"]
+    },
+    {
+      "id": "types-customtypes-4",
+      "title": "Optional Field",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: subtitle=None",
+      "docPath": "/types/custom-types#exercise-4-optional-field",
+      "hints": [
+        "subtitle is nil",
+        "Use 'None' as fallback",
+        "Keep the optional type"
+      ],
+      "explanation": "The optional subtitle is nil, so the fallback 'None' is used.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["optional", "type-alias", "strings"]
+    },
+    {
+      "id": "types-customtypes-5",
+      "title": "Function Alias",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: eased=0.25",
+      "docPath": "/types/custom-types#exercise-5-function-alias",
+      "hints": [
+        "Return t * t",
+        "0.5 * 0.5 = 0.25",
+        "Keep the EaseFn type"
+      ],
+      "explanation": "The easing function squares 0.5 to produce 0.25.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["functions", "type-alias", "math"]
+    },
+    {
+      "id": "types-customtypes-6",
+      "title": "State Alias",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: percent=0.5",
+      "docPath": "/types/custom-types#exercise-6-state-alias",
+      "hints": [
+        "Set current to 50 and max to 100",
+        "Percent is current / max",
+        "Keep the MeterState alias"
+      ],
+      "explanation": "A 50 of 100 meter yields 0.5.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["state", "type-alias", "numbers"]
+    },
+    {
+      "id": "types-customtypes-7",
+      "title": "Config Alias",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "customtypes",
+      "expectedAnswer": "ANSWER: speed=1.2",
+      "docPath": "/types/custom-types#exercise-7-config-alias",
+      "hints": [
+        "Set speed to 1.2",
+        "Set enabled to true",
+        "Output uses enabled to gate speed"
+      ],
+      "explanation": "With enabled true, the speed value 1.2 is printed.",
+      "reviewLinks": [
+        { "label": "Custom Types", "href": "/types/custom-types" }
+      ],
+      "tags": ["config", "type-alias", "booleans", "numbers"]
+    },
+    {
+      "id": "types-generics-1",
+      "title": "Generic Pair",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: sum=10",
+      "docPath": "/types/generics#exercise-1-generic-pair",
+      "hints": [
+        "Set left to 4 and right to 6",
+        "Sum is left + right",
+        "Use Pair<number>"
+      ],
+      "explanation": "The generic pair holds 4 and 6, totaling 10.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["generics", "type-alias", "numbers"]
+    },
+    {
+      "id": "types-generics-2",
+      "title": "Generic Box",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: value=Glow",
+      "docPath": "/types/generics#exercise-2-generic-box",
+      "hints": [
+        "Set the boxed value to Glow",
+        "Use Box<string>",
+        "Keep the type parameter"
+      ],
+      "explanation": "The generic box stores the string Glow and prints it.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["generics", "strings", "type-alias"]
+    },
+    {
+      "id": "types-generics-3",
+      "title": "Input Number",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: distance=6",
+      "docPath": "/types/generics#exercise-3-input-number",
+      "hints": [
+        "Speed default is 1.2",
+        "Distance is speed * 5",
+        "Input values are read-only"
+      ],
+      "explanation": "Using the input speed 1.2 yields a distance of 6.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["Input", "generics", "numbers"]
+    },
+    {
+      "id": "types-generics-4",
+      "title": "Input String",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: label=ORBIT",
+      "docPath": "/types/generics#exercise-4-input-string",
+      "hints": [
+        "Default label is orbit",
+        "Use string.upper",
+        "Input type is string"
+      ],
+      "explanation": "Uppercasing the input label yields ORBIT.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["Input", "strings", "generics"]
+    },
+    {
+      "id": "types-generics-5",
+      "title": "Input Boolean",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: active=1",
+      "docPath": "/types/generics#exercise-5-input-boolean",
+      "hints": [
+        "enabled is true",
+        "Use enabled and 1 or 0",
+        "Flag should be 1"
+      ],
+      "explanation": "With enabled true, the numeric flag is 1.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["Input", "booleans", "generics"]
+    },
+    {
+      "id": "types-generics-6",
+      "title": "Generic Meter",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "generics",
+      "expectedAnswer": "ANSWER: percent=0.25",
+      "docPath": "/types/generics#exercise-6-generic-meter",
+      "hints": [
+        "Set current to 25 and max to 100",
+        "Percent is current / max",
+        "Use Meter<number>"
+      ],
+      "explanation": "A 25 of 100 meter yields 0.25.",
+      "reviewLinks": [
+        { "label": "Generics", "href": "/types/generics" }
+      ],
+      "tags": ["generics", "numbers", "percent"]
+    },
+    {
+      "id": "types-advancedtypes-1",
+      "title": "Intersection Components",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: name=Panel,pos=12,visible=true",
+      "docPath": "/types/advanced-types#exercise-1-intersection-components",
+      "hints": [
+        "Set name to Panel",
+        "Set x to 5 and y to 7",
+        "Set visible to true"
+      ],
+      "explanation": "The intersection value includes all fields and prints the expected summary.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["intersection", "types", "tables"]
+    },
+    {
+      "id": "types-advancedtypes-2",
+      "title": "Union ID Format",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: id=#42",
+      "docPath": "/types/advanced-types#exercise-2-union-id-format",
+      "hints": [
+        "Use type(id) to check for number",
+        "Prefix numeric ids with '#'",
+        "Keep id a union type"
+      ],
+      "explanation": "The numeric id is formatted with a # prefix to produce #42.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["union", "type-guard", "strings", "numbers"]
+    },
+    {
+      "id": "types-advancedtypes-3",
+      "title": "Optional Subtitle",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: subtitle=None",
+      "docPath": "/types/advanced-types#exercise-3-optional-subtitle",
+      "hints": [
+        "subtitle is nil",
+        "Use 'None' as fallback",
+        "Optional types allow nil"
+      ],
+      "explanation": "The optional subtitle is nil, so the fallback 'None' is printed.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["optional", "union", "strings"]
+    },
+    {
+      "id": "types-advancedtypes-4",
+      "title": "Function Type Alias",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: eased=0.25",
+      "docPath": "/types/advanced-types#exercise-4-function-type-alias",
+      "hints": [
+        "Return t * t",
+        "0.5 * 0.5 = 0.25",
+        "Keep the function type alias"
+      ],
+      "explanation": "The typed easing function produces 0.25 when t is 0.5.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["function-types", "advanced", "math"]
+    },
+    {
+      "id": "types-advancedtypes-5",
+      "title": "Literal Direction Union",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: dx=-1,dy=0",
+      "docPath": "/types/advanced-types#exercise-5-literal-direction-union",
+      "hints": [
+        "When direction is 'left', dx is -1",
+        "Set dy to 0 for left",
+        "Use the literal union type"
+      ],
+      "explanation": "Mapping the left direction yields dx -1 and dy 0.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["literal-union", "direction", "conditions"]
+    },
+    {
+      "id": "types-advancedtypes-6",
+      "title": "Multiple Returns",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "advancedtypes",
+      "expectedAnswer": "ANSWER: range=8",
+      "docPath": "/types/advanced-types#exercise-6-multiple-returns",
+      "hints": [
+        "Return 2 and 10 from bounds",
+        "Range is max - min",
+        "Keep return types as numbers"
+      ],
+      "explanation": "Returning 2 and 10 yields a range of 8.",
+      "reviewLinks": [
+        { "label": "Advanced Types", "href": "/types/advanced-types" }
+      ],
+      "tags": ["multi-return", "functions", "numbers"]
+    },
+    {
+      "id": "types-lateinit-1",
+      "title": "Computed Total",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: total=12",
+      "docPath": "/types/late-initializer#exercise-1-computed-total",
+      "hints": [
+        "Sum is 3 + 4 + 5",
+        "Assign sum to self.total",
+        "Keep late() in the factory"
+      ],
+      "explanation": "The computed sum is 12 and stored in the late-initialized field.",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["late", "computed", "numbers"]
+    },
+    {
+      "id": "types-lateinit-2",
+      "title": "Late Path Creation",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: ready=true",
+      "docPath": "/types/late-initializer#exercise-2-late-path-creation",
+      "hints": [
+        "Create the Path in init",
+        "Keep the late() placeholder",
+        "ready should be true"
+      ],
+      "explanation": "The path is created in init, so ready is true.",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["late", "Path", "init"]
+    },
+    {
+      "id": "types-lateinit-3",
+      "title": "Input and Computed State",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: scaled=3",
+      "docPath": "/types/late-initializer#exercise-3-input-and-computed-state",
+      "hints": [
+        "Read speed from the Input",
+        "Compute speed * 1.5",
+        "2.0 * 1.5 = 3"
+      ],
+      "explanation": "The input speed is scaled to 3 and stored in the late field.",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["Input", "late", "computed"]
+    },
+    {
+      "id": "types-lateinit-4",
+      "title": "Input Defaults Only",
+      "difficulty": 1,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: label=Orbit",
+      "docPath": "/types/late-initializer#exercise-4-input-defaults-only",
+      "hints": [
+        "Input<string> uses a direct default",
+        "No late() is needed",
+        "Label should be Orbit"
+      ],
+      "explanation": "The input default provides the label immediately without late().",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["Input", "defaults", "strings"]
+    },
+    {
+      "id": "types-lateinit-5",
+      "title": "Late Bounds Table",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: range=8",
+      "docPath": "/types/late-initializer#exercise-5-late-bounds-table",
+      "hints": [
+        "Set min to 2 and max to 10",
+        "Range is max - min",
+        "Keep late() in the factory"
+      ],
+      "explanation": "Bounds created in init yield a range of 8.",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["late", "tables", "numbers"]
+    },
+    {
+      "id": "types-lateinit-6",
+      "title": "Late Status String",
+      "difficulty": 2,
+      "chapter": "types",
+      "topic": "lateinit",
+      "expectedAnswer": "ANSWER: status=State: ready",
+      "docPath": "/types/late-initializer#exercise-6-late-status-string",
+      "hints": [
+        "Build 'State: ' .. phase",
+        "Use phase = 'ready'",
+        "Assign to self.status"
+      ],
+      "explanation": "The computed status string is stored in the late field and printed.",
+      "reviewLinks": [
+        { "label": "late() Initializer", "href": "/types/late-initializer" }
+      ],
+      "tags": ["late", "strings", "computed"]
+    },
+
+    {
+      "id": "oop-prototypes-1",
+      "title": "Prototype Instance",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "prototypes",
+      "expectedAnswer": "ANSWER: Panel",
+      "docPath": "/oop/prototype-based#exercise-1-prototype-instance",
+      "hints": [
+        "Create the widget with name Panel",
+        "describe returns the widget name",
+        "Output should be Panel"
+      ],
+      "explanation": "The instance delegates to the prototype, so describe returns the name Panel.",
+      "reviewLinks": [
+        { "label": "Prototype-Based OOP", "href": "/oop/prototype-based" }
+      ],
+      "tags": ["prototype", "metatable", "oop"]
+    },
+    {
+      "id": "oop-prototypes-2",
+      "title": "Prototype Counter",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "prototypes",
+      "expectedAnswer": "ANSWER: a=2,b=6",
+      "docPath": "/oop/prototype-based#exercise-2-prototype-counter",
+      "hints": [
+        "a starts at 0, b starts at 5",
+        "increment returns the updated value",
+        "Two increments on a yields 2, one on b yields 6"
+      ],
+      "explanation": "Each instance keeps its own state, so a ends at 2 and b ends at 6.",
+      "reviewLinks": [
+        { "label": "Prototype-Based OOP", "href": "/oop/prototype-based" }
+      ],
+      "tags": ["prototype", "instances", "methods"]
+    },
+    {
+      "id": "oop-prototypes-3",
+      "title": "Prototype Inheritance",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "prototypes",
+      "expectedAnswer": "ANSWER: Enemy Lv.3 Crawler",
+      "docPath": "/oop/prototype-based#exercise-3-prototype-inheritance",
+      "hints": [
+        "Create the enemy with kind Crawler",
+        "Set the level to 3",
+        "tag prints level and kind"
+      ],
+      "explanation": "The derived prototype formats the label as Enemy Lv.3 Crawler.",
+      "reviewLinks": [
+        { "label": "Prototype-Based OOP", "href": "/oop/prototype-based" }
+      ],
+      "tags": ["inheritance", "prototype", "metatable"]
+    },
+    {
+      "id": "oop-prototypes-4",
+      "title": "Dynamic Prototype Update",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "prototypes",
+      "expectedAnswer": "ANSWER: 8",
+      "docPath": "/oop/prototype-based#exercise-4-dynamic-prototype-update",
+      "hints": [
+        "Add Pulse:double to the prototype",
+        "Return self.value * 2",
+        "Value is 4 so result is 8"
+      ],
+      "explanation": "Adding the method updates the instance via the prototype, producing 8.",
+      "reviewLinks": [
+        { "label": "Prototype-Based OOP", "href": "/oop/prototype-based" }
+      ],
+      "tags": ["prototype", "dynamic", "methods"]
+    },
+    {
+      "id": "oop-metatables-1",
+      "title": "Basic Metatable",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: opacity=0.8,shadow=1",
+      "docPath": "/oop/metatables#exercise-1-basic-metatable",
+      "hints": [
+        "Set style.opacity to 0.8",
+        "Defaults provide shadow = 1",
+        "Keep __index pointing to defaults"
+      ],
+      "explanation": "__index supplies shadow while the instance overrides opacity to 0.8.",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["metatable", "__index", "defaults"]
+    },
+    {
+      "id": "oop-metatables-2",
+      "title": "Class Pattern",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: Button:Start",
+      "docPath": "/oop/metatables#exercise-2-class-pattern",
+      "hints": [
+        "Create the button with label Start",
+        "describe returns Button:<label>",
+        "Use the class pattern with __index"
+      ],
+      "explanation": "The class pattern returns a Button instance whose describe method prints Button:Start.",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["metatable", "class-pattern", "oop"]
+    },
+    {
+      "id": "oop-metatables-3",
+      "title": "Shared Methods",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: left=Icon,right=Badge",
+      "docPath": "/oop/metatables#exercise-3-shared-methods",
+      "hints": [
+        "Set left name to Icon",
+        "Set right name to Badge",
+        "describe returns the name"
+      ],
+      "explanation": "Both instances share the same describe method via the metatable.",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["metatable", "instances", "shared-methods"]
+    },
+    {
+      "id": "oop-metatables-4",
+      "title": "Default Styles",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: width=5,color=blue",
+      "docPath": "/oop/metatables#exercise-4-default-styles",
+      "hints": [
+        "Override width to 5",
+        "Color should come from defaults",
+        "Keep __index as defaults"
+      ],
+      "explanation": "The instance overrides width while color falls back to the defaults.",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["metatable", "defaults", "styles"]
+    },
+    {
+      "id": "oop-metatables-5",
+      "title": "Computed __index",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: length=5",
+      "docPath": "/oop/metatables#exercise-5-computed-__index",
+      "hints": [
+        "Compute sqrt(x*x + y*y)",
+        "x=3 and y=4",
+        "Length is 5"
+      ],
+      "explanation": "The computed __index returns length 5 for the 3-4-5 triangle.",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["__index", "computed", "metatable"]
+    },
+    {
+      "id": "oop-metatables-6",
+      "title": "__tostring Metamethod",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "metatables",
+      "expectedAnswer": "ANSWER: (2,5)",
+      "docPath": "/oop/metatables#exercise-6-__tostring-metamethod",
+      "hints": [
+        "Return a string in the form (x,y)",
+        "Use t.x and t.y",
+        "Expect (2,5)"
+      ],
+      "explanation": "__tostring controls tostring output, producing (2,5).",
+      "reviewLinks": [
+        { "label": "Metatables", "href": "/oop/metatables" }
+      ],
+      "tags": ["__tostring", "metatable", "debug"]
+    },
+    {
+      "id": "oop-indexmeta-1",
+      "title": "__index Defaults",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: opacity=0.9,blur=2",
+      "docPath": "/oop/index-metamethod#exercise-1-__index-defaults",
+      "hints": [
+        "Override opacity to 0.9",
+        "Blur comes from defaults",
+        "Keep __index set to defaults"
+      ],
+      "explanation": "The defaults supply blur while opacity is overridden to 0.9.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__index", "defaults", "metatable"]
+    },
+    {
+      "id": "oop-indexmeta-2",
+      "title": "__index Computed",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: length=10",
+      "docPath": "/oop/index-metamethod#exercise-2-__index-computed",
+      "hints": [
+        "Compute sqrt(6*6 + 8*8)",
+        "6-8-10 triangle",
+        "Length is 10"
+      ],
+      "explanation": "The computed __index returns length 10 for x=6, y=8.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__index", "computed", "math"]
+    },
+    {
+      "id": "oop-indexmeta-3",
+      "title": "Lookup Chain",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: Kind=Widget",
+      "docPath": "/oop/index-metamethod#exercise-3-lookup-chain",
+      "hints": [
+        "Set Derived.kind to Widget",
+        "Base describe uses kind",
+        "Instance resolves through the chain"
+      ],
+      "explanation": "The lookup chain resolves the kind to Widget for the instance.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__index", "inheritance", "oop"]
+    },
+    {
+      "id": "oop-indexmeta-4",
+      "title": "__newindex Validation",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: power=10",
+      "docPath": "/oop/index-metamethod#exercise-4-__newindex-validation",
+      "hints": [
+        "Clamp values above 10",
+        "power is set to 15",
+        "Stored value should be 10"
+      ],
+      "explanation": "__newindex clamps the value so power ends at 10.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__newindex", "validation", "metatable"]
+    },
+    {
+      "id": "oop-indexmeta-5",
+      "title": "Lazy Initialization",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: created",
+      "docPath": "/oop/index-metamethod#exercise-5-lazy-initialization",
+      "hints": [
+        "Store 'created' for missing keys",
+        "Return the stored value",
+        "Use __index for lazy init"
+      ],
+      "explanation": "__index populates the missing key and returns 'created'.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__index", "lazy-init", "metatable"]
+    },
+    {
+      "id": "oop-indexmeta-6",
+      "title": "Read-Only Table",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "indexmeta",
+      "expectedAnswer": "ANSWER: mode=locked",
+      "docPath": "/oop/index-metamethod#exercise-6-read-only-table",
+      "hints": [
+        "Ignore writes in __newindex",
+        "mode should remain locked",
+        "Do not change the original table"
+      ],
+      "explanation": "__newindex ignores assignments so the mode stays locked.",
+      "reviewLinks": [
+        { "label": "__index Metamethod", "href": "/oop/index-metamethod" }
+      ],
+      "tags": ["__newindex", "readonly", "metatable"]
+    },
+    {
+      "id": "oop-classes-1",
+      "title": "Spring Step",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: 5",
+      "docPath": "/oop/classes#exercise-1-spring-step",
+      "hints": [
+        "Step adds (target - value) * stiffness",
+        "0 -> 10 with stiffness 0.5 yields 5",
+        "Store the step result"
+      ],
+      "explanation": "One spring step from 0 toward 10 with stiffness 0.5 yields 5.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "methods", "math"]
+    },
+    {
+      "id": "oop-classes-2",
+      "title": "Class Instance",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: 12",
+      "docPath": "/oop/classes#exercise-2-class-instance",
+      "hints": [
+        "Start value is 10",
+        "Increment twice",
+        "Final value is 12"
+      ],
+      "explanation": "Two increments of a counter starting at 10 produces 12.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "instances", "methods"]
+    },
+    {
+      "id": "oop-classes-3",
+      "title": "Sprite Class",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: name=Orb,pos=12",
+      "docPath": "/oop/classes#exercise-3-sprite-class",
+      "hints": [
+        "Move by 3 and 4",
+        "Start at 2,3 -> end at 5,7",
+        "Position sum is 12"
+      ],
+      "explanation": "After moving, the sprite's position sums to 12.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "movement", "state"]
+    },
+    {
+      "id": "oop-classes-4",
+      "title": "Instance Formatter",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: Label:Play",
+      "docPath": "/oop/classes#exercise-4-instance-formatter",
+      "hints": [
+        "Return 'Label:' .. self.text",
+        "Text is Play",
+        "Output should be Label:Play"
+      ],
+      "explanation": "The formatter returns Label:Play when the text is Play.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "formatting", "methods"]
+    },
+    {
+      "id": "oop-classes-5",
+      "title": "Multiple Constructors",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: name=Pulse,id=1,fromId=M7",
+      "docPath": "/oop/classes#exercise-5-multiple-constructors",
+      "hints": [
+        "fromName uses id 1",
+        "fromId uses name M<id>",
+        "For id 7, name is M7"
+      ],
+      "explanation": "The two constructors produce Pulse with id 1 and M7 for the id-based marker.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "factory", "constructors"]
+    },
+    {
+      "id": "oop-classes-6",
+      "title": "Class vs Plain Table",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "classes",
+      "expectedAnswer": "ANSWER: mode=loop,time=1.5",
+      "docPath": "/oop/classes#exercise-6-class-vs-plain-table",
+      "hints": [
+        "timer:tick() adds 0.5",
+        "Start at 1.0, so next is 1.5",
+        "Mode remains loop"
+      ],
+      "explanation": "The plain table holds static data while the class method advances time to 1.5.",
+      "reviewLinks": [
+        { "label": "Classes", "href": "/oop/classes" }
+      ],
+      "tags": ["classes", "tables", "behavior"]
+    },
+    {
+      "id": "oop-self-1",
+      "title": "Dot vs Colon Basics",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "20",
+      "docPath": "/oop/self-and-methods#exercise-1-dot-vs-colon-basics",
+      "hints": [
+        "Use colon (:) to automatically pass self",
+        "Use dot (.) with the object as the first argument",
+        "Both syntaxes produce the same result when used correctly"
+      ],
+      "explanation": "After increment (11) + increment (12) + add 5 (17) + add 3 (20), the final value is 20. Both colon and dot syntax work - colon just automatically passes self.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "colon-syntax", "dot-syntax", "methods"]
+    },
+    {
+      "id": "oop-self-2",
+      "title": "Why self Matters - Multiple Instances",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "4",
+      "docPath": "/oop/self-and-methods#exercise-2-why-self-matters",
+      "hints": [
+        "Use colon syntax (:report()) to call on each sprite",
+        "Use the stored function with dot syntax by passing the sprite as the first argument"
+      ],
+      "explanation": "Each sprite reports twice (once with colon, once with dot syntax), totaling 4 reports. self allows each instance to know its own identity.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "instances", "identity"]
+    },
+    {
+      "id": "oop-self-3",
+      "title": "Debugging self Errors",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "MyWidget: 200x100",
+      "docPath": "/oop/self-and-methods#exercise-3-debugging-self-errors",
+      "hints": [
+        "Store the method with dot syntax",
+        "Call it by passing the widget as the first argument",
+        "For the bound wrapper, create a closure that calls widget:describe()"
+      ],
+      "explanation": "After resizing to 200x100 and calling through the bound wrapper, the output shows the new dimensions. The bound wrapper captures self in a closure.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "debugging", "closures", "binding"]
+    },
+    {
+      "id": "oop-self-4",
+      "title": "Method Patterns in Rive",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "5",
+      "docPath": "/oop/self-and-methods#exercise-4-method-patterns-in-rive",
+      "hints": [
+        "Use dot syntax for static utilities (MathUtil.lerp)",
+        "Use colon syntax for instance methods (self:getAlpha)",
+        "The update method should return whether the particle is still alive"
+      ],
+      "explanation": "After spawning 5 particles and running one update cycle, 5 particles remain alive. The pattern shows static utils use dot, instance methods use colon.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "static", "instance-methods", "particles"]
+    },
+    {
+      "id": "oop-self-5",
+      "title": "Method Chaining",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "5",
+      "docPath": "/oop/self-and-methods#exercise-5-method-chaining",
+      "hints": [
+        "Each method should call the underlying operation",
+        "Return self at the end of each chainable method",
+        "The key is 'return self' to enable chaining"
+      ],
+      "explanation": "The chain builds a path with 5 commands: moveTo + 4 lineTo calls. Returning self from each method enables the fluent API pattern.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "chaining", "fluent-api", "builder-pattern"]
+    },
+    {
+      "id": "oop-self-6",
+      "title": "Callbacks and self (Binding Problem)",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "self-and-methods",
+      "expectedAnswer": "3",
+      "docPath": "/oop/self-and-methods#exercise-6-callbacks-and-self",
+      "hints": [
+        "Create a wrapper function that captures the button reference",
+        "Call handleClick using colon syntax inside the wrapper",
+        "The closure preserves the self binding"
+      ],
+      "explanation": "All 3 buttons fire their callbacks correctly because each callback is wrapped in a closure that captures the specific button reference and uses colon syntax to call handleClick.",
+      "reviewLinks": [
+        { "label": "self and Methods", "href": "/oop/self-and-methods" }
+      ],
+      "tags": ["self", "callbacks", "closures", "binding", "events"]
+    },
+    {
+      "id": "oop-inherit-1",
+      "title": "Drawable Base + Two Shapes",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "inheritance",
+      "expectedAnswer": "2",
+      "docPath": "/oop/inheritance#exercise-1-drawable-base-two-shapes",
+      "hints": [
+        "Use setmetatable(ChildClass, { __index = ParentClass }) to set up inheritance",
+        "The child class will automatically have access to parent methods"
+      ],
+      "explanation": "Both shapes inherit draw() from Shape, so the count is 2. This demonstrates polymorphism - different objects responding to the same method call.",
+      "reviewLinks": [
+        { "label": "Inheritance", "href": "/oop/inheritance" }
+      ],
+      "tags": ["inheritance", "setmetatable", "polymorphism", "shapes"]
+    },
+    {
+      "id": "oop-inherit-2",
+      "title": "Override a Method",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "inheritance",
+      "expectedAnswer": "stroke",
+      "docPath": "/oop/inheritance#exercise-2-override-a-method",
+      "hints": [
+        "Override the draw method in OutlineRect to render both fill and stroke",
+        "Draw the fill first, then the stroke on top"
+      ],
+      "explanation": "OutlineRect overrides draw() to render both fill and stroke. The child defines its own version of the method, which takes precedence over the parent's.",
+      "reviewLinks": [
+        { "label": "Inheritance", "href": "/oop/inheritance" }
+      ],
+      "tags": ["inheritance", "override", "method-override", "drawing"]
+    },
+    {
+      "id": "oop-inherit-3",
+      "title": "Calling Parent Methods",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "inheritance",
+      "expectedAnswer": "45",
+      "docPath": "/oop/inheritance#exercise-3-calling-parent-methods",
+      "hints": [
+        "Use dot notation with explicit self to call parent methods",
+        "Enemy.attack(self) is like super.attack() in JavaScript"
+      ],
+      "explanation": "After nextPhase (damage 25 -> 35), and another nextPhase (35 -> 45), the final damage is 45. The boss's attack method calls the parent's attack using Enemy.attack(self).",
+      "reviewLinks": [
+        { "label": "Inheritance", "href": "/oop/inheritance" }
+      ],
+      "tags": ["inheritance", "super", "parent-methods", "dot-notation"]
+    },
+    {
+      "id": "oop-inherit-4",
+      "title": "Complete Drawable Hierarchy",
+      "difficulty": 3,
+      "chapter": "oop",
+      "topic": "inheritance",
+      "expectedAnswer": "3",
+      "docPath": "/oop/inheritance#exercise-4-complete-drawable-hierarchy",
+      "hints": [
+        "Build the hierarchy step by step: GameObject -> DrawableObject -> Circle",
+        "Each level uses setmetatable to inherit from its parent"
+      ],
+      "explanation": "3 objects are created (2 boxes + 1 circle), all stored as DrawableType. The hierarchy chains: Circle/Box -> DrawableObject -> GameObject.",
+      "reviewLinks": [
+        { "label": "Inheritance", "href": "/oop/inheritance" }
+      ],
+      "tags": ["inheritance", "hierarchy", "multi-level", "game-objects"]
+    },
+    {
+      "id": "oop-encap-1",
+      "title": "Encapsulated State Machine",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "running",
+      "docPath": "/oop/encapsulation#exercise-1-encapsulated-state-machine",
+      "hints": [
+        "Return an object with functions that close over the private state",
+        "The transition function should check if the target state is in the allowed list for the current state"
+      ],
+      "explanation": "The state machine only allows valid transitions. idle->walking->running works, but running->jumping fails because that transition isn't defined. The final state remains 'running'.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "closures", "state-machine", "validation"]
+    },
+    {
+      "id": "oop-encap-2",
+      "title": "Encapsulated Animation Controller",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "settled",
+      "docPath": "/oop/encapsulation#exercise-2-encapsulated-animation-controller",
+      "hints": [
+        "Implement the step function with spring physics: displacement = target - position",
+        "Apply damping to velocity and update position"
+      ],
+      "explanation": "The spring controller uses encapsulated physics state. After one second, the spring settles at its target position because velocity approaches zero and displacement is within the threshold.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "closures", "spring-physics", "animation"]
+    },
+    {
+      "id": "oop-encap-3",
+      "title": "Weak Privacy with Conventions",
+      "difficulty": 1,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "dirty=false",
+      "docPath": "/oop/encapsulation#exercise-3-weak-privacy-with-conventions",
+      "hints": [
+        "Use underscore prefix (_) for fields and methods that should be considered private",
+        "Implement the public setColor method to update _paint.color"
+      ],
+      "explanation": "Underscore conventions indicate 'private' fields that shouldn't be accessed directly from outside the class. The _dirty flag is set to true initially, then false after _rebuildPath runs.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "conventions", "underscore", "sprites"]
+    },
+    {
+      "id": "oop-encap-4",
+      "title": "Module Pattern",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "5",
+      "docPath": "/oop/encapsulation#exercise-4-module-pattern",
+      "hints": [
+        "The emit function should call createParticle (private helper) and add to the particles array",
+        "The update function should filter out dead particles (life <= 0)"
+      ],
+      "explanation": "The module pattern combines closures with a clean factory interface. Private helpers (createParticle, updateParticle) are completely hidden. After emitting 5 particles, the count is 5.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "module-pattern", "factory", "particles"]
+    },
+    {
+      "id": "oop-encap-5",
+      "title": "Read-Only Properties",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "true",
+      "docPath": "/oop/encapsulation#exercise-5-read-only-properties",
+      "hints": [
+        "Getters simply return the private variables",
+        "addScore should add points and check for level up (level = floor(score/1000) + 1)"
+      ],
+      "explanation": "Read-only properties can only be modified through validated setter methods. Direct assignment fails because the field doesn't exist on the returned object - only the getter function exists.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "getters", "read-only", "game-state"]
+    },
+    {
+      "id": "oop-encap-6",
+      "title": "Combining Approaches",
+      "difficulty": 3,
+      "chapter": "oop",
+      "topic": "encapsulation",
+      "expectedAnswer": "complete",
+      "docPath": "/oop/encapsulation#exercise-6-combining-approaches",
+      "hints": [
+        "The Timer module uses closures for true privacy",
+        "The Countdown class uses underscore conventions for internal details"
+      ],
+      "explanation": "Real applications combine both approaches: closures for critical state (timer logic) and conventions for internal implementation details (UI paths/paints). This gives you security where it matters and simplicity where it doesn't.",
+      "reviewLinks": [
+        { "label": "Encapsulation", "href": "/oop/encapsulation" }
+      ],
+      "tags": ["encapsulation", "closures", "conventions", "combined-approaches"]
+    },
+    {
+      "id": "oop-pattern-1",
+      "title": "Factory Pattern",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "patterns",
+      "expectedAnswer": "3",
+      "docPath": "/oop/patterns#exercise-1-factory-pattern",
+      "hints": [
+        "Check config.type and return the appropriate shape",
+        "Use if/elseif to handle each type"
+      ],
+      "explanation": "The factory centralizes object creation. With 3 configs (circle, rectangle, triangle), the factory creates 3 shapes. Adding new shape types only requires modifying the factory, not client code.",
+      "reviewLinks": [
+        { "label": "OOP Patterns", "href": "/oop/patterns" }
+      ],
+      "tags": ["patterns", "factory", "object-creation", "configuration"]
+    },
+    {
+      "id": "oop-pattern-2",
+      "title": "Prototype Pattern (Clone)",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "patterns",
+      "expectedAnswer": "5",
+      "docPath": "/oop/patterns#exercise-2-prototype-pattern-clone",
+      "hints": [
+        "The clone method creates a new object with setmetatable",
+        "Copy all fields and clone the path"
+      ],
+      "explanation": "The Prototype pattern avoids expensive initialization. Templates are created once (expensive), then spawned many times via cheap cloning.",
+      "reviewLinks": [
+        { "label": "OOP Patterns", "href": "/oop/patterns" }
+      ],
+      "tags": ["patterns", "prototype", "clone", "templates"]
+    },
+    {
+      "id": "oop-pattern-3",
+      "title": "Module Pattern (IIFE)",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "patterns",
+      "expectedAnswer": "50",
+      "docPath": "/oop/patterns#exercise-3-module-pattern-iife",
+      "hints": [
+        "Use an IIFE to create private scope",
+        "Return public interface with functions that use private helpers"
+      ],
+      "explanation": "The Module pattern uses IIFEs to create private scope. Private helpers and constants are hidden; only the public interface is exposed.",
+      "reviewLinks": [
+        { "label": "OOP Patterns", "href": "/oop/patterns" }
+      ],
+      "tags": ["patterns", "module", "iife", "private-scope"]
+    },
+    {
+      "id": "oop-pattern-4",
+      "title": "Singleton Pattern",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "patterns",
+      "expectedAnswer": "1",
+      "docPath": "/oop/patterns#exercise-4-singleton-pattern",
+      "hints": [
+        "Use an IIFE with private cache table",
+        "Check if key exists before calling loader"
+      ],
+      "explanation": "The Singleton ensures only one cache instance exists. When requesting the same key twice, the first call is a miss, the second is a hit.",
+      "reviewLinks": [
+        { "label": "OOP Patterns", "href": "/oop/patterns" }
+      ],
+      "tags": ["patterns", "singleton", "cache", "shared-state"]
+    },
+    {
+      "id": "oop-pattern-5",
+      "title": "Observer Pattern",
+      "difficulty": 2,
+      "chapter": "oop",
+      "topic": "patterns",
+      "expectedAnswer": "50",
+      "docPath": "/oop/patterns#exercise-5-observer-pattern",
+      "hints": [
+        "Only notify observers if value actually changed",
+        "Store callbacks and call each with (newValue, oldValue)"
+      ],
+      "explanation": "The Observer pattern provides reactive updates. When a value changes, all subscribed observers are automatically notified.",
+      "reviewLinks": [
+        { "label": "OOP Patterns", "href": "/oop/patterns" }
+      ],
+      "tags": ["patterns", "observer", "reactive", "state-management"]
+    },
+    {
+      "id": "rive-env-1",
+      "title": "Console Exploration",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "environment",
+      "expectedAnswer": "milestone",
+      "docPath": "/rive/environment#exercise-1-console-exploration",
+      "hints": [
+        "The advance function should increment frameCount by 1",
+        "Use += to increment: self.frameCount += 1",
+        "Check if frameCount == 60 to print the milestone message"
+      ],
+      "explanation": "Understanding the lifecycle order (init → advance → draw) is fundamental to Rive scripting. The milestone detection shows how to track state across frames.",
+      "reviewLinks": [
+        { "label": "Rive Environment", "href": "/rive/environment" }
+      ],
+      "tags": ["lifecycle", "console", "debugging", "frame-counting"]
+    },
+    {
+      "id": "rive-env-2",
+      "title": "Understanding the Sandbox",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "environment",
+      "expectedAnswer": "4",
+      "docPath": "/rive/environment#exercise-2-understanding-the-sandbox",
+      "hints": [
+        "Use ~= nil to check if an API exists",
+        "Increment the counter when each API exists",
+        "All 4 core APIs (Vector, Path, Paint, Color) are available in Rive"
+      ],
+      "explanation": "Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available helps you design scripts correctly.",
+      "reviewLinks": [
+        { "label": "Rive Environment", "href": "/rive/environment" }
+      ],
+      "tags": ["sandbox", "apis", "availability", "globals"]
+    },
+    {
+      "id": "rive-env-3",
+      "title": "Type Safety with --!strict",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "environment",
+      "expectedAnswer": "typed",
+      "docPath": "/rive/environment#exercise-3-type-safety-with-strict",
+      "hints": [
+        "Use 'string' for text fields",
+        "Use 'number' for numeric fields",
+        "Use 'Vector' for position fields"
+      ],
+      "explanation": "Strict mode catches type mismatches at edit time rather than runtime. Without --!strict, Node scripts won't be recognized by Rive.",
+      "reviewLinks": [
+        { "label": "Rive Environment", "href": "/rive/environment" }
+      ],
+      "tags": ["types", "strict-mode", "type-annotations"]
+    },
+    {
+      "id": "rive-env-4",
+      "title": "Working Within the Sandbox",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "environment",
+      "expectedAnswer": "0.707",
+      "docPath": "/rive/environment#exercise-4-working-within-the-sandbox",
+      "hints": [
+        "Use math.rad(45) to convert degrees to radians",
+        "Use math.sin() and math.cos() with the angle in radians",
+        "Format the answer with string.format('%.3f', value)"
+      ],
+      "explanation": "The sandbox provides standard Luau math functions plus Rive graphics APIs. You can perform complex calculations—just no file I/O or network access.",
+      "reviewLinks": [
+        { "label": "Rive Environment", "href": "/rive/environment" }
+      ],
+      "tags": ["sandbox", "math", "trigonometry", "calculations"]
+    },
+    {
+      "id": "rive-inputs-1",
+      "title": "Size + Color Inputs",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "inputs",
+      "expectedAnswer": "rebuilt",
+      "docPath": "/rive/inputs#exercise-1-size-color-inputs",
+      "hints": [
+        "Calculate half as self.size / 2",
+        "Use self.path:reset() before building new geometry",
+        "Build the square with moveTo, lineTo, lineTo, lineTo, close"
+      ],
+      "explanation": "The update() function is called only when inputs change. This is more efficient than rebuilding every frame.",
+      "reviewLinks": [
+        { "label": "Inputs", "href": "/rive/inputs" }
+      ],
+      "tags": ["inputs", "update", "path-building", "shapes"]
+    },
+    {
+      "id": "rive-inputs-2",
+      "title": "Time-Based Animation",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "inputs",
+      "expectedAnswer": "oscillating",
+      "docPath": "/rive/inputs#exercise-2-time-based-animation",
+      "hints": [
+        "Add seconds to self.time each frame",
+        "Use math.sin(self.time * self.speed) for oscillation",
+        "Multiply by amplitude for the range"
+      ],
+      "explanation": "Time-based calculations with sine/cosine create smooth oscillations. This pattern is fundamental to procedural animation.",
+      "reviewLinks": [
+        { "label": "Inputs", "href": "/rive/inputs" }
+      ],
+      "tags": ["animation", "sine", "oscillation", "procedural"]
+    },
+    {
+      "id": "rive-inputs-3",
+      "title": "Input Change Counter",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "inputs",
+      "expectedAnswer": "3",
+      "docPath": "/rive/inputs#exercise-3-input-change-counter",
+      "hints": [
+        "Compare current value to previous value using ~=",
+        "Increment counter when they differ",
+        "Update previousSpeed after detecting change"
+      ],
+      "explanation": "The update() function is called whenever inputs change. By tracking previous values, you can detect and count changes.",
+      "reviewLinks": [
+        { "label": "Inputs", "href": "/rive/inputs" }
+      ],
+      "tags": ["inputs", "update", "change-tracking", "state"]
+    },
+    {
+      "id": "rive-inputs-4",
+      "title": "Progress Bar with Inputs",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "inputs",
+      "expectedAnswer": "75%",
+      "docPath": "/rive/inputs#exercise-4-progress-bar-with-inputs",
+      "hints": [
+        "Calculate percent as current / max",
+        "Calculate filledWidth as percent * barWidth",
+        "Build two rectangles: background (full) and foreground (partial)"
+      ],
+      "explanation": "Progress bars combine multiple inputs to create visual representations. The pattern maps data values to visual dimensions.",
+      "reviewLinks": [
+        { "label": "Inputs", "href": "/rive/inputs" }
+      ],
+      "tags": ["inputs", "progress-bar", "path-building", "visualization"]
+    },
+    {
+      "id": "rive-node-1",
+      "title": "Hello Rive",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "node-protocol",
+      "expectedAnswer": "hello",
+      "docPath": "/rive/protocols/node-protocol#exercise-1-hello-rive",
+      "hints": [
+        "Use print() to output messages to the Console",
+        "Don't forget to return true from init",
+        "Print the exact answer string: ANSWER: hello"
+      ],
+      "explanation": "Every Node script must have init() and draw() functions. init() runs once when the script starts.",
+      "reviewLinks": [
+        { "label": "Node Protocol", "href": "/rive/protocols/node-protocol" }
+      ],
+      "tags": ["node-script", "init", "print", "hello-world"]
+    },
+    {
+      "id": "rive-node-2",
+      "title": "Frame Timer",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "node-protocol",
+      "expectedAnswer": "2.00",
+      "docPath": "/rive/protocols/node-protocol#exercise-2-frame-timer",
+      "hints": [
+        "Add seconds to elapsed each frame using +=",
+        "Increment tick count each frame",
+        "Use == to check for specific frame numbers"
+      ],
+      "explanation": "The advance() function receives delta time (seconds since last frame). You must accumulate time yourself.",
+      "reviewLinks": [
+        { "label": "Node Protocol", "href": "/rive/protocols/node-protocol" }
+      ],
+      "tags": ["node-script", "advance", "time", "frame-counting"]
+    },
+    {
+      "id": "rive-node-3",
+      "title": "Draw a Simple Shape",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "node-protocol",
+      "expectedAnswer": "triangle",
+      "docPath": "/rive/protocols/node-protocol#exercise-3-draw-a-simple-shape",
+      "hints": [
+        "Use Path.new() to create a path",
+        "Build triangle with moveTo, lineTo, lineTo, close",
+        "Use Paint.with() for the fill style"
+      ],
+      "explanation": "Procedural graphics use Path API (moveTo, lineTo) with Paint for styling. Create in init(), render in draw().",
+      "reviewLinks": [
+        { "label": "Node Protocol", "href": "/rive/protocols/node-protocol" }
+      ],
+      "tags": ["node-script", "path", "paint", "procedural-graphics"]
+    },
+    {
+      "id": "rive-node-4",
+      "title": "Complete Protocol Example",
+      "difficulty": 3,
+      "chapter": "rive",
+      "topic": "node-protocol",
+      "expectedAnswer": "complete",
+      "docPath": "/rive/protocols/node-protocol#exercise-4-complete-protocol-example",
+      "hints": [
+        "Track time in advance() by adding seconds",
+        "Track clicks in pointerDown() by incrementing counter",
+        "Print answer when click count reaches 3"
+      ],
+      "explanation": "Production scripts combine init(), advance(), pointerDown(), and draw(). This shows the full protocol in action.",
+      "reviewLinks": [
+        { "label": "Node Protocol", "href": "/rive/protocols/node-protocol" }
+      ],
+      "tags": ["node-script", "lifecycle", "interaction", "complete-example"]
+    },
+    {
+      "id": "rive-lifecycle-1",
+      "title": "Lifecycle Probe",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "node-lifecycle",
+      "expectedAnswer": "probe",
+      "docPath": "/rive/protocols/node-lifecycle#exercise-1-lifecycle-probe",
+      "hints": [
+        "Print init message when script starts",
+        "Count advances and log every second",
+        "Print answer after 2 seconds"
+      ],
+      "explanation": "Understanding when each callback runs is crucial for debugging. init runs once, update on input changes, advance every frame.",
+      "reviewLinks": [
+        { "label": "Node Lifecycle", "href": "/rive/protocols/node-lifecycle" }
+      ],
+      "tags": ["lifecycle", "init", "advance", "debugging"]
+    },
+    {
+      "id": "rive-lifecycle-2",
+      "title": "Rebuild Only on Updates",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "node-lifecycle",
+      "expectedAnswer": "efficient",
+      "docPath": "/rive/protocols/node-lifecycle#exercise-2-rebuild-only-on-updates",
+      "hints": [
+        "Call rebuild in init and update, not draw",
+        "Track rebuild count to verify efficiency",
+        "Geometry should only rebuild when inputs change"
+      ],
+      "explanation": "Put expensive work in update, not draw. Rebuild in update runs only when inputs change.",
+      "reviewLinks": [
+        { "label": "Node Lifecycle", "href": "/rive/protocols/node-lifecycle" }
+      ],
+      "tags": ["lifecycle", "update", "optimization", "performance"]
+    },
+    {
+      "id": "rive-lifecycle-3",
+      "title": "Combining Lifecycle Callbacks",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "node-lifecycle",
+      "expectedAnswer": "pulsing",
+      "docPath": "/rive/protocols/node-lifecycle#exercise-3-combining-lifecycle-callbacks",
+      "hints": [
+        "Track time in advance",
+        "Calculate pulse using sine wave",
+        "Rebuild path with pulsed size"
+      ],
+      "explanation": "Combining update (input changes) and advance (animation) creates configurable AND animated components.",
+      "reviewLinks": [
+        { "label": "Node Lifecycle", "href": "/rive/protocols/node-lifecycle" }
+      ],
+      "tags": ["lifecycle", "animation", "advance", "sine-wave"]
+    },
+    {
+      "id": "rive-lifecycle-4",
+      "title": "Click Counter",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "node-lifecycle",
+      "expectedAnswer": "interactive",
+      "docPath": "/rive/protocols/node-lifecycle#exercise-4-click-counter",
+      "hints": [
+        "Increment click count in pointerDown",
+        "Set displayScale for pop effect",
+        "Return true to consume the event"
+      ],
+      "explanation": "Pointer events enable interactivity. Return true to consume events, false to propagate.",
+      "reviewLinks": [
+        { "label": "Node Lifecycle", "href": "/rive/protocols/node-lifecycle" }
+      ],
+      "tags": ["lifecycle", "pointer-events", "interaction", "animation"]
+    },
+    {
+      "id": "rive-util-1",
+      "title": "MathUtils Module",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "util-protocol",
+      "expectedAnswer": "75",
+      "docPath": "/rive/protocols/util-protocol#exercise-1-mathutils-module",
+      "hints": [
+        "Use require('MathUtils') to import the module",
+        "Call functions with dot notation: MathUtils.lerp()",
+        "The final answer is lerp(50, 100, 0.5) = 75"
+      ],
+      "explanation": "Util scripts let you define reusable functions once and import them anywhere. require() loads modules, and functions are called with dot notation.",
+      "reviewLinks": [
+        { "label": "Util Protocol", "href": "/rive/protocols/util-protocol" }
+      ],
+      "tags": ["util", "require", "math", "reusable-code"]
+    },
+    {
+      "id": "rive-util-2",
+      "title": "Exported Types from Util Scripts",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "util-protocol",
+      "expectedAnswer": "3",
+      "docPath": "/rive/protocols/util-protocol#exercise-2-exported-types-from-util-scripts",
+      "hints": [
+        "Use export type in the Util to share types",
+        "Access types with ModuleName.TypeName syntax",
+        "Factory functions return pre-configured objects"
+      ],
+      "explanation": "Util scripts can export types using 'export type'. Other scripts access these with ModuleName.TypeName syntax for type-safe data structures.",
+      "reviewLinks": [
+        { "label": "Util Protocol", "href": "/rive/protocols/util-protocol" }
+      ],
+      "tags": ["util", "types", "export-type", "palettes"]
+    },
+    {
+      "id": "rive-util-3",
+      "title": "Spring Animation Util",
+      "difficulty": 3,
+      "chapter": "rive",
+      "topic": "util-protocol",
+      "expectedAnswer": "settled",
+      "docPath": "/rive/protocols/util-protocol#exercise-3-spring-animation-util",
+      "hints": [
+        "Use Spring.new() to create spring state",
+        "Use Spring.update() in advance for physics",
+        "Use Spring.isSettled() to detect when motion stops"
+      ],
+      "explanation": "Spring physics create natural-feeling animations. The Util encapsulates physics calculations while each script manages its own SpringState.",
+      "reviewLinks": [
+        { "label": "Util Protocol", "href": "/rive/protocols/util-protocol" }
+      ],
+      "tags": ["util", "spring", "physics", "animation"]
+    },
+    {
+      "id": "rive-listener-1",
+      "title": "Basic Event Logger",
+      "difficulty": 1,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "3",
+      "docPath": "/rive/protocols/listener-protocol#exercise-1-basic-event-logger",
+      "hints": [
+        "Use table.insert() to add events to the array",
+        "Use pairs() to iterate over properties",
+        "Print answer when #self.events reaches 3"
+      ],
+      "explanation": "Listener scripts respond to events from state machines with onEvent callback instead of init/draw/advance.",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["listener", "events", "state-machine", "debugging"]
+    },
+    {
+      "id": "rive-listener-2",
+      "title": "Filtered Event Handler",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "2",
+      "docPath": "/rive/protocols/listener-protocol#exercise-2-filtered-event-handler",
+      "hints": [
+        "Compare eventName ~= self.targetEvent",
+        "Return early for non-matching events",
+        "Only increment count for matching events"
+      ],
+      "explanation": "Filtering events lets you create specialized handlers for specific interactions.",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["listener", "filter", "events", "handler"]
+    },
+    {
+      "id": "rive-listener-3",
+      "title": "Click Counter with Visual Feedback",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "clicked",
+      "docPath": "/rive/protocols/listener-protocol#exercise-3-click-counter-with-visual-feedback",
+      "hints": [
+        "Check bounds with math.abs()",
+        "Set displayScale for pop effect",
+        "Return true to consume the event"
+      ],
+      "explanation": "Pointer events use boolean returns to consume or propagate events, similar to stopPropagation().",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["pointer-events", "click", "visual-feedback", "interaction"]
+    },
+    {
+      "id": "rive-listener-4",
+      "title": "Drag and Drop",
+      "difficulty": 3,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "dragged",
+      "docPath": "/rive/protocols/listener-protocol#exercise-4-drag-and-drop",
+      "hints": [
+        "Calculate offset in pointerDown for natural dragging",
+        "Only process move/up when isDragging is true",
+        "Return true when handling events"
+      ],
+      "explanation": "Drag behavior requires all three pointer events working together.",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["pointer-events", "drag-drop", "interaction", "state"]
+    },
+    {
+      "id": "rive-listener-5",
+      "title": "Input-Driven State Visualization",
+      "difficulty": 2,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "reactive",
+      "docPath": "/rive/protocols/listener-protocol#exercise-5-input-driven-state-visualization",
+      "hints": [
+        "Use if/then/else for color selection",
+        "Calculate width from progress (0-1 to 0-200)",
+        "update() is called when inputs change"
+      ],
+      "explanation": "Scripts respond to state machine inputs through update() callback for bidirectional data flow.",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["inputs", "state-machine", "reactive", "visualization"]
+    },
+    {
+      "id": "rive-listener-6",
+      "title": "Publisher-Subscriber Pattern",
+      "difficulty": 3,
+      "chapter": "rive",
+      "topic": "listener-protocol",
+      "expectedAnswer": "pubsub",
+      "docPath": "/rive/protocols/listener-protocol#exercise-6-publisher-subscriber-pattern",
+      "hints": [
+        "EventBus uses module-level state shared across scripts",
+        "Use table.insert for subscribe, ipairs for publish",
+        "Callbacks receive data from publishers"
+      ],
+      "explanation": "Pub/sub pattern enables decoupled component communication via shared EventBus Util.",
+      "reviewLinks": [
+        { "label": "Listener Protocol", "href": "/rive/protocols/listener-protocol" }
+      ],
+      "tags": ["pubsub", "event-bus", "decoupled", "communication"]
+    },
+    {
+      "id": "advanced-core-1",
+      "title": "Draw a Line",
+      "difficulty": 1,
+      "chapter": "advanced",
+      "topic": "core-types",
+      "expectedAnswer": "line",
+      "docPath": "/advanced/core-types#exercise-1-draw-a-line",
+      "hints": [
+        "Use moveTo to set the start position",
+        "Use lineTo to draw to the end position",
+        "Create a stroke paint with thickness and color"
+      ],
+      "explanation": "moveTo sets the pen position without drawing, lineTo draws a line to the target. These are the most basic path operations.",
+      "reviewLinks": [
+        { "label": "Core Types", "href": "/advanced/core-types" }
+      ],
+      "tags": ["path", "moveTo", "lineTo", "stroke"]
+    },
+    {
+      "id": "advanced-core-2",
+      "title": "Filled Rectangle with Outline",
+      "difficulty": 1,
+      "chapter": "advanced",
+      "topic": "core-types",
+      "expectedAnswer": "rectangle",
+      "docPath": "/advanced/core-types#exercise-2-filled-rectangle-with-outline",
+      "hints": [
+        "Build a rectangle using moveTo, lineTo, close",
+        "Create two paints: fill and stroke",
+        "Draw fill first, then stroke on top"
+      ],
+      "explanation": "close() connects back to the start. Draw fill first, then stroke on top. One path can be drawn multiple times.",
+      "reviewLinks": [
+        { "label": "Core Types", "href": "/advanced/core-types" }
+      ],
+      "tags": ["path", "close", "fill", "stroke", "draw-order"]
+    },
+    {
+      "id": "advanced-core-3",
+      "title": "Fill vs Stroke",
+      "difficulty": 1,
+      "chapter": "advanced",
+      "topic": "core-types",
+      "expectedAnswer": "styles",
+      "docPath": "/advanced/core-types#exercise-3-fill-vs-stroke",
+      "hints": [
+        "Fill colors the interior of a closed shape",
+        "Stroke draws the outline",
+        "Use cap for line endings, join for corners"
+      ],
+      "explanation": "Fill and stroke are the two fundamental paint styles. Fill colors the interior, stroke draws the outline.",
+      "reviewLinks": [
+        { "label": "Core Types", "href": "/advanced/core-types" }
+      ],
+      "tags": ["paint", "fill", "stroke", "cap", "join"]
+    },
+    {
+      "id": "advanced-core-4",
+      "title": "Gradient Fill",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "core-types",
+      "expectedAnswer": "gradient",
+      "docPath": "/advanced/core-types#exercise-4-gradient-fill",
+      "hints": [
+        "Gradient.linear takes start point, end point, and color stops",
+        "Each stop has position (0-1) and color",
+        "Gradient overrides the solid color property"
+      ],
+      "explanation": "Linear gradients interpolate colors between two points. Color stops define which colors appear at which positions.",
+      "reviewLinks": [
+        { "label": "Core Types", "href": "/advanced/core-types" }
+      ],
+      "tags": ["gradient", "linear-gradient", "color-stops", "paint"]
+    },
+    {
+      "id": "advanced-core-5",
+      "title": "Paint Variations with copy()",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "core-types",
+      "expectedAnswer": "copied",
+      "docPath": "/advanced/core-types#exercise-5-paint-variations-with-copy",
+      "hints": [
+        "Use paint:copy({ property = value }) to create variations",
+        "The copied paint inherits all settings",
+        "Override only the properties you want to change"
+      ],
+      "explanation": "paint:copy() creates a new paint with inherited settings. This is more efficient than creating separate paints with redundant properties.",
+      "reviewLinks": [
+        { "label": "Core Types", "href": "/advanced/core-types" }
+      ],
+      "tags": ["paint", "copy", "variations", "dry"]
+    },
+    {
+      "id": "advanced-draw-1",
+      "title": "Translate and Rotate a Shape",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "drawing-api",
+      "expectedAnswer": "rotating",
+      "docPath": "/advanced/drawing-api#exercise-1-translate-and-rotate-a-shape",
+      "hints": [
+        "Use save() before transforms, restore() after",
+        "Apply Mat2D.withRotation(angle) for rotation",
+        "Increment angle in advance, apply in draw"
+      ],
+      "explanation": "The renderer maintains a transform stack. save() pushes state, transform() applies matrices, restore() pops state.",
+      "reviewLinks": [
+        { "label": "Drawing API", "href": "/advanced/drawing-api" }
+      ],
+      "tags": ["transforms", "rotation", "save-restore", "mat2d"]
+    },
+    {
+      "id": "advanced-draw-2",
+      "title": "Multiple Instances with save/restore",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "drawing-api",
+      "expectedAnswer": "5",
+      "docPath": "/advanced/drawing-api#exercise-2-multiple-instances-with-saverestore",
+      "hints": [
+        "Use a for loop with save/restore inside",
+        "Each iteration applies its own transform",
+        "One path can be drawn multiple times"
+      ],
+      "explanation": "save/restore in a loop lets you draw the same path multiple times with independent transforms.",
+      "reviewLinks": [
+        { "label": "Drawing API", "href": "/advanced/drawing-api" }
+      ],
+      "tags": ["transforms", "loop", "instances", "save-restore"]
+    },
+    {
+      "id": "advanced-draw-3",
+      "title": "Animated Polyline",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "drawing-api",
+      "expectedAnswer": "wavy",
+      "docPath": "/advanced/drawing-api#exercise-3-animated-polyline",
+      "hints": [
+        "Use path:reset() at start of advance",
+        "Loop through points with moveTo for first, lineTo for rest",
+        "Use math.sin for wave motion"
+      ],
+      "explanation": "Dynamic paths are rebuilt in advance() using reset(). Never call reset() in draw().",
+      "reviewLinks": [
+        { "label": "Drawing API", "href": "/advanced/drawing-api" }
+      ],
+      "tags": ["path", "reset", "animation", "polyline"]
+    },
+    {
+      "id": "advanced-draw-4",
+      "title": "Clipping a Region",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "drawing-api",
+      "expectedAnswer": "clipped",
+      "docPath": "/advanced/drawing-api#exercise-4-clipping-a-region",
+      "hints": [
+        "Use clipPath() after save()",
+        "Draw content, then restore() to clear clip",
+        "Draw clip boundary outside save/restore"
+      ],
+      "explanation": "clipPath() restricts all subsequent drawing to inside the clip region. Cleared by restore().",
+      "reviewLinks": [
+        { "label": "Drawing API", "href": "/advanced/drawing-api" }
+      ],
+      "tags": ["clip", "clipping", "mask", "save-restore"]
+    },
+    {
+      "id": "advanced-pointer-1",
+      "title": "Press to Toggle Color",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "game-logic",
+      "expectedAnswer": "toggled",
+      "docPath": "/advanced/game-logic#exercise-1-press-to-toggle-color",
+      "hints": [
+        "Toggle isPressed with 'not' keyword",
+        "Use ternary pattern: cond and valueA or valueB",
+        "Call event:hit() to consume the event"
+      ],
+      "explanation": "pointerDown handles click events. Toggle state with 'not', update visuals, and call event:hit() to stop propagation.",
+      "reviewLinks": [
+        { "label": "Pointer Events", "href": "/advanced/game-logic" }
+      ],
+      "tags": ["pointer-events", "toggle", "color", "interaction"]
+    },
+    {
+      "id": "advanced-pointer-2",
+      "title": "Track Multiple Pointers",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "game-logic",
+      "expectedAnswer": "multitouch",
+      "docPath": "/advanced/game-logic#exercise-2-track-multiple-pointers",
+      "hints": [
+        "Use event.id as the table key",
+        "Create entry in pointerDown, update in pointerMove",
+        "Set to nil in pointerUp to remove"
+      ],
+      "explanation": "Each pointer has a unique event.id. Track them in a table: create on down, update on move, remove on up.",
+      "reviewLinks": [
+        { "label": "Pointer Events", "href": "/advanced/game-logic" }
+      ],
+      "tags": ["pointer-events", "multitouch", "tracking", "tables"]
+    },
+    {
+      "id": "advanced-instantiation-1",
+      "title": "Spawn Multiple Instances",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "instantiation",
+      "expectedAnswer": "spawned",
+      "docPath": "/advanced/instantiation#exercise-1-spawn-multiple-instances",
+      "hints": [
+        "Call self.star:instance() to create instances",
+        "Store in a table with position data",
+        "Call advance() and draw() on each instance"
+      ],
+      "explanation": "Dynamic instantiation creates runtime copies of component artboards. You must call advance() and draw() on each instance every frame.",
+      "reviewLinks": [
+        { "label": "Dynamic Instantiation", "href": "/advanced/instantiation" }
+      ],
+      "tags": ["instantiation", "particles", "spawning", "artboards"]
+    },
+    {
+      "id": "advanced-procedural-1",
+      "title": "Procedural Polygon",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "polygon",
+      "docPath": "/advanced/procedural#exercise-1-procedural-polygon",
+      "hints": [
+        "Loop from 0 to n-1 for vertices",
+        "Calculate angle = (i/n) * 2π - π/2",
+        "Use cos for x, sin for y"
+      ],
+      "explanation": "Regular polygons are built by distributing points evenly around a circle. The angle offset (-π/2) makes the first vertex point upward.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "polygon", "trigonometry", "geometry"]
+    },
+    {
+      "id": "advanced-procedural-2",
+      "title": "Animated Star",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "star",
+      "docPath": "/advanced/procedural#exercise-2-animated-star",
+      "hints": [
+        "Double the point count (n*2)",
+        "Alternate radius: outer for even, inner for odd",
+        "Animate innerRatio using sine wave"
+      ],
+      "explanation": "Stars alternate between outer and inner radius. Animating the innerRatio creates a pulsing effect.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "star", "animation", "pulsing"]
+    },
+    {
+      "id": "advanced-procedural-3",
+      "title": "Sine Wave Path",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "wave",
+      "docPath": "/advanced/procedural#exercise-3-sine-wave-path",
+      "hints": [
+        "Loop through segments for smooth curve",
+        "Add time to phase for animation",
+        "Use stroke style for open paths"
+      ],
+      "explanation": "Adding time to the sine phase creates animation. More segments means smoother curves.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "sine", "wave", "animation"]
+    },
+    {
+      "id": "advanced-procedural-4",
+      "title": "Bezier Curves",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "bezier",
+      "docPath": "/advanced/procedural#exercise-4-bezier-curves",
+      "hints": [
+        "Use cubicTo(control1, control2, endpoint)",
+        "Animate control point Y offsets",
+        "Use sine wave for flowing motion"
+      ],
+      "explanation": "cubicTo creates smooth curves using two control points. Animating them creates elegant flowing motion.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "bezier", "cubic", "curves"]
+    },
+    {
+      "id": "advanced-procedural-5",
+      "title": "Simple Particle System",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "particles",
+      "docPath": "/advanced/procedural#exercise-5-simple-particle-system",
+      "hints": [
+        "Spawn particles on timer interval",
+        "Update position with velocity + gravity",
+        "Filter out dead particles (life >= maxLife)"
+      ],
+      "explanation": "Particle systems spawn objects, update physics, and remove dead ones. Filter arrays to efficiently remove particles.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "particles", "physics", "spawning"]
+    },
+    {
+      "id": "advanced-procedural-6",
+      "title": "Circular Progress Ring",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "ring",
+      "docPath": "/advanced/procedural#exercise-6-circular-progress-ring",
+      "hints": [
+        "Build arcs by looping through segments",
+        "Calculate angle from start to end",
+        "Use stroke style with round cap"
+      ],
+      "explanation": "Progress rings are built as arcs. The foreground arc length is based on progress (0-1).",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "progress", "arc", "ring"]
+    },
+    {
+      "id": "advanced-procedural-7",
+      "title": "Data-Driven Bar Chart",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "bars",
+      "docPath": "/advanced/procedural#exercise-7-data-driven-bar-chart",
+      "hints": [
+        "Use lerp formula for smooth animation",
+        "Loop through target values",
+        "Generate colors procedurally from index"
+      ],
+      "explanation": "Bar charts interpolate toward target values for smooth animation. Colors generated from index create rainbow effect.",
+      "reviewLinks": [
+        { "label": "Procedural Geometry", "href": "/advanced/procedural" }
+      ],
+      "tags": ["procedural", "chart", "data-viz", "lerp"]
+    },
+    {
+      "id": "advanced-viewmodel-1",
+      "title": "Read and Display ViewModel Data",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "viewmodels",
+      "expectedAnswer": "viewmodel",
+      "docPath": "/advanced/viewmodels#exercise-1-read-and-display-viewmodel-data",
+      "hints": [
+        "Use context:viewModel() to get the VM",
+        "Use vm:getNumber('name') to get properties",
+        "Access .value to read the current value"
+      ],
+      "explanation": "ViewModels provide reactive properties that scripts can read. Use context:viewModel() in init.",
+      "reviewLinks": [
+        { "label": "ViewModels", "href": "/advanced/viewmodels" }
+      ],
+      "tags": ["viewmodel", "read", "properties", "context"]
+    },
+    {
+      "id": "advanced-viewmodel-2",
+      "title": "Writing to ViewModel Properties",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "viewmodels",
+      "expectedAnswer": "writing",
+      "docPath": "/advanced/viewmodels#exercise-2-writing-to-viewmodel-properties",
+      "hints": [
+        "Assign to .value to write",
+        "Use sine/cosine for smooth oscillation",
+        "Changes propagate automatically"
+      ],
+      "explanation": "ViewModel properties are read/write. Assign to .value to update them.",
+      "reviewLinks": [
+        { "label": "ViewModels", "href": "/advanced/viewmodels" }
+      ],
+      "tags": ["viewmodel", "write", "animation", "binding"]
+    },
+    {
+      "id": "advanced-viewmodel-3",
+      "title": "Listening for Property Changes",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "viewmodels",
+      "expectedAnswer": "listener",
+      "docPath": "/advanced/viewmodels#exercise-3-listening-for-property-changes",
+      "hints": [
+        "Use property:addListener(function() end)",
+        "Read new value inside callback",
+        "Update visuals based on new state"
+      ],
+      "explanation": "Listeners make scripts reactive to external changes. Callbacks fire automatically when properties change.",
+      "reviewLinks": [
+        { "label": "ViewModels", "href": "/advanced/viewmodels" }
+      ],
+      "tags": ["viewmodel", "listener", "reactive", "callback"]
+    },
+    {
+      "id": "advanced-viewmodel-4",
+      "title": "Firing Triggers",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "viewmodels",
+      "expectedAnswer": "trigger",
+      "docPath": "/advanced/viewmodels#exercise-4-firing-triggers",
+      "hints": [
+        "Use vm:getTrigger('name') to get trigger",
+        "Register listener with :addListener()",
+        "Fire with :fire()"
+      ],
+      "explanation": "Triggers are one-shot events with no persistent value. Use them for notifications.",
+      "reviewLinks": [
+        { "label": "ViewModels", "href": "/advanced/viewmodels" }
+      ],
+      "tags": ["viewmodel", "trigger", "events", "one-shot"]
+    },
+    {
+      "id": "advanced-viewmodel-5",
+      "title": "Nested ViewModel Inputs",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "viewmodels",
+      "expectedAnswer": "nested",
+      "docPath": "/advanced/viewmodels#exercise-5-nested-viewmodel-inputs",
+      "hints": [
+        "Use Input<Data.YourViewModelName> in type",
+        "Access properties like self.character.posX.value",
+        "Use late() in the factory"
+      ],
+      "explanation": "Input<Data.X> binds to a specific ViewModel instance assigned in the editor.",
+      "reviewLinks": [
+        { "label": "ViewModels", "href": "/advanced/viewmodels" }
+      ],
+      "tags": ["viewmodel", "nested", "input", "binding"]
+    },
+    {
+      "id": "best-practices-arch-1",
+      "title": "Single Responsibility Principle",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "architecture",
+      "expectedAnswer": "separation",
+      "docPath": "/best-practices/architecture#exercise-1-single-responsibility-principle",
+      "hints": [
+        "The lerp function interpolates between two values: result = a + (b - a) * t",
+        "Use the Easing functions in advance() to animate the position",
+        "Util scripts hold pure functions, Node scripts handle visual behavior"
+      ],
+      "explanation": "Single Responsibility Principle keeps code maintainable. Util scripts hold pure functions with no side effects, while Node scripts handle visual behavior and state.",
+      "reviewLinks": [
+        { "label": "Architecture", "href": "/best-practices/architecture" }
+      ],
+      "tags": ["architecture", "separation-of-concerns", "util", "node-scripts"]
+    },
+    {
+      "id": "best-practices-arch-2",
+      "title": "State Management Patterns",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "architecture",
+      "expectedAnswer": "statemachine",
+      "docPath": "/best-practices/architecture#exercise-2-state-management-patterns",
+      "hints": [
+        "Use SCALE_BY_STATE[newState] to get the target scale",
+        "Use COLOR_BY_STATE[newState] to get the color for the new state",
+        "Lookup tables make state machines maintainable"
+      ],
+      "explanation": "Union types and lookup tables make state machines type-safe and maintainable. The compiler catches invalid states, and configuration changes require updating only the lookup tables.",
+      "reviewLinks": [
+        { "label": "Architecture", "href": "/best-practices/architecture" }
+      ],
+      "tags": ["architecture", "state-machine", "lookup-tables", "union-types"]
+    },
+    {
+      "id": "best-practices-arch-3",
+      "title": "Layered Architecture",
+      "difficulty": 3,
+      "chapter": "best-practices",
+      "topic": "architecture",
+      "expectedAnswer": "layered",
+      "docPath": "/best-practices/architecture#exercise-3-layered-architecture",
+      "hints": [
+        "In Particle.update: update position with velocity, apply gravity to vy, increment life",
+        "In advance: loop through particles, call Particle.update, keep alive ones",
+        "Layered architecture separates Config, Data, and Orchestration"
+      ],
+      "explanation": "Layered architecture separates concerns into modules: Config for constants, Data modules for pure logic, and Node scripts for orchestration. Each layer can be tested and modified independently.",
+      "reviewLinks": [
+        { "label": "Architecture", "href": "/best-practices/architecture" }
+      ],
+      "tags": ["architecture", "layered", "particles", "modules"]
+    },
+    {
+      "id": "best-practices-debug-1",
+      "title": "Tracing Execution Flow",
+      "difficulty": 1,
+      "chapter": "best-practices",
+      "topic": "debugging",
+      "expectedAnswer": "lifecycle",
+      "docPath": "/best-practices/debugging#exercise-1-tracing-execution-flow",
+      "hints": [
+        "Use print() with string interpolation to show the function name and relevant data",
+        "Format: print(`[{self.name}] function called`)",
+        "Limit prints in advance to avoid console spam"
+      ],
+      "explanation": "Understanding when lifecycle functions are called is essential for debugging. init runs once, update runs when inputs change, advance runs every frame.",
+      "reviewLinks": [
+        { "label": "Debugging", "href": "/best-practices/debugging" }
+      ],
+      "tags": ["debugging", "lifecycle", "print", "tracing"]
+    },
+    {
+      "id": "best-practices-debug-2",
+      "title": "Debugging State Changes",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "debugging",
+      "expectedAnswer": "statetrack",
+      "docPath": "/best-practices/debugging#exercise-2-debugging-state-changes",
+      "hints": [
+        "Create a logState function that prints a formatted string with label and values",
+        "Call it from init and when deltaX > 1",
+        "Helper functions ensure consistent formatting"
+      ],
+      "explanation": "Tracking state changes over time helps identify issues like values not updating, updating incorrectly, or oscillating unexpectedly. Helper functions ensure consistent formatting.",
+      "reviewLinks": [
+        { "label": "Debugging", "href": "/best-practices/debugging" }
+      ],
+      "tags": ["debugging", "state-tracking", "helper-functions", "spring-physics"]
+    },
+    {
+      "id": "best-practices-debug-3",
+      "title": "Debugging a Broken Script",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "debugging",
+      "expectedAnswer": "debugged",
+      "docPath": "/best-practices/debugging#exercise-3-debugging-a-broken-script",
+      "hints": [
+        "Bug 1: Initialize self.path before calling methods on it",
+        "Bug 2: Use self.paint not self.colour",
+        "Bug 3: Use self.radius not self.rad"
+      ],
+      "explanation": "Common bugs include uninitialized fields (nil errors), typos in property names, and accessing undefined fields. Strict mode catches many of these at edit time.",
+      "reviewLinks": [
+        { "label": "Debugging", "href": "/best-practices/debugging" }
+      ],
+      "tags": ["debugging", "bug-fixing", "nil-errors", "typos"]
+    },
+    {
+      "id": "best-practices-perf-1",
+      "title": "Cache and Reuse Objects",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "performance",
+      "expectedAnswer": "cached",
+      "docPath": "/best-practices/performance#exercise-1-cache-and-reuse-objects",
+      "hints": [
+        "Create Path and Paint objects once in init, then reuse them",
+        "Use path:reset() to clear and rebuild geometry without allocating new objects",
+        "draw() should only render, not allocate"
+      ],
+      "explanation": "Creating objects every frame is expensive. Allocating Path and Paint once in init and reusing them eliminates per-frame allocation overhead.",
+      "reviewLinks": [
+        { "label": "Performance", "href": "/best-practices/performance" }
+      ],
+      "tags": ["performance", "caching", "object-reuse", "allocation"]
+    },
+    {
+      "id": "best-practices-perf-2",
+      "title": "Update-Driven Rendering",
+      "difficulty": 2,
+      "chapter": "best-practices",
+      "topic": "performance",
+      "expectedAnswer": "efficient",
+      "docPath": "/best-practices/performance#exercise-2-update-driven-rendering",
+      "hints": [
+        "Create a rebuild helper function that resets and rebuilds the path",
+        "Call it from init for initial state, and from update when inputs change",
+        "draw() remains lightweight, only rendering the cached path"
+      ],
+      "explanation": "Update-driven rendering only rebuilds geometry when inputs change, not every frame. This pattern is essential for complex shapes that are expensive to rebuild.",
+      "reviewLinks": [
+        { "label": "Performance", "href": "/best-practices/performance" }
+      ],
+      "tags": ["performance", "update-driven", "efficient", "optimization"]
     }
   ],
   "chapters": {
+    "intro": {
+      "title": "Introduction",
+      "order": 0
+    },
+    "getting-started": {
+      "title": "Part 1: Getting Started",
+      "order": 1
+    },
     "fundamentals": {
       "title": "Part 2: Fundamentals",
       "order": 2
@@ -69,6 +3538,14 @@
     "rive": {
       "title": "Part 5: Rive Integration",
       "order": 5
+    },
+    "advanced": {
+      "title": "Part 6: Advanced Topics",
+      "order": 6
+    },
+    "best-practices": {
+      "title": "Part 7: Best Practices",
+      "order": 7
     }
   }
 }

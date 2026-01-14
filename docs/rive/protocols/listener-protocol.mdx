@@ -5,6 +5,7 @@ description: Learn about Listener scripts for event handling in Rive
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Other Protocols
 
@@ -113,131 +114,94 @@ class MyListener {
 
 ## Exercises
 
-### Exercise 1: Basic Event Logger
-
-**Goal**: Create a Listener script that logs all events from the state machine.
-
-**Why This Matters**: Understanding how events flow from state machines to scripts is fundamental for creating interactive animations. In After Effects, you'd check marker times; in JavaScript, you'd use `addEventListener`. In Rive, Listener scripts receive events automatically when attached to an artboard.
-
-**Real-World Use**:
-- Analytics tracking (count button clicks, track user paths)
-- Debugging state machine behavior
-- Triggering sound effects or haptic feedback on mobile
-- Syncing external systems with animation events
-
-**After Effects Equivalent**: There's no direct equivalent. You might use markers and check `if (time >= marker.key(1).time && time < marker.key(1).time + 0.1)` to detect when you "pass" a marker.
-
-**JavaScript Equivalent**:
-
-```typescript
-// JavaScript: Generic event logger
-class EventLogger {
-    events: string[] = [];
-
-    constructor(element: HTMLElement) {
-        // Listen to multiple event types
-        ['click', 'mouseenter', 'mouseleave'].forEach(type => {
-            element.addEventListener(type, (e) => this.logEvent(type, e));
-        });
-    }
-
-    logEvent(eventName: string, event: Event) {
-        this.events.push(eventName);
-        console.log(`=== Event: ${eventName} ===`);
-        console.log(`  Target: ${(event.target as HTMLElement).tagName}`);
-        console.log(`Total events: ${this.events.length}`);
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create the Listener script** in Rive's Assets panel → Scripts → New Listener Script
-
-2. **Type this code**:
-
-```lua
---!strict
+<Exercise
+  id="rive-listener-1"
+  title="Exercise 1: Basic Event Logger"
+  difficulty={1}
+  hint="Store the event name in the events table using table.insert(). Use pairs() to iterate over the properties table and print each key/value."
+  expectedAnswer="3"
+  explanation="Listener scripts respond to events from state machines. They have an onEvent callback instead of init/draw/advance. This is fundamentally different from Node scripts and is used for analytics, debugging, and triggering external systems."
+  task="Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer."
+  expectedOutput={`=== Event: ButtonClicked ===
+  source = button1
+Total events received: 1
+=== Event: LevelComplete ===
+  level = 1
+Total events received: 2
+=== Event: ScoreUpdate ===
+  points = 100
+Total events received: 3
+ANSWER: 3`}
+  code={`--!strict
+-- A Listener script that logs all events from the state machine
 
 export type EventLogger = {
     events: { string },
 }
 
 function onEvent(self: EventLogger, eventName: string, properties: { [string]: any })
-    -- Store event name for history
-    table.insert(self.events, eventName)
+    -- TODO 1: Store the event name in self.events using table.insert()
 
-    print(`=== Event: {eventName} ===`)
+    -- TODO 2: Print the event header "=== Event: {eventName} ==="
 
-    -- Log all properties that came with the event
-    for key, value in pairs(properties) do
-        print(`  {key} = {tostring(value)}`)
-    end
+    -- TODO 3: Loop through all properties with pairs() and print each
+    -- Format: "  {key} = {tostring(value)}"
 
-    print(`Total events received: {#self.events}`)
+    -- TODO 4: Print the total events received: "Total events received: {#self.events}"
+
+    -- TODO 5: When total events reaches 3, print "ANSWER: 3"
+
 end
 
 return function(): Listener<EventLogger>
     return {
         onEvent = onEvent,
-        events = {},  -- Empty table to store event history
+        events = {},
     }
+end`}
+  solution={`-- TODO 1: Store the event name
+table.insert(self.events, eventName)
+
+-- TODO 2: Print the event header
+print(\`=== Event: {eventName} ===\`)
+
+-- TODO 3: Loop through properties
+for key, value in pairs(properties) do
+    print(\`  {key} = {tostring(value)}\`)
 end
-```
 
-3. **Attach to artboard**: Drag the Listener script onto your artboard in the hierarchy
+-- TODO 4: Print total events
+print(\`Total events received: {#self.events}\`)
 
-4. **Set up state machine events**: In your state machine, add Event nodes that fire events (e.g., "ButtonClicked", "LevelComplete")
+-- TODO 5: Print answer when 3 events received
+if #self.events == 3 then
+    print("ANSWER: 3")
+end`}
+>
+**Premise:** You're debugging a complex state machine and need to see exactly what events are firing and when.
 
-5. **Test**: Play the animation and trigger state machine events. Watch the Console for output.
+**Use Case:** Event loggers are essential for analytics tracking, debugging state machine behavior, triggering sound effects, and syncing external systems with animation events.
+</Exercise>
 
 ---
 
-### Exercise 2: Filtered Event Handler
-
-**Goal**: Create a Listener that only responds to specific events by name.
-
-**Why This Matters**: In real applications, you don't want every script responding to every event. Filtering lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern.
-
-**Real-World Use**:
-- Only respond to "Purchase" events to update inventory
-- Filter for "Error" events to show error UI
-- Handle "Achievement" events to trigger celebrations
-- Process only "Save" events to update storage
-
-**JavaScript Equivalent**:
-
-```typescript
-// JavaScript: Filtered event handler
-class FilteredListener {
-    targetEvent: string;
-    triggerCount: number = 0;
-
-    constructor(element: HTMLElement, targetEvent: string) {
-        this.targetEvent = targetEvent;
-
-        // Generic listener that filters
-        element.addEventListener('customEvent', (e: CustomEvent) => {
-            if (e.detail.name !== this.targetEvent) {
-                return; // Ignore non-matching events
-            }
-
-            this.triggerCount++;
-            console.log(`Target "${this.targetEvent}" triggered!`);
-            console.log(`Count: ${this.triggerCount}`);
-        });
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Listener script** named "FilteredListener"
-
-2. **Type this code**:
-
-```lua
---!strict
+<Exercise
+  id="rive-listener-2"
+  title="Exercise 2: Filtered Event Handler"
+  difficulty={2}
+  hint="Use ~= to check if eventName doesn't match targetEvent. Return early if it doesn't match. Only increment count and print for matching events."
+  expectedAnswer="2"
+  explanation="Filtering events lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern where you only respond to events from certain sources."
+  task="Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events."
+  expectedOutput={`Ignoring event: OtherEvent
+Target event "ButtonClicked" triggered!
+Trigger count: 1
+Ignoring event: RandomEvent
+Target event "ButtonClicked" triggered!
+Trigger count: 2
+ANSWER: 2`}
+  code={`--!strict
+-- A Listener that only responds to specific events by name
 
 export type FilteredListener = {
     targetEvent: string,
@@ -245,37 +209,50 @@ export type FilteredListener = {
 }
 
 function onEvent(self: FilteredListener, eventName: string, properties: { [string]: any })
-    -- FILTER: Only handle our target event
-    if eventName ~= self.targetEvent then
-        return  -- Silently ignore other events
-    end
+    -- TODO 1: Check if eventName ~= self.targetEvent
+    -- If they don't match, print "Ignoring event: {eventName}" and return early
 
-    self.triggerCount += 1
-    print(`Target event "{self.targetEvent}" triggered!`)
-    print(`Trigger count: {self.triggerCount}`)
+    -- TODO 2: Increment triggerCount by 1
 
-    -- Access specific properties if they exist
-    if properties.value then
-        print(`Event value: {properties.value}`)
-    end
+    -- TODO 3: Print "Target event "{self.targetEvent}" triggered!"
 
-    if properties.source then
-        print(`Event source: {properties.source}`)
-    end
+    -- TODO 4: Print "Trigger count: {self.triggerCount}"
+
+    -- TODO 5: When triggerCount reaches 2, print "ANSWER: 2"
+
 end
 
 return function(): Listener<FilteredListener>
     return {
         onEvent = onEvent,
-        targetEvent = "ButtonClicked",  -- Change this to match your event name
+        targetEvent = "ButtonClicked",
         triggerCount = 0,
     }
+end`}
+  solution={`-- TODO 1: Filter non-matching events
+if eventName ~= self.targetEvent then
+    print(\`Ignoring event: {eventName}\`)
+    return
 end
-```
 
-3. **Configure the target**: Change `"ButtonClicked"` to match the event name from your state machine
+-- TODO 2: Increment count
+self.triggerCount += 1
 
-4. **Test with multiple events**: Fire different events from your state machine. Only matching ones should log.
+-- TODO 3: Print target triggered
+print(\`Target event "{self.targetEvent}" triggered!\`)
+
+-- TODO 4: Print trigger count
+print(\`Trigger count: {self.triggerCount}\`)
+
+-- TODO 5: Print answer when count is 2
+if self.triggerCount == 2 then
+    print("ANSWER: 2")
+end`}
+>
+**Premise:** Your animation has many events firing, but you only care about "Purchase" events to update the inventory display.
+
+**Use Case:** Event filtering is essential when you have multiple Listener scripts, each handling different event types. This creates clean separation of concerns.
+</Exercise>
 
 ---
 
@@ -322,74 +299,21 @@ Forgetting to return `true` when you handle an event lets it "fall through" to e
 
 ---
 
-### Exercise 3: Click Counter with Visual Feedback
-
-**Goal**: Track clicks and show visual feedback (scale pop) when clicked.
-
-**Why This Matters**: This pattern is the foundation for all interactive buttons, toggles, and clickable elements. Understanding `pointerDown` and how to combine it with `advance` for animation is essential.
-
-**Real-World Use**:
-- Interactive buttons with press feedback
-- Click-to-collect game mechanics
-- Tap counters and scoring systems
-- Any clickable UI element
-
-**After Effects Equivalent**:
-
-```javascript
-// AE: Simulating click feedback with a slider
-// You'd need external control - AE expressions can't detect clicks
-clickCount = effect("Click Count")("Slider");
-baseScale = 100;
-clickScale = 120;
-// After "click", animate back
-t = time - effect("Last Click Time")("Slider");
-scale = linear(t, 0, 0.2, clickScale, baseScale);
-[scale, scale]
-```
-
-**JavaScript Equivalent**:
-
-```typescript
-class ClickCounter {
-    clickCount: number = 0;
-    displayScale: number = 1;
-    element: HTMLElement;
-
-    constructor(element: HTMLElement) {
-        this.element = element;
-
-        element.addEventListener('mousedown', (e) => {
-            this.clickCount++;
-            this.displayScale = 1.2;
-            console.log(`Click #${this.clickCount} at (${e.clientX}, ${e.clientY})`);
-
-            // Animate back to normal
-            this.animateScale();
-        });
-    }
-
-    animateScale() {
-        const animate = () => {
-            if (this.displayScale > 1) {
-                this.displayScale = Math.max(1, this.displayScale - 0.02);
-                this.element.style.transform = `scale(${this.displayScale})`;
-                requestAnimationFrame(animate);
-            }
-        };
-        animate();
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Node script** named "ClickCounter"
-
-2. **Type this code**:
-
-```lua
---!strict
+<Exercise
+  id="rive-listener-3"
+  title="Exercise 3: Click Counter with Visual Feedback"
+  difficulty={2}
+  hint="Check if position is within bounds using math.abs(). Set displayScale to 1.2 on click, then animate it back to 1 in advance. Return true from pointerDown to consume the event."
+  expectedAnswer="clicked"
+  explanation="Pointer events use boolean returns: true consumes the event (like stopPropagation), false lets it propagate. Combining pointerDown with advance creates interactive elements with visual feedback."
+  task="Complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks."
+  expectedOutput={`init: Button ready
+Click #1 at (0.0, 0.0)
+Click #2 at (10.0, 5.0)
+Click #3 at (-20.0, 10.0)
+ANSWER: clicked`}
+  code={`--!strict
+-- Click counter with visual pop feedback
 
 export type ClickCounter = {
     clickCount: number,
@@ -399,10 +323,10 @@ export type ClickCounter = {
 }
 
 function init(self: ClickCounter): boolean
+    print("init: Button ready")
     self.clickCount = 0
     self.displayScale = 1
 
-    -- Create a clickable button shape
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-60, -30))
     self.path:lineTo(Vector.xy(60, -30))
@@ -410,30 +334,33 @@ function init(self: ClickCounter): boolean
     self.path:lineTo(Vector.xy(-60, 30))
     self.path:close()
 
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(80, 160, 255),
-    })
-
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 160, 255) })
     return true
 end
 
 function pointerDown(self: ClickCounter, position: Vector): boolean
-    -- Check if click is within our button bounds
-    if math.abs(position.x) <= 60 and math.abs(position.y) <= 30 then
-        self.clickCount += 1
-        self.displayScale = 1.2  -- Pop effect!
-        print(`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})`)
-        return true  -- IMPORTANT: Consume the event
-    end
-    return false  -- Click was outside, don't consume
+    -- TODO 1: Check if click is within bounds (|x| <= 60 and |y| <= 30)
+    -- Use math.abs(position.x) and math.abs(position.y)
+
+    -- Inside the bounds check:
+        -- TODO 2: Increment clickCount by 1
+
+        -- TODO 3: Set displayScale to 1.2 (pop effect)
+
+        -- TODO 4: Print "Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})"
+
+        -- TODO 5: When clickCount reaches 3, print "ANSWER: clicked"
+
+        -- TODO 6: Return true to consume the event
+
+    -- TODO 7: Return false if click was outside bounds
+    return false
 end
 
 function advance(self: ClickCounter, seconds: number): boolean
-    -- Animate scale back to normal over time
-    if self.displayScale > 1 then
-        self.displayScale = math.max(1, self.displayScale - seconds * 4)
-    end
+    -- TODO 8: If displayScale > 1, animate it back toward 1
+    -- Use: self.displayScale = math.max(1, self.displayScale - seconds * 4)
+
     return true
 end
 
@@ -455,80 +382,58 @@ return function(): Node<ClickCounter>
         path = late(),
         paint = late(),
     }
+end`}
+  solution={`-- In pointerDown():
+-- TODO 1: Check bounds
+if math.abs(position.x) <= 60 and math.abs(position.y) <= 30 then
+    -- TODO 2: Increment click count
+    self.clickCount += 1
+
+    -- TODO 3: Set scale for pop effect
+    self.displayScale = 1.2
+
+    -- TODO 4: Print click info
+    print(\`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})\`)
+
+    -- TODO 5: Print answer on third click
+    if self.clickCount == 3 then
+        print("ANSWER: clicked")
+    end
+
+    -- TODO 6: Consume the event
+    return true
 end
-```
 
-3. **Attach to a shape** in your artboard hierarchy
+-- TODO 7: Don't consume if outside
+return false
 
-4. **Test**: Click the button area. Watch the Console for click counts and see the scale animation.
+-- In advance():
+-- TODO 8: Animate scale back to normal
+if self.displayScale > 1 then
+    self.displayScale = math.max(1, self.displayScale - seconds * 4)
+end`}
+>
+**Premise:** You're building an interactive button that needs visual feedback when pressed.
+
+**Use Case:** Click handlers with visual feedback are the foundation for buttons, toggles, tap counters, and all interactive UI elements in games and apps.
+</Exercise>
 
 ---
 
-### Exercise 4: Drag and Drop
-
-**Goal**: Implement full drag behavior using all three pointer events.
-
-**Why This Matters**: Dragging is one of the most common interactions in modern UI. Understanding how `pointerDown`, `pointerMove`, and `pointerUp` work together is essential for sliders, drag-to-reorder, drawing tools, and more.
-
-**Real-World Use**:
-- Slider controls
-- Drag-to-reorder lists
-- Drawing and annotation tools
-- Character positioning in games
-- Puzzle piece placement
-
-**JavaScript Equivalent**:
-
-```typescript
-class Draggable {
-    isDragging: boolean = false;
-    offsetX: number = 0;
-    offsetY: number = 0;
-    posX: number = 0;
-    posY: number = 0;
-    element: HTMLElement;
-
-    constructor(element: HTMLElement) {
-        this.element = element;
-
-        element.addEventListener('mousedown', (e) => this.onMouseDown(e));
-        document.addEventListener('mousemove', (e) => this.onMouseMove(e));
-        document.addEventListener('mouseup', (e) => this.onMouseUp(e));
-    }
-
-    onMouseDown(e: MouseEvent) {
-        this.isDragging = true;
-        this.offsetX = e.clientX - this.posX;
-        this.offsetY = e.clientY - this.posY;
-        this.element.style.backgroundColor = 'orange'; // Highlight
-    }
-
-    onMouseMove(e: MouseEvent) {
-        if (!this.isDragging) return;
-
-        this.posX = e.clientX - this.offsetX;
-        this.posY = e.clientY - this.offsetY;
-        this.element.style.transform = `translate(${this.posX}px, ${this.posY}px)`;
-    }
-
-    onMouseUp(e: MouseEvent) {
-        if (!this.isDragging) return;
-
-        this.isDragging = false;
-        this.element.style.backgroundColor = ''; // Normal
-        console.log(`Dropped at (${this.posX}, ${this.posY})`);
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Node script** named "Draggable"
-
-2. **Type this code** (note the helper function pattern):
-
-```lua
---!strict
+<Exercise
+  id="rive-listener-4"
+  title="Exercise 4: Drag and Drop"
+  difficulty={3}
+  hint="Calculate offset in pointerDown so dragging feels natural. Only process pointerMove/pointerUp when isDragging is true. Return true to consume events when handling them."
+  expectedAnswer="dragged"
+  explanation="Drag behavior requires all three pointer events working together: pointerDown to start and capture offset, pointerMove to track movement, pointerUp to finish. The offset calculation ensures smooth dragging from wherever you grab."
+  task="Complete all three pointer event handlers to implement drag and drop. Print the answer after the first successful drag."
+  expectedOutput={`init: Draggable ready
+Drag started
+Dropped at (50.0, 30.0)
+ANSWER: dragged`}
+  code={`--!strict
+-- Implement drag and drop with all three pointer events
 
 export type Draggable = {
     isDragging: boolean,
@@ -536,13 +441,12 @@ export type Draggable = {
     offsetY: number,
     posX: number,
     posY: number,
+    hasDragged: boolean,
     size: number,
     path: Path,
     paint: Paint,
 }
 
--- Helper function to rebuild path at current position
--- Note: Defined BEFORE it's used (Luau requires this)
 local function rebuildPath(self: Draggable)
     local half = self.size / 2
     self.path:reset()
@@ -554,64 +458,69 @@ local function rebuildPath(self: Draggable)
 end
 
 function init(self: Draggable): boolean
+    print("init: Draggable ready")
     self.isDragging = false
     self.offsetX = 0
     self.offsetY = 0
     self.posX = 0
     self.posY = 0
+    self.hasDragged = false
     self.size = 80
 
     self.path = Path.new()
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(255, 120, 80),
-    })
-
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 120, 80) })
     rebuildPath(self)
     return true
 end
 
 function pointerDown(self: Draggable, position: Vector): boolean
-    -- Hit test: Is click within the shape?
     local half = self.size / 2
     local dx = math.abs(position.x - self.posX)
     local dy = math.abs(position.y - self.posY)
 
     if dx <= half and dy <= half then
-        -- Start dragging
-        self.isDragging = true
-        self.offsetX = position.x - self.posX
-        self.offsetY = position.y - self.posY
-        self.paint.color = Color.rgb(255, 180, 120)  -- Highlight color
-        print("Drag started")
-        return true  -- Consume event
-    end
+        -- TODO 1: Set isDragging to true
 
-    return false  -- Click was outside
+        -- TODO 2: Calculate offset (where user clicked relative to center)
+        -- self.offsetX = position.x - self.posX
+        -- self.offsetY = position.y - self.posY
+
+        -- TODO 3: Change color to highlight (255, 180, 120)
+
+        -- TODO 4: Print "Drag started"
+
+        -- TODO 5: Return true to consume
+        return false
+    end
+    return false
 end
 
 function pointerMove(self: Draggable, position: Vector): boolean
-    if not self.isDragging then
-        return false  -- Not dragging, ignore
-    end
+    -- TODO 6: If not isDragging, return false
 
-    -- Update position while dragging
-    self.posX = position.x - self.offsetX
-    self.posY = position.y - self.offsetY
-    rebuildPath(self)
-    return true  -- Consume event while dragging
+    -- TODO 7: Update position using offset
+    -- self.posX = position.x - self.offsetX
+    -- self.posY = position.y - self.offsetY
+
+    -- TODO 8: Call rebuildPath(self)
+
+    -- TODO 9: Return true while dragging
+    return false
 end
 
 function pointerUp(self: Draggable, position: Vector): boolean
-    if not self.isDragging then
-        return false
-    end
+    -- TODO 10: If not isDragging, return false
 
-    -- Stop dragging
-    self.isDragging = false
-    self.paint.color = Color.rgb(255, 120, 80)  -- Normal color
-    print(`Dropped at ({self.posX:.1f}, {self.posY:.1f})`)
-    return true
+    -- TODO 11: Set isDragging to false
+
+    -- TODO 12: Reset color to normal (255, 120, 80)
+
+    -- TODO 13: Print "Dropped at ({self.posX:.1f}, {self.posY:.1f})"
+
+    -- TODO 14: If not hasDragged, set it true and print "ANSWER: dragged"
+
+    -- TODO 15: Return true
+    return false
 end
 
 function draw(self: Draggable, renderer: Renderer)
@@ -630,16 +539,53 @@ return function(): Node<Draggable>
         offsetY = 0,
         posX = 0,
         posY = 0,
+        hasDragged = false,
         size = 80,
         path = late(),
         paint = late(),
     }
+end`}
+  solution={`-- In pointerDown():
+-- TODO 1-5
+self.isDragging = true
+self.offsetX = position.x - self.posX
+self.offsetY = position.y - self.posY
+self.paint.color = Color.rgb(255, 180, 120)
+print("Drag started")
+return true
+
+-- In pointerMove():
+-- TODO 6: Early return if not dragging
+if not self.isDragging then
+    return false
 end
-```
 
-3. **Key pattern to understand**: The offset calculation (`offsetX = position.x - self.posX`) ensures smooth dragging from wherever you grab the object, not snapping to center.
+-- TODO 7-9: Update position and rebuild
+self.posX = position.x - self.offsetX
+self.posY = position.y - self.offsetY
+rebuildPath(self)
+return true
 
-4. **Test**: Click and drag the shape. It should follow your mouse smoothly and change color while dragging.
+-- In pointerUp():
+-- TODO 10: Early return if not dragging
+if not self.isDragging then
+    return false
+end
+
+-- TODO 11-15: Finish drag
+self.isDragging = false
+self.paint.color = Color.rgb(255, 120, 80)
+print(\`Dropped at ({self.posX:.1f}, {self.posY:.1f})\`)
+if not self.hasDragged then
+    self.hasDragged = true
+    print("ANSWER: dragged")
+end
+return true`}
+>
+**Premise:** You're building a puzzle game where players drag pieces into position.
+
+**Use Case:** Drag-and-drop is fundamental for sliders, reorderable lists, drawing tools, game character movement, and any direct manipulation interface.
+</Exercise>
 
 ---
 
@@ -647,110 +593,69 @@ end
 
 Scripts can communicate with Rive's state machine through Inputs. This creates powerful bidirectional data flow.
 
-### Exercise 5: Input-Driven State Visualization
-
-**Goal**: Create a visual that responds to state machine inputs.
-
-**Why This Matters**: State machines handle high-level animation logic. Scripts handle procedural details. Combining them lets you build complex interactions where state machines control "what" happens and scripts control "how" it looks.
-
-**Real-World Use**:
-- Progress bars driven by state machine progress
-- Dynamic color changes based on game state
-- Procedural animations triggered by state changes
-- UI elements that respond to multiple state inputs
-
-**After Effects Comparison**: In AE, you might use expressions that read from control layers or sliders. The state machine is like having an automatic system that sets those sliders based on conditions.
-
-**JavaScript Equivalent**:
-
-```typescript
-class StateBridge {
-    isActive: boolean = false;
-    progress: number = 0;
-    canvas: HTMLCanvasElement;
-    ctx: CanvasRenderingContext2D;
-
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d')!;
-
-        // Listen for state changes
-        document.addEventListener('stateChange', (e: CustomEvent) => {
-            this.isActive = e.detail.isActive;
-            this.progress = e.detail.progress;
-            this.render();
-        });
-    }
-
-    render() {
-        const ctx = this.ctx;
-        ctx.clearRect(0, 0, 300, 50);
-
-        // Color based on active state
-        ctx.fillStyle = this.isActive ? '#50c878' : '#c85050';
-
-        // Width based on progress
-        const width = 200 * this.progress;
-        ctx.fillRect(50, 5, width, 40);
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Node script** named "StateBridge"
-
-2. **Type this code**:
-
-```lua
---!strict
+<Exercise
+  id="rive-listener-5"
+  title="Exercise 5: Input-Driven State Visualization"
+  difficulty={2}
+  hint="Use if/then/else syntax for color selection. Calculate width from progress (0-1 maps to 0-200). The update function is called whenever inputs change."
+  expectedAnswer="reactive"
+  explanation="Scripts can respond to state machine inputs through the update() callback. This creates bidirectional data flow where state machines control 'what' happens and scripts control 'how' it looks."
+  task="Complete the rebuildVisual helper and update function to create a progress bar that changes color based on isActive input."
+  expectedOutput={`init: StateBridge ready
+State changed: active=false, progress=0.5
+State changed: active=true, progress=0.75
+ANSWER: reactive`}
+  code={`--!strict
+-- A visual that responds to state machine inputs
 
 export type StateBridge = {
-    -- Inputs that can be bound to state machine outputs
     isActive: Input<boolean>,
     progress: Input<number>,
-
-    -- Internal state
+    updateCount: number,
     path: Path,
     paint: Paint,
 }
 
--- Helper to rebuild visual based on current input values
 local function rebuildVisual(self: StateBridge)
-    -- Calculate width from progress (0-1 maps to 0-200)
-    local width = 200 * self.progress
+    -- TODO 1: Calculate width from progress (0-1 maps to 0-200)
+    local width = 0  -- Replace with: 200 * self.progress
 
-    -- Choose color based on active state
-    local color = if self.isActive
-        then Color.rgb(80, 200, 120)   -- Green when active
-        else Color.rgb(200, 80, 80)    -- Red when inactive
+    -- TODO 2: Choose color based on isActive
+    -- Green (80, 200, 120) when active, Red (200, 80, 80) when inactive
+    -- Use: if self.isActive then ... else ... end
+    local color = Color.rgb(100, 100, 100)
 
-    -- Rebuild the progress bar path
+    -- TODO 3: Rebuild the progress bar path
+    -- Start at (-100, -20), width determined by progress
     self.path:reset()
-    self.path:moveTo(Vector.xy(-100, -20))
-    self.path:lineTo(Vector.xy(-100 + width, -20))
-    self.path:lineTo(Vector.xy(-100 + width, 20))
-    self.path:lineTo(Vector.xy(-100, 20))
-    self.path:close()
+    -- self.path:moveTo(Vector.xy(-100, -20))
+    -- self.path:lineTo(Vector.xy(-100 + width, -20))
+    -- self.path:lineTo(Vector.xy(-100 + width, 20))
+    -- self.path:lineTo(Vector.xy(-100, 20))
+    -- self.path:close()
 
-    self.paint.color = color
+    -- TODO 4: Set paint color
+    -- self.paint.color = color
 end
 
 function init(self: StateBridge): boolean
+    print("init: StateBridge ready")
+    self.updateCount = 0
     self.path = Path.new()
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(100, 100, 100),
-    })
-
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 100, 100) })
     rebuildVisual(self)
     return true
 end
 
 function update(self: StateBridge)
-    -- Called when ANY input changes
-    print(`State changed: active={self.isActive}, progress={self.progress}`)
-    rebuildVisual(self)
+    self.updateCount += 1
+
+    -- TODO 5: Print "State changed: active={self.isActive}, progress={self.progress}"
+
+    -- TODO 6: Call rebuildVisual(self)
+
+    -- TODO 7: When updateCount reaches 2, print "ANSWER: reactive"
+
 end
 
 function draw(self: StateBridge, renderer: Renderer)
@@ -762,22 +667,49 @@ return function(): Node<StateBridge>
         init = init,
         update = update,
         draw = draw,
-        -- Inputs with default values (shown in editor)
         isActive = false,
         progress = 0.5,
-        -- Rive objects use late()
+        updateCount = 0,
         path = late(),
         paint = late(),
     }
-end
-```
+end`}
+  solution={`-- In rebuildVisual():
+-- TODO 1: Calculate width
+local width = 200 * self.progress
 
-3. **In the Rive editor**:
-   - Select the script in the hierarchy
-   - In Properties, you'll see `isActive` and `progress` inputs
-   - Bind these to state machine outputs or set them manually
+-- TODO 2: Choose color based on active state
+local color = if self.isActive
+    then Color.rgb(80, 200, 120)
+    else Color.rgb(200, 80, 80)
 
-4. **Test**: Toggle `isActive` to see color change. Adjust `progress` to see bar length change.
+-- TODO 3: Rebuild path
+self.path:reset()
+self.path:moveTo(Vector.xy(-100, -20))
+self.path:lineTo(Vector.xy(-100 + width, -20))
+self.path:lineTo(Vector.xy(-100 + width, 20))
+self.path:lineTo(Vector.xy(-100, 20))
+self.path:close()
+
+-- TODO 4: Set color
+self.paint.color = color
+
+-- In update():
+-- TODO 5: Print state
+print(\`State changed: active={self.isActive}, progress={self.progress}\`)
+
+-- TODO 6: Rebuild visual
+rebuildVisual(self)
+
+-- TODO 7: Print answer
+if self.updateCount == 2 then
+    print("ANSWER: reactive")
+end`}
+>
+**Premise:** You're building a health bar that changes color based on game state (active/inactive) and fills based on health percentage.
+
+**Use Case:** State machine integration lets you connect procedural scripts to Rive's powerful state machine system, creating complex reactive animations.
+</Exercise>
 
 ---
 
@@ -785,57 +717,27 @@ end
 
 When you need scripts to communicate with each other, create an EventBus using a Util script.
 
-### Exercise 6: Publisher-Subscriber Pattern
+<Exercise
+  id="rive-listener-6"
+  title="Exercise 6: Publisher-Subscriber Pattern"
+  difficulty={3}
+  hint="The EventBus uses module-level state (subscriptions table) shared across all scripts. Use table.insert for subscribe, ipairs loop for publish. The subscriber's callback receives data from the publisher."
+  expectedAnswer="pubsub"
+  explanation="The pub/sub pattern enables decoupled component communication. Util scripts with module-level state can act as shared event buses. Publishers don't know about subscribers - they just emit events."
+  task="Complete the EventBus Util functions and the Subscriber's init to create a working pub/sub system. Print the answer after receiving 2 events."
+  expectedOutput={`EventBus: Subscribed to "click"
+Publisher clicked!
+EventBus: Publishing "click"
+Subscriber received click #1
+Publisher clicked!
+EventBus: Publishing "click"
+Subscriber received click #2
+ANSWER: pubsub`}
+  code={`--!strict
+-- Publisher-Subscriber pattern with EventBus
 
-**Goal**: Create a communication system where Node scripts can publish and subscribe to events.
-
-**Why This Matters**: As your animations grow complex, you need ways for components to communicate without tight coupling. The pub/sub pattern is a fundamental software architecture pattern used in everything from game engines to web frameworks.
-
-**Real-World Use**:
-- Particle effects responding to gameplay events
-- Sound system triggered by animation events
-- Score displays updating when points are earned
-- Multiple UI elements responding to single actions
-
-**JavaScript Equivalent**:
-
-```typescript
-// EventBus.ts - Shared event system
-class EventBus {
-    private static subscriptions: Map<string, Function[]> = new Map();
-
-    static subscribe(eventName: string, callback: Function) {
-        if (!this.subscriptions.has(eventName)) {
-            this.subscriptions.set(eventName, []);
-        }
-        this.subscriptions.get(eventName)!.push(callback);
-    }
-
-    static publish(eventName: string, data: any) {
-        const callbacks = this.subscriptions.get(eventName) || [];
-        callbacks.forEach(cb => cb(data));
-    }
-}
-
-// Usage in different components:
-// Publisher:
-element.addEventListener('click', () => {
-    EventBus.publish('buttonClicked', { count: ++clickCount });
-});
-
-// Subscriber:
-EventBus.subscribe('buttonClicked', (data) => {
-    console.log(`Received click #${data.count}`);
-});
-```
-
-**Step-by-Step Setup**:
-
-**Step 1: Create the EventBus Util Script**
-
-```lua
---!strict
-
+-- UTIL SCRIPT: EventBus (create this as a separate Util script)
+--[[
 local EventBus = {}
 
 export type Subscription = {
@@ -843,99 +745,32 @@ export type Subscription = {
     callback: (data: any) -> (),
 }
 
--- Module-level state (shared across all scripts that require this)
 local subscriptions: { Subscription } = {}
 
 function EventBus.subscribe(eventName: string, callback: (data: any) -> ())
-    table.insert(subscriptions, {
-        eventName = eventName,
-        callback = callback,
-    })
-    print(`EventBus: Subscribed to "{eventName}"`)
+    -- TODO 1: Insert subscription into table
+    -- table.insert(subscriptions, { eventName = eventName, callback = callback })
+
+    -- TODO 2: Print "EventBus: Subscribed to \"{eventName}\""
+
 end
 
 function EventBus.publish(eventName: string, data: any)
-    print(`EventBus: Publishing "{eventName}"`)
-    for _, sub in ipairs(subscriptions) do
-        if sub.eventName == eventName then
-            sub.callback(data)
-        end
-    end
-end
+    -- TODO 3: Print "EventBus: Publishing \"{eventName}\""
 
-function EventBus.clear()
-    subscriptions = {}
-    print("EventBus: Cleared all subscriptions")
+    -- TODO 4: Loop through subscriptions and call matching callbacks
+    -- for _, sub in ipairs(subscriptions) do
+    --     if sub.eventName == eventName then
+    --         sub.callback(data)
+    --     end
+    -- end
+
 end
 
 return EventBus
-```
+]]
 
-**Step 2: Create a Publisher Node Script**
-
-```lua
---!strict
-
-local EventBus = require("EventBus")
-
-export type Publisher = {
-    clickCount: number,
-    path: Path,
-    paint: Paint,
-}
-
-function init(self: Publisher): boolean
-    self.clickCount = 0
-
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-40, -40))
-    self.path:lineTo(Vector.xy(40, -40))
-    self.path:lineTo(Vector.xy(40, 40))
-    self.path:lineTo(Vector.xy(-40, 40))
-    self.path:close()
-
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(255, 100, 100),  -- Red
-    })
-
-    return true
-end
-
-function pointerDown(self: Publisher, position: Vector): boolean
-    self.clickCount += 1
-
-    -- Publish through the event bus
-    EventBus.publish("click", {
-        count = self.clickCount,
-        x = position.x,
-        y = position.y,
-    })
-
-    return true
-end
-
-function draw(self: Publisher, renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
-end
-
-return function(): Node<Publisher>
-    return {
-        init = init,
-        pointerDown = pointerDown,
-        draw = draw,
-        clickCount = 0,
-        path = late(),
-        paint = late(),
-    }
-end
-```
-
-**Step 3: Create a Subscriber Node Script**
-
-```lua
---!strict
-
+-- NODE SCRIPT: Subscriber (uses the EventBus)
 local EventBus = require("EventBus")
 
 export type Subscriber = {
@@ -949,12 +784,15 @@ function init(self: Subscriber): boolean
     self.receivedClicks = 0
     self.scale = 1
 
-    -- Subscribe to click events from ANYWHERE
-    EventBus.subscribe("click", function(data)
-        self.receivedClicks = data.count
-        self.scale = 1.5  -- Pop effect when event received
-        print(`Subscriber received click #{data.count} at ({data.x:.1f}, {data.y:.1f})`)
-    end)
+    -- TODO 5: Subscribe to "click" events
+    -- EventBus.subscribe("click", function(data)
+    --     self.receivedClicks += 1
+    --     self.scale = 1.5
+    --     print("Subscriber received click #" .. self.receivedClicks)
+    --     if self.receivedClicks == 2 then
+    --         print("ANSWER: pubsub")
+    --     end
+    -- end)
 
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-30, -30))
@@ -963,16 +801,11 @@ function init(self: Subscriber): boolean
     self.path:lineTo(Vector.xy(-30, 30))
     self.path:close()
 
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(100, 200, 100),  -- Green
-    })
-
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 100) })
     return true
 end
 
 function advance(self: Subscriber, seconds: number): boolean
-    -- Animate scale back to normal
     if self.scale > 1 then
         self.scale = math.max(1, self.scale - seconds * 3)
     end
@@ -981,7 +814,7 @@ end
 
 function draw(self: Subscriber, renderer: Renderer)
     renderer:save()
-    renderer:translate(Vector.xy(100, 0))  -- Offset from publisher
+    renderer:translate(Vector.xy(100, 0))
     renderer:scale(Vector.xy(self.scale, self.scale))
     renderer:drawPath(self.path, self.paint)
     renderer:restore()
@@ -997,10 +830,39 @@ return function(): Node<Subscriber>
         path = late(),
         paint = late(),
     }
-end
-```
+end`}
+  solution={`-- In EventBus Util:
+-- TODO 1: Insert subscription
+table.insert(subscriptions, { eventName = eventName, callback = callback })
 
-4. **Test**: Click the red publisher square. The green subscriber square should pop (scale up) in response, even though they don't know about each other directly.
+-- TODO 2: Print subscribed
+print(\`EventBus: Subscribed to "{eventName}"\`)
+
+-- TODO 3: Print publishing
+print(\`EventBus: Publishing "{eventName}"\`)
+
+-- TODO 4: Call matching callbacks
+for _, sub in ipairs(subscriptions) do
+    if sub.eventName == eventName then
+        sub.callback(data)
+    end
+end
+
+-- In Subscriber init():
+-- TODO 5: Subscribe to click events
+EventBus.subscribe("click", function(data)
+    self.receivedClicks += 1
+    self.scale = 1.5
+    print(\`Subscriber received click #{self.receivedClicks}\`)
+    if self.receivedClicks == 2 then
+        print("ANSWER: pubsub")
+    end
+end)`}
+>
+**Premise:** You're building a game where multiple UI elements need to respond when the player earns points, but you don't want them tightly coupled.
+
+**Use Case:** The pub/sub pattern is fundamental for particle effects responding to gameplay, sound systems triggered by events, score displays updating, and any scenario where multiple components need to react to the same action.
+</Exercise>
 
 ---
 

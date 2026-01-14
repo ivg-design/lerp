@@ -5,6 +5,7 @@ description: Learn how to use script inputs and data binding in Rive Node Script
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Inputs and Data Binding
 
@@ -100,59 +101,42 @@ When you define an `Input<T>` type in your script, Rive automatically creates a 
 
 ## Practice Exercises
 
-### Exercise 1: Size + Color Inputs
-
-:::info Goal
-Use inputs to drive a shape. The shape rebuilds when inputs change.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you'd create Slider and Color controls, then write expressions to read them. But AE expressions don't have a built-in "on change" trigger—you'd check the value every frame. Rive's `update()` is specifically called ONLY when inputs change.
-
-**Real-World Use**: Every interactive animation has adjustable parameters: size, color, speed, position. Inputs let designers tune your script without editing code. The `update()` pattern ensures efficient rebuilding only when needed.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "InputSquare"
-2. Copy the code below
-3. Attach to a node
-4. Look at the Inputs panel in Rive—you'll see `size` and `tint` controls
-5. Adjust them and watch the shape update in real-time
-
-</details>
-
-**Rive setup:** Attach the script to a node, then tweak `size` and `tint` in the inspector.
-
-**Expected result:** The square resizes and changes color immediately when inputs change.
-
-```lua
---!strict
+<Exercise
+  id="rive-inputs-1"
+  title="Exercise 1: Size + Color Inputs"
+  difficulty={2}
+  hint="In the rebuild function, calculate half as self.size / 2, then build a square path centered at the origin."
+  expectedAnswer="rebuilt"
+  explanation="The update() function is called only when inputs change. This is more efficient than rebuilding every frame in advance()—you only do work when the data actually changes."
+  task="Complete the rebuild function to build a square path based on the size input. The path should be centered at the origin with corners at (-half, -half) to (half, half)."
+  expectedOutput={`Creating input-driven square...
+Rebuilt: size=80
+ANSWER: rebuilt`}
+  code={`--!strict
+-- A square that rebuilds when size input changes
 
 export type InputSquare = {
     size: Input<number>,
-    tint: Input<Color>,
     path: Path,
     paint: Paint,
 }
 
 local function rebuild(self: InputSquare)
-    local half = self.size / 2
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-half, -half))
-    self.path:lineTo(Vector.xy(half, -half))
-    self.path:lineTo(Vector.xy(half, half))
-    self.path:lineTo(Vector.xy(-half, half))
-    self.path:close()
-    self.paint.color = self.tint
+    -- TODO 1: Calculate half as size divided by 2
+    local half = 0
 
-    print(`Rebuilt: size={self.size}, color=updated`)
+    -- TODO 2: Reset the path and build a square
+    -- Use self.path:reset() first
+    -- Then moveTo(-half, -half), lineTo corners, and close()
+
+    print(\`Rebuilt: size={self.size}\`)
+    print("ANSWER: rebuilt")
 end
 
 function init(self: InputSquare): boolean
+    print("Creating input-driven square...")
     self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = self.tint })
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(90, 180, 255) })
     rebuild(self)
     return true
 end
@@ -171,265 +155,175 @@ return function(): Node<InputSquare>
         update = update,
         draw = draw,
         size = 80,
-        tint = Color.rgb(90, 180, 255),
         path = late(),
         paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Calculate half as size divided by 2
+local half = self.size / 2
 
-```typescript
-// JavaScript/TypeScript equivalent with change detection:
+-- TODO 2: Reset the path and build a square
+self.path:reset()
+self.path:moveTo(Vector.xy(-half, -half))
+self.path:lineTo(Vector.xy(half, -half))
+self.path:lineTo(Vector.xy(half, half))
+self.path:lineTo(Vector.xy(-half, half))
+self.path:close()`}
+>
+**Premise:** You're creating a shape whose size can be adjusted by designers in the Rive editor without touching code.
 
-class InputSquare {
-    // Properties that can be changed externally
-    size: number = 80;
-    tint: Color = { r: 90, g: 180, b: 255 };
-
-    // Internal state
-    path: Path2D;
-    paint: { color: Color };
-
-    constructor() {
-        this.rebuild();
-    }
-
-    // Called when any property changes (like Rive's update)
-    onPropertyChange() {
-        this.rebuild();
-        console.log(`Rebuilt: size=${this.size}, color=updated`);
-    }
-
-    rebuild() {
-        const half = this.size / 2;
-        this.path = new Path2D();
-        this.path.rect(-half, -half, this.size, this.size);
-        this.paint.color = this.tint;
-    }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = colorToCSS(this.paint.color);
-        ctx.fill(this.path);
-    }
-}
-```
-
-**Try:** Change `size` and `tint` in the inputs panel and watch the shape update in real-time. Check the Console to see "Rebuilt" messages—they only appear when inputs change.
-
-:::tip The update Function
-The `update` function is called whenever any input changes. This is where you should rebuild geometry or recalculate values that depend on inputs.
-:::
+**Use Case:** Input-driven shapes are fundamental to reusable components. A single button script can be used throughout your project with different sizes configured per-instance.
+</Exercise>
 
 ---
 
-### Exercise 2: ViewModel Inputs
+<Exercise
+  id="rive-inputs-2"
+  title="Exercise 2: Time-Based Animation"
+  difficulty={2}
+  hint="Use math.sin(self.time * speed) to create oscillation. Multiply by amplitude for the range."
+  expectedAnswer="oscillating"
+  explanation="Time-based calculations with sine/cosine create smooth oscillations. This pattern is the foundation for procedural animation—moving elements based on mathematical functions rather than keyframes."
+  task="Complete the advance function to track time and calculate an oscillating position using sine. The position should swing between -60 and +60."
+  expectedOutput={`Driver initialized
+Time: 0.5s, Position: 45.0
+Time: 1.0s, Position: 52.9
+...
+ANSWER: oscillating`}
+  code={`--!strict
+-- Animate a position over time using sine wave
 
-:::info Goal
-Bind a script to a nested ViewModel. This is how scripts drive animated properties.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE doesn't have ViewModels. The closest thing is linking expressions to composition markers or master properties. Rive ViewModels are structured data containers that can be modified from scripts AND from the runtime API—enabling true two-way data binding.
-
-**Real-World Use**: Game characters have position, health, state. UI components have text, progress values. ViewModels store this data centrally, and scripts read/write to it. The runtime (JavaScript on web, Swift on iOS, etc.) can also read/write the same data.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. First, create a ViewModel in Rive:
-   - Assets panel → **+** → ViewModel
-   - Name it "Character"
-   - Add `x` (number) and `y` (number) properties
-2. Create a Node script with the code below
-3. Attach the script to a node
-4. In the script inputs, connect `character` to your Character ViewModel
-5. Run—the character will oscillate based on the sine wave
-
-</details>
-
-**Rive setup:** Bind the `character` input to the ViewModel in the inspector, then press Play.
-
-**Expected result:** The script updates ViewModel `x`/`y` properties each frame; any bound elements move accordingly.
-
-```lua
---!strict
-
-export type CharacterDriver = {
-    character: Input<Data.Character>,  -- Your ViewModel type
-    speed: Input<number>,
+export type AnimationDriver = {
+    speed: number,
+    amplitude: number,
     time: number,
+    position: number,
 }
 
-function init(self: CharacterDriver): boolean
+function init(self: AnimationDriver): boolean
+    print("Driver initialized")
     self.time = 0
-    print("CharacterDriver initialized")
+    self.position = 0
     return true
 end
 
-function advance(self: CharacterDriver, seconds: number): boolean
-    self.time += seconds
+function advance(self: AnimationDriver, seconds: number): boolean
+    -- TODO 1: Add seconds to self.time
 
-    -- Calculate position based on time
-    local offset = math.sin(self.time * self.speed) * 60
+    -- TODO 2: Calculate position using sine wave
+    -- Formula: math.sin(self.time * self.speed) * self.amplitude
 
-    -- Write to ViewModel (two-way binding!)
-    self.character.x.value = offset
-    self.character.y.value = 0
+    -- Log progress (every ~30 frames)
+    if math.floor(self.time * 60) % 30 == 0 and self.time > 0.1 then
+        print(\`Time: {string.format("%.1f", self.time)}s, Position: {string.format("%.1f", self.position)}\`)
+    end
+
+    -- Print answer after 2 seconds
+    if self.time >= 2 and self.time < 2.02 then
+        print("ANSWER: oscillating")
+    end
 
     return true
 end
 
-function draw(self: CharacterDriver, renderer: Renderer)
+function draw(self: AnimationDriver, renderer: Renderer)
 end
 
-return function(): Node<CharacterDriver>
+return function(): Node<AnimationDriver>
     return {
         init = init,
         advance = advance,
         draw = draw,
-        character = late(),  -- ViewModel assigned in editor
-        speed = 1.5,
+        speed = 3,
+        amplitude = 60,
         time = 0,
+        position = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Add seconds to self.time
+self.time += seconds
 
-```typescript
-// JavaScript/TypeScript mental model:
-// ViewModel is like a shared state object (Redux store, React Context)
+-- TODO 2: Calculate position using sine wave
+self.position = math.sin(self.time * self.speed) * self.amplitude`}
+>
+**Premise:** You're creating a procedural animation that oscillates smoothly over time without using keyframes.
 
-interface Character {
-    x: number;
-    y: number;
-}
-
-class CharacterDriver {
-    character: Character;  // Shared reference
-    speed: number = 1.5;
-    time: number = 0;
-
-    constructor(characterRef: Character) {
-        this.character = characterRef;  // Bind to external state
-    }
-
-    advance(deltaTime: number) {
-        this.time += deltaTime;
-        const offset = Math.sin(this.time * this.speed) * 60;
-
-        // Write to shared state - other components see this!
-        this.character.x = offset;
-        this.character.y = 0;
-    }
-}
-```
-
-**Editor setup:**
-1. Create a `Character` ViewModel with `x` and `y` number properties
-2. Add a `character` input to the Node script by selecting the ViewModel property in the input dropdown
-3. Bind the ViewModel properties to a node's translation or a state machine parameter
-
-:::note The late() Function
-Use `late()` for inputs that will be assigned in the editor. This tells the type system that the value won't exist at construction time but will be provided before `init` runs.
-:::
+**Use Case:** Sine-based oscillation is everywhere: floating UI elements, breathing animations, pendulum motion, wave effects. This is fundamental to procedural animation.
+</Exercise>
 
 ---
 
-### Exercise 3: Access the Main ViewModel via Context
+<Exercise
+  id="rive-inputs-3"
+  title="Exercise 3: Input Change Counter"
+  difficulty={2}
+  hint="Track the previous value and compare it to the current value in update(). Increment the counter when they differ."
+  expectedAnswer="3"
+  explanation="The update() function is called whenever inputs change. By tracking previous values, you can detect and count changes—useful for analytics, undo systems, or triggering one-time effects."
+  task="Complete the update function to track how many times the speed input has changed. Store the previous value and compare it to detect changes."
+  expectedOutput={`Input tracker ready
+Speed changed: 2 -> 5 (change #1)
+Speed changed: 5 -> 3 (change #2)
+Speed changed: 3 -> 8 (change #3)
+ANSWER: 3`}
+  code={`--!strict
+-- Track how many times an input has changed
 
-:::info Goal
-Read and listen to the artboard's main ViewModel directly using `context`.
-:::
+export type InputTracker = {
+    speed: Input<number>,
+    previousSpeed: number,
+    changeCount: number,
+}
 
-:::tip Why This Matters
-**After Effects comparison**: In AE, you might read from a master composition's properties. Rive's Context gives you access to the artboard's bound ViewModel—the "root" data for the entire animation. This is how you access global state that's set from the runtime.
-
-**Real-World Use**: The runtime (your app) sets ViewModel values, and all scripts can read them. A "score" property in the main ViewModel can be displayed by a text script, trigger animations, and update UI—all from one source of truth.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a ViewModel with a `score` number property
-2. Bind it to your artboard (select artboard → ViewModel dropdown)
-3. Create a Node script with the code below
-4. Run—it reads the score and logs when it changes
-5. Use the runtime API to change score and watch the listener fire
-
-</details>
-
-**Rive setup:** Bind the ViewModel to the artboard, then attach the script to any node.
-
-**Expected result:** The Console prints the initial score and logs when the runtime updates it.
-
-```lua
---!strict
-
-export type MainVMReader = {}
-
-function init(self: MainVMReader, context: Context): boolean
-    -- Get the ViewModel bound to this artboard
-    local vm = context:viewModel()
-    if not vm then
-        print("No ViewModel bound to the main artboard.")
-        return true
-    end
-
-    -- Get a specific property
-    local score = vm:getNumber("score")
-    if score then
-        print(`Initial Score: {score.value}`)
-
-        -- Add a listener for changes (reactive programming!)
-        score:addListener(function()
-            print(`Score changed to: {score.value}`)
-        end)
-    else
-        print("No 'score' property found in ViewModel")
-    end
-
+function init(self: InputTracker): boolean
+    print("Input tracker ready")
+    self.previousSpeed = self.speed
+    self.changeCount = 0
     return true
 end
 
-function draw(self: MainVMReader, renderer: Renderer)
+function update(self: InputTracker)
+    -- TODO 1: Check if speed has changed from previousSpeed
+
+    -- TODO 2: If changed:
+    --   - Increment changeCount
+    --   - Print the change: "Speed changed: {old} -> {new} (change #{count})"
+    --   - Update previousSpeed to current value
+
+    -- TODO 3: If changeCount reaches 3, print "ANSWER: 3"
+
 end
 
-return function(): Node<MainVMReader>
+function draw(self: InputTracker, renderer: Renderer)
+end
+
+return function(): Node<InputTracker>
     return {
         init = init,
+        update = update,
         draw = draw,
+        speed = 2,
+        previousSpeed = 0,
+        changeCount = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Check if speed has changed from previousSpeed
+if self.speed ~= self.previousSpeed then
+    -- TODO 2: If changed
+    self.changeCount += 1
+    print(\`Speed changed: {self.previousSpeed} -> {self.speed} (change #{self.changeCount})\`)
+    self.previousSpeed = self.speed
 
-```typescript
-// Pseudocode mental model (not Rive runtime API):
-// JavaScript/TypeScript-style observable pattern for comparison.
+    -- TODO 3: If changeCount reaches 3, print answer
+    if self.changeCount == 3 then
+        print("ANSWER: 3")
+    end
+end`}
+>
+**Premise:** You're building a debugging tool that tracks how often users change certain parameters. This helps identify frequently-adjusted settings.
 
-class MainVMReader {
-    constructor(viewModel: ViewModel) {
-        if (!viewModel) {
-            console.log("No ViewModel bound");
-            return;
-        }
-
-        const score = viewModel.getProperty<number>("score");
-        if (score) {
-            console.log(`Initial Score: ${score.value}`);
-
-            // Subscribe to changes (like RxJS or MobX)
-            score.subscribe((newValue) => {
-                console.log(`Score changed to: ${newValue}`);
-            });
-        }
-    }
-}
-```
-
-**Key points:**
-- `context:viewModel()` returns the ViewModel bound to the artboard
-- Use `getNumber()`, `getString()`, `getBoolean()`, etc. to access properties
-- `addListener()` lets you react to external changes (from runtime or other scripts)
+**Use Case:** Change tracking is useful for undo/redo systems, analytics, or triggering animations only on the first change.
+</Exercise>
 
 ---
 
@@ -444,167 +338,113 @@ class MainVMReader {
 
 ---
 
-### Exercise 4: Combined Input Pattern
+<Exercise
+  id="rive-inputs-4"
+  title="Exercise 4: Progress Bar with Inputs"
+  difficulty={2}
+  hint="Calculate filledWidth as (current / max) * barWidth. Build two rectangles: background (full width) and foreground (filled width)."
+  expectedAnswer="75%"
+  explanation="Progress bars combine multiple inputs (width, height, current, max) to create a visual representation of data. This pattern is used for health bars, loading indicators, and any value-to-visual mapping."
+  task="Complete the rebuild function to draw a progress bar. Calculate the filled width based on current/max ratio, and build paths for both background and foreground."
+  expectedOutput={`Progress bar initialized
+Current: 75 / Max: 100
+Fill percentage: 75%
+ANSWER: 75%`}
+  code={`--!strict
+-- A progress bar driven by inputs
 
-:::info Goal
-Build a script that uses both regular inputs AND ViewModel data.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you might have a slider control (per-instance) and also read from a master composition (global). This exercise shows the same pattern in Rive: some data is per-instance (inputs), some is global (ViewModel).
-
-**Real-World Use**: A health bar might have per-instance styling inputs (color, size) but read the actual health value from a shared ViewModel that multiple systems update.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a ViewModel with `health` (number, default 100)
-2. Bind it to your artboard
-3. Create a Node script with the code below
-4. The `width` and `healthyColor`/`damagedColor` are per-instance inputs
-5. The `health` value comes from the shared ViewModel
-
-</details>
-
-**Rive setup:** Bind the ViewModel to the artboard and attach the script to a node.
-
-**Expected result:** The bar width and color follow the ViewModel health value while inputs control styling.
-
-```lua
---!strict
-
-export type HealthBar = {
-    width: Input<number>,
-    height: Input<number>,
-    healthyColor: Input<Color>,
-    damagedColor: Input<Color>,
-    currentHealth: number,
-    maxHealth: number,
-    path: Path,
+export type ProgressBar = {
+    barWidth: Input<number>,
+    barHeight: Input<number>,
+    current: Input<number>,
+    max: Input<number>,
     bgPath: Path,
-    paint: Paint,
+    fillPath: Path,
     bgPaint: Paint,
+    fillPaint: Paint,
 }
 
-local function rebuildPaths(self: HealthBar)
-    local w = self.width
-    local h = self.height
-    local healthPercent = self.currentHealth / self.maxHealth
-    local filledWidth = w * healthPercent
+local function rebuild(self: ProgressBar)
+    -- TODO 1: Calculate the percentage (current / max)
+    local percent = 0
 
-    -- Background (full width)
+    -- TODO 2: Calculate filledWidth (percent * barWidth)
+    local filledWidth = 0
+
+    -- TODO 3: Build bgPath as full-width rectangle (0,0 to barWidth,barHeight)
     self.bgPath:reset()
-    self.bgPath:moveTo(Vector.xy(0, 0))
-    self.bgPath:lineTo(Vector.xy(w, 0))
-    self.bgPath:lineTo(Vector.xy(w, h))
-    self.bgPath:lineTo(Vector.xy(0, h))
-    self.bgPath:close()
+    -- Add moveTo, lineTo, lineTo, lineTo, close
 
-    -- Foreground (health amount)
-    self.path:reset()
-    self.path:moveTo(Vector.xy(0, 0))
-    self.path:lineTo(Vector.xy(filledWidth, 0))
-    self.path:lineTo(Vector.xy(filledWidth, h))
-    self.path:lineTo(Vector.xy(0, h))
-    self.path:close()
+    -- TODO 4: Build fillPath as partial-width rectangle (0,0 to filledWidth,barHeight)
+    self.fillPath:reset()
+    -- Add moveTo, lineTo, lineTo, lineTo, close
 
-    -- Color based on health
-    if healthPercent > 0.5 then
-        self.paint.color = self.healthyColor
-    else
-        self.paint.color = self.damagedColor
-    end
+    -- Print status
+    print(\`Current: {self.current} / Max: {self.max}\`)
+    print(\`Fill percentage: {math.floor(percent * 100)}%\`)
+    print(\`ANSWER: {math.floor(percent * 100)}%\`)
 end
 
-function init(self: HealthBar, context: Context): boolean
-    self.maxHealth = 100
-    self.currentHealth = 100
-    self.path = Path.new()
+function init(self: ProgressBar): boolean
+    print("Progress bar initialized")
     self.bgPath = Path.new()
-    self.paint = Paint.with({ style = "fill", color = self.healthyColor })
-    self.bgPaint = Paint.with({ style = "fill", color = Color.rgb(50, 50, 50) })
-
-    -- Connect to ViewModel for health data
-    local vm = context:viewModel()
-    if vm then
-        local health = vm:getNumber("health")
-        if health then
-            self.currentHealth = health.value
-
-            health:addListener(function()
-                self.currentHealth = health.value
-                rebuildPaths(self)
-                print(`Health updated: {self.currentHealth}`)
-            end)
-        end
-    end
-
-    rebuildPaths(self)
+    self.fillPath = Path.new()
+    self.bgPaint = Paint.with({ style = "fill", color = Color.rgb(60, 60, 60) })
+    self.fillPaint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+    rebuild(self)
     return true
 end
 
-function update(self: HealthBar)
-    -- Rebuild when per-instance inputs change
-    rebuildPaths(self)
+function update(self: ProgressBar)
+    rebuild(self)
 end
 
-function draw(self: HealthBar, renderer: Renderer)
+function draw(self: ProgressBar, renderer: Renderer)
     renderer:drawPath(self.bgPath, self.bgPaint)
-    renderer:drawPath(self.path, self.paint)
+    renderer:drawPath(self.fillPath, self.fillPaint)
 end
 
-return function(): Node<HealthBar>
+return function(): Node<ProgressBar>
     return {
         init = init,
         update = update,
         draw = draw,
-        width = 200,
-        height = 20,
-        healthyColor = Color.rgb(80, 200, 80),
-        damagedColor = Color.rgb(200, 80, 80),
-        currentHealth = 100,
-        maxHealth = 100,
-        path = late(),
+        barWidth = 200,
+        barHeight = 20,
+        current = 75,
+        max = 100,
         bgPath = late(),
-        paint = late(),
+        fillPath = late(),
         bgPaint = late(),
+        fillPaint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Calculate the percentage (current / max)
+local percent = self.current / self.max
 
-```typescript
-// JavaScript/TypeScript mental model:
-// Combines props (per-instance) with global state
+-- TODO 2: Calculate filledWidth (percent * barWidth)
+local filledWidth = percent * self.barWidth
 
-interface HealthBarProps {
-    width: number;
-    height: number;
-    healthyColor: Color;
-    damagedColor: Color;
-}
+-- TODO 3: Build bgPath as full-width rectangle
+self.bgPath:reset()
+self.bgPath:moveTo(Vector.xy(0, 0))
+self.bgPath:lineTo(Vector.xy(self.barWidth, 0))
+self.bgPath:lineTo(Vector.xy(self.barWidth, self.barHeight))
+self.bgPath:lineTo(Vector.xy(0, self.barHeight))
+self.bgPath:close()
 
-class HealthBar {
-    // Per-instance props (like Rive inputs)
-    props: HealthBarProps;
+-- TODO 4: Build fillPath as partial-width rectangle
+self.fillPath:reset()
+self.fillPath:moveTo(Vector.xy(0, 0))
+self.fillPath:lineTo(Vector.xy(filledWidth, 0))
+self.fillPath:lineTo(Vector.xy(filledWidth, self.barHeight))
+self.fillPath:lineTo(Vector.xy(0, self.barHeight))
+self.fillPath:close()`}
+>
+**Premise:** You're creating a reusable progress bar component where designers can configure dimensions and values through inputs.
 
-    // Subscribed to global state (like ViewModel)
-    currentHealth: number;
-    maxHealth: number;
-
-    constructor(props: HealthBarProps, healthStore: HealthStore) {
-        this.props = props;
-        this.maxHealth = 100;
-        this.currentHealth = healthStore.health;
-
-        // Subscribe to global state changes
-        healthStore.subscribe((newHealth) => {
-            this.currentHealth = newHealth;
-            this.rebuild();
-        });
-    }
-}
-```
+**Use Case:** Progress bars are everywhere: health bars in games, loading indicators, skill bars in portfolios. This component can be reused with different configurations throughout a project.
+</Exercise>
 
 ---
 

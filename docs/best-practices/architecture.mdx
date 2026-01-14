@@ -4,6 +4,7 @@ title: Architecture
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Script Architecture
 
@@ -40,14 +41,21 @@ Understanding when to use each type is fundamental to writing clean, maintainabl
 
 ---
 
-## Exercise 1: Single Responsibility Principle
-
-**Goal**: Separate concerns by keeping Node scripts focused and moving reusable logic to Util scripts.
-
-**File: `Easing` (Util Script)**
-
-```lua
---!strict
+<Exercise
+  id="best-practices-arch-1"
+  title="Exercise 1: Single Responsibility Principle"
+  difficulty={2}
+  hint="The lerp function interpolates between two values: result = a + (b - a) * t. Use the Easing functions in advance() to animate the position."
+  expectedAnswer="separation"
+  explanation="Single Responsibility Principle keeps code maintainable. Util scripts hold pure functions with no side effects, while Node scripts handle visual behavior and state."
+  task="Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function."
+  expectedOutput={`Animation started
+Position: -100.00 (eased: 0.00)
+Position: 100.00 (eased: 1.00)
+ANSWER: separation`}
+  code={`--!strict
+-- File 1: Easing (Util Script)
+-- Reusable easing functions with no visual component
 
 local Easing = {}
 
@@ -67,19 +75,17 @@ function Easing.easeInOutQuad(t: number): number
     end
 end
 
-function Easing.lerp(a: number, b: number, t: number): number
-    return a + (b - a) * t
-end
+-- TODO 1: Add a lerp function that interpolates between a and b
+-- lerp(a, b, t) should return a + (b - a) * t
 
 return Easing
-```
 
-**File: `AnimatedSquare` (Node Script)**
+--[[
+File 2: AnimatedSquare (Node Script)
+Visual behavior that uses the Easing util
+]]
 
-```lua
---!strict
-
-local Easing = require("Easing")
+-- local Easing = require("Easing")  -- In Rive, this imports the util
 
 export type AnimatedSquare = {
     duration: Input<number>,
@@ -96,14 +102,22 @@ function init(self: AnimatedSquare): boolean
     self.x = self.startX
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) })
+    print("Animation started")
+    print(\`Position: {self.x:.2f} (eased: 0.00)\`)
     return true
 end
 
 function advance(self: AnimatedSquare, seconds: number): boolean
     self.elapsed += seconds
     local t = math.min(self.elapsed / self.duration, 1)
-    local eased = Easing.easeInOutQuad(t)
-    self.x = Easing.lerp(self.startX, self.endX, eased)
+
+    -- TODO 2: Calculate eased value using Easing.easeInOutQuad(t)
+    -- TODO 3: Calculate self.x using Easing.lerp(self.startX, self.endX, eased)
+
+    if t >= 1 then
+        print(\`Position: {self.x:.2f} (eased: 1.00)\`)
+        print("ANSWER: separation")
+    end
 
     self.path:reset()
     local size = 20
@@ -133,8 +147,20 @@ return function(): Node<AnimatedSquare>
         path = Path.new(),
         paint = Paint.new(),
     }
+end`}
+  solution={`-- TODO 1: Add lerp function to Easing util
+function Easing.lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
 end
-```
+
+-- TODO 2-3: Use easing functions in advance
+local eased = Easing.easeInOutQuad(t)
+self.x = Easing.lerp(self.startX, self.endX, eased)`}
+>
+**Premise:** You're building an animated UI element and want to separate the math logic from the visual behavior.
+
+**Use Case:** Separating concerns makes code maintainable. The Easing util can be reused across multiple Node scripts without duplication.
+</Exercise>
 
 **Key points:**
 - The Node script handles visual behavior and state
@@ -143,12 +169,22 @@ end
 
 ---
 
-## Exercise 2: State Management Patterns
-
-**Goal**: Use a typed state table to organize complex script data.
-
-```lua
---!strict
+<Exercise
+  id="best-practices-arch-2"
+  title="Exercise 2: State Management Patterns"
+  difficulty={2}
+  hint="Use SCALE_BY_STATE[newState] to get the target scale and COLOR_BY_STATE[newState] to get the color for the new state."
+  expectedAnswer="statemachine"
+  explanation="Union types and lookup tables make state machines type-safe and maintainable. The compiler catches invalid states, and configuration changes require updating only the lookup tables."
+  task="Complete the setState function to update targetScale and paint using the lookup tables when the button state changes."
+  expectedOutput={`Button initialized: idle
+State changed to: hover
+Scale target: 1.10, Color updated
+State changed to: pressed
+Scale target: 0.95, Color updated
+ANSWER: statemachine`}
+  code={`--!strict
+-- Interactive button with state machine pattern
 
 export type ButtonState = "idle" | "hover" | "pressed"
 
@@ -160,6 +196,7 @@ export type InteractiveButton = {
     paint: Paint,
 }
 
+-- Lookup tables for state-specific values
 local SCALE_BY_STATE: { [ButtonState]: number } = {
     idle = 1.0,
     hover = 1.1,
@@ -182,6 +219,20 @@ local function rebuildPath(self: InteractiveButton)
     self.path:close()
 end
 
+-- TODO: Complete the setState function
+local function setState(self: InteractiveButton, newState: ButtonState)
+    self.state = newState
+    -- TODO 1: Set self.targetScale using SCALE_BY_STATE lookup table
+    -- TODO 2: Set self.paint using Paint.with and COLOR_BY_STATE lookup table
+
+    print(\`State changed to: {newState}\`)
+    print(\`Scale target: {self.targetScale:.2f}, Color updated\`)
+
+    if newState == "pressed" then
+        print("ANSWER: statemachine")
+    end
+end
+
 function init(self: InteractiveButton): boolean
     self.state = "idle"
     self.scale = 1.0
@@ -189,11 +240,15 @@ function init(self: InteractiveButton): boolean
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE.idle })
     rebuildPath(self)
+    print(\`Button initialized: {self.state}\`)
+
+    -- Simulate state changes for demonstration
+    setState(self, "hover")
+    setState(self, "pressed")
     return true
 end
 
 function advance(self: InteractiveButton, seconds: number): boolean
-    -- Smooth interpolation toward target scale
     self.scale += (self.targetScale - self.scale) * math.min(seconds * 10, 1)
     rebuildPath(self)
     return true
@@ -201,13 +256,6 @@ end
 
 function draw(self: InteractiveButton, renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
-end
-
--- Called when state changes (e.g., from pointer events)
-local function setState(self: InteractiveButton, newState: ButtonState)
-    self.state = newState
-    self.targetScale = SCALE_BY_STATE[newState]
-    self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE[newState] })
 end
 
 return function(): Node<InteractiveButton>
@@ -221,8 +269,15 @@ return function(): Node<InteractiveButton>
         path = Path.new(),
         paint = Paint.new(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1-2: Complete setState using lookup tables
+self.targetScale = SCALE_BY_STATE[newState]
+self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE[newState] })`}
+>
+**Premise:** You're building an interactive button that needs to respond to hover and press states with smooth visual feedback.
+
+**Use Case:** State machines with lookup tables are ideal for UI components, game entities, and any system with discrete states and state-specific behavior.
+</Exercise>
 
 **Key points:**
 - Use union types (`"idle" | "hover" | "pressed"`) for finite states
@@ -231,43 +286,32 @@ end
 
 ---
 
-## Exercise 3: Layered Architecture
+<Exercise
+  id="best-practices-arch-3"
+  title="Exercise 3: Layered Architecture"
+  difficulty={3}
+  hint="In Particle.update: update position with velocity (p.x += p.vx * dt), apply gravity to vy, increment life. In advance: loop through particles, call Particle.update, keep alive ones."
+  expectedAnswer="layered"
+  explanation="Layered architecture separates concerns into modules: Config for constants, Data modules for pure logic, and Node scripts for orchestration. Each layer can be tested and modified independently."
+  task="Complete the Particle.update function to apply physics, then complete the advance function to update all particles and remove dead ones."
+  expectedOutput={`Particle system initialized
+Spawned particle 1
+Spawned particle 2
+Spawned particle 3
+Updating 3 particles...
+Particles alive: 3
+ANSWER: layered`}
+  code={`--!strict
+-- Layered particle system with separate Config, Particle, and System modules
 
-**Goal**: Structure a complex feature with multiple Util scripts.
-
-**File: `Config` (Util Script)**
-
-```lua
---!strict
-
-local Config = {}
-
-Config.PARTICLE_COUNT = 50
-Config.GRAVITY = 200
-Config.SPAWN_RATE = 0.05
-
-export type ParticleConfig = {
-    count: number,
-    gravity: number,
-    spawnRate: number,
+-- LAYER 1: Config (constants and configuration)
+local Config = {
+    PARTICLE_COUNT = 50,
+    GRAVITY = 200,
+    SPAWN_RATE = 0.1,
 }
 
-function Config.default(): ParticleConfig
-    return {
-        count = Config.PARTICLE_COUNT,
-        gravity = Config.GRAVITY,
-        spawnRate = Config.SPAWN_RATE,
-    }
-end
-
-return Config
-```
-
-**File: `Particle` (Util Script)**
-
-```lua
---!strict
-
+-- LAYER 2: Particle (data structure and pure update logic)
 local Particle = {}
 
 export type ParticleData = {
@@ -292,64 +336,62 @@ function Particle.new(x: number, y: number): ParticleData
     }
 end
 
+-- TODO 1: Complete the update function
 function Particle.update(p: ParticleData, dt: number, gravity: number): boolean
-    p.x += p.vx * dt
-    p.y += p.vy * dt
-    p.vy += gravity * dt
-    p.life += dt
-    return p.life < p.maxLife
+    -- TODO 1a: Update position: p.x += p.vx * dt, p.y += p.vy * dt
+    -- TODO 1b: Apply gravity to velocity: p.vy += gravity * dt
+    -- TODO 1c: Increment lifetime: p.life += dt
+    -- TODO 1d: Return true if particle is still alive (p.life < p.maxLife)
+    return false  -- Replace with correct return
 end
 
 function Particle.alpha(p: ParticleData): number
     return 1 - (p.life / p.maxLife)
 end
 
-return Particle
-```
-
-**File: `ParticleSystem` (Node Script)**
-
-```lua
---!strict
-
-local Config = require("Config")
-local Particle = require("Particle")
-
+-- LAYER 3: ParticleSystem (orchestration and rendering)
 export type ParticleSystem = {
-    particles: { Particle.ParticleData },
-    config: Config.ParticleConfig,
+    particles: { ParticleData },
     spawnTimer: number,
+    spawnCount: number,
     path: Path,
     paint: Paint,
 }
 
 function init(self: ParticleSystem): boolean
     self.particles = {}
-    self.config = Config.default()
     self.spawnTimer = 0
+    self.spawnCount = 0
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 100) })
+    print("Particle system initialized")
     return true
 end
 
 function advance(self: ParticleSystem, seconds: number): boolean
     -- Spawn new particles
     self.spawnTimer += seconds
-    while self.spawnTimer >= self.config.spawnRate do
-        self.spawnTimer -= self.config.spawnRate
-        if #self.particles < self.config.count then
+    while self.spawnTimer >= Config.SPAWN_RATE do
+        self.spawnTimer -= Config.SPAWN_RATE
+        if #self.particles < Config.PARTICLE_COUNT and self.spawnCount < 3 then
             table.insert(self.particles, Particle.new(0, 0))
+            self.spawnCount += 1
+            print(\`Spawned particle {self.spawnCount}\`)
         end
     end
 
-    -- Update existing particles
+    -- TODO 2: Update existing particles and keep only alive ones
     local alive = {}
-    for _, p in ipairs(self.particles) do
-        if Particle.update(p, seconds, self.config.gravity) then
-            table.insert(alive, p)
-        end
-    end
+    -- TODO 2a: Loop through self.particles with ipairs
+    -- TODO 2b: Call Particle.update(p, seconds, Config.GRAVITY)
+    -- TODO 2c: If update returns true, insert p into alive table
     self.particles = alive
+
+    if self.spawnCount >= 3 and #self.particles > 0 then
+        print(\`Updating {#self.particles} particles...\`)
+        print(\`Particles alive: {#self.particles}\`)
+        print("ANSWER: layered")
+    end
 
     return true
 end
@@ -379,13 +421,30 @@ return function(): Node<ParticleSystem>
         advance = advance,
         draw = draw,
         particles = {},
-        config = Config.default(),
         spawnTimer = 0,
+        spawnCount = 0,
         path = Path.new(),
         paint = Paint.new(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Complete Particle.update
+p.x += p.vx * dt
+p.y += p.vy * dt
+p.vy += gravity * dt
+p.life += dt
+return p.life < p.maxLife
+
+-- TODO 2: Update particles in advance
+for _, p in ipairs(self.particles) do
+    if Particle.update(p, seconds, Config.GRAVITY) then
+        table.insert(alive, p)
+    end
+end`}
+>
+**Premise:** You're building a particle system that needs clean separation between configuration, particle logic, and system orchestration.
+
+**Use Case:** Layered architecture is essential for complex features like particle systems, game engines, and any system with multiple interacting components.
+</Exercise>
 
 **Architecture breakdown:**
 - `Config` - Constants and configuration types

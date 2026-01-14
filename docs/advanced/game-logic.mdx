@@ -4,6 +4,7 @@ title: Pointer Events
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Pointer Events
 
@@ -17,12 +18,19 @@ Pointer handlers (`pointerDown`, `pointerMove`, `pointerUp`, `pointerExit`) are 
 
 ---
 
-## Exercise 1: Press to Toggle Color
-
-Create a button that toggles between two colors when pressed.
-
-```lua
---!strict
+<Exercise
+  id="advanced-pointer-1"
+  title="Exercise 1: Press to Toggle Color"
+  difficulty={2}
+  hint="Toggle isPressed with 'not', use ternary for color selection (cond and valueA or valueB), call event:hit() to consume."
+  expectedAnswer="toggled"
+  explanation="pointerDown handles click events. Toggle state with 'not', update visuals, and call event:hit() to stop propagation."
+  task="Complete the pointerDown handler to toggle the button color between blue and orange on each press."
+  expectedOutput={`Toggle button ready
+Button toggled!
+ANSWER: toggled`}
+  code={`--!strict
+-- Toggle button color on press
 
 export type ToggleButton = {
     path: Path,
@@ -42,13 +50,21 @@ function init(self: ToggleButton): boolean
 
     self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
 
+    print("Toggle button ready")
     return true
 end
 
 function pointerDown(self: ToggleButton, event: PointerEvent)
-    self.isPressed = not self.isPressed
-    self.paint.color = self.isPressed and Color.rgb(255, 120, 80) or Color.rgb(80, 170, 255)
-    event:hit()
+    -- TODO 1: Toggle isPressed using 'not'
+    -- self.isPressed = not self.isPressed
+
+    -- TODO 2: Update paint color based on isPressed
+    -- Use: self.isPressed and Color.rgb(255, 120, 80) or Color.rgb(80, 170, 255)
+
+    -- TODO 3: Call event:hit() to consume the event
+
+    print("Button toggled!")
+    print("ANSWER: toggled")
 end
 
 function draw(self: ToggleButton, renderer: Renderer)
@@ -60,12 +76,24 @@ return function(): Node<ToggleButton>
         init = init,
         draw = draw,
         pointerDown = pointerDown,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
         isPressed = false,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Toggle isPressed
+self.isPressed = not self.isPressed
+
+-- TODO 2: Update color based on state
+self.paint.color = self.isPressed and Color.rgb(255, 120, 80) or Color.rgb(80, 170, 255)
+
+-- TODO 3: Consume the event
+event:hit()`}
+>
+**Premise:** You're building an interactive toggle button that changes color when pressed.
+
+**Use Case:** Toggle buttons are fundamental to UI—settings switches, play/pause buttons, and any binary state control.
+</Exercise>
 
 **How it works:**
 1. The `pointerDown` handler toggles `isPressed` state
@@ -74,12 +102,21 @@ end
 
 ---
 
-## Exercise 2: Track Multiple Pointers
-
-Handle multi-touch by tracking each pointer independently using its unique ID.
-
-```lua
---!strict
+<Exercise
+  id="advanced-pointer-2"
+  title="Exercise 2: Track Multiple Pointers"
+  difficulty={3}
+  hint="Use event.id as the table key. Create entry in pointerDown, update in pointerMove, set to nil in pointerUp."
+  expectedAnswer="multitouch"
+  explanation="Each pointer has a unique event.id. Track them in a table: create on down, update on move, remove on up."
+  task="Complete the pointer handlers to track multiple touch points simultaneously."
+  expectedOutput={`Multi-touch tracker ready
+Pointer 1 down
+Pointer 2 down
+Tracking 2 pointers
+ANSWER: multitouch`}
+  code={`--!strict
+-- Track multiple pointers by their unique IDs
 
 type PointerState = {
     position: Vector,
@@ -87,19 +124,30 @@ type PointerState = {
 
 export type MultiTouch = {
     pointers: { [number]: PointerState },
+    pointerCount: number,
 }
 
 function init(self: MultiTouch): boolean
     self.pointers = {}
+    self.pointerCount = 0
+    print("Multi-touch tracker ready")
     return true
 end
 
 function pointerDown(self: MultiTouch, event: PointerEvent)
-    self.pointers[event.id] = { position = event.position }
-    event:hit()
+    -- TODO 1: Create a new entry in self.pointers using event.id as key
+    -- Store { position = event.position }
+
+    -- TODO 2: Increment pointerCount and print the pointer number
+
+    -- TODO 3: If pointerCount >= 2, print the answer
+
+    -- TODO 4: Call event:hit()
 end
 
 function pointerMove(self: MultiTouch, event: PointerEvent)
+    -- TODO 5: Get the pointer from self.pointers[event.id]
+    -- If it exists, update its position
     local pointer = self.pointers[event.id]
     if pointer then
         pointer.position = event.position
@@ -108,12 +156,13 @@ function pointerMove(self: MultiTouch, event: PointerEvent)
 end
 
 function pointerUp(self: MultiTouch, event: PointerEvent)
-    self.pointers[event.id] = nil
-    event:hit()
+    -- TODO 6: Remove the pointer by setting self.pointers[event.id] = nil
+    -- TODO 7: Decrement pointerCount
+    -- TODO 8: Call event:hit()
 end
 
 function draw(self: MultiTouch, renderer: Renderer)
-    -- Use pointer positions to drive visuals or logic
+    -- Pointer positions can drive visuals here
 end
 
 return function(): Node<MultiTouch>
@@ -124,9 +173,36 @@ return function(): Node<MultiTouch>
         pointerMove = pointerMove,
         pointerUp = pointerUp,
         pointers = {},
+        pointerCount = 0,
     }
+end`}
+  solution={`-- In pointerDown():
+-- TODO 1: Create entry
+self.pointers[event.id] = { position = event.position }
+
+-- TODO 2: Track count
+self.pointerCount += 1
+print(\`Pointer {self.pointerCount} down\`)
+
+-- TODO 3: Answer when 2+ pointers
+if self.pointerCount >= 2 then
+    print(\`Tracking {self.pointerCount} pointers\`)
+    print("ANSWER: multitouch")
 end
-```
+
+-- TODO 4: Consume event
+event:hit()
+
+-- In pointerUp():
+-- TODO 6-8: Remove and decrement
+self.pointers[event.id] = nil
+self.pointerCount -= 1
+event:hit()`}
+>
+**Premise:** You're building a multi-touch tracking system that handles multiple simultaneous touch points.
+
+**Use Case:** Multi-touch is essential for pinch-to-zoom, two-finger gestures, and multi-player touch games.
+</Exercise>
 
 **How it works:**
 1. Each pointer has a unique `event.id`

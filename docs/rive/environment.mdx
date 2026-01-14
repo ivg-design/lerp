@@ -5,6 +5,7 @@ description: Understand the Rive scripting environment, Console panel, script ty
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Rive Environment
 
@@ -176,65 +177,43 @@ export default MyUtil;
 
 ## Practice Exercises
 
-### Exercise 1: Console Exploration
-
-:::info Goal
-Use the Console to understand script execution order and debug output.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you debug with `alert()` or by checking the value of expression controls. Rive's Console is more like browser DevTools—it shows a continuous stream of output from all your scripts.
-
-**Real-World Use**: Every script you write will use `print()` for debugging. Understanding the Console is essential for troubleshooting any script issue.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Open Rive and create a new file or use an existing one
-2. Assets panel → **+** → Script → **Node**
-3. Name it "ConsoleExplorer"
-4. Copy the code below
-5. Drag it onto any node in your artboard
-6. Open View → Console
-7. Press Play to run the animation
-
-</details>
-
-**Rive setup:** Keep the Console panel visible while the animation runs.
-
-**Expected result:** The Console prints init logs once and a frame-count tick every second.
-
-```lua
---!strict
+<Exercise
+  id="rive-env-1"
+  title="Exercise 1: Console Exploration"
+  difficulty={1}
+  hint="The advance function should increment frameCount. Print a message when frameCount reaches 60."
+  expectedAnswer="milestone"
+  explanation="Understanding the lifecycle order (init → advance → draw) is fundamental to Rive scripting. The milestone detection shows how to track state across frames."
+  task="Complete the advance function to track frames and detect when frameCount reaches exactly 60. Print 'ANSWER: milestone' when you hit that frame."
+  expectedOutput={`init() called
+Frame 1
+Frame 2
+...
+ANSWER: milestone`}
+  code={`--!strict
+-- This script explores the Console panel and lifecycle callbacks
 
 export type ConsoleExplorer = {
     frameCount: number,
 }
 
 function init(self: ConsoleExplorer): boolean
-    print("=== Script Started ===")
     print("init() called")
     self.frameCount = 0
     return true
 end
 
 function advance(self: ConsoleExplorer, seconds: number): boolean
-    self.frameCount += 1
+    -- TODO 1: Increment frameCount by 1
 
-    if self.frameCount <= 3 then
-        print(`advance() frame {self.frameCount}, dt = {seconds:.4f}s`)
-    elseif self.frameCount == 4 then
-        print("(advance continues every frame...)")
-    end
+    -- TODO 2: If this is one of the first 3 frames, print "Frame {frameCount}"
+
+    -- TODO 3: When frameCount reaches exactly 60, print "ANSWER: milestone"
 
     return true
 end
 
 function draw(self: ConsoleExplorer, renderer: Renderer)
-    if self.frameCount <= 3 then
-        print(`draw() frame {self.frameCount}`)
-    end
 end
 
 return function(): Node<ConsoleExplorer>
@@ -244,101 +223,66 @@ return function(): Node<ConsoleExplorer>
         draw = draw,
         frameCount = 0,
     }
+end`}
+  solution={`-- TODO 1: Increment frameCount by 1
+self.frameCount += 1
+
+-- TODO 2: If this is one of the first 3 frames, print "Frame {frameCount}"
+if self.frameCount <= 3 then
+    print(\`Frame {self.frameCount}\`)
 end
-```
 
-```typescript
-// JavaScript equivalent concept:
-class ConsoleExplorer {
-    frameCount = 0;
+-- TODO 3: When frameCount reaches exactly 60, print "ANSWER: milestone"
+if self.frameCount == 60 then
+    print("ANSWER: milestone")
+end`}
+>
+**Premise:** You're building a frame counter to understand how often `advance()` runs. This helps you grasp the lifecycle: `init()` runs once, while `advance()` and `draw()` run every frame.
 
-    constructor() {
-        console.log("=== Script Started ===");
-        console.log("init() called");
-    }
-
-    // Called every animation frame (like requestAnimationFrame)
-    advance(deltaTime: number) {
-        this.frameCount++;
-        if (this.frameCount <= 3) {
-            console.log(`advance() frame ${this.frameCount}, dt = ${deltaTime.toFixed(4)}s`);
-        }
-    }
-
-    draw(renderer: Renderer) {
-        if (this.frameCount <= 3) {
-            console.log(`draw() frame ${this.frameCount}`);
-        }
-    }
-}
-```
-
-**Expected Console Output:**
-```
-=== Script Started ===
-init() called
-advance() frame 1, dt = 0.0167s
-draw() frame 1
-advance() frame 2, dt = 0.0167s
-draw() frame 2
-advance() frame 3, dt = 0.0167s
-draw() frame 3
-(advance continues every frame...)
-```
+**Use Case:** Frame tracking is essential for animations, timers, and performance monitoring in any Rive script.
+</Exercise>
 
 ---
 
-### Exercise 2: Understanding the Sandbox
+<Exercise
+  id="rive-env-2"
+  title="Exercise 2: Understanding the Sandbox"
+  difficulty={1}
+  hint="Check if each API exists using ~= nil, then count how many are available."
+  expectedAnswer="4"
+  explanation="Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available (and what isn't, like file I/O or network) helps you design scripts correctly."
+  task="Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox."
+  expectedOutput={`=== Environment Probe ===
+Checking APIs...
+Vector: true
+Path: true
+Paint: true
+Color: true
+ANSWER: 4`}
+  code={`--!strict
+-- This script probes the Rive environment to discover available APIs
 
-:::info Goal
-Discover what is available in the Rive environment vs. what's restricted.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE expressions have access to composition data, layers, effects—but not the file system or network. Rive is similar but provides different APIs tailored for interactive graphics.
-
-**Real-World Use**: Knowing what APIs are available helps you design your scripts correctly. You can't fetch external data, but you CAN create complex procedural graphics.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "EnvironmentProbe"
-2. Copy the code below
-3. Attach to any node and run
-4. Check the Console to see available APIs
-
-</details>
-
-**Rive setup:** Open the Console panel before running the script.
-
-**Expected result:** The Console prints which globals are present and which are restricted in the sandbox.
-
-```lua
---!strict
-
-export type EnvironmentProbe = {}
+export type EnvironmentProbe = {
+    availableCount: number,
+}
 
 function init(self: EnvironmentProbe): boolean
     print("=== Environment Probe ===")
+    print("Checking APIs...")
+    self.availableCount = 0
 
-    -- Standard Lua/Luau globals
-    print(`math.pi = {math.pi}`)
-    print(`math.random() = {math.random()}`)
+    -- TODO 1: Check if Vector exists (Vector ~= nil)
+    -- If it does, add 1 to availableCount and print "Vector: true"
+    -- Otherwise print "Vector: false"
 
-    -- Rive-specific globals
-    print(`Vector exists: {Vector ~= nil}`)
-    print(`Path exists: {Path ~= nil}`)
-    print(`Paint exists: {Paint ~= nil}`)
-    print(`Color exists: {Color ~= nil}`)
+    -- TODO 2: Check if Path exists (same pattern)
 
-    -- Create some Rive objects
-    local v = Vector.xy(10, 20)
-    print(`Vector.xy(10, 20) = ({v.x}, {v.y})`)
+    -- TODO 3: Check if Paint exists (same pattern)
 
-    local c = Color.rgb(255, 128, 0)
-    print(`Color.rgb created successfully`)
+    -- TODO 4: Check if Color exists (same pattern)
 
+    -- Print the final count
+    print(\`ANSWER: {self.availableCount}\`)
     return true
 end
 
@@ -349,226 +293,187 @@ return function(): Node<EnvironmentProbe>
     return {
         init = init,
         draw = draw,
+        availableCount = 0,
     }
+end`}
+  solution={`-- TODO 1: Check if Vector exists
+if Vector ~= nil then
+    self.availableCount += 1
+    print("Vector: true")
+else
+    print("Vector: false")
 end
-```
 
-```typescript
-// JavaScript mental model - Rive globals are like browser globals:
+-- TODO 2: Check if Path exists
+if Path ~= nil then
+    self.availableCount += 1
+    print("Path: true")
+else
+    print("Path: false")
+end
 
-// In a browser, you have:
-// window, document, console, fetch, localStorage, etc.
+-- TODO 3: Check if Paint exists
+if Paint ~= nil then
+    self.availableCount += 1
+    print("Paint: true")
+else
+    print("Paint: false")
+end
 
-// In Rive, you have:
-// Vector, Path, Paint, Color, Font, math, string, table, etc.
+-- TODO 4: Check if Color exists
+if Color ~= nil then
+    self.availableCount += 1
+    print("Color: true")
+else
+    print("Color: false")
+end`}
+>
+**Premise:** You need to verify which graphics APIs are available in the Rive sandbox before building a procedural graphics system.
 
-// Both environments provide domain-specific APIs:
-// Browser → DOM manipulation, network, storage
-// Rive → Graphics primitives, animation, rendering
-```
-
-**Key insight:** Rive provides Vector, Path, Paint, Color, and other graphics primitives as global APIs, along with standard Luau math functions.
+**Use Case:** Understanding available APIs prevents runtime errors and helps you design scripts that work within Rive's sandboxed environment.
+</Exercise>
 
 ---
 
-### Exercise 3: Type Safety with --!strict
+<Exercise
+  id="rive-env-3"
+  title="Exercise 3: Type Safety with --!strict"
+  difficulty={1}
+  hint="Add the correct type annotations to each field in the exported type. Numbers use 'number', text uses 'string', and positions use 'Vector'."
+  expectedAnswer="typed"
+  explanation="Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Without --!strict, Node scripts won't be recognized by Rive."
+  task="Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector."
+  expectedOutput={`Player created:
+  name = Hero
+  health = 100
+  position = (50, 75)
+ANSWER: typed`}
+  code={`--!strict
+-- Type annotations help catch errors at edit time
 
-:::info Goal
-Understand how strict mode helps catch errors at compile time rather than runtime.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE expressions are untyped—you discover errors when the expression fails at runtime. Rive's `--!strict` mode catches many errors BEFORE you even run the animation, just like TypeScript catches JavaScript errors.
-
-**Real-World Use**: Strict mode is REQUIRED for Node scripts to be recognized by Rive. It's not optional—it's how Rive knows your script follows the correct protocol.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script
-2. Copy the code below
-3. Try uncommenting the type error lines to see the editor catch them
-4. Notice how the editor shows errors inline
-
-</details>
-
-**Rive setup:** Keep the Problems panel open while editing.
-
-**Expected result:** Uncommenting invalid assignments triggers strict-mode errors before you run.
-
-```lua
---!strict
-
-export type TypeDemo = {
-    count: number,
-    name: string,
-    position: Vector,
+export type Player = {
+    -- TODO 1: Add type annotation for name (should be a string)
+    name: TODO,
+    -- TODO 2: Add type annotation for health (should be a number)
+    health: TODO,
+    -- TODO 3: Add type annotation for position (should be a Vector)
+    position: TODO,
 }
 
-function init(self: TypeDemo): boolean
-    -- These are all type-safe
-    self.count = 0
-    self.name = "TypeDemo"
-    self.position = Vector.xy(0, 0)
+function init(self: Player): boolean
+    -- Initialize with specific values
+    self.name = "Hero"
+    self.health = 100
+    self.position = Vector.xy(50, 75)
 
-    -- Type errors would be caught by the editor:
-    -- self.count = "hello"  -- ERROR: string cannot be assigned to number
-    -- self.name = 42        -- ERROR: number cannot be assigned to string
-
-    print(`Initialized {self.name} with count={self.count}`)
-    print(`Position: ({self.position.x}, {self.position.y})`)
+    -- Print the typed values
+    print("Player created:")
+    print(\`  name = {self.name}\`)
+    print(\`  health = {self.health}\`)
+    print(\`  position = ({self.position.x}, {self.position.y})\`)
+    print("ANSWER: typed")
 
     return true
 end
 
-function draw(self: TypeDemo, renderer: Renderer)
+function draw(self: Player, renderer: Renderer)
 end
 
-return function(): Node<TypeDemo>
+return function(): Node<Player>
     return {
         init = init,
         draw = draw,
-        count = 0,
         name = "",
+        health = 0,
         position = Vector.xy(0, 0),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Add type annotation for name (should be a string)
+name: string,
+-- TODO 2: Add type annotation for health (should be a number)
+health: number,
+-- TODO 3: Add type annotation for position (should be a Vector)
+position: Vector,`}
+>
+**Premise:** You're defining a Player type that will be used throughout your game script. Proper type annotations ensure consistency.
 
-```typescript
-// TypeScript equivalent - same concept:
-
-interface TypeDemo {
-    count: number;
-    name: string;
-    position: { x: number; y: number };
-}
-
-function init(self: TypeDemo): boolean {
-    self.count = 0;
-    self.name = "TypeDemo";
-    self.position = { x: 0, y: 0 };
-
-    // TypeScript catches these errors too:
-    // self.count = "hello";  // ERROR
-    // self.name = 42;        // ERROR
-
-    return true;
-}
-```
-
-**Why `--!strict` matters:**
-- Catches type mismatches before runtime
-- Enables better autocomplete in the editor
-- Documents your code's expectations
-- Required for Node scripts to be recognized
+**Use Case:** Type safety catches bugs early. If you later try to assign a string to `health`, the editor will show an error immediately.
+</Exercise>
 
 ---
 
-### Exercise 4: Working Within the Sandbox
-
-:::info Goal
-Use available APIs effectively while respecting sandbox constraints.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you're limited to composition data and can't access files or network either. The difference is WHAT you can do within those limits—Rive gives you powerful procedural graphics APIs.
-
-**Real-World Use**: Understanding sandbox limits helps you design better. Instead of trying to load external data (impossible), you store data in ViewModels or compute it procedurally.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "SandboxDemo"
-2. Copy the code below
-3. Run and observe what works within the sandbox
-
-</details>
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console logs successful operations and highlights where restricted APIs would fail if you uncomment them.
-
-```lua
---!strict
+<Exercise
+  id="rive-env-4"
+  title="Exercise 4: Working Within the Sandbox"
+  difficulty={2}
+  hint="Use math.rad() to convert degrees to radians, then calculate sin and cos. Store results in a table."
+  expectedAnswer="0.707"
+  explanation="The sandbox provides standard Luau math functions (sin, cos, rad) plus Rive graphics APIs. You can perform complex calculations and create procedural graphics—just no file I/O or network access."
+  task="Complete the trigonometry calculations: convert 45 degrees to radians, then calculate sin and cos. Store the cos value (rounded to 3 decimals) as the answer."
+  expectedOutput={`Calculating for 45 degrees...
+Radians: 0.785
+Sin: 0.707
+Cos: 0.707
+ANSWER: 0.707`}
+  code={`--!strict
+-- Demonstrate math operations available in the sandbox
 
 export type SandboxDemo = {
-    data: { [string]: number },
-    path: Path,
-    paint: Paint,
+    angle: number,
+    sinValue: number,
+    cosValue: number,
 }
 
 function init(self: SandboxDemo): boolean
-    -- String manipulation works
-    local greeting = "Hello, Rive!"
-    print(`String length: {string.len(greeting)}`)
-    print(`Uppercase: {string.upper(greeting)}`)
+    print("Calculating for 45 degrees...")
 
-    -- Table operations work
-    self.data = {
-        x = 100,
-        y = 200,
-        scale = 1.5,
-    }
+    -- TODO 1: Convert 45 degrees to radians using math.rad()
+    -- Store in self.angle
+    self.angle = 0
 
-    for key, value in pairs(self.data) do
-        print(`{key} = {value}`)
-    end
+    -- TODO 2: Calculate sin and cos of the angle
+    -- Store in self.sinValue and self.cosValue
+    self.sinValue = 0
+    self.cosValue = 0
 
-    -- Math operations work
-    local angle = math.rad(45)
-    local cos = math.cos(angle)
-    local sin = math.sin(angle)
-    print(`45 degrees: cos={cos:.3f}, sin={sin:.3f}`)
+    -- Print results (these will use your calculated values)
+    print(\`Radians: {string.format("%.3f", self.angle)}\`)
+    print(\`Sin: {string.format("%.3f", self.sinValue)}\`)
+    print(\`Cos: {string.format("%.3f", self.cosValue)}\`)
 
-    -- Rive graphics APIs work
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-30, -30))
-    self.path:lineTo(Vector.xy(30, -30))
-    self.path:lineTo(Vector.xy(30, 30))
-    self.path:lineTo(Vector.xy(-30, 30))
-    self.path:close()
-
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(100, 200, 150),
-    })
+    -- TODO 3: Print the answer (cos value rounded to 3 decimals)
+    -- Format: print(\`ANSWER: {string.format("%.3f", self.cosValue)}\`)
 
     return true
 end
 
 function draw(self: SandboxDemo, renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
 end
 
 return function(): Node<SandboxDemo>
     return {
         init = init,
         draw = draw,
-        data = {},
-        path = late(),
-        paint = late(),
+        angle = 0,
+        sinValue = 0,
+        cosValue = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Convert 45 degrees to radians using math.rad()
+self.angle = math.rad(45)
 
-```javascript
-// JavaScript equivalent - same capabilities, different syntax:
+-- TODO 2: Calculate sin and cos of the angle
+self.sinValue = math.sin(self.angle)
+self.cosValue = math.cos(self.angle)
 
-const greeting = "Hello, Rive!";
-console.log(`String length: ${greeting.length}`);
-console.log(`Uppercase: ${greeting.toUpperCase()}`);
+-- (After the print statements)
+-- TODO 3: Print the answer
+print(\`ANSWER: {string.format("%.3f", self.cosValue)}\`)`}
+>
+**Premise:** You're building a rotation system that needs trigonometry calculations. The sandbox provides all standard math functions.
 
-const data = { x: 100, y: 200, scale: 1.5 };
-for (const [key, value] of Object.entries(data)) {
-    console.log(`${key} = ${value}`);
-}
-
-const angle = Math.PI / 4;  // 45 degrees
-console.log(`cos=${Math.cos(angle).toFixed(3)}, sin=${Math.sin(angle).toFixed(3)}`);
-```
+**Use Case:** Many animations need trig: rotating objects, circular motion, wave effects. Understanding that these math functions are available (even though network/file APIs aren't) is crucial for sandbox development.
+</Exercise>
 
 ---
 

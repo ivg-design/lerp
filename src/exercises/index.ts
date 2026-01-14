@@ -137,3 +137,139 @@ export function getOverallProgress(): { completed: number; total: number; percen
 
   return { completed, total, percentage };
 }
+
+// ============================================
+// QUIZ TRACKING
+// ============================================
+
+export interface QuizMetadata {
+  id: string;
+  chapter: string;
+  docPath: string;
+}
+
+// Quiz IDs grouped by chapter (extracted from MDX files)
+const quizzesByChapter: Record<string, string[]> = {
+  'intro': [
+    'intro-q1', 'intro-q2', 'intro-q3',
+  ],
+  'getting-started': [
+    'welcome-q1', 'welcome-q2',
+    'why-luau-q1', 'why-luau-q2', 'why-luau-q3',
+    'how-q1', 'how-q2', 'how-q3', 'how-q4',
+  ],
+  'fundamentals': [
+    'vars-q1', 'vars-q2', 'vars-q3', 'vars-q4', 'vars-q5',
+    'dt-q1', 'dt-q2', 'dt-q3', 'dt-q4', 'dt-q5', 'dt-q6',
+    'fn-q1', 'fn-q2', 'fn-q3', 'fn-q4', 'fn-q5',
+    'tbl-q1', 'tbl-q2', 'tbl-q3', 'tbl-q4', 'tbl-q5',
+    'cf-q1', 'cf-q2', 'cf-q3', 'cf-q4', 'cf-q5',
+    'iter-q1', 'iter-q2', 'iter-q3', 'iter-q4', 'iter-q5', 'iter-q6', 'iter-q7',
+  ],
+  'types': [
+    'types-q1', 'types-q2', 'types-q3', 'types-q4',
+    'strict-q1', 'strict-q2', 'strict-q3', 'strict-q4',
+    'anno-q1', 'anno-q2', 'anno-q3', 'anno-q4',
+    'custom-q1', 'custom-q2', 'custom-q3', 'custom-q4',
+    'gen-q1', 'gen-q2', 'gen-q3', 'gen-q4',
+    'adv-q1', 'adv-q2', 'adv-q3', 'adv-q4',
+    'late-q1', 'late-q2', 'late-q3', 'late-q4',
+  ],
+  'oop': [
+    'meta-q1', 'meta-q2', 'meta-q3', 'meta-q4',
+    'idx-q1', 'idx-q2', 'idx-q3', 'idx-q4',
+    'class-q1', 'class-q2', 'class-q3', 'class-q4',
+    'proto-q1', 'proto-q2', 'proto-q3',
+    'self-q1', 'self-q2', 'self-q3', 'self-q4',
+    'inherit-q1', 'inherit-q2', 'inherit-q3',
+    'encap-q1', 'encap-q2', 'encap-q3',
+    'patterns-q1', 'patterns-q2', 'patterns-q3', 'patterns-q4',
+  ],
+  'rive': [
+    'env-q1', 'env-q2', 'env-q3', 'env-q4',
+    'inputs-q1', 'inputs-q2', 'inputs-q3', 'inputs-q4',
+    'lifecycle-q1', 'lifecycle-q2', 'lifecycle-q3', 'lifecycle-q4',
+    'node-protocol-q1', 'node-protocol-q2', 'node-protocol-q3', 'node-protocol-q4',
+    'other-q1', 'other-q2', 'other-q3', 'other-q4', 'other-q5',
+    'util-q1', 'util-q2', 'util-q3', 'util-q4',
+  ],
+  'advanced': [
+    'core-types-q1', 'core-types-q2', 'core-types-q3', 'core-types-q4',
+    'drawing-api-q1', 'drawing-api-q2', 'drawing-api-q3', 'drawing-api-q4', 'drawing-api-q5',
+    'procedural-q1', 'procedural-q2', 'procedural-q3', 'procedural-q4', 'procedural-q5',
+    'viewmodels-q1', 'viewmodels-q2', 'viewmodels-q3', 'viewmodels-q4', 'viewmodels-q5',
+  ],
+  'best-practices': [
+    'architecture-q1', 'architecture-q2', 'architecture-q3', 'architecture-q4',
+    'debugging-q1', 'debugging-q2', 'debugging-q3', 'debugging-q4',
+    'resources-q1', 'resources-q2',
+  ],
+};
+
+/**
+ * Get all quiz IDs
+ */
+export function getAllQuizIds(): string[] {
+  return Object.values(quizzesByChapter).flat();
+}
+
+/**
+ * Get quizzes by chapter
+ */
+export function getQuizzesByChapter(chapter: string): string[] {
+  return quizzesByChapter[chapter] || [];
+}
+
+/**
+ * Get quiz completion status from localStorage
+ */
+export function getQuizCompletionStatus(): Record<string, boolean> {
+  if (typeof window === 'undefined') return {};
+
+  const status: Record<string, boolean> = {};
+  const allQuizzes = getAllQuizIds();
+
+  for (const quizId of allQuizzes) {
+    const key = `lerp-quiz-${quizId}`;
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        status[quizId] = data.isCorrect || false;
+      } catch {
+        status[quizId] = false;
+      }
+    } else {
+      status[quizId] = false;
+    }
+  }
+  return status;
+}
+
+/**
+ * Get quiz progress for a chapter
+ */
+export function getChapterQuizProgress(chapter: string): { completed: number; total: number; percentage: number } {
+  const quizzes = getQuizzesByChapter(chapter);
+  const status = getQuizCompletionStatus();
+
+  const completed = quizzes.filter(id => status[id]).length;
+  const total = quizzes.length;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return { completed, total, percentage };
+}
+
+/**
+ * Get overall quiz progress
+ */
+export function getOverallQuizProgress(): { completed: number; total: number; percentage: number } {
+  const status = getQuizCompletionStatus();
+  const allQuizzes = getAllQuizIds();
+
+  const completed = allQuizzes.filter(id => status[id]).length;
+  const total = allQuizzes.length;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return { completed, total, percentage };
+}

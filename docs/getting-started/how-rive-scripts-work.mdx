@@ -26,6 +26,18 @@ Think of it like this:
 | Variables exist until page closes | Variables must be carefully managed |
 | You call functions when ready | Rive calls YOUR functions automatically |
 
+### What is a "Node"?
+
+In Rive, a **Node** is any element in your hierarchy - groups, paths, images, text, shapes, etc. Scripts attach to nodes and control their behavior.
+
+**To attach a script to a node:**
+1. Select the node in the Rive Editor
+2. Open the Inspector panel
+3. Click "Add Script" or drag a script file onto the node
+4. Configure inputs in the Inspector
+
+When a script is attached to a node, that script can draw graphics at that node's position and respond to pointer events within that node's bounds.
+
 ---
 
 ## Why Can't I Just Write Code?
@@ -92,7 +104,9 @@ end
 
 **What it does:** Turns on "strict mode" — the type checker analyzes your code before it runs.
 
-**Why it exists:** Without this, typos become runtime errors. With it, the editor catches mistakes immediately.
+**Why `--!` syntax?** In Lua, `--` starts a comment. The `!` immediately after makes it a *directive* - a special instruction to the compiler rather than regular code. It's like HTML's `<!DOCTYPE>` - a signal that affects how the file is processed.
+
+**Why it's required:** Rive Node scripts MUST start with `--!strict` to be recognized. Without it, Rive won't treat the file as a script.
 
 **Coming from JavaScript?** This is like TypeScript's strict mode. Without it, you can write `const x = "hello"; x.toFixed(2)` and it fails at runtime. With strict mode, you catch it immediately.
 
@@ -108,12 +122,14 @@ If you mistype a variable name or call a function with wrong arguments, you'll s
 
 ```lua
 export type MyScript = {
-    health: number,
-    name: string,
+    health: number,   -- Any data your script needs to track
+    name: string,     -- Can be any property names you choose
 }
 ```
 
-**What it does:** Defines the "shape" of your script's persistent data.
+**What it does:** Defines the "shape" of your script's persistent data - the properties your script will store and use.
+
+**Why these example properties?** `health` and `name` are just examples - you'd replace them with whatever your script actually needs. A particle system might have `particles: {ParticleData}`, a button might have `isPressed: boolean`, etc.
 
 **Why it exists:** Rive creates an object for your script, and this tells Rive what properties that object will have. The type checker uses this to ensure you don't accidentally access properties that don't exist.
 
@@ -308,34 +324,47 @@ return function(): Node<MyScript>
 end
 ```
 
-**What it does:** `late()` is a placeholder that says "this value will be set later."
+**What it does:** `late()` is a placeholder that says "this value will be set later, in `init()`."
 
-**Why it exists:** When the factory function runs, you can't yet create Rive objects like `Path.new()` or `Paint.new()`. Those only work inside `init()`. So you use `late()` to tell the type system "trust me, I'll set this in `init()`."
+**Why it exists:** The factory function runs BEFORE your script is fully attached to a node. At that moment:
+- You can't create Rive objects like `Path.new()` or `Paint.new()` yet
+- You don't know the actual input values from the Editor
+- You're just creating the data structure, not running the script
 
-**When to use `late()`:**
+So `late()` is like writing "TBD" — it satisfies the type checker while promising you'll fill in the real value in `init()`.
+
+**The simple rule:**
+
+| Type | In Factory | Why |
+|------|-----------|-----|
+| `Input<T>` | Direct value: `speed = 100` | Default shown in Editor |
+| Everything else | `late()` | Created in `init()` |
+
+**Example:**
 ```lua
 export type MyScript = {
-    path: Path,        -- Rive object → use late()
-    paint: Paint,      -- Rive object → use late()
-    startTime: number, -- Set in init() → use late()
-    speed: Input<number>,  -- Input → use DIRECT VALUE, not late()
+    path: Path,              -- Rive object → late()
+    paint: Paint,            -- Rive object → late()
+    startTime: number,       -- Calculated in init() → late()
+    speed: Input<number>,    -- Editor input → direct value
 }
 
 return function(): Node<MyScript>
     return {
         init = init,
         draw = draw,
-        path = late(),    -- Will be set in init()
-        paint = late(),   -- Will be set in init()
-        startTime = late(), -- Will be set in init()
-        speed = 100,      -- Direct default value for Input
+        path = late(),       -- Created with Path.new() in init()
+        paint = late(),      -- Created with Paint.new() in init()
+        startTime = late(),  -- Set to os.clock() in init()
+        speed = 100,         -- Default value shown in Editor's Inspector
     }
 end
 ```
 
-**The rule:**
-- `Input<T>` properties → direct default value
-- Everything else set in `init()` → `late()`
+:::tip Memory Aid
+**"late() = I'll set it in init()"** — for anything you create or calculate at runtime.
+**"Direct value = Input default"** — for `Input<T>` properties that appear in the Editor.
+:::
 
 ---
 
@@ -362,80 +391,81 @@ function init(self: MyScript): boolean
 end
 ```
 
-Inputs are still read-only, but you access them directly (e.g., `self.speed`).
+**From scripts, inputs appear read-only** — you access them directly (e.g., `self.speed`) but shouldn't reassign them. However, inputs CAN be updated externally through ViewModel bindings or state machine connections.
 
 ---
 
 ## The Complete Picture
 
-Here's how everything fits together:
+Here's how everything fits together - a pulsing circle that demonstrates all the key concepts:
 
 ```lua
 --!strict  -- ① Turn on type checking
 
 -- ② Define what data your script stores
-export type GameScript = {
+export type PulsingCircle = {
     path: Path,               -- Rive drawing object
     paint: Paint,             -- Rive styling object
-    score: number,            -- Persistent data
-    speed: Input<number>,     -- Editor-editable input
+    time: number,             -- Accumulated time
+    speed: Input<number>,     -- Editor-editable: pulse speed
+    size: Input<number>,      -- Editor-editable: base size
 }
 
-local function addCircle(path: Path, center: Vector, radius: number)
-    local k = 0.5522847498
-    local cx, cy = center.x, center.y
-    local r = radius
-
-    path:moveTo(Vector.xy(cx, cy - r))
-    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
-    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
-    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
-    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
+-- Helper function to build a circle path
+local function buildCircle(path: Path, radius: number)
+    local k = 0.5522847498  -- Bezier constant for circles
+    path:reset()
+    path:moveTo(Vector.xy(0, -radius))
+    path:cubicTo(Vector.xy(radius * k, -radius), Vector.xy(radius, -radius * k), Vector.xy(radius, 0))
+    path:cubicTo(Vector.xy(radius, radius * k), Vector.xy(radius * k, radius), Vector.xy(0, radius))
+    path:cubicTo(Vector.xy(-radius * k, radius), Vector.xy(-radius, radius * k), Vector.xy(-radius, 0))
+    path:cubicTo(Vector.xy(-radius, -radius * k), Vector.xy(-radius * k, -radius), Vector.xy(0, -radius))
     path:close()
 end
 
 -- ③ Initialization (runs once)
-function init(self: GameScript): boolean
-    -- Create Rive objects
+function init(self: PulsingCircle): boolean
     self.path = Path.new()
-    self.paint = Paint.new()
-    self.paint.color = Color.rgba(255, 0, 0, 255)
-
-    -- Set initial values
-    self.score = 0
-
-    print(`Starting with speed: {self.speed}`)
-    return true  -- Keep running
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 150, 255) })
+    self.time = 0
+    print(`Circle initialized with speed={self.speed}, size={self.size}`)
+    return true
 end
 
--- ④ Update logic (runs every frame, optional)
-function advance(self: GameScript, elapsed: number): boolean
-    self.score += self.speed * elapsed
-    return true  -- Keep running
+-- ④ Update logic (runs every frame)
+function advance(self: PulsingCircle, elapsed: number): boolean
+    self.time += elapsed * self.speed
+
+    -- Calculate pulsing radius using sine wave
+    local pulse = math.sin(self.time) * 0.3 + 1  -- Oscillates between 0.7 and 1.3
+    local radius = self.size * pulse
+
+    -- Rebuild path with new radius
+    buildCircle(self.path, radius)
+    return true
 end
 
 -- ⑤ Drawing (runs every frame)
-function draw(self: GameScript, renderer: Renderer)
-    self.path:reset()
-    addCircle(self.path, Vector.xy(100, 100), 50)
+function draw(self: PulsingCircle, renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
 -- ⑥ Factory function (creates instances)
-return function(): Node<GameScript>
+return function(): Node<PulsingCircle>
     return {
         init = init,
         advance = advance,
         draw = draw,
-        -- Rive objects and computed values: late()
-        path = late(),
-        paint = late(),
-        score = late(),
-        -- Inputs: direct default values
-        speed = 100,
+        path = late(),      -- Created in init()
+        paint = late(),     -- Created in init()
+        time = late(),      -- Set in init()
+        speed = 3,          -- Input: default pulse speed
+        size = 50,          -- Input: default base size
     }
 end
 ```
+
+**Try it:** Paste this into a Node script in Rive. You'll see a pulsing blue circle. Adjust the `speed` and `size` inputs in the editor to see how they affect the animation.
 
 ---
 
@@ -574,7 +604,7 @@ end
     { text: "A global variable" },
     { text: "The Rive editor" },
   ]}
-  explanation="'self' is the first parameter passed to lifecycle functions. It's your script's data object, containing all the properties defined in your export type."
+  explanation="Unlike JavaScript's 'this' which is a reserved keyword with special binding rules, 'self' in Luau is just a parameter name convention. It's the first parameter passed to lifecycle functions - your script's data object containing all properties defined in your export type. You could technically name it anything, but 'self' is the standard convention."
 />
 
 ---

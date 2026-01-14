@@ -4,6 +4,7 @@ title: Performance
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Performance Optimization
 
@@ -28,36 +29,57 @@ Rive scripts run every frame. The biggest performance wins come from:
 
 ---
 
-## Exercise 1: Cache and Reuse Objects
-
-Create paths and paints once, then reuse them every frame.
-
-```lua
---!strict
+<Exercise
+  id="best-practices-perf-1"
+  title="Exercise 1: Cache and Reuse Objects"
+  difficulty={2}
+  hint="Create Path and Paint objects once in init, then reuse them. Use path:reset() to clear and rebuild geometry without allocating new objects."
+  expectedAnswer="cached"
+  explanation="Creating objects every frame is expensive. Allocating Path and Paint once in init and reusing them eliminates per-frame allocation overhead."
+  task="Move object creation from the factory to init, and rebuild geometry in update without allocating new objects."
+  expectedOutput={`Objects cached in init
+Path rebuilt with radius: 50
+Drawing with cached objects
+ANSWER: cached`}
+  code={`--!strict
+-- Optimize by caching Path and Paint objects
 
 export type CachedCircle = {
     radius: Input<number>,
+    initialized: boolean,
     path: Path,
     paint: Paint,
 }
 
 function init(self: CachedCircle): boolean
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+    -- TODO 1: Create Path and Paint objects here (allocate once)
+    -- self.path = Path.new()
+    -- self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+
+    self.initialized = true
+    print("Objects cached in init")
     return true
 end
 
 function update(self: CachedCircle)
     local r = self.radius
 
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-r, 0))
-    self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
-    self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
-    self.path:close()
+    -- TODO 2: Rebuild geometry using path:reset() (no new allocation)
+    -- self.path:reset()
+    -- self.path:moveTo(Vector.xy(-r, 0))
+    -- self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
+    -- self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
+    -- self.path:close()
+
+    print(\`Path rebuilt with radius: {r}\`)
 end
 
 function draw(self: CachedCircle, renderer: Renderer)
+    if self.initialized then
+        print("Drawing with cached objects")
+        print("ANSWER: cached")
+        self.initialized = false  -- Only print once
+    end
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -67,11 +89,27 @@ return function(): Node<CachedCircle>
         update = update,
         draw = draw,
         radius = 50,
-        path = Path.new(),
-        paint = Paint.new(),
+        initialized = false,
+        -- Objects start as late() - will be created in init
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create objects in init (allocate once)
+self.path = Path.new()
+self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+
+-- TODO 2: Rebuild geometry without new allocation
+self.path:reset()
+self.path:moveTo(Vector.xy(-r, 0))
+self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
+self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
+self.path:close()`}
+>
+**Premise:** You're optimizing a shape that updates when inputs change but was creating new objects every frame.
+
+**Use Case:** Object caching is essential for any script that renders dynamic content. It's the difference between 60fps and slideshow performance.
+</Exercise>
 
 **Key points:**
 - `Path` and `Paint` are created once in `init`
@@ -80,43 +118,66 @@ end
 
 ---
 
-## Exercise 2: Update-Driven Rendering
-
-Only rebuild geometry when inputs actually change.
-
-```lua
---!strict
+<Exercise
+  id="best-practices-perf-2"
+  title="Exercise 2: Update-Driven Rendering"
+  difficulty={2}
+  hint="Create a rebuild helper function that resets and rebuilds the path. Call it from init for initial state, and from update when inputs change."
+  expectedAnswer="efficient"
+  explanation="Update-driven rendering only rebuilds geometry when inputs change, not every frame. This pattern is essential for complex shapes that are expensive to rebuild."
+  task="Complete the rebuild helper function and call it from both init and update to only rebuild when necessary."
+  expectedOutput={`Initial build: 140x80
+Geometry rebuilt on input change: 200x100
+Drawing efficiently
+ANSWER: efficient`}
+  code={`--!strict
+-- Only rebuild geometry when inputs change
 
 export type EfficientRect = {
     width: Input<number>,
     height: Input<number>,
+    buildCount: number,
     path: Path,
     paint: Paint,
 }
 
+-- TODO 1: Complete the rebuild helper function
 local function rebuild(self: EfficientRect)
     local halfW = self.width / 2
     local halfH = self.height / 2
 
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-halfW, -halfH))
-    self.path:lineTo(Vector.xy(halfW, -halfH))
-    self.path:lineTo(Vector.xy(halfW, halfH))
-    self.path:lineTo(Vector.xy(-halfW, halfH))
-    self.path:close()
+    -- TODO: Reset path and build rectangle
+    -- self.path:reset()
+    -- self.path:moveTo(Vector.xy(-halfW, -halfH))
+    -- self.path:lineTo(Vector.xy(halfW, -halfH))
+    -- self.path:lineTo(Vector.xy(halfW, halfH))
+    -- self.path:lineTo(Vector.xy(-halfW, halfH))
+    -- self.path:close()
+
+    self.buildCount += 1
 end
 
 function init(self: EfficientRect): boolean
-    rebuild(self)
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(120, 160, 255) })
+    self.buildCount = 0
+
+    -- TODO 2: Call rebuild for initial state
+    print(\`Initial build: {self.width}x{self.height}\`)
     return true
 end
 
 function update(self: EfficientRect, context: Context)
-    rebuild(self)
-    context:markNeedsUpdate()
+    -- TODO 3: Call rebuild when inputs change
+    print(\`Geometry rebuilt on input change: {self.width}x{self.height}\`)
 end
 
 function draw(self: EfficientRect, renderer: Renderer)
+    if self.buildCount == 2 then
+        print("Drawing efficiently")
+        print("ANSWER: efficient")
+        self.buildCount += 1  -- Prevent repeated prints
+    end
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -127,11 +188,29 @@ return function(): Node<EfficientRect>
         draw = draw,
         width = 140,
         height = 80,
-        path = Path.new(),
-        paint = Paint.with({ style = "fill", color = Color.rgb(120, 160, 255) }),
+        buildCount = 0,
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Complete rebuild helper
+self.path:reset()
+self.path:moveTo(Vector.xy(-halfW, -halfH))
+self.path:lineTo(Vector.xy(halfW, -halfH))
+self.path:lineTo(Vector.xy(halfW, halfH))
+self.path:lineTo(Vector.xy(-halfW, halfH))
+self.path:close()
+
+-- TODO 2: Call rebuild in init
+rebuild(self)
+
+-- TODO 3: Call rebuild in update
+rebuild(self)`}
+>
+**Premise:** You're optimizing a rectangle that should only rebuild when its width or height inputs change.
+
+**Use Case:** Update-driven rendering is crucial for complex geometry like charts, diagrams, or procedural shapes where rebuilding is expensive.
+</Exercise>
 
 **How it works:**
 1. `rebuild` is a helper that reconstructs the path geometry

@@ -5,6 +5,7 @@ description: Dynamic path generation, animated shapes, and particle systems in R
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Procedural Geometry
 
@@ -33,12 +34,19 @@ Procedural geometry means creating shapes dynamically through code rather than i
 
 ---
 
-## Exercise 1: Procedural Polygon
-
-**Goal**: Generate a regular polygon with N sides.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-1"
+  title="Exercise 1: Procedural Polygon"
+  difficulty={2}
+  hint="Loop from 0 to n-1, calculate angle = (i/n) * 2π, then x = cos(angle)*r, y = sin(angle)*r. Use moveTo for first, lineTo for rest."
+  expectedAnswer="polygon"
+  explanation="Regular polygons are built by distributing points evenly around a circle. The angle offset (-π/2) makes the first vertex point upward."
+  task="Complete the buildPolygon function to generate a regular polygon with N sides using trigonometry."
+  expectedOutput={`Building 6-sided polygon...
+Polygon built!
+ANSWER: polygon`}
+  code={`--!strict
+-- Generate a regular polygon with N sides
 
 export type Polygon = {
     sides: Input<number>,
@@ -55,19 +63,15 @@ local function buildPolygon(self: Polygon)
 
     self.path:reset()
 
-    for i = 0, n - 1 do
-        local angle = (i / n) * math.pi * 2 - math.pi / 2
-        local x = math.cos(angle) * r
-        local y = math.sin(angle) * r
-
-        if i == 0 then
-            self.path:moveTo(Vector.xy(x, y))
-        else
-            self.path:lineTo(Vector.xy(x, y))
-        end
-    end
+    -- TODO 1: Loop from i = 0 to n - 1
+    -- TODO 2: Calculate angle = (i / n) * math.pi * 2 - math.pi / 2
+    -- TODO 3: Calculate x = math.cos(angle) * r, y = math.sin(angle) * r
+    -- TODO 4: If i == 0, moveTo; otherwise lineTo
 
     self.path:close()
+    print(\`Building {n}-sided polygon...\`)
+    print("Polygon built!")
+    print("ANSWER: polygon")
 end
 
 function init(self: Polygon): boolean
@@ -91,12 +95,28 @@ return function(): Node<Polygon>
         draw = draw,
         sides = 6,
         radius = 80,
-        path = Path.new(),
+        path = late(),
         fill = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
         stroke = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(40, 80, 140) }),
     }
-end
-```
+end`}
+  solution={`-- TODO 1-4: Build polygon vertices
+for i = 0, n - 1 do
+    local angle = (i / n) * math.pi * 2 - math.pi / 2
+    local x = math.cos(angle) * r
+    local y = math.sin(angle) * r
+
+    if i == 0 then
+        self.path:moveTo(Vector.xy(x, y))
+    else
+        self.path:lineTo(Vector.xy(x, y))
+    end
+end`}
+>
+**Premise:** You're learning to generate regular polygons procedurally using trigonometry.
+
+**Use Case:** Procedural polygons are useful for icons, badges, HUD elements, and any shape that needs to be generated from data rather than imported as static art.
+</Exercise>
 
 **Key points:**
 - Calculate vertex positions using trigonometry
@@ -105,12 +125,19 @@ end
 
 ---
 
-## Exercise 2: Animated Star
-
-**Goal**: Create a star shape with animated inner radius.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-2"
+  title="Exercise 2: Animated Star"
+  difficulty={2}
+  hint="Double the point count (n*2), alternate radius: outer for even indices, inner for odd. Animate innerRatio using sine wave."
+  expectedAnswer="star"
+  explanation="Stars alternate between outer and inner radius. Animating the innerRatio creates a pulsing effect as the path rebuilds each frame."
+  task="Complete the advance function to animate the star's inner radius and rebuild the path each frame."
+  expectedOutput={`Star initialized
+Star pulsing...
+ANSWER: star`}
+  code={`--!strict
+-- Animated star with pulsing inner radius
 
 export type AnimatedStar = {
     points: Input<number>,
@@ -124,12 +151,15 @@ export type AnimatedStar = {
 function init(self: AnimatedStar): boolean
     self.time = 0
     self.innerRatio = 0.5
+    print("Star initialized")
     return true
 end
 
 function advance(self: AnimatedStar, seconds: number): boolean
+    -- TODO 1: Add seconds to time
     self.time += seconds
-    self.innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
+
+    -- TODO 2: Animate innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
 
     local n = math.floor(self.points)
     if n < 3 then n = 3 end
@@ -138,20 +168,16 @@ function advance(self: AnimatedStar, seconds: number): boolean
 
     self.path:reset()
 
-    for i = 0, n * 2 - 1 do
-        local angle = (i / (n * 2)) * math.pi * 2 - math.pi / 2
-        local r = if i % 2 == 0 then outer else inner
-        local x = math.cos(angle) * r
-        local y = math.sin(angle) * r
-
-        if i == 0 then
-            self.path:moveTo(Vector.xy(x, y))
-        else
-            self.path:lineTo(Vector.xy(x, y))
-        end
-    end
+    -- TODO 3: Loop from i = 0 to n * 2 - 1
+    -- TODO 4: Calculate angle, use outer radius for even i, inner for odd
+    -- TODO 5: moveTo for first point, lineTo for rest
 
     self.path:close()
+
+    if math.floor(self.time) == 1 and math.floor(self.time - seconds) < 1 then
+        print("Star pulsing...")
+        print("ANSWER: star")
+    end
     return true
 end
 
@@ -166,13 +192,33 @@ return function(): Node<AnimatedStar>
         draw = draw,
         points = 5,
         outerRadius = 100,
-        path = Path.new(),
+        path = late(),
         paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 60) }),
         time = 0,
         innerRatio = 0.5,
     }
-end
-```
+end`}
+  solution={`-- TODO 2: Animate inner ratio
+self.innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
+
+-- TODO 3-5: Build star points
+for i = 0, n * 2 - 1 do
+    local angle = (i / (n * 2)) * math.pi * 2 - math.pi / 2
+    local r = if i % 2 == 0 then outer else inner
+    local x = math.cos(angle) * r
+    local y = math.sin(angle) * r
+
+    if i == 0 then
+        self.path:moveTo(Vector.xy(x, y))
+    else
+        self.path:lineTo(Vector.xy(x, y))
+    end
+end`}
+>
+**Premise:** You're creating a star shape with an animated pulsing effect by varying the inner radius over time.
+
+**Use Case:** Animated stars are used for ratings, power-ups, achievements, and any visual that needs eye-catching motion.
+</Exercise>
 
 **Key points:**
 - Alternate between outer and inner radius for star points
@@ -181,12 +227,19 @@ end
 
 ---
 
-## Exercise 3: Sine Wave Path
-
-**Goal**: Draw an animated sine wave using line segments.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-3"
+  title="Exercise 3: Sine Wave Path"
+  difficulty={2}
+  hint="Loop through segments, calculate x position and y = sin((t * freq + time) * 2π) * amplitude. Add time to phase for animation."
+  expectedAnswer="wave"
+  explanation="Adding time to the sine phase creates animation. More segments means smoother curves. Use stroke style for open paths."
+  task="Complete the advance function to build an animated sine wave path."
+  expectedOutput={`Sine wave initialized
+Wave flowing...
+ANSWER: wave`}
+  code={`--!strict
+-- Animated sine wave path
 
 export type SineWave = {
     amplitude: Input<number>,
@@ -199,6 +252,7 @@ export type SineWave = {
 
 function init(self: SineWave): boolean
     self.time = 0
+    print("Sine wave initialized")
     return true
 end
 
@@ -212,18 +266,16 @@ function advance(self: SineWave, seconds: number): boolean
 
     self.path:reset()
 
-    for i = 0, segs do
-        local t = i / segs
-        local x = -width / 2 + t * width
-        local y = math.sin((t * freq + self.time) * math.pi * 2) * amp
+    -- TODO: Loop from i = 0 to segs
+    -- Calculate t = i / segs
+    -- Calculate x = -width/2 + t * width
+    -- Calculate y = math.sin((t * freq + self.time) * math.pi * 2) * amp
+    -- moveTo for first, lineTo for rest
 
-        if i == 0 then
-            self.path:moveTo(Vector.xy(x, y))
-        else
-            self.path:lineTo(Vector.xy(x, y))
-        end
+    if math.floor(self.time) == 1 and math.floor(self.time - seconds) < 1 then
+        print("Wave flowing...")
+        print("ANSWER: wave")
     end
-
     return true
 end
 
@@ -239,12 +291,28 @@ return function(): Node<SineWave>
         amplitude = 40,
         frequency = 2,
         segments = 50,
-        path = Path.new(),
+        path = late(),
         paint = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(120, 220, 180), cap = "round" }),
         time = 0,
     }
-end
-```
+end`}
+  solution={`-- Build wave path
+for i = 0, segs do
+    local t = i / segs
+    local x = -width / 2 + t * width
+    local y = math.sin((t * freq + self.time) * math.pi * 2) * amp
+
+    if i == 0 then
+        self.path:moveTo(Vector.xy(x, y))
+    else
+        self.path:lineTo(Vector.xy(x, y))
+    end
+end`}
+>
+**Premise:** You're creating a flowing sine wave animation that updates every frame.
+
+**Use Case:** Sine waves are used for audio visualizers, water effects, breathing animations, and any oscillating visual.
+</Exercise>
 
 **Key points:**
 - Add `self.time` to the phase for animation
@@ -253,12 +321,19 @@ end
 
 ---
 
-## Exercise 4: Bezier Curves
-
-**Goal**: Create smooth curves using cubic bezier segments.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-4"
+  title="Exercise 4: Bezier Curves"
+  difficulty={2}
+  hint="Use cubicTo(control1, control2, endpoint). Animate the control point Y offsets using sine wave for flowing motion."
+  expectedAnswer="bezier"
+  explanation="cubicTo creates smooth curves using two control points. Animating the control points creates elegant flowing motion."
+  task="Complete the advance function to create an animated cubic bezier curve."
+  expectedOutput={`Bezier demo initialized
+Curve flowing...
+ANSWER: bezier`}
+  code={`--!strict
+-- Animated cubic bezier curve
 
 export type BezierDemo = {
     path: Path,
@@ -268,22 +343,25 @@ export type BezierDemo = {
 
 function init(self: BezierDemo): boolean
     self.time = 0
+    print("Bezier demo initialized")
     return true
 end
 
 function advance(self: BezierDemo, seconds: number): boolean
     self.time += seconds
 
-    local offset = math.sin(self.time * 1.5) * 30
+    -- TODO 1: Calculate offset = math.sin(self.time * 1.5) * 30
+    local offset = 0  -- Replace with animated value
 
+    -- TODO 2: Reset path and build curve
+    -- moveTo(-120, 0)
+    -- cubicTo(Vector(-60, -80 + offset), Vector(60, 80 - offset), Vector(120, 0))
     self.path:reset()
-    self.path:moveTo(Vector.xy(-120, 0))
-    self.path:cubicTo(
-        Vector.xy(-60, -80 + offset),
-        Vector.xy(60, 80 - offset),
-        Vector.xy(120, 0)
-    )
 
+    if math.floor(self.time) == 1 and math.floor(self.time - seconds) < 1 then
+        print("Curve flowing...")
+        print("ANSWER: bezier")
+    end
     return true
 end
 
@@ -296,12 +374,27 @@ return function(): Node<BezierDemo>
         init = init,
         advance = advance,
         draw = draw,
-        path = Path.new(),
+        path = late(),
         paint = Paint.with({ style = "stroke", thickness = 5, color = Color.rgb(255, 100, 150), cap = "round" }),
         time = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Animate offset
+local offset = math.sin(self.time * 1.5) * 30
+
+-- TODO 2: Build bezier curve
+self.path:reset()
+self.path:moveTo(Vector.xy(-120, 0))
+self.path:cubicTo(
+    Vector.xy(-60, -80 + offset),
+    Vector.xy(60, 80 - offset),
+    Vector.xy(120, 0)
+)`}
+>
+**Premise:** You're creating smooth animated curves using cubic bezier segments.
+
+**Use Case:** Bezier curves are ideal for flowing motion paths, smooth transitions, and any organic-looking animation.
+</Exercise>
 
 **Key points:**
 - `cubicTo(control1, control2, end)` creates smooth curves
@@ -310,20 +403,24 @@ end
 
 ---
 
-## Exercise 5: Simple Particle System
-
-**Goal**: Create a basic particle effect with spawning and aging.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-5"
+  title="Exercise 5: Simple Particle System"
+  difficulty={3}
+  hint="Spawn particles on timer, update position with velocity + gravity, filter out dead particles (life >= maxLife). Fade alpha based on remaining life."
+  expectedAnswer="particles"
+  explanation="Particle systems spawn objects, update their physics, and remove dead ones. Filter arrays to efficiently remove particles."
+  task="Complete the advance function to spawn particles, update physics, and remove dead particles."
+  expectedOutput={`Particle system started
+Particles spawning...
+ANSWER: particles`}
+  code={`--!strict
+-- Basic particle system with spawning and aging
 
 type Particle = {
-    x: number,
-    y: number,
-    vx: number,
-    vy: number,
-    life: number,
-    maxLife: number,
+    x: number, y: number,
+    vx: number, vy: number,
+    life: number, maxLife: number,
 }
 
 export type ParticleSystem = {
@@ -338,8 +435,7 @@ local function spawnParticle(): Particle
     local angle = math.random() * math.pi * 2
     local speed = 40 + math.random() * 60
     return {
-        x = 0,
-        y = 0,
+        x = 0, y = 0,
         vx = math.cos(angle) * speed,
         vy = math.sin(angle) * speed,
         life = 0,
@@ -350,6 +446,7 @@ end
 function init(self: ParticleSystem): boolean
     self.particles = {}
     self.spawnTimer = 0
+    print("Particle system started")
     return true
 end
 
@@ -357,25 +454,23 @@ function advance(self: ParticleSystem, seconds: number): boolean
     self.spawnTimer += seconds
     local spawnInterval = 1 / self.spawnRate
 
-    while self.spawnTimer >= spawnInterval do
-        self.spawnTimer -= spawnInterval
-        if #self.particles < 100 then
-            table.insert(self.particles, spawnParticle())
-        end
-    end
+    -- TODO 1: Spawn particles when timer exceeds interval
+    -- while self.spawnTimer >= spawnInterval do
+    --     self.spawnTimer -= spawnInterval
+    --     if #self.particles < 100 then
+    --         table.insert(self.particles, spawnParticle())
+    --     end
+    -- end
 
-    local alive: { Particle } = {}
-    for _, p in ipairs(self.particles) do
-        p.life += seconds
-        if p.life < p.maxLife then
-            p.x += p.vx * seconds
-            p.y += p.vy * seconds
-            p.vy += 50 * seconds
-            table.insert(alive, p)
-        end
-    end
-    self.particles = alive
+    -- TODO 2: Update particles and filter out dead ones
+    -- For each particle: p.life += seconds
+    -- If still alive: update position (x += vx*s, y += vy*s), add gravity (vy += 50*s)
+    -- Keep only alive particles in a new array
 
+    if #self.particles > 5 then
+        print("Particles spawning...")
+        print("ANSWER: particles")
+    end
     return true
 end
 
@@ -383,14 +478,12 @@ function draw(self: ParticleSystem, renderer: Renderer)
     for _, p in ipairs(self.particles) do
         local alpha = 1 - (p.life / p.maxLife)
         local size = 4 * alpha
-
         self.path:reset()
         self.path:moveTo(Vector.xy(p.x - size, p.y - size))
         self.path:lineTo(Vector.xy(p.x + size, p.y - size))
         self.path:lineTo(Vector.xy(p.x + size, p.y + size))
         self.path:lineTo(Vector.xy(p.x - size, p.y + size))
         self.path:close()
-
         self.paint.color = Color.rgba(255, 180, 80, math.floor(alpha * 255))
         renderer:drawPath(self.path, self.paint)
     end
@@ -403,12 +496,36 @@ return function(): Node<ParticleSystem>
         draw = draw,
         particles = {},
         spawnRate = 20,
-        path = Path.new(),
+        path = late(),
         paint = Paint.with({ style = "fill", color = Color.rgb(255, 180, 80) }),
         spawnTimer = 0,
     }
+end`}
+  solution={`-- TODO 1: Spawn particles
+while self.spawnTimer >= spawnInterval do
+    self.spawnTimer -= spawnInterval
+    if #self.particles < 100 then
+        table.insert(self.particles, spawnParticle())
+    end
 end
-```
+
+-- TODO 2: Update and filter particles
+local alive: { Particle } = {}
+for _, p in ipairs(self.particles) do
+    p.life += seconds
+    if p.life < p.maxLife then
+        p.x += p.vx * seconds
+        p.y += p.vy * seconds
+        p.vy += 50 * seconds
+        table.insert(alive, p)
+    end
+end
+self.particles = alive`}
+>
+**Premise:** You're building a basic particle system that spawns, animates, and removes particles over time.
+
+**Use Case:** Particle systems create visual effects like sparks, explosions, rain, smoke, and magical effects.
+</Exercise>
 
 :::warning Performance Note
 This example modifies the path in `draw` for simplicity. For production particle systems, consider creating a pool of paths or using instanced rendering techniques.
@@ -422,12 +539,19 @@ This example modifies the path in `draw` for simplicity. For production particle
 
 ---
 
-## Exercise 6: Circular Progress Ring
-
-**Goal**: Draw an arc that fills based on a progress value.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-6"
+  title="Exercise 6: Circular Progress Ring"
+  difficulty={2}
+  hint="Build arcs by looping through segments, calculating angle = start + (end-start)*t, then x = cos(angle)*r, y = sin(angle)*r."
+  expectedAnswer="ring"
+  explanation="Progress rings are built as arcs. The foreground arc length is based on progress (0-1), starting from -π/2 (top) and sweeping clockwise."
+  task="Complete the buildArc helper function to generate arc paths based on start and end angles."
+  expectedOutput={`Progress ring initialized
+Progress at 70%
+ANSWER: ring`}
+  code={`--!strict
+-- Circular progress ring with background and foreground arcs
 
 export type ProgressRing = {
     progress: Input<number>,
@@ -442,23 +566,19 @@ export type ProgressRing = {
 local function buildArc(path: Path, radius: number, startAngle: number, endAngle: number, segments: number)
     path:reset()
 
-    for i = 0, segments do
-        local t = i / segments
-        local angle = startAngle + (endAngle - startAngle) * t
-        local x = math.cos(angle) * radius
-        local y = math.sin(angle) * radius
-
-        if i == 0 then
-            path:moveTo(Vector.xy(x, y))
-        else
-            path:lineTo(Vector.xy(x, y))
-        end
-    end
+    -- TODO 1: Loop from i = 0 to segments
+    -- TODO 2: Calculate t = i / segments
+    -- TODO 3: Calculate angle = startAngle + (endAngle - startAngle) * t
+    -- TODO 4: Calculate x = cos(angle) * radius, y = sin(angle) * radius
+    -- TODO 5: moveTo for first point, lineTo for rest
 end
 
 function init(self: ProgressRing): boolean
     local r = self.radius
     buildArc(self.bgPath, r, 0, math.pi * 2, 64)
+    print("Progress ring initialized")
+    print(\`Progress at {math.floor(self.progress * 100)}%\`)
+    print("ANSWER: ring")
     return true
 end
 
@@ -488,13 +608,30 @@ return function(): Node<ProgressRing>
         progress = 0.7,
         radius = 60,
         thickness = 8,
-        bgPath = Path.new(),
-        fgPath = Path.new(),
+        bgPath = late(),
+        fgPath = late(),
         bgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgba(255, 255, 255, 40), cap = "round" }),
         fgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgb(100, 200, 255), cap = "round" }),
     }
-end
-```
+end`}
+  solution={`-- TODO 1-5: Build arc from segments
+for i = 0, segments do
+    local t = i / segments
+    local angle = startAngle + (endAngle - startAngle) * t
+    local x = math.cos(angle) * radius
+    local y = math.sin(angle) * radius
+
+    if i == 0 then
+        path:moveTo(Vector.xy(x, y))
+    else
+        path:lineTo(Vector.xy(x, y))
+    end
+end`}
+>
+**Premise:** You're creating a circular progress indicator that fills based on a progress value.
+
+**Use Case:** Progress rings are used for loading indicators, skill cooldowns, health bars, and any circular meter visualization.
+</Exercise>
 
 **Key points:**
 - Build arcs by calculating points around a circle
@@ -503,12 +640,19 @@ end
 
 ---
 
-## Exercise 7: Data-Driven Bar Chart
-
-**Goal**: Visualize an array of values as animated bars.
-
-```lua
---!strict
+<Exercise
+  id="advanced-procedural-7"
+  title="Exercise 7: Data-Driven Bar Chart"
+  difficulty={3}
+  hint="Use lerp formula: current + (target - current) * (seconds * speed). Loop through target values and interpolate each bar's current value."
+  expectedAnswer="bars"
+  explanation="Bar charts interpolate toward target values for smooth animation. Each bar's x position is calculated from its index, and colors are generated procedurally."
+  task="Complete the advance function to animate bar values toward their targets using lerp interpolation."
+  expectedOutput={`Bar chart initialized with 5 bars
+Bars animating...
+ANSWER: bars`}
+  code={`--!strict
+-- Animated bar chart with data-driven values
 
 export type BarChart = {
     values: { number },
@@ -517,20 +661,41 @@ export type BarChart = {
     maxHeight: Input<number>,
     path: Path,
     paint: Paint,
+    animating: boolean,
 }
 
 function init(self: BarChart): boolean
     self.values = { 0, 0, 0, 0, 0 }
     self.targetValues = { 60, 80, 45, 90, 70 }
+    self.animating = true
+    print(\`Bar chart initialized with {#self.targetValues} bars\`)
     return true
 end
 
 function advance(self: BarChart, seconds: number): boolean
     local speed = 3
-    for i, target in ipairs(self.targetValues) do
-        local current = self.values[i] or 0
-        self.values[i] = current + (target - current) * math.min(1, seconds * speed)
+
+    -- TODO 1: Loop through targetValues with ipairs
+    -- TODO 2: Get current value: self.values[i] or 0
+    -- TODO 3: Lerp toward target: current + (target - current) * min(1, seconds * speed)
+    -- TODO 4: Store the new value back in self.values[i]
+
+    -- Check if animation is mostly complete (values close to targets)
+    if self.animating then
+        local done = true
+        for i, target in ipairs(self.targetValues) do
+            if math.abs((self.values[i] or 0) - target) > 1 then
+                done = false
+                break
+            end
+        end
+        if done then
+            self.animating = false
+            print("Bars animating...")
+            print("ANSWER: bars")
+        end
     end
+
     return true
 end
 
@@ -553,6 +718,7 @@ function draw(self: BarChart, renderer: Renderer)
         self.path:lineTo(Vector.xy(x, y - height))
         self.path:close()
 
+        -- Generate rainbow colors from index
         local hue = (i - 1) / #self.values
         local r = math.floor(255 * (0.5 + 0.5 * math.sin(hue * math.pi * 2)))
         local g = math.floor(255 * (0.5 + 0.5 * math.sin(hue * math.pi * 2 + 2)))
@@ -572,11 +738,21 @@ return function(): Node<BarChart>
         targetValues = {},
         barWidth = 30,
         maxHeight = 120,
-        path = Path.new(),
+        path = late(),
         paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
+        animating = true,
     }
-end
-```
+end`}
+  solution={`-- TODO 1-4: Animate values toward targets
+for i, target in ipairs(self.targetValues) do
+    local current = self.values[i] or 0
+    self.values[i] = current + (target - current) * math.min(1, seconds * speed)
+end`}
+>
+**Premise:** You're building an animated bar chart that smoothly transitions to new data values.
+
+**Use Case:** Bar charts visualize data comparisons—sales figures, scores, statistics. Animation makes data changes feel polished and professional.
+</Exercise>
 
 **Key points:**
 - Animate values toward targets for smooth transitions

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from '@docusaurus/Link';
 import styles from './CourseProgress.module.css';
 import {
   registry,
@@ -6,43 +7,61 @@ import {
   getCompletionStatus,
   getChapterProgress,
   getOverallProgress,
+  getQuizzesByChapter,
+  getQuizCompletionStatus,
+  getChapterQuizProgress,
+  getOverallQuizProgress,
+  getAllQuizIds,
   type ExerciseMetadata,
 } from '../exercises';
 
 interface ChapterProgressData {
   chapter: string;
   title: string;
-  completed: number;
-  total: number;
-  percentage: number;
+  exerciseCompleted: number;
+  exerciseTotal: number;
+  exercisePercentage: number;
+  quizCompleted: number;
+  quizTotal: number;
+  quizPercentage: number;
   exercises: ExerciseMetadata[];
+  quizzes: string[];
 }
 
 export default function CourseProgress() {
   const [completionStatus, setCompletionStatus] = useState<Record<string, boolean>>({});
+  const [quizStatus, setQuizStatus] = useState<Record<string, boolean>>({});
   const [refreshKey, setRefreshKey] = useState(0);
+  const [expandedChapters, setExpandedChapters] = useState<Record<string, { exercises: boolean; quizzes: boolean }>>({});
 
   useEffect(() => {
     setCompletionStatus(getCompletionStatus());
+    setQuizStatus(getQuizCompletionStatus());
   }, [refreshKey]);
 
-  const overallProgress = getOverallProgress();
+  const overallExercises = getOverallProgress();
+  const overallQuizzes = getOverallQuizProgress();
 
   // Get chapter data
   const chapters = Object.entries(registry.chapters)
     .sort(([, a], [, b]) => a.order - b.order)
     .map(([key, meta]): ChapterProgressData => {
-      const progress = getChapterProgress(key);
+      const exerciseProgress = getChapterProgress(key);
+      const quizProgress = getChapterQuizProgress(key);
       return {
         chapter: key,
         title: meta.title,
-        completed: progress.completed,
-        total: progress.total,
-        percentage: progress.percentage,
+        exerciseCompleted: exerciseProgress.completed,
+        exerciseTotal: exerciseProgress.total,
+        exercisePercentage: exerciseProgress.percentage,
+        quizCompleted: quizProgress.completed,
+        quizTotal: quizProgress.total,
+        quizPercentage: quizProgress.percentage,
         exercises: getExercisesByChapter(key),
+        quizzes: getQuizzesByChapter(key),
       };
     })
-    .filter(ch => ch.total > 0);
+    .filter(ch => ch.exerciseTotal > 0 || ch.quizTotal > 0);
 
   const clearChapterProgress = (chapter: string) => {
     if (typeof window === 'undefined') return;
@@ -50,6 +69,11 @@ export default function CourseProgress() {
     const exercises = getExercisesByChapter(chapter);
     exercises.forEach(ex => {
       localStorage.removeItem(`lerp-exercise-${ex.id}`);
+    });
+
+    const quizzes = getQuizzesByChapter(chapter);
+    quizzes.forEach(quizId => {
+      localStorage.removeItem(`lerp-quiz-${quizId}`);
     });
 
     setRefreshKey(k => k + 1);
@@ -62,18 +86,28 @@ export default function CourseProgress() {
       localStorage.removeItem(`lerp-exercise-${ex.id}`);
     });
 
-    // Also clear any quiz data
-    const keys = Object.keys(localStorage);
-    keys.forEach(key => {
-      if (key.startsWith('lerp-quiz-')) {
-        localStorage.removeItem(key);
-      }
+    getAllQuizIds().forEach(quizId => {
+      localStorage.removeItem(`lerp-quiz-${quizId}`);
     });
 
     setRefreshKey(k => k + 1);
   };
 
   const [showClearConfirm, setShowClearConfirm] = useState<string | null>(null);
+
+  const toggleSection = (chapter: string, section: 'exercises' | 'quizzes') => {
+    setExpandedChapters(prev => ({
+      ...prev,
+      [chapter]: {
+        ...prev[chapter],
+        [section]: !prev[chapter]?.[section],
+      },
+    }));
+  };
+
+  const totalCompleted = overallExercises.completed + overallQuizzes.completed;
+  const totalItems = overallExercises.total + overallQuizzes.total;
+  const totalPercentage = totalItems > 0 ? Math.round((totalCompleted / totalItems) * 100) : 0;
 
   return (
     <div className={styles.container}>
@@ -82,24 +116,41 @@ export default function CourseProgress() {
         <h2 className={styles.sectionTitle}>Course Progress</h2>
         <div className={styles.overallStats}>
           <div className={styles.statBox}>
-            <span className={styles.statValue}>{overallProgress.completed}</span>
+            <span className={styles.statValue}>{totalCompleted}</span>
             <span className={styles.statLabel}>Completed</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statValue}>{overallProgress.total}</span>
-            <span className={styles.statLabel}>Total Exercises</span>
+            <span className={styles.statValue}>{totalItems}</span>
+            <span className={styles.statLabel}>Total Items</span>
           </div>
           <div className={styles.statBox}>
-            <span className={styles.statValue}>{overallProgress.percentage}%</span>
+            <span className={styles.statValue}>{totalPercentage}%</span>
             <span className={styles.statLabel}>Complete</span>
           </div>
         </div>
         <div className={styles.overallBar}>
           <div
             className={styles.overallBarFill}
-            style={{ width: `${overallProgress.percentage}%` }}
+            style={{ width: `${totalPercentage}%` }}
           />
         </div>
+
+        {/* Breakdown */}
+        <div className={styles.breakdown}>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Exercises:</span>
+            <span className={styles.breakdownValue}>
+              {overallExercises.completed} / {overallExercises.total} ({overallExercises.percentage}%)
+            </span>
+          </div>
+          <div className={styles.breakdownItem}>
+            <span className={styles.breakdownLabel}>Quizzes:</span>
+            <span className={styles.breakdownValue}>
+              {overallQuizzes.completed} / {overallQuizzes.total} ({overallQuizzes.percentage}%)
+            </span>
+          </div>
+        </div>
+
         <div className={styles.clearAllSection}>
           {showClearConfirm === 'all' ? (
             <div className={styles.confirmBox}>
@@ -124,7 +175,7 @@ export default function CourseProgress() {
             <button
               className={styles.clearAllBtn}
               onClick={() => setShowClearConfirm('all')}
-              disabled={overallProgress.completed === 0}
+              disabled={totalCompleted === 0}
             >
               Clear All Progress
             </button>
@@ -135,74 +186,129 @@ export default function CourseProgress() {
       {/* Chapter Progress */}
       <div className={styles.chaptersSection}>
         <h2 className={styles.sectionTitle}>Progress by Chapter</h2>
-        {chapters.map(ch => (
-          <div key={ch.chapter} className={styles.chapterCard}>
-            <div className={styles.chapterHeader}>
-              <h3 className={styles.chapterTitle}>{ch.title}</h3>
-              <span className={styles.chapterStats}>
-                {ch.completed} / {ch.total}
-              </span>
-            </div>
-            <div className={styles.chapterBar}>
-              <div
-                className={styles.chapterBarFill}
-                style={{ width: `${ch.percentage}%` }}
-              />
-            </div>
-            <div className={styles.chapterActions}>
-              {showClearConfirm === ch.chapter ? (
-                <div className={styles.confirmBox}>
-                  <span>Clear {ch.title} progress?</span>
+        {chapters.map(ch => {
+          const chapterTotal = ch.exerciseTotal + ch.quizTotal;
+          const chapterCompleted = ch.exerciseCompleted + ch.quizCompleted;
+          const chapterPercentage = chapterTotal > 0 ? Math.round((chapterCompleted / chapterTotal) * 100) : 0;
+          const isExercisesExpanded = expandedChapters[ch.chapter]?.exercises;
+          const isQuizzesExpanded = expandedChapters[ch.chapter]?.quizzes;
+
+          return (
+            <div key={ch.chapter} className={styles.chapterCard}>
+              <div className={styles.chapterHeader}>
+                <h3 className={styles.chapterTitle}>{ch.title}</h3>
+                <span className={styles.chapterStats}>
+                  {chapterCompleted} / {chapterTotal}
+                </span>
+              </div>
+              <div className={styles.chapterBar}>
+                <div
+                  className={styles.chapterBarFill}
+                  style={{ width: `${chapterPercentage}%` }}
+                />
+              </div>
+
+              {/* Chapter breakdown */}
+              <div className={styles.chapterBreakdown}>
+                {ch.exerciseTotal > 0 && (
+                  <span className={styles.chapterBreakdownItem}>
+                    Exercises: {ch.exerciseCompleted}/{ch.exerciseTotal}
+                  </span>
+                )}
+                {ch.quizTotal > 0 && (
+                  <span className={styles.chapterBreakdownItem}>
+                    Quizzes: {ch.quizCompleted}/{ch.quizTotal}
+                  </span>
+                )}
+              </div>
+
+              <div className={styles.chapterActions}>
+                {showClearConfirm === ch.chapter ? (
+                  <div className={styles.confirmBox}>
+                    <span>Clear {ch.title} progress?</span>
+                    <button
+                      className={styles.confirmBtn}
+                      onClick={() => {
+                        clearChapterProgress(ch.chapter);
+                        setShowClearConfirm(null);
+                      }}
+                    >
+                      Yes
+                    </button>
+                    <button
+                      className={styles.cancelBtn}
+                      onClick={() => setShowClearConfirm(null)}
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
                   <button
-                    className={styles.confirmBtn}
-                    onClick={() => {
-                      clearChapterProgress(ch.chapter);
-                      setShowClearConfirm(null);
-                    }}
+                    className={styles.clearChapterBtn}
+                    onClick={() => setShowClearConfirm(ch.chapter)}
+                    disabled={chapterCompleted === 0}
                   >
-                    Yes
+                    Clear Chapter Progress
                   </button>
-                  <button
-                    className={styles.cancelBtn}
-                    onClick={() => setShowClearConfirm(null)}
-                  >
-                    No
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className={styles.clearChapterBtn}
-                  onClick={() => setShowClearConfirm(ch.chapter)}
-                  disabled={ch.completed === 0}
-                >
-                  Clear Chapter Progress
-                </button>
+                )}
+              </div>
+
+              {/* Collapsible Exercise list */}
+              {ch.exercises.length > 0 && (
+                <details className={styles.collapsibleSection}>
+                  <summary className={styles.collapsibleHeader}>
+                    <span>Exercises ({ch.exerciseCompleted}/{ch.exerciseTotal})</span>
+                  </summary>
+                  <div className={styles.exerciseList}>
+                    {ch.exercises.map(ex => {
+                      const isCompleted = completionStatus[ex.id];
+                      return (
+                        <Link
+                          key={ex.id}
+                          to={ex.docPath}
+                          className={`${styles.exerciseItem} ${isCompleted ? styles.completed : ''}`}
+                        >
+                          <span className={styles.exerciseStatus}>
+                            {isCompleted ? '[x]' : '[ ]'}
+                          </span>
+                          <span className={styles.exerciseTitle}>{ex.title}</span>
+                          <span className={styles.exerciseDifficulty}>
+                            {'*'.repeat(ex.difficulty)}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </details>
+              )}
+
+              {/* Collapsible Quiz list */}
+              {ch.quizzes.length > 0 && (
+                <details className={styles.collapsibleSection}>
+                  <summary className={styles.collapsibleHeader}>
+                    <span>Quizzes ({ch.quizCompleted}/{ch.quizTotal})</span>
+                  </summary>
+                  <div className={styles.quizList}>
+                    {ch.quizzes.map(quizId => {
+                      const isCompleted = quizStatus[quizId];
+                      return (
+                        <div
+                          key={quizId}
+                          className={`${styles.quizItem} ${isCompleted ? styles.completed : ''}`}
+                        >
+                          <span className={styles.quizStatus}>
+                            {isCompleted ? '[x]' : '[ ]'}
+                          </span>
+                          <span className={styles.quizTitle}>{quizId}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
               )}
             </div>
-
-            {/* Exercise list */}
-            <div className={styles.exerciseList}>
-              {ch.exercises.map(ex => {
-                const isCompleted = completionStatus[ex.id];
-                return (
-                  <a
-                    key={ex.id}
-                    href={ex.docPath}
-                    className={`${styles.exerciseItem} ${isCompleted ? styles.completed : ''}`}
-                  >
-                    <span className={styles.exerciseStatus}>
-                      {isCompleted ? '[x]' : '[ ]'}
-                    </span>
-                    <span className={styles.exerciseTitle}>{ex.title}</span>
-                    <span className={styles.exerciseDifficulty}>
-                      {'*'.repeat(ex.difficulty)}
-                    </span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

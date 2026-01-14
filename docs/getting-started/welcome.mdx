@@ -25,6 +25,22 @@ Rive Scripting allows you to embed code directly within the Rive Editor, executi
 | Static layouts | Responsive, procedural layouts |
 | Limited user input | Full interactivity |
 
+## Coming from After Effects?
+
+If you've used AE expressions, here's how Rive scripting compares:
+
+| After Effects Expressions | Rive Scripts |
+|--------------------------|--------------|
+| Single-line or block of code | Structured with lifecycle functions |
+| `value + [100, 0]` just runs | Code runs inside `init()`, `advance()`, `draw()` |
+| Access props via `thisComp`, `thisLayer` | Access data via `self` parameter |
+| Expressions recalculate each frame | Full control over when code runs |
+| No drawing capabilities | Full procedural drawing API |
+| `wiggle()`, `linear()` built-in | Write your own utils (or use libraries) |
+| Limited to property values | Can create new shapes, respond to events |
+
+**Key difference:** AE expressions modify property values. Rive scripts can do that AND create entirely new graphics, handle multi-touch, manage game state, and more.
+
 ## The Rive AI Coding Agent
 
 Rive includes an **AI Coding Agent** built directly into the Editor. This assistant can help you:

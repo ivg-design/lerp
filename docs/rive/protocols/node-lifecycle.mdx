@@ -5,6 +5,7 @@ description: Understand when each Node script callback runs in Rive
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Protocols Overview
 
@@ -122,54 +123,44 @@ Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding
 
 ## Practice Exercises
 
-### Exercise 1: Lifecycle Probe
-
-:::info Goal
-See when each callback runs by logging to the Console.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you don't control when expressions evaluate—the composition playhead triggers them. In Rive, you have explicit lifecycle hooks and need to understand when each runs to organize your code correctly.
-
-**Real-World Use**: Debugging lifecycle issues is one of the most common tasks. "Why isn't my value updating?" often comes down to putting code in the wrong callback.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "LifecycleProbe"
-2. Copy the code below
-3. Attach to any node
-4. Open the Console (View → Console)
-5. Press Play—watch `init` run once, then `advance` every frame
-6. Change the `speed` input—watch `update` fire
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-lifecycle-1"
+  title="Exercise 1: Lifecycle Probe"
+  difficulty={1}
+  hint="Print messages in init, update, and advance. Count how many times advance runs in 2 seconds."
+  expectedAnswer="probe"
+  explanation="Understanding when each callback runs is crucial: init once at start, update when inputs change, advance every frame. This helps you put code in the right place."
+  task="Complete the lifecycle probe that logs when each callback runs and counts advance calls for 2 seconds."
+  expectedOutput={`init: Starting probe
+advance tick 1
+advance tick 2
+(after 2 seconds...)
+ANSWER: probe`}
+  code={`--!strict
+-- A probe to see when each lifecycle callback runs
 
 export type LifecycleProbe = {
-    speed: Input<number>,
     elapsed: number,
+    advanceCount: number,
 }
 
-function init(self: LifecycleProbe, context: Context): boolean
-    print("init")
+function init(self: LifecycleProbe): boolean
+    -- TODO 1: Print "init: Starting probe"
+
     self.elapsed = 0
+    self.advanceCount = 0
     return true
 end
 
-function update(self: LifecycleProbe, context: Context)
-    print(`update -> speed is now {self.speed}`)
-end
-
-function advance(self: LifecycleProbe, seconds: number, context: Context): boolean
+function advance(self: LifecycleProbe, seconds: number): boolean
     self.elapsed += seconds
-    if self.elapsed > 1 then
-        print("advance tick")
-        self.elapsed = 0
-    end
+
+    -- TODO 2: Increment advanceCount
+
+    -- TODO 3: Every second (when floor(elapsed) changes), print "advance tick {count}"
+
+    -- TODO 4: When elapsed >= 2, print "ANSWER: probe" (only once)
+
     return true
 end
 
@@ -179,100 +170,77 @@ end
 return function(): Node<LifecycleProbe>
     return {
         init = init,
-        update = update,
         advance = advance,
         draw = draw,
-        speed = 1,
         elapsed = 0,
+        advanceCount = 0,
     }
+end`}
+  solution={`-- TODO 1: Print "init: Starting probe"
+print("init: Starting probe")
+
+-- TODO 2: Increment advanceCount
+self.advanceCount += 1
+
+-- TODO 3: Every second, print tick
+local prevSecond = math.floor(self.elapsed - seconds)
+local currSecond = math.floor(self.elapsed)
+if currSecond > prevSecond and currSecond <= 2 then
+    print(\`advance tick {currSecond}\`)
 end
-```
 
-```typescript
-// JavaScript equivalent mental model:
+-- TODO 4: When 2 seconds elapsed, print answer
+if self.elapsed >= 2 and self.elapsed < 2.02 then
+    print("ANSWER: probe")
+end`}
+>
+**Premise:** You need to understand when each lifecycle callback fires to debug your scripts effectively.
 
-class LifecycleProbe {
-    speed = 1;
-    elapsed = 0;
-
-    constructor() {
-        console.log("init");
-    }
-
-    // Called when props change (React pattern)
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.speed !== this.speed) {
-            console.log(`update -> speed is now ${this.speed}`);
-        }
-    }
-
-    // Called every frame via requestAnimationFrame
-    advance(deltaTime: number) {
-        this.elapsed += deltaTime;
-        if (this.elapsed > 1) {
-            console.log("advance tick");
-            this.elapsed = 0;
-        }
-    }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        // Render commands only
-    }
-}
-```
-
-**Try:** Change the `speed` input in the sidebar and watch `update` fire. Notice that `advance` runs continuously while `update` only fires on changes.
+**Use Case:** "Why isn't my value updating?" is often answered by understanding that init runs once, update runs on input changes, and advance runs every frame.
+</Exercise>
 
 ---
 
-### Exercise 2: Rebuild Only on Updates
-
-:::info Goal
-Recompute geometry only when inputs change, not every frame.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE expressions are recalculated every frame by default. If you want to cache a value, you have to use `valueAtTime()` tricks. In Rive, the `update` callback is purpose-built for "recalculate only when inputs change."
-
-**Real-World Use**: Performance is critical for interactive animations. If your shape has 1000 vertices and you rebuild them every frame (60 times per second), you waste CPU. Rebuild only when the size actually changes!
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "OnDemandShape"
-2. Copy the code below
-3. Attach to a node
-4. Change `width` or `height` inputs—geometry rebuilds
-5. Notice during playback (advance), geometry is NOT rebuilt
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-lifecycle-2"
+  title="Exercise 2: Rebuild Only on Updates"
+  difficulty={2}
+  hint="Call rebuild() in both init and update, but NOT in draw. Track rebuild count to verify."
+  expectedAnswer="efficient"
+  explanation="Put expensive work in update, not draw. The update callback only runs when inputs change, saving CPU cycles compared to rebuilding every frame."
+  task="Complete the rebuild function and verify it only runs when needed (in init and update, NOT every frame in draw)."
+  expectedOutput={`init: Creating shape
+Rebuild #1: 120 x 80
+(change width input...)
+Rebuild #2: 150 x 80
+ANSWER: efficient`}
+  code={`--!strict
+-- Rebuild geometry only when inputs change
 
 export type OnDemandShape = {
     width: Input<number>,
     height: Input<number>,
+    rebuildCount: number,
     path: Path,
     paint: Paint,
 }
 
 local function rebuild(self: OnDemandShape)
-    local halfW = self.width / 2
-    local halfH = self.height / 2
+    -- TODO 1: Increment rebuildCount
 
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-halfW, -halfH))
-    self.path:lineTo(Vector.xy(halfW, -halfH))
-    self.path:lineTo(Vector.xy(halfW, halfH))
-    self.path:lineTo(Vector.xy(-halfW, halfH))
-    self.path:close()
+    -- TODO 2: Calculate halfW and halfH from width/height
 
-    print(`Rebuilt: {self.width} x {self.height}`)
+    -- TODO 3: Build rectangle path using reset, moveTo, lineTo, close
+
+    -- Print rebuild info
+    print(\`Rebuild #{self.rebuildCount}: {self.width} x {self.height}\`)
+
+    -- TODO 4: When rebuildCount reaches 2, print "ANSWER: efficient"
 end
 
 function init(self: OnDemandShape): boolean
+    print("init: Creating shape")
+    self.rebuildCount = 0
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(120, 220, 140) })
     rebuild(self)
@@ -284,6 +252,7 @@ function update(self: OnDemandShape)
 end
 
 function draw(self: OnDemandShape, renderer: Renderer)
+    -- Note: NO rebuild here - that would waste resources!
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -294,77 +263,57 @@ return function(): Node<OnDemandShape>
         draw = draw,
         width = 120,
         height = 80,
+        rebuildCount = 0,
         path = late(),
         paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Increment rebuildCount
+self.rebuildCount += 1
 
-```typescript
-// JavaScript equivalent - optimized rebuild pattern:
+-- TODO 2: Calculate half dimensions
+local halfW = self.width / 2
+local halfH = self.height / 2
 
-class OnDemandShape {
-    width = 120;
-    height = 80;
-    path: Path2D;
+-- TODO 3: Build rectangle path
+self.path:reset()
+self.path:moveTo(Vector.xy(-halfW, -halfH))
+self.path:lineTo(Vector.xy(halfW, -halfH))
+self.path:lineTo(Vector.xy(halfW, halfH))
+self.path:lineTo(Vector.xy(-halfW, halfH))
+self.path:close()
 
-    constructor() {
-        this.rebuild();
-    }
+-- TODO 4: Print answer when rebuild count reaches 2
+if self.rebuildCount == 2 then
+    print("ANSWER: efficient")
+end`}
+>
+**Premise:** You're building a shape that could be resized by the designer. Rebuilding every frame would waste CPU.
 
-    // Only called when width or height actually changes
-    onPropertyChange() {
-        this.rebuild();
-    }
-
-    rebuild() {
-        const halfW = this.width / 2;
-        const halfH = this.height / 2;
-        this.path = new Path2D();
-        this.path.rect(-halfW, -halfH, this.width, this.height);
-        console.log(`Rebuilt: ${this.width} x ${this.height}`);
-    }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.fill(this.path);  // Draw only - no rebuild!
-    }
-}
-```
-
-**Key insight:** The `rebuild` function is called in both `init` and `update`, but NOT in `draw`. This means geometry is only rebuilt when needed.
+**Use Case:** Performance optimization is critical. Rebuild in update (when inputs change), not in draw (every frame). This can be a 60x improvement!
+</Exercise>
 
 ---
 
-### Exercise 3: Combining Lifecycle Callbacks
-
-:::info Goal
-Create a shape that responds to inputs AND animates over time.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you might animate a property with keyframes AND also make it respond to an expression control. It's tricky to combine the two. In Rive, the separation is clear: `update` handles input changes, `advance` handles time-based animation.
-
-**Real-World Use**: Interactive games and UI elements often need both: user-adjustable properties AND continuous animation. A health bar might pulse (animation) and change color based on health percentage (input).
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "AnimatedShape"
-2. Copy the code below
-3. Attach and run
-4. Watch the shape pulse automatically
-5. Change `baseSize` or `color` inputs—immediate response
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-lifecycle-3"
+  title="Exercise 3: Combining Lifecycle Callbacks"
+  difficulty={2}
+  hint="Track time in advance, calculate pulse using sine, rebuild path with pulsed size. Log the pulse value after 2 seconds."
+  expectedAnswer="pulsing"
+  explanation="Combining update (for input changes) and advance (for animation) lets you build components that are both configurable AND animated. This is the foundation for interactive game elements."
+  task="Complete the advance function to create a pulsing animation. After 2 seconds of animation, print the answer."
+  expectedOutput={`init: Creating animated shape
+advance: pulse = 1.00
+advance: pulse = 0.85
+...
+ANSWER: pulsing`}
+  code={`--!strict
+-- A shape that pulses over time
 
 export type AnimatedShape = {
-    baseSize: Input<number>,
-    pulseSpeed: Input<number>,
-    color: Input<Color>,
+    baseSize: number,
+    pulseSpeed: number,
     time: number,
     path: Path,
     paint: Paint,
@@ -381,26 +330,32 @@ local function rebuildPath(self: AnimatedShape, size: number)
 end
 
 function init(self: AnimatedShape): boolean
+    print("init: Creating animated shape")
     self.time = 0
     self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = self.color })
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 120, 80) })
     rebuildPath(self, self.baseSize)
     return true
 end
 
-function update(self: AnimatedShape)
-    -- Only update color here; size is handled in advance
-    self.paint.color = self.color
-    print(`Color updated`)
-end
-
 function advance(self: AnimatedShape, seconds: number): boolean
-    self.time += seconds
+    -- TODO 1: Add seconds to self.time
 
-    -- Pulse the size based on time
-    local pulse = math.sin(self.time * self.pulseSpeed) * 0.2 + 1
-    local currentSize = self.baseSize * pulse
-    rebuildPath(self, currentSize)
+    -- TODO 2: Calculate pulse using: math.sin(self.time * self.pulseSpeed) * 0.2 + 1
+    -- This creates a value between 0.8 and 1.2
+    local pulse = 1
+
+    -- TODO 3: Calculate currentSize as baseSize * pulse
+    local currentSize = self.baseSize
+
+    -- TODO 4: Rebuild the path with currentSize
+
+    -- Log pulse every second
+    if math.floor(self.time) > math.floor(self.time - seconds) and self.time > 0 then
+        print(\`advance: pulse = {string.format("%.2f", pulse)}\`)
+    end
+
+    -- TODO 5: After 2 seconds, print "ANSWER: pulsing"
 
     return true
 end
@@ -412,51 +367,36 @@ end
 return function(): Node<AnimatedShape>
     return {
         init = init,
-        update = update,
         advance = advance,
         draw = draw,
         baseSize = 60,
         pulseSpeed = 2,
-        color = Color.rgb(255, 120, 80),
         time = 0,
         path = late(),
         paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Add seconds to self.time
+self.time += seconds
 
-```typescript
-// JavaScript equivalent with animation loop:
+-- TODO 2: Calculate pulse
+local pulse = math.sin(self.time * self.pulseSpeed) * 0.2 + 1
 
-class AnimatedShape {
-    baseSize = 60;
-    pulseSpeed = 2;
-    color = "#FF7850";
-    time = 0;
+-- TODO 3: Calculate currentSize
+local currentSize = self.baseSize * pulse
 
-    // Called when inputs change (like React)
-    onInputChange(changes: {baseSize?, pulseSpeed?, color?}) {
-        if (changes.color) {
-            this.paint.color = changes.color;
-            console.log("Color updated");
-        }
-    }
+-- TODO 4: Rebuild the path
+rebuildPath(self, currentSize)
 
-    // Called every frame
-    advance(deltaTime: number) {
-        this.time += deltaTime;
-        const pulse = Math.sin(this.time * this.pulseSpeed) * 0.2 + 1;
-        const currentSize = this.baseSize * pulse;
-        this.rebuildPath(currentSize);
-    }
+-- TODO 5: After 2 seconds, print answer
+if self.time >= 2 and self.time < 2.02 then
+    print("ANSWER: pulsing")
+end`}
+>
+**Premise:** You're building a UI element that needs to both animate (pulse) and respond to input changes (color, size).
 
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.fill(this.path);
-    }
-}
-```
-
-**Notice:** In this example, we rebuild the path in `advance` because the size changes every frame due to animation. Color only changes when the input changes, so we handle it in `update`.
+**Use Case:** Many interactive elements combine animation with configurability: pulsing buttons, breathing indicators, animated progress bars.
+</Exercise>
 
 ---
 
@@ -507,31 +447,20 @@ end
 
 ---
 
-### Exercise 4: Click Counter
-
-:::info Goal
-Track clicks and provide visual feedback using pointer events.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE doesn't have click handling—it's not interactive. The closest thing is Expressions that read markers or layer properties. Rive is fundamentally different: it's designed for INTERACTIVE content where users click, drag, and interact.
-
-**Real-World Use**: Buttons, toggles, draggable elements, games—almost every interactive Rive animation uses pointer events. This is the foundation of interactivity.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "ClickCounter"
-2. Copy the code below
-3. Attach to a node
-4. Click on the shape—it pops and logs the count
-5. The scale animates back to normal smoothly
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-lifecycle-4"
+  title="Exercise 4: Click Counter"
+  difficulty={2}
+  hint="In pointerDown, increment click count. In advance, smoothly return scale to 1. Return true from pointerDown to consume the event."
+  expectedAnswer="interactive"
+  explanation="Pointer events (pointerDown, pointerMove, pointerUp) enable interactivity. Return true to consume an event, false to let it propagate. This is the foundation of buttons, toggles, and draggable elements."
+  task="Complete the click counter that tracks clicks and animates a pop effect. Print the answer after 3 clicks."
+  expectedOutput={`Click #1
+Click #2
+Click #3
+ANSWER: interactive`}
+  code={`--!strict
+-- A clickable shape that counts clicks
 
 export type ClickCounter = {
     clickCount: number,
@@ -544,7 +473,6 @@ function init(self: ClickCounter): boolean
     self.clickCount = 0
     self.displayScale = 1
 
-    -- Create a clickable area
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-60, -30))
     self.path:lineTo(Vector.xy(60, -30))
@@ -552,26 +480,27 @@ function init(self: ClickCounter): boolean
     self.path:lineTo(Vector.xy(-60, 30))
     self.path:close()
 
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(80, 160, 255),
-    })
-
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 160, 255) })
     return true
 end
 
 function pointerDown(self: ClickCounter, position: Vector): boolean
-    self.clickCount += 1
-    self.displayScale = 1.2  -- Pop effect
-    print(`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})`)
-    return true  -- Consume the event
+    -- TODO 1: Increment clickCount
+
+    -- TODO 2: Set displayScale to 1.2 for pop effect
+
+    -- TODO 3: Print "Click #{clickCount}"
+
+    -- TODO 4: When clickCount reaches 3, print "ANSWER: interactive"
+
+    -- TODO 5: Return true to consume the event
+    return false
 end
 
 function advance(self: ClickCounter, seconds: number): boolean
-    -- Animate scale back to normal
-    if self.displayScale > 1 then
-        self.displayScale = math.max(1, self.displayScale - seconds * 2)
-    end
+    -- TODO 6: Animate displayScale back to 1
+    -- Use: self.displayScale = math.max(1, self.displayScale - seconds * 2)
+
     return true
 end
 
@@ -593,45 +522,32 @@ return function(): Node<ClickCounter>
         path = late(),
         paint = late(),
     }
+end`}
+  solution={`-- TODO 1: Increment clickCount
+self.clickCount += 1
+
+-- TODO 2: Set displayScale for pop effect
+self.displayScale = 1.2
+
+-- TODO 3: Print click number
+print(\`Click #{self.clickCount}\`)
+
+-- TODO 4: When 3 clicks, print answer
+if self.clickCount == 3 then
+    print("ANSWER: interactive")
 end
-```
 
-```javascript
-// JavaScript equivalent with DOM events:
+-- TODO 5: Return true to consume the event
+return true
 
-class ClickCounter {
-    clickCount = 0;
-    displayScale = 1;
+-- In advance():
+-- TODO 6: Animate displayScale back to 1
+self.displayScale = math.max(1, self.displayScale - seconds * 2)`}
+>
+**Premise:** You're building a button that responds to clicks with a satisfying pop animation.
 
-    constructor(element) {
-        element.addEventListener('mousedown', (e) => this.handleClick(e));
-        requestAnimationFrame(() => this.loop());
-    }
-
-    handleClick(e: MouseEvent) {
-        this.clickCount++;
-        this.displayScale = 1.2;
-        console.log(`Click #${this.clickCount} at (${e.clientX}, ${e.clientY})`);
-        e.stopPropagation();  // Consume the event
-    }
-
-    loop() {
-        // Animate scale back to normal
-        if (this.displayScale > 1) {
-            this.displayScale = Math.max(1, this.displayScale - 0.033);  // ~2/s at 60fps
-        }
-        this.draw();
-        requestAnimationFrame(() => this.loop());
-    }
-
-    draw() {
-        ctx.save();
-        ctx.scale(this.displayScale, this.displayScale);
-        ctx.fill(this.path);
-        ctx.restore();
-    }
-}
-```
+**Use Case:** Pointer events are the foundation of interactivity in Rive: buttons, toggles, draggable elements, games. Understanding event consumption (return true/false) is critical for complex UI.
+</Exercise>
 
 ---
 

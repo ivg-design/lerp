@@ -245,6 +245,105 @@
   flex-shrink: 0;
 }
 
+/* Breakdown section */
+.breakdown {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.breakdownItem {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.breakdownLabel {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.breakdownValue {
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+}
+
+/* Chapter breakdown */
+.chapterBreakdown {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.chapterBreakdownItem {
+  display: inline-block;
+}
+
+/* Collapsible sections */
+.collapsibleSection {
+  margin-top: 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.collapsibleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--ifm-color-emphasis-100);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+  user-select: none;
+}
+
+.collapsibleHeader:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.collapsibleSection[open] .collapsibleHeader {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+/* Quiz list */
+.quizList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+}
+
+.quizItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--ifm-font-color-base);
+}
+
+.quizItem.completed {
+  color: var(--ifm-color-success-dark);
+}
+
+.quizStatus {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.quizTitle {
+  flex: 1;
+  font-size: 0.85rem;
+}
+
 /* Dark mode adjustments */
 [data-theme='dark'] .statBox {
   background: rgba(255, 255, 255, 0.05);
@@ -252,4 +351,16 @@
 
 [data-theme='dark'] .exerciseItem.completed {
   color: var(--ifm-color-success);
+}
+
+[data-theme='dark'] .quizItem.completed {
+  color: var(--ifm-color-success);
+}
+
+[data-theme='dark'] .collapsibleHeader {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme='dark'] .collapsibleHeader:hover {
+  background: rgba(255, 255, 255, 0.06);
 }

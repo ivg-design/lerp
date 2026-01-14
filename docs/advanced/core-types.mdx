@@ -5,6 +5,7 @@ description: Understanding Path, Paint, and other core drawing types in Rive
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Core Types
 
@@ -34,16 +35,19 @@ A `Path` defines geometry using move, line, and curve commands. Think of it as a
 | `path:close()` | Connect back to the starting point |
 | `path:reset()` | Clear all path data |
 
-### Exercise 1: Draw a Line
-
-**Goal**: Create a simple line using `moveTo` and `lineTo`.
-
-:::note Rive Result
-Attach the script to any node and press Play. You should see a single diagonal stroke running across the origin.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-core-1"
+  title="Exercise 1: Draw a Line"
+  difficulty={1}
+  hint="Use moveTo to set the start position, then lineTo to draw to the end position. Create a stroke paint with thickness and color."
+  expectedAnswer="line"
+  explanation="moveTo sets the pen position without drawing, while lineTo draws a line from the current position to the target. Together they form the most basic path operations."
+  task="Complete the init function to create a diagonal line path from (-120, -40) to (120, 40), and a stroke paint with thickness 4 and a pink color."
+  expectedOutput={`Creating line path...
+Line path created!
+ANSWER: line`}
+  code={`--!strict
+-- Draw a simple diagonal line
 
 export type DrawLine = {
     path: Path,
@@ -51,17 +55,23 @@ export type DrawLine = {
 }
 
 function init(self: DrawLine): boolean
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-120, -40))
-    self.path:lineTo(Vector.xy(120, 40))
+    print("Creating line path...")
 
-    self.paint = Paint.with({
-        style = "stroke",
-        thickness = 4,
-        color = Color.rgb(255, 80, 120),
-        cap = "round",
-    })
+    -- TODO 1: Create a new Path using Path.new()
+    self.path = nil  -- Replace with Path.new()
 
+    -- TODO 2: Move to the starting point (-120, -40)
+    -- Use self.path:moveTo(Vector.xy(x, y))
+
+    -- TODO 3: Draw a line to (120, 40)
+    -- Use self.path:lineTo(Vector.xy(x, y))
+
+    -- TODO 4: Create a stroke Paint with:
+    -- style = "stroke", thickness = 4, color = Color.rgb(255, 80, 120), cap = "round"
+    self.paint = nil  -- Replace with Paint.with({...})
+
+    print("Line path created!")
+    print("ANSWER: line")
     return true
 end
 
@@ -73,11 +83,31 @@ return function(): Node<DrawLine>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create a new Path
+self.path = Path.new()
+
+-- TODO 2: Move to starting point
+self.path:moveTo(Vector.xy(-120, -40))
+
+-- TODO 3: Draw line to end point
+self.path:lineTo(Vector.xy(120, 40))
+
+-- TODO 4: Create stroke Paint
+self.paint = Paint.with({
+    style = "stroke",
+    thickness = 4,
+    color = Color.rgb(255, 80, 120),
+    cap = "round",
+})`}
+>
+**Premise:** You're learning the most fundamental path operations—moving and drawing lines.
+
+**Use Case:** Every procedural graphic starts with these basics. Lines are used for graphs, connectors, indicators, and as building blocks for complex shapes.
+</Exercise>
 
 **Key points:**
 - `moveTo` sets the starting position without drawing
@@ -86,16 +116,19 @@ end
 
 ---
 
-### Exercise 2: Filled Rectangle with Outline
-
-**Goal**: Build a closed rectangle path and render it with both fill and stroke.
-
-:::note Rive Result
-Attach to any node. You should see a filled rectangle with a visible outline stroke.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-core-2"
+  title="Exercise 2: Filled Rectangle with Outline"
+  difficulty={1}
+  hint="Build a rectangle using 4 lineTo calls, then close(). Create two paints: one fill and one stroke. Draw fill first, then stroke on top."
+  expectedAnswer="rectangle"
+  explanation="close() connects the last point back to the starting point, creating a closed shape. You can draw the same path multiple times with different paints—fill first, then stroke on top."
+  task="Complete the init function to create a closed rectangle path and two paints (fill and stroke). In draw, render both."
+  expectedOutput={`Creating rectangle...
+Rectangle with outline created!
+ANSWER: rectangle`}
+  code={`--!strict
+-- Draw a filled rectangle with a stroke outline
 
 export type DrawRect = {
     path: Path,
@@ -104,34 +137,65 @@ export type DrawRect = {
 }
 
 function init(self: DrawRect): boolean
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-80, -50))
-    self.path:lineTo(Vector.xy(80, -50))
-    self.path:lineTo(Vector.xy(80, 50))
-    self.path:lineTo(Vector.xy(-80, 50))
-    self.path:close()
+    print("Creating rectangle...")
 
-    self.fill = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
-    self.stroke = Paint.with({ style = "stroke", thickness = 6, color = Color.rgb(20, 60, 120) })
+    -- TODO 1: Create a new Path
+    self.path = nil  -- Replace with Path.new()
 
+    -- TODO 2: Build a rectangle (-80,-50) to (80,50)
+    -- moveTo the first corner, lineTo the other 3 corners, then close()
+
+    -- TODO 3: Create a fill Paint (style = "fill", color = Color.rgb(80, 170, 255))
+    self.fill = nil  -- Replace with Paint.with({...})
+
+    -- TODO 4: Create a stroke Paint (style = "stroke", thickness = 6, color = Color.rgb(20, 60, 120))
+    self.stroke = nil  -- Replace with Paint.with({...})
+
+    print("Rectangle with outline created!")
+    print("ANSWER: rectangle")
     return true
 end
 
 function draw(self: DrawRect, renderer: Renderer)
-    renderer:drawPath(self.path, self.fill)
-    renderer:drawPath(self.path, self.stroke)
+    -- TODO 5: Draw the path with fill first, then stroke
+    -- renderer:drawPath(self.path, self.fill)
+    -- renderer:drawPath(self.path, self.stroke)
 end
 
 return function(): Node<DrawRect>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        fill = Paint.new(),
-        stroke = Paint.new(),
+        path = late(),
+        fill = late(),
+        stroke = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create a new Path
+self.path = Path.new()
+
+-- TODO 2: Build a rectangle
+self.path:moveTo(Vector.xy(-80, -50))
+self.path:lineTo(Vector.xy(80, -50))
+self.path:lineTo(Vector.xy(80, 50))
+self.path:lineTo(Vector.xy(-80, 50))
+self.path:close()
+
+-- TODO 3: Create fill Paint
+self.fill = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
+
+-- TODO 4: Create stroke Paint
+self.stroke = Paint.with({ style = "stroke", thickness = 6, color = Color.rgb(20, 60, 120) })
+
+-- In draw():
+-- TODO 5: Draw fill first, then stroke
+renderer:drawPath(self.path, self.fill)
+renderer:drawPath(self.path, self.stroke)`}
+>
+**Premise:** You're building a shape with both a filled interior and a visible outline—a common pattern for UI elements.
+
+**Use Case:** Most UI elements (buttons, panels, cards) have both fill and stroke. Understanding the draw order (fill first, stroke on top) is essential for clean visuals.
+</Exercise>
 
 **Key points:**
 - `close()` connects the last point back to the first
@@ -155,16 +219,19 @@ end
 | `join` | `"miter"`, `"round"`, `"bevel"` | Corner style |
 | `gradient` | `Gradient` | Linear or radial gradient |
 
-### Exercise 3: Fill vs Stroke
-
-**Goal**: Understand the visual difference between fill and stroke styles.
-
-:::note Rive Result
-You should see two shapes: one filled and one outlined, demonstrating the difference between fill and stroke paint styles.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-core-3"
+  title="Exercise 3: Fill vs Stroke"
+  difficulty={1}
+  hint="Fill colors the interior of a closed shape. Stroke draws the outline. Use 'cap' for line endings and 'join' for corners."
+  expectedAnswer="styles"
+  explanation="Fill and stroke are the two fundamental paint styles. Fill colors the interior, stroke draws the outline. You can combine both on the same path."
+  task="Create a rectangle path and two paints: a fill paint (orange) and a stroke paint (brown) with round cap and join settings."
+  expectedOutput={`Testing fill vs stroke...
+Both styles applied!
+ANSWER: styles`}
+  code={`--!strict
+-- Compare fill and stroke paint styles
 
 export type PaintBasics = {
     path: Path,
@@ -173,6 +240,8 @@ export type PaintBasics = {
 }
 
 function init(self: PaintBasics): boolean
+    print("Testing fill vs stroke...")
+
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-70, -40))
     self.path:lineTo(Vector.xy(70, -40))
@@ -180,50 +249,72 @@ function init(self: PaintBasics): boolean
     self.path:lineTo(Vector.xy(-70, 40))
     self.path:close()
 
-    self.fill = Paint.with({
-        style = "fill",
-        color = Color.rgb(255, 160, 80),
-    })
+    -- TODO 1: Create a fill Paint with:
+    -- style = "fill", color = Color.rgb(255, 160, 80)
+    self.fill = nil  -- Replace with Paint.with({...})
 
-    self.stroke = Paint.with({
-        style = "stroke",
-        thickness = 6,
-        cap = "round",
-        join = "round",
-        color = Color.rgb(70, 40, 20),
-    })
+    -- TODO 2: Create a stroke Paint with:
+    -- style = "stroke", thickness = 6, cap = "round", join = "round", color = Color.rgb(70, 40, 20)
+    self.stroke = nil  -- Replace with Paint.with({...})
 
+    print("Both styles applied!")
+    print("ANSWER: styles")
     return true
 end
 
 function draw(self: PaintBasics, renderer: Renderer)
-    renderer:drawPath(self.path, self.fill)
-    renderer:drawPath(self.path, self.stroke)
+    -- TODO 3: Draw with fill first, then stroke
 end
 
 return function(): Node<PaintBasics>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        fill = Paint.new(),
-        stroke = Paint.new(),
+        path = late(),
+        fill = late(),
+        stroke = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create fill Paint
+self.fill = Paint.with({
+    style = "fill",
+    color = Color.rgb(255, 160, 80),
+})
+
+-- TODO 2: Create stroke Paint
+self.stroke = Paint.with({
+    style = "stroke",
+    thickness = 6,
+    cap = "round",
+    join = "round",
+    color = Color.rgb(70, 40, 20),
+})
+
+-- In draw():
+-- TODO 3: Draw fill first, then stroke
+renderer:drawPath(self.path, self.fill)
+renderer:drawPath(self.path, self.stroke)`}
+>
+**Premise:** You're learning the two fundamental paint styles that control how shapes appear.
+
+**Use Case:** Almost every procedural graphic uses either fill, stroke, or both. Understanding the difference is essential for creating any visual element.
+</Exercise>
 
 ---
 
-### Exercise 4: Gradient Fill
-
-**Goal**: Apply a linear gradient to a filled path.
-
-:::note Rive Result
-You should see a rectangle filled with a smooth left-to-right gradient.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-core-4"
+  title="Exercise 4: Gradient Fill"
+  difficulty={2}
+  hint="Gradient.linear takes a start point, end point, and array of color stops. Each stop has a position (0-1) and color."
+  expectedAnswer="gradient"
+  explanation="Linear gradients interpolate colors between two points. Color stops define which colors appear at which positions along the gradient line."
+  task="Create a rectangle path and apply a linear gradient fill that transitions from red (left) to blue (right)."
+  expectedOutput={`Creating gradient...
+Gradient applied!
+ANSWER: gradient`}
+  code={`--!strict
+-- Apply a linear gradient to a filled rectangle
 
 export type GradientDemo = {
     path: Path,
@@ -231,6 +322,8 @@ export type GradientDemo = {
 }
 
 function init(self: GradientDemo): boolean
+    print("Creating gradient...")
+
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-90, -50))
     self.path:lineTo(Vector.xy(90, -50))
@@ -238,20 +331,18 @@ function init(self: GradientDemo): boolean
     self.path:lineTo(Vector.xy(-90, 50))
     self.path:close()
 
-    local gradient = Gradient.linear(
-        Vector.xy(-90, 0),
-        Vector.xy(90, 0),
-        {
-            { position = 0, color = Color.rgb(255, 80, 80) },
-            { position = 1, color = Color.rgb(80, 120, 255) },
-        }
-    )
+    -- TODO 1: Create a linear gradient from left (-90, 0) to right (90, 0)
+    -- Use Gradient.linear(startVec, endVec, colorStops)
+    -- Color stops: { position = 0, color = Color.rgb(255, 80, 80) } (red)
+    --              { position = 1, color = Color.rgb(80, 120, 255) } (blue)
+    local gradient = nil  -- Replace with Gradient.linear(...)
 
-    self.paint = Paint.with({
-        style = "fill",
-        gradient = gradient,
-    })
+    -- TODO 2: Create a fill Paint with the gradient
+    -- Use Paint.with({ style = "fill", gradient = gradient })
+    self.paint = nil  -- Replace with Paint.with({...})
 
+    print("Gradient applied!")
+    print("ANSWER: gradient")
     return true
 end
 
@@ -263,11 +354,30 @@ return function(): Node<GradientDemo>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create a linear gradient
+local gradient = Gradient.linear(
+    Vector.xy(-90, 0),
+    Vector.xy(90, 0),
+    {
+        { position = 0, color = Color.rgb(255, 80, 80) },
+        { position = 1, color = Color.rgb(80, 120, 255) },
+    }
+)
+
+-- TODO 2: Create fill Paint with gradient
+self.paint = Paint.with({
+    style = "fill",
+    gradient = gradient,
+})`}
+>
+**Premise:** You're learning to create smooth color transitions using gradients.
+
+**Use Case:** Gradients are essential for polished UI elements—buttons, backgrounds, progress bars, and visual effects all benefit from gradient fills.
+</Exercise>
 
 **Key points:**
 - `Gradient.linear` takes start point, end point, and color stops
@@ -276,16 +386,19 @@ end
 
 ---
 
-### Exercise 5: Paint Variations with copy()
-
-**Goal**: Create paint variations efficiently using `copy()`.
-
-:::note Rive Result
-You should see multiple shapes sharing a base style with small visual variations (like color or thickness) derived from the copied paint.
-:::
-
-```lua
---!strict
+<Exercise
+  id="advanced-core-5"
+  title="Exercise 5: Paint Variations with copy()"
+  difficulty={2}
+  hint="Use paint:copy({ property = value }) to create a new paint that inherits all settings from the original but overrides specific properties."
+  expectedAnswer="copied"
+  explanation="paint:copy() creates a new paint instance with inherited settings. This is more efficient than creating separate paints with redundant properties."
+  task="Create a base fill paint, then use copy() to create a highlight variation with a different color. Draw both with a slight offset."
+  expectedOutput={`Creating paint variations...
+Paint copied with variation!
+ANSWER: copied`}
+  code={`--!strict
+-- Create paint variations using copy()
 
 export type PaintCopyDemo = {
     path: Path,
@@ -294,6 +407,8 @@ export type PaintCopyDemo = {
 }
 
 function init(self: PaintCopyDemo): boolean
+    print("Creating paint variations...")
+
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-60, -60))
     self.path:lineTo(Vector.xy(60, -60))
@@ -301,14 +416,24 @@ function init(self: PaintCopyDemo): boolean
     self.path:lineTo(Vector.xy(-60, 60))
     self.path:close()
 
-    self.base = Paint.with({ style = "fill", color = Color.rgb(40, 140, 200) })
-    self.highlight = self.base:copy({ color = Color.rgb(120, 220, 255) })
+    -- TODO 1: Create a base fill Paint
+    -- Use Paint.with({ style = "fill", color = Color.rgb(40, 140, 200) })
+    self.base = nil  -- Replace with Paint.with({...})
 
+    -- TODO 2: Create a highlight Paint using copy()
+    -- Use self.base:copy({ color = Color.rgb(120, 220, 255) })
+    self.highlight = nil  -- Replace with self.base:copy({...})
+
+    print("Paint copied with variation!")
+    print("ANSWER: copied")
     return true
 end
 
 function draw(self: PaintCopyDemo, renderer: Renderer)
+    -- TODO 3: Draw the base rectangle
     renderer:drawPath(self.path, self.base)
+
+    -- TODO 4: Draw the highlight with an offset using transforms
     renderer:save()
     renderer:transform(Mat2D.withTranslation(12, -12))
     renderer:drawPath(self.path, self.highlight)
@@ -319,12 +444,21 @@ return function(): Node<PaintCopyDemo>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        base = Paint.new(),
-        highlight = Paint.new(),
+        path = late(),
+        base = late(),
+        highlight = late(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Create base fill Paint
+self.base = Paint.with({ style = "fill", color = Color.rgb(40, 140, 200) })
+
+-- TODO 2: Create highlight Paint using copy()
+self.highlight = self.base:copy({ color = Color.rgb(120, 220, 255) })`}
+>
+**Premise:** You're learning to efficiently create paint variations by copying and overriding specific properties.
+
+**Use Case:** UI themes, hover states, and visual hierarchies often need similar paints with slight variations. copy() keeps your code DRY and maintainable.
+</Exercise>
 
 **Key points:**
 - `paint:copy({ ... })` creates a new paint with overridden properties

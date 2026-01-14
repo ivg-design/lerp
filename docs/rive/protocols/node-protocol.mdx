@@ -5,6 +5,7 @@ description: Learn the Node script protocol structure required for Rive animatio
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Node Protocol
 
@@ -151,40 +152,31 @@ Every Node script you write will follow this structure. The exported type define
 
 ## Practice Exercises
 
-### Exercise 1: Hello Rive
-
-:::info Goal
-Create a minimal Node script that prints to the console.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you'd write `alert("Hello")` or check the error log. Rive's Console panel is purpose-built for script debugging—all your `print()` statements appear there.
-
-**Real-World Use**: This is the "Hello World" of Rive scripting. Every developer starts here to verify their environment works before building complex scripts.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Rive file or open an existing one
-2. Assets panel → **+** → Script → **Node**
-3. Name it "HelloRive"
-4. Copy the code below
-5. Drag the script onto any node in your artboard
-6. Open View → Console
-7. Press Play
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-node-1"
+  title="Exercise 1: Hello Rive"
+  difficulty={1}
+  hint="The init function should print a greeting and then 'ANSWER: hello'. Don't forget to return true."
+  expectedAnswer="hello"
+  explanation="Every Node script must have init() and draw() functions. init() runs once when the script starts and is the place to print debug messages and set up initial state."
+  task="Complete the init function to print a greeting message and the answer. The script structure (export type, factory function) is already provided."
+  expectedOutput={`Hello from a Node Script!
+Script initialized successfully
+ANSWER: hello`}
+  code={`--!strict
+-- Your first Node script
 
 export type HelloRive = {}
 
 function init(self: HelloRive): boolean
-    print("Hello from a Node Script!")
-    print("This runs once at startup.")
-    return true
+    -- TODO 1: Print "Hello from a Node Script!"
+
+    -- TODO 2: Print "Script initialized successfully"
+
+    -- TODO 3: Print "ANSWER: hello"
+
+    -- TODO 4: Return true to indicate successful initialization
+    return false
 end
 
 function draw(self: HelloRive, renderer: Renderer)
@@ -195,56 +187,40 @@ return function(): Node<HelloRive>
         init = init,
         draw = draw,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Print "Hello from a Node Script!"
+print("Hello from a Node Script!")
 
-```typescript
-// JavaScript/TypeScript equivalent:
+-- TODO 2: Print "Script initialized successfully"
+print("Script initialized successfully")
 
-class HelloRive {
-    constructor() {
-        console.log("Hello from a Node Script!");
-        console.log("This runs once at startup.");
-    }
+-- TODO 3: Print "ANSWER: hello"
+print("ANSWER: hello")
 
-    draw(renderer: Renderer) {
-        // Required but empty
-    }
-}
-```
+-- TODO 4: Return true to indicate successful initialization
+return true`}
+>
+**Premise:** You're verifying that your Rive scripting environment is set up correctly before building more complex scripts.
 
-**Expected Console Output:**
-```
-Hello from a Node Script!
-This runs once at startup.
-```
+**Use Case:** Every developer starts here. If you can get "Hello World" working, you've confirmed that scripts compile, attach to nodes, and produce console output.
+</Exercise>
 
 ---
 
-### Exercise 2: Frame Timer
-
-:::info Goal
-Use `advance` for per-frame updates. This demonstrates how to track time across frames.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you'd use `time` to get the current time in seconds. In Rive, you get `seconds` (delta time) passed to `advance()` and must track total time yourself. This gives you more control over time-based logic.
-
-**Real-World Use**: Games track elapsed time for animations, timers, and gameplay logic. Frame timers are fundamental to any animated or interactive content.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "FrameTimer"
-2. Copy the code below
-3. Attach to any node
-4. Run and watch the Console—it logs every ~60 frames (approximately once per second at 60fps)
-
-</details>
-
-```lua
---!strict
+<Exercise
+  id="rive-node-2"
+  title="Exercise 2: Frame Timer"
+  difficulty={1}
+  hint="Add seconds to elapsed each frame. When tick reaches 120, print the answer."
+  expectedAnswer="2.00"
+  explanation="The advance() function runs every frame and receives delta time (seconds since last frame). You must accumulate time yourself since Rive doesn't provide a global time value like AE does."
+  task="Complete the advance function to track elapsed time and frame count. When you reach frame 120, print the elapsed time (which should be approximately 2 seconds at 60fps)."
+  expectedOutput={`Timer started!
+Frame 60: ~1.00s elapsed
+Frame 120: ~2.00s elapsed
+ANSWER: 2.00`}
+  code={`--!strict
+-- Track time across frames using advance()
 
 export type FrameTimer = {
     elapsed: number,
@@ -252,19 +228,21 @@ export type FrameTimer = {
 }
 
 function init(self: FrameTimer): boolean
+    print("Timer started!")
     self.elapsed = 0
     self.tick = 0
-    print("Timer started!")
     return true
 end
 
 function advance(self: FrameTimer, seconds: number): boolean
-    self.elapsed += seconds
-    self.tick += 1
+    -- TODO 1: Add seconds to self.elapsed
 
-    if self.tick % 60 == 0 then
-        print(`Time: {self.elapsed:.2f}s (frame {self.tick})`)
-    end
+    -- TODO 2: Increment self.tick by 1
+
+    -- TODO 3: When tick is 60, print "Frame 60: ~{elapsed:.2f}s elapsed"
+
+    -- TODO 4: When tick is 120, print "Frame 120: ~{elapsed:.2f}s elapsed"
+    -- Also print "ANSWER: {elapsed:.2f}"
 
     return true
 end
@@ -280,79 +258,135 @@ return function(): Node<FrameTimer>
         elapsed = 0,
         tick = 0,
     }
+end`}
+  solution={`-- TODO 1: Add seconds to self.elapsed
+self.elapsed += seconds
+
+-- TODO 2: Increment self.tick by 1
+self.tick += 1
+
+-- TODO 3: When tick is 60, print elapsed time
+if self.tick == 60 then
+    print(\`Frame 60: ~{self.elapsed:.2f}s elapsed\`)
 end
-```
 
-```typescript
-// JavaScript/TypeScript equivalent with requestAnimationFrame:
+-- TODO 4: When tick is 120, print elapsed time and answer
+if self.tick == 120 then
+    print(\`Frame 120: ~{self.elapsed:.2f}s elapsed\`)
+    print(\`ANSWER: {self.elapsed:.2f}\`)
+end`}
+>
+**Premise:** You're building a timer system to track how long an animation has been playing.
 
-class FrameTimer {
-    elapsed: number = 0;
-    tick: number = 0;
-    lastTime: number;
-
-    constructor() {
-        console.log("Timer started!");
-        this.lastTime = performance.now();
-        this.loop();
-    }
-
-    loop() {
-        const now = performance.now();
-        const deltaTime = (now - this.lastTime) / 1000;  // Convert to seconds
-        this.lastTime = now;
-
-        this.elapsed += deltaTime;
-        this.tick++;
-
-        if (this.tick % 60 === 0) {
-            console.log(`Time: ${this.elapsed.toFixed(2)}s (frame ${this.tick})`);
-        }
-
-        requestAnimationFrame(() => this.loop());
-    }
-}
-```
-
-**Key points:**
-- `advance` runs every frame and receives the delta time in seconds
-- Store persistent state in `self` fields
-- The return value controls whether the node continues advancing (`true` = continue)
+**Use Case:** Frame timers are essential for timed events, countdowns, animations that depend on real time, and gameplay logic that needs to track duration.
+</Exercise>
 
 ---
 
-### Exercise 3: Draw a Simple Shape
+<Exercise
+  id="rive-node-3"
+  title="Exercise 3: Draw a Simple Shape"
+  difficulty={2}
+  hint="Use Path.new() to create a path, then moveTo/lineTo/close to build a triangle. Use Paint.with() for the fill style."
+  expectedAnswer="triangle"
+  explanation="Procedural graphics in Rive use the Path API (moveTo, lineTo, close) combined with Paint for styling. Create these objects in init(), then use renderer:drawPath() in draw()."
+  task="Complete the init function to create a triangle path (3 points) and a green fill paint. The draw function should render the path."
+  expectedOutput={`Creating triangle...
+Triangle created!
+ANSWER: triangle`}
+  code={`--!strict
+-- Draw a procedural triangle
 
-:::info Goal
-Build a path in `init` and draw it each frame. This is the foundation for procedural graphics.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, you'd use shape layers or masks to create shapes. Rive's Path API is more like HTML Canvas or SVG—you programmatically build paths with `moveTo`, `lineTo`, etc.
-
-**Real-World Use**: Procedural graphics let you create shapes that respond to data: progress bars, charts, dynamic backgrounds, custom UI elements. This is impossible with static design tools alone.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "DrawSquare"
-2. Copy the code below
-3. Attach to a node
-4. Run—you'll see a blue square centered on the node
-
-</details>
-
-```lua
---!strict
-
-export type DrawSquare = {
+export type DrawTriangle = {
     path: Path,
     paint: Paint,
 }
 
-function init(self: DrawSquare): boolean
-    -- Create the path (square centered at origin)
+function init(self: DrawTriangle): boolean
+    print("Creating triangle...")
+
+    -- TODO 1: Create a new Path using Path.new()
+    self.path = nil  -- Replace with Path.new()
+
+    -- TODO 2: Build a triangle using moveTo, lineTo, lineTo, close
+    -- Point 1: (0, -40) - top
+    -- Point 2: (-40, 40) - bottom left
+    -- Point 3: (40, 40) - bottom right
+
+    -- TODO 3: Create a Paint with green fill color
+    -- Use Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+    self.paint = nil  -- Replace with Paint.with(...)
+
+    print("Triangle created!")
+    print("ANSWER: triangle")
+    return true
+end
+
+function draw(self: DrawTriangle, renderer: Renderer)
+    -- TODO 4: Draw the path with the paint
+    -- Use renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<DrawTriangle>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),
+        paint = late(),
+    }
+end`}
+  solution={`-- TODO 1: Create a new Path
+self.path = Path.new()
+
+-- TODO 2: Build a triangle
+self.path:moveTo(Vector.xy(0, -40))
+self.path:lineTo(Vector.xy(-40, 40))
+self.path:lineTo(Vector.xy(40, 40))
+self.path:close()
+
+-- TODO 3: Create a Paint with green fill
+self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+
+-- In draw():
+-- TODO 4: Draw the path
+renderer:drawPath(self.path, self.paint)`}
+>
+**Premise:** You're creating your first procedural shape in Rive—a triangle built from code rather than design tools.
+
+**Use Case:** Procedural graphics let you create shapes that respond to data: progress bars, charts, indicators. This is the foundation for all dynamic visuals.
+</Exercise>
+
+---
+
+<Exercise
+  id="rive-node-4"
+  title="Exercise 4: Complete Protocol Example"
+  difficulty={3}
+  hint="Use all lifecycle functions: init to set up, advance to track time, pointerDown to handle clicks. Count clicks and print answer when click count reaches 3."
+  expectedAnswer="complete"
+  explanation="Production scripts combine multiple lifecycle functions. init() creates objects, advance() animates, update() responds to input changes, pointerDown() handles interaction, and draw() renders. This is the full Node protocol in action."
+  task="Complete this script that combines all lifecycle functions. Track clicks and print 'ANSWER: complete' when the user clicks 3 times."
+  expectedOutput={`init: Script ready
+advance: Time 1.00s
+Click #1
+Click #2
+Click #3
+ANSWER: complete`}
+  code={`--!strict
+-- A complete script using all major lifecycle functions
+
+export type CompleteDemo = {
+    time: number,
+    clickCount: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: CompleteDemo): boolean
+    print("init: Script ready")
+    self.time = 0
+    self.clickCount = 0
+
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-40, -40))
     self.path:lineTo(Vector.xy(40, -40))
@@ -360,151 +394,24 @@ function init(self: DrawSquare): boolean
     self.path:lineTo(Vector.xy(-40, 40))
     self.path:close()
 
-    -- Create the paint (fill style with color)
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(80, 180, 255),
-    })
-
-    print("Square created!")
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 180, 255) })
     return true
-end
-
-function draw(self: DrawSquare, renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
-end
-
-return function(): Node<DrawSquare>
-    return {
-        init = init,
-        draw = draw,
-        path = late(),
-        paint = late(),
-    }
-end
-```
-
-```typescript
-// JavaScript/TypeScript with Canvas 2D API:
-
-class DrawSquare {
-    path: Path2D;
-    fillColor: string = "rgb(80, 180, 255)";
-
-    constructor() {
-        this.path = new Path2D();
-        this.path.moveTo(-40, -40);
-        this.path.lineTo(40, -40);
-        this.path.lineTo(40, 40);
-        this.path.lineTo(-40, 40);
-        this.path.closePath();
-
-        console.log("Square created!");
-    }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = this.fillColor;
-        ctx.fill(this.path);
-    }
-}
-```
-
-**Key points:**
-- Create paths and paints in `init`, not in `draw`
-- `draw` should only issue renderer commands
-- The factory return table uses `late()` for objects created in `init()`
-
----
-
-### Exercise 4: Complete Protocol Example
-
-:::info Goal
-Build a script that uses ALL major protocol functions together.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE, different logic is spread across expressions on different properties. In Rive, one script handles initialization, input changes, animation, rendering, and interaction—all in organized callback functions.
-
-**Real-World Use**: Production scripts often need all these callbacks: initialize state, respond to designer inputs, animate over time, render visuals, and handle clicks. This exercise shows how they work together.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node script named "CompleteDemo"
-2. Copy the code below
-3. Add a `size` input slider in the Rive inputs panel
-4. Attach to a node and run
-5. Click on the shape—it changes color
-6. Adjust the `size` input—the shape resizes
-
-</details>
-
-```lua
---!strict
-
-export type CompleteDemo = {
-    -- Inputs
-    size: Input<number>,
-    baseColor: Input<Color>,
-
-    -- State
-    isClicked: boolean,
-    time: number,
-
-    -- Graphics
-    path: Path,
-    paint: Paint,
-}
-
-local function rebuildPath(self: CompleteDemo)
-    local half = self.size / 2
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-half, -half))
-    self.path:lineTo(Vector.xy(half, -half))
-    self.path:lineTo(Vector.xy(half, half))
-    self.path:lineTo(Vector.xy(-half, half))
-    self.path:close()
-end
-
-function init(self: CompleteDemo): boolean
-    print("init: Creating graphics objects")
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = self.baseColor })
-    self.isClicked = false
-    self.time = 0
-    rebuildPath(self)
-    return true
-end
-
-function update(self: CompleteDemo)
-    print(`update: Size changed to {self.size}`)
-    rebuildPath(self)
-    self.paint.color = self.baseColor
 end
 
 function advance(self: CompleteDemo, seconds: number): boolean
-    self.time += seconds
+    -- TODO 1: Add seconds to self.time
 
-    -- Pulse opacity based on time
-    local pulse = math.sin(self.time * 3) * 0.2 + 0.8
-    local r = Color.red(self.paint.color)
-    local g = Color.green(self.paint.color)
-    local b = Color.blue(self.paint.color)
-    self.paint.color = Color.rgba(r, g, b, math.floor(pulse * 255))
+    -- TODO 2: Every second (when floor of time changes), print "advance: Time {time:.2f}s"
 
     return true
 end
 
 function pointerDown(self: CompleteDemo, position: Vector): boolean
-    self.isClicked = not self.isClicked
-    print(`pointerDown: Clicked at ({position.x:.1f}, {position.y:.1f})`)
+    -- TODO 3: Increment clickCount
 
-    if self.isClicked then
-        self.paint.color = Color.rgb(255, 100, 100)  -- Red when clicked
-    else
-        self.paint.color = self.baseColor  -- Reset to input color
-    end
+    -- TODO 4: Print "Click #{clickCount}"
+
+    -- TODO 5: When clickCount reaches 3, print "ANSWER: complete"
 
     return true
 end
@@ -516,69 +423,42 @@ end
 return function(): Node<CompleteDemo>
     return {
         init = init,
-        update = update,
         advance = advance,
         pointerDown = pointerDown,
         draw = draw,
-        size = 80,
-        baseColor = Color.rgb(80, 180, 255),
-        isClicked = false,
         time = 0,
+        clickCount = 0,
         path = late(),
         paint = late(),
     }
+end`}
+  solution={`-- In advance():
+-- TODO 1: Add seconds to self.time
+self.time += seconds
+
+-- TODO 2: Every second, print time
+local prevSecond = math.floor(self.time - seconds)
+local currSecond = math.floor(self.time)
+if currSecond > prevSecond and currSecond > 0 then
+    print(\`advance: Time {self.time:.2f}s\`)
 end
-```
 
-```typescript
-// JavaScript/TypeScript equivalent showing all lifecycle methods:
+-- In pointerDown():
+-- TODO 3: Increment clickCount
+self.clickCount += 1
 
-class CompleteDemo {
-    // Inputs (props)
-    size: number = 80;
-    baseColor: Color = { r: 80, g: 180, b: 255 };
+-- TODO 4: Print click number
+print(\`Click #{self.clickCount}\`)
 
-    // State
-    isClicked: boolean = false;
-    time: number = 0;
+-- TODO 5: When 3 clicks, print answer
+if self.clickCount == 3 then
+    print("ANSWER: complete")
+end`}
+>
+**Premise:** You're building a complete interactive component that initializes, animates, responds to clicks, and renders—demonstrating all major lifecycle functions working together.
 
-    // Graphics
-    path: Path2D;
-    fillColor: Color;
-
-    constructor() {
-        console.log("init: Creating graphics objects");
-        this.fillColor = { ...this.baseColor };
-        this.rebuildPath();
-        this.setupEvents();
-    }
-
-    // Like update()
-    onPropsChange() {
-        console.log(`update: Size changed to ${this.size}`);
-        this.rebuildPath();
-        this.fillColor = { ...this.baseColor };
-    }
-
-    // Like advance()
-    onFrame(deltaTime: number) {
-        this.time += deltaTime;
-        const pulse = Math.sin(this.time * 3) * 0.2 + 0.8;
-        // Apply pulse to alpha
-    }
-
-    // Like pointerDown()
-    onClick(position: { x: number, y: number }) {
-        this.isClicked = !this.isClicked;
-        console.log(`pointerDown: Clicked at (${position.x}, ${position.y})`);
-        // Toggle color
-    }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.fill(this.path);
-    }
-}
-```
+**Use Case:** Real production scripts typically use multiple lifecycle functions. Understanding how they interact is essential for building any non-trivial interactive animation.
+</Exercise>
 
 ---
 

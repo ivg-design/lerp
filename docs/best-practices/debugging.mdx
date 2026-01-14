@@ -4,6 +4,7 @@ title: Debugging
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Debugging Rive Scripts
 
@@ -74,12 +75,21 @@ Tick: 120, Elapsed: 2.0s
 
 ---
 
-## Exercise 1: Tracing Execution Flow
-
-**Goal**: Use print statements to understand when lifecycle functions are called.
-
-```lua
---!strict
+<Exercise
+  id="best-practices-debug-1"
+  title="Exercise 1: Tracing Execution Flow"
+  difficulty={1}
+  hint="Use print() with string interpolation to show the function name and relevant data. Format: print(`[{self.name}] function called`)"
+  expectedAnswer="lifecycle"
+  explanation="Understanding when lifecycle functions are called is essential for debugging. init runs once, update runs when inputs change, advance runs every frame."
+  task="Add print statements to trace when each lifecycle function is called, including the frame count in advance."
+  expectedOutput={`[Tracer] init called
+[Tracer] advance #1, dt=0.0167
+[Tracer] advance #2, dt=0.0166
+[Tracer] advance #3, dt=0.0167
+ANSWER: lifecycle`}
+  code={`--!strict
+-- Lifecycle tracer to understand when functions are called
 
 export type LifecycleTracer = {
     name: Input<string>,
@@ -89,7 +99,9 @@ export type LifecycleTracer = {
 }
 
 function init(self: LifecycleTracer): boolean
-    print(`[{self.name}] init called`)
+    -- TODO 1: Print that init was called, include self.name
+    -- Example: print(\`[{self.name}] init called\`)
+
     self.frameCount = 0
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 150, 200) })
@@ -97,22 +109,25 @@ function init(self: LifecycleTracer): boolean
 end
 
 function update(self: LifecycleTracer, context: Context)
-    print(`[{self.name}] update called - input changed`)
+    print(\`[{self.name}] update called - input changed\`)
 end
 
 function advance(self: LifecycleTracer, seconds: number): boolean
     self.frameCount += 1
 
-    -- Print only first 3 frames to avoid spam
-    if self.frameCount <= 3 then
-        print(`[{self.name}] advance #{self.frameCount}, dt={seconds:.4f}`)
+    -- TODO 2: Print advance info for first 3 frames only
+    -- Include: self.name, self.frameCount, seconds (formatted to 4 decimals)
+    -- Example format: [Tracer] advance #1, dt=0.0167
+
+    if self.frameCount == 3 then
+        print("ANSWER: lifecycle")
     end
 
     return true
 end
 
 function draw(self: LifecycleTracer, renderer: Renderer)
-    -- Avoid printing in draw - it runs every frame!
+    -- Note: Avoid printing in draw - it runs every frame!
     self.path:reset()
     self.path:moveTo(Vector.xy(-30, -30))
     self.path:lineTo(Vector.xy(30, -30))
@@ -133,47 +148,65 @@ return function(): Node<LifecycleTracer>
         path = Path.new(),
         paint = Paint.new(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Print init called
+print(\`[{self.name}] init called\`)
 
-**Expected Console Output:**
-```
-[Tracer] init called
-[Tracer] advance #1, dt=0.0167
-[Tracer] advance #2, dt=0.0166
-[Tracer] advance #3, dt=0.0167
-```
+-- TODO 2: Print advance info for first 3 frames
+if self.frameCount <= 3 then
+    print(\`[{self.name}] advance #{self.frameCount}, dt={seconds:.4f}\`)
+end`}
+>
+**Premise:** You're debugging a script and need to understand the order and timing of lifecycle function calls.
 
-Change the `name` input in the inspector to see:
-```
-[Tracer] update called - input changed
-```
+**Use Case:** Tracing execution flow helps identify issues like functions not being called, being called in unexpected order, or running too frequently.
+</Exercise>
+
+**Key points:**
+- Print in `init` to confirm initialization
+- Limit prints in `advance` to avoid console spam
+- Never print in `draw` - it runs every frame
 
 ---
 
-## Exercise 2: Debugging State Changes
-
-**Goal**: Track how values change over time.
-
-```lua
---!strict
+<Exercise
+  id="best-practices-debug-2"
+  title="Exercise 2: Debugging State Changes"
+  difficulty={2}
+  hint="Create a logState function that prints a formatted string with label, target, current, and velocity values. Call it from init and when deltaX > 1."
+  expectedAnswer="statetrack"
+  explanation="Tracking state changes over time helps identify issues like values not updating, updating incorrectly, or oscillating unexpectedly. Helper functions ensure consistent formatting."
+  task="Complete the logState helper function and add calls to track state in init and during significant movement."
+  expectedOutput={`[INIT] target=100, current=0.00, vel=0.00
+[MOVING] target=100, current=15.23, vel=152.30
+[MOVING] target=100, current=45.67, vel=304.40
+ANSWER: statetrack`}
+  code={`--!strict
+-- State debugger to track how values change over time
 
 export type StateDebugger = {
     targetX: Input<number>,
     currentX: number,
     velocity: number,
+    moveCount: number,
     path: Path,
     paint: Paint,
 }
 
+-- TODO 1: Complete the logState helper function
 local function logState(label: string, self: StateDebugger)
-    print(`[{label}] target={self.targetX}, current={self.currentX:.2f}, vel={self.velocity:.2f}`)
+    -- Print format: [{label}] target={targetX}, current={currentX:.2f}, vel={velocity:.2f}
+    -- TODO: Use print with string interpolation
 end
 
 function init(self: StateDebugger): boolean
     self.currentX = 0
     self.velocity = 0
-    logState("INIT", self)
+    self.moveCount = 0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 180, 120) })
+
+    -- TODO 2: Call logState with "INIT" label
     return true
 end
 
@@ -183,7 +216,6 @@ end
 
 function advance(self: StateDebugger, seconds: number): boolean
     local oldX = self.currentX
-    local oldVel = self.velocity
 
     -- Spring physics
     local displacement = self.targetX - self.currentX
@@ -193,10 +225,12 @@ function advance(self: StateDebugger, seconds: number): boolean
     self.velocity += (springForce - dampingForce) * seconds
     self.currentX += self.velocity * seconds
 
-    -- Log significant changes only
+    -- TODO 3: Log significant changes only (when deltaX > 1)
     local deltaX = math.abs(self.currentX - oldX)
-    if deltaX > 1 then
-        logState("MOVING", self)
+    -- If deltaX > 1, call logState with "MOVING" label and increment moveCount
+
+    if self.moveCount == 2 then
+        print("ANSWER: statetrack")
     end
 
     -- Rebuild path
@@ -221,14 +255,30 @@ return function(): Node<StateDebugger>
         update = update,
         advance = advance,
         draw = draw,
-        targetX = 0,
+        targetX = 100,
         currentX = 0,
         velocity = 0,
+        moveCount = 0,
         path = Path.new(),
-        paint = Paint.with({ style = "fill", color = Color.rgb(80, 180, 120) }),
+        paint = Paint.new(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Complete logState helper
+print(\`[{label}] target={self.targetX}, current={self.currentX:.2f}, vel={self.velocity:.2f}\`)
+
+-- TODO 2: Call logState in init
+logState("INIT", self)
+
+-- TODO 3: Log significant changes
+if deltaX > 1 then
+    logState("MOVING", self)
+    self.moveCount += 1
+end`}
+>
+**Premise:** You're debugging a spring physics animation and need to track how position and velocity change over time.
+
+**Use Case:** State tracking is essential for debugging physics, animations, and any system where values change gradually over multiple frames.
+</Exercise>
 
 **Key points:**
 - Use a helper function (`logState`) for consistent formatting
@@ -330,14 +380,20 @@ end
 
 ---
 
-## Exercise 3: Debugging a Broken Script
-
-**Goal**: Find and fix the bugs in this script.
-
-**Buggy Version:**
-
-```lua
---!strict
+<Exercise
+  id="best-practices-debug-3"
+  title="Exercise 3: Debugging a Broken Script"
+  difficulty={2}
+  hint="Bug 1: Initialize self.path before calling methods on it. Bug 2: Use self.paint not self.colour. Bug 3: Use self.radius not self.rad."
+  expectedAnswer="debugged"
+  explanation="Common bugs include uninitialized fields (nil errors), typos in property names, and accessing undefined fields. Strict mode catches many of these at edit time."
+  task="Find and fix the three bugs in this script: missing initialization, wrong property name, and incorrect field access."
+  expectedOutput={`Circle initialized with radius: 50
+Radius check passed
+All bugs fixed!
+ANSWER: debugged`}
+  code={`--!strict
+-- This script has 3 bugs - find and fix them!
 
 export type BuggyCircle = {
     radius: Input<number>,
@@ -346,20 +402,34 @@ export type BuggyCircle = {
 }
 
 function init(self: BuggyCircle): boolean
-    -- Bug 1: Missing initialization
+    -- BUG 1: self.path methods are called but path may not be initialized
+    -- TODO: Add self.path = Path.new() before using it
     self.path:reset()
-    self.path:moveTo(Vector.xy(-self.radius, 0))
 
-    -- Bug 2: Wrong property name
+    local r = self.radius
+    self.path:moveTo(Vector.xy(-r, 0))
+    self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
+    self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
+    self.path:close()
+
+    -- BUG 2: "colour" is not a field in our type - should be "paint"
+    -- TODO: Fix the property name and use Paint.with({...})
     self.colour = Color.rgb(255, 100, 100)
 
+    print(\`Circle initialized with radius: {r}\`)
     return true
 end
 
 function advance(self: BuggyCircle, seconds: number): boolean
-    -- Bug 3: Accessing wrong field
+    -- BUG 3: "rad" is not a field - should be "radius"
+    -- TODO: Fix the field name
     local r = self.rad
-    print("Radius:", r)
+
+    if r == self.radius then
+        print("Radius check passed")
+        print("All bugs fixed!")
+        print("ANSWER: debugged")
+    end
     return true
 end
 
@@ -376,61 +446,20 @@ return function(): Node<BuggyCircle>
         path = Path.new(),
         paint = Paint.new(),
     }
-end
-```
+end`}
+  solution={`-- BUG 1 FIX: Initialize path before using
+self.path = Path.new()
 
-**Fixed Version:**
+-- BUG 2 FIX: Use correct property name "paint"
+self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 100, 100) })
 
-```lua
---!strict
+-- BUG 3 FIX: Use correct field name "radius"
+local r = self.radius`}
+>
+**Premise:** You inherited a broken script and need to identify and fix the bugs to make it work.
 
-export type FixedCircle = {
-    radius: Input<number>,
-    path: Path,
-    paint: Paint,
-}
-
-function init(self: FixedCircle): boolean
-    -- Fix 1: Initialize path before using
-    self.path = Path.new()
-    self.path:reset()
-
-    local r = self.radius
-    self.path:moveTo(Vector.xy(-r, 0))
-    self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
-    self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
-    self.path:close()
-
-    -- Fix 2: Correct property name (paint, not colour)
-    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 100, 100) })
-
-    print("Circle initialized with radius:", r)
-    return true
-end
-
-function advance(self: FixedCircle, seconds: number): boolean
-    -- Fix 3: Correct field name (radius, not rad)
-    local r = self.radius
-    -- Only print when debugging
-    -- print("Radius:", r)
-    return true
-end
-
-function draw(self: FixedCircle, renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
-end
-
-return function(): Node<FixedCircle>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        radius = 50,
-        path = Path.new(),
-        paint = Paint.new(),
-    }
-end
-```
+**Use Case:** Bug hunting is a core debugging skill. Learning to recognize common error patterns (nil access, typos, wrong names) speeds up debugging.
+</Exercise>
 
 ---
 
