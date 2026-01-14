@@ -5,18 +5,85 @@ description: Conditionals, loops, and control structures in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
 
 # Lesson 1.2: Control Flow & Loops
 
-## Rive Context
+## Learning Objectives
 
-Control flow runs inside lifecycle functions. For one-time logic, use `init(self)`. For per-frame logic, use `advance(self, seconds)` and store state on `self`.
+By the end of this lesson, you will:
+- Write `if`/`then`/`else` statements to make decisions
+- Use inline conditional expressions for cleaner code
+- Create loops with `for`, `while`, and `repeat`
+- Understand when to use each type of loop
+- Control loop execution with `break` and `continue`
 
 ---
 
-## Conditionals
+## Syntax Note: Coming from JavaScript or After Effects?
+
+:::note JavaScript / After Effects Comparison
+| Concept | Luau | JavaScript | After Effects |
+|---------|------|------------|---------------|
+| If block start | `if x then` | `if (x) {` | `if (x) {` |
+| Else if | `elseif` | `else if` | `else if` |
+| Block end | `end` | `}` | `}` |
+| For loop | `for i = 1, 10 do` | `for (let i = 1; i <= 10; i++)` | `for (var i = 1; i <= 10; i++)` |
+| While | `while x do ... end` | `while (x) { }` | `while (x) { }` |
+
+**Key differences:**
+- Luau uses **words** (`then`, `do`, `end`) instead of **braces** (`{`, `}`)
+- `elseif` is ONE word in Luau (not `else if`)
+- No parentheses around conditions: `if x > 5 then` not `if (x > 5) then`
+:::
+
+---
+
+## Where Does Control Flow Go?
+
+Control flow code can go in any lifecycle function:
+
+| Function | When to use |
+|----------|-------------|
+| `init()` | One-time decisions during setup |
+| `advance()` | Per-frame logic (game rules, state changes) |
+| `draw()` | Conditional rendering |
+
+```lua
+function init(self: MyScript): boolean
+    -- One-time decision
+    if self.difficulty.value == "hard" then
+        self.enemyHealth = 200
+    else
+        self.enemyHealth = 100
+    end
+    return true
+end
+
+function advance(self: MyScript, elapsed: number): boolean
+    -- Per-frame decision
+    if self.health <= 0 then
+        self.gameOver = true
+    end
+    return true
+end
+```
+
+---
+
+## Conditionals: Making Decisions
 
 ### If-Then-Else
+
+The most basic way to make decisions:
+
+```lua
+if condition then
+    -- runs if condition is true
+end
+```
+
+**The full structure:**
 
 ```lua
 if condition then
@@ -28,44 +95,201 @@ else
 end
 ```
 
-### If-Then-Else Expressions
-
-Luau supports inline conditional expressions (no `end` needed):
+:::danger Don't Forget `then` and `end`!
+Every `if` needs `then`. Every block needs `end`.
 
 ```lua
-local result = if condition then valueA else valueB
+-- WRONG: Missing 'then'
+if health > 0
+    print("Alive")
+end
 
--- Can be chained:
-local grade = if score >= 90 then "A"
-    elseif score >= 80 then "B"
-    elseif score >= 70 then "C"
-    else "F"
+-- WRONG: Missing 'end'
+if health > 0 then
+    print("Alive")
+
+-- CORRECT:
+if health > 0 then
+    print("Alive")
+end
 ```
+:::
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript
+if (health > 0) {
+    console.log("Alive");
+} else if (health === 0) {
+    console.log("Just died");
+} else {
+    console.log("Dead");
+}
+```
+
+```lua
+-- Luau
+if health > 0 then
+    print("Alive")
+elseif health == 0 then
+    print("Just died")
+else
+    print("Dead")
+end
+```
+
+**Differences:**
+- No parentheses around condition
+- `then` instead of `{`
+- `end` instead of `}`
+- `elseif` (one word) instead of `else if` (two words)
+- `==` for equality (same in both)
+:::
 
 ---
 
-## Loops
+### If-Then-Else Expressions (Inline Conditionals)
+
+Luau has inline conditional expressions — perfect for assigning values based on conditions:
+
+```lua
+local result = if condition then valueA else valueB
+```
+
+This is like JavaScript's ternary operator (`? :`):
+
+```lua
+-- Luau
+local status = if health > 0 then "Alive" else "Dead"
+
+-- JavaScript equivalent
+const status = health > 0 ? "Alive" : "Dead";
+```
+
+**Chained expressions:**
+
+```lua
+local grade = if score >= 90 then "A"
+    elseif score >= 80 then "B"
+    elseif score >= 70 then "C"
+    elseif score >= 60 then "D"
+    else "F"
+```
+
+:::note After Effects Comparison
+After Effects uses the ternary operator:
+```javascript
+// After Effects
+var status = health > 0 ? "Alive" : "Dead";
+var grade = score >= 90 ? "A" : score >= 80 ? "B" : "C";
+```
+
+Luau's inline `if` is more readable for chained conditions.
+:::
+
+---
+
+## Loops: Repeating Code
 
 ### Numeric For Loop
+
+The most common loop — iterate a specific number of times:
+
+```lua
+for i = start, stop do
+    -- i goes from start to stop (inclusive)
+end
+```
+
+**Examples:**
 
 ```lua
 -- Count from 1 to 5
 for i = 1, 5 do
-    print(i)
+    print(i)  -- 1, 2, 3, 4, 5
 end
 
+-- Count from 0 to 4 (5 iterations, starting at 0)
+for i = 0, 4 do
+    print(i)  -- 0, 1, 2, 3, 4
+end
+```
+
+**With a step value:**
+
+```lua
+for i = start, stop, step do
+    -- i changes by 'step' each iteration
+end
+```
+
+```lua
 -- Count down from 5 to 1
 for i = 5, 1, -1 do
+    print(i)  -- 5, 4, 3, 2, 1
+end
+
+-- Even numbers from 2 to 10
+for i = 2, 10, 2 do
+    print(i)  -- 2, 4, 6, 8, 10
+end
+
+-- Every third number
+for i = 0, 12, 3 do
+    print(i)  -- 0, 3, 6, 9, 12
+end
+```
+
+:::danger Common Mistake: Counting Down Without Step
+```lua
+-- WRONG: This won't run at all!
+for i = 10, 1 do
+    print(i)  -- Nothing prints!
+end
+
+-- CORRECT: Include the -1 step
+for i = 10, 1, -1 do
+    print(i)  -- 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
+end
+```
+:::
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript: Count 1 to 5
+for (let i = 1; i <= 5; i++) {
+    console.log(i);
+}
+
+// JavaScript: Count down 5 to 1
+for (let i = 5; i >= 1; i--) {
+    console.log(i);
+}
+```
+
+```lua
+-- Luau: Count 1 to 5
+for i = 1, 5 do
     print(i)
 end
 
--- Step by 2 (even numbers)
-for i = 2, 10, 2 do
+-- Luau: Count down 5 to 1
+for i = 5, 1, -1 do
     print(i)
 end
 ```
 
+**Key differences:**
+- Luau: `for i = start, stop, step do`
+- JS: `for (let i = start; i <= stop; i += step)`
+- Luau's `stop` is **inclusive**, JS uses a condition
+:::
+
+---
+
 ### While Loop
+
+Repeats **while** a condition is true:
 
 ```lua
 while condition do
@@ -73,35 +297,160 @@ while condition do
 end
 ```
 
+**Example: Countdown**
+
+```lua
+local count = 5
+while count > 0 do
+    print(count)
+    count -= 1
+end
+print("Blast off!")
+```
+
+**Output:**
+```
+5
+4
+3
+2
+1
+Blast off!
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript
+let count = 5;
+while (count > 0) {
+    console.log(count);
+    count--;
+}
+```
+
+```lua
+-- Luau
+local count = 5
+while count > 0 do
+    print(count)
+    count -= 1
+end
+```
+:::
+
+---
+
 ### Repeat Until
+
+Repeats **until** a condition becomes true. **Always runs at least once!**
 
 ```lua
 repeat
-    -- runs at least once
-until condition  -- stops when condition becomes true
+    -- this code runs at least once
+until condition  -- stops when condition is true
 ```
+
+**Example: Retry until success**
+
+```lua
+local attempts = 0
+repeat
+    attempts += 1
+    print(`Attempt {attempts}`)
+until attempts >= 3
+
+print("Done!")
+```
+
+**Output:**
+```
+Attempt 1
+Attempt 2
+Attempt 3
+Done!
+```
+
+:::note JavaScript Comparison
+JavaScript has `do...while` which is similar:
+```javascript
+// JavaScript do-while
+let attempts = 0;
+do {
+    attempts++;
+    console.log(`Attempt ${attempts}`);
+} while (attempts < 3);  // Note: condition is OPPOSITE
+
+// Luau repeat-until
+local attempts = 0
+repeat
+    attempts += 1
+    print(`Attempt {attempts}`)
+until attempts >= 3  -- Stops when TRUE
+```
+
+**Key difference:**
+- JS `while` continues while condition is TRUE
+- Luau `until` continues until condition is TRUE (opposite logic!)
+:::
+
+---
 
 ### Break and Continue
 
+**`break`** — Exit the loop immediately:
+
 ```lua
--- break: exit loop immediately
 for i = 1, 100 do
-    if i == 10 then break end
+    if i == 5 then
+        break  -- Stop at 5
+    end
     print(i)
 end
-
--- continue: skip to next iteration
-for i = 1, 10 do
-    if i % 2 == 0 then continue end
-    print(i)  -- Only odd numbers
-end
+-- Output: 1, 2, 3, 4
 ```
+
+**`continue`** — Skip to the next iteration:
+
+```lua
+for i = 1, 5 do
+    if i == 3 then
+        continue  -- Skip 3
+    end
+    print(i)
+end
+-- Output: 1, 2, 4, 5
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript - break and continue work the same
+for (let i = 1; i <= 5; i++) {
+    if (i === 3) continue;  // Skip 3
+    console.log(i);
+}
+// Output: 1, 2, 4, 5
+```
+:::
 
 ---
 
 ## Exercises
 
 ### Exercise 1: Basic Conditionals ⭐
+
+**Goal:** Use if-then-else to categorize a health value.
+
+**Why this matters:** Games and interactive graphics constantly check conditions. "Is the player low on health? Should we show a warning?"
+
+**Real-world use:** Health bars, status indicators, difficulty settings, UI states.
+
+---
+
+#### Step-by-Step Setup
+
+1. **Create a new Node Script** named "Exercise1_Conditionals"
+
+2. **Copy and paste:**
 
 ```lua
 --!strict
@@ -111,16 +460,19 @@ export type Exercise1 = {}
 function init(self: Exercise1): boolean
     local health = 45
 
-    if health <= 20 then
-        print("CRITICAL")
+    -- Check health ranges from lowest to highest
+    if health <= 0 then
+        print("DEAD")
+    elseif health <= 20 then
+        print("CRITICAL - Flash red warning!")
     elseif health <= 40 then
-        print("Low")
+        print("Low - Show caution indicator")
     elseif health <= 70 then
-        print("Medium")
+        print("Medium - Normal state")
     elseif health <= 90 then
-        print("High")
+        print("High - Looking good")
     else
-        print("Full")
+        print("Full - Maximum health")
     end
 
     return true
@@ -137,9 +489,43 @@ return function(): Node<Exercise1>
 end
 ```
 
+3. **Attach to a node and run**
+
+**Expected Output:**
+```
+Low - Show caution indicator
+```
+
 ---
 
-### Exercise 2: If-Then-Else Expressions ⭐
+#### Understanding the Logic
+
+The conditions are checked **in order**. Once one is true, the rest are skipped.
+
+| Health Value | First True Condition | Result |
+|-------------|---------------------|--------|
+| -10 | `health <= 0` | "DEAD" |
+| 15 | `health <= 20` | "CRITICAL" |
+| 45 | `health <= 40`? No → `health <= 70`? Yes | "Medium" |
+| 100 | All fail → `else` | "Full" |
+
+:::tip Order Matters!
+Check from most specific to least specific. If you check `health <= 90` first, it would match health=20 too!
+:::
+
+---
+
+### Exercise 2: Inline Conditionals ⭐
+
+**Goal:** Use if-then-else expressions for cleaner assignments.
+
+**Why this matters:** Inline conditionals make code more readable when you just need to assign a value based on a condition.
+
+**Real-world use:** Grade calculations, status labels, default values, configuration.
+
+---
+
+#### Code
 
 ```lua
 --!strict
@@ -151,13 +537,24 @@ function init(self: Exercise2): boolean
     local isPremium = true
     local level = 5
 
-    local grade = if score >= 90 then "A" else if score >= 80 then "B" else if score >= 70 then "C" else "F"
-    local discount = if isPremium then 20 else 0
-    local title = if level >= 10 then "Master" else if level >= 5 then "Expert" else "Novice"
+    -- Inline conditional for grade
+    local grade = if score >= 90 then "A"
+        elseif score >= 80 then "B"
+        elseif score >= 70 then "C"
+        elseif score >= 60 then "D"
+        else "F"
 
-    print(`Grade: {grade}`)
-    print(`Discount: {discount}%`)
-    print(`Title: {title}`)
+    -- Simple inline conditional
+    local discount = if isPremium then 20 else 0
+
+    -- Inline conditional for title
+    local title = if level >= 10 then "Master"
+        elseif level >= 5 then "Expert"
+        else "Novice"
+
+    print(`Score: {score} -> Grade: {grade}`)
+    print(`Premium: {isPremium} -> Discount: {discount}%`)
+    print(`Level: {level} -> Title: {title}`)
 
     return true
 end
@@ -173,9 +570,59 @@ return function(): Node<Exercise2>
 end
 ```
 
+**Expected Output:**
+```
+Score: 75 -> Grade: C
+Premium: true -> Discount: 20%
+Level: 5 -> Title: Expert
+```
+
+---
+
+#### Understanding Inline Conditionals
+
+```lua
+local grade = if score >= 90 then "A" else "F"
+```
+
+This is equivalent to:
+
+```lua
+local grade
+if score >= 90 then
+    grade = "A"
+else
+    grade = "F"
+end
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript ternary
+const grade = score >= 90 ? "A" : "F";
+
+// Chained ternary (gets messy!)
+const grade = score >= 90 ? "A"
+            : score >= 80 ? "B"
+            : score >= 70 ? "C" : "F";
+```
+
+Luau's `if/elseif/else` expressions are more readable for chains.
+:::
+
 ---
 
 ### Exercise 3: Numeric For Loops ⭐
+
+**Goal:** Practice counting with for loops.
+
+**Why this matters:** For loops are used constantly — drawing multiple objects, processing arrays, creating patterns.
+
+**Real-world use:** Drawing grid lines, spawning enemies, creating particle effects, iterating through data.
+
+---
+
+#### Code
 
 ```lua
 --!strict
@@ -183,27 +630,33 @@ end
 export type Exercise3 = {}
 
 function init(self: Exercise3): boolean
-    print("Part A: Count up")
+    print("=== Part A: Count Up ===")
     for i = 1, 5 do
-        print(i)
+        print(`  {i}`)
     end
 
-    print("Part B: Countdown")
+    print("=== Part B: Countdown ===")
     for i = 5, 1, -1 do
-        print(i)
+        print(`  {i}`)
     end
+    print("  Blast off!")
 
-    print("Part C: Even numbers")
+    print("=== Part C: Even Numbers ===")
     for i = 2, 10, 2 do
-        print(i)
+        print(`  {i}`)
     end
 
-    print("Part D: Sum 1-100")
+    print("=== Part D: Sum 1-100 ===")
     local sum = 0
     for i = 1, 100 do
         sum += i
     end
-    print(`Sum: {sum}`)
+    print(`  Sum: {sum}`)
+
+    print("=== Part E: Multiplication Table (5) ===")
+    for i = 1, 10 do
+        print(`  5 x {i} = {5 * i}`)
+    end
 
     return true
 end
@@ -219,9 +672,48 @@ return function(): Node<Exercise3>
 end
 ```
 
+**Expected Output:**
+```
+=== Part A: Count Up ===
+  1
+  2
+  3
+  4
+  5
+=== Part B: Countdown ===
+  5
+  4
+  3
+  2
+  1
+  Blast off!
+=== Part C: Even Numbers ===
+  2
+  4
+  6
+  8
+  10
+=== Part D: Sum 1-100 ===
+  Sum: 5050
+=== Part E: Multiplication Table (5) ===
+  5 x 1 = 5
+  5 x 2 = 10
+  ...
+```
+
 ---
 
 ### Exercise 4: While Loops ⭐
+
+**Goal:** Use while loops for condition-based repetition.
+
+**Why this matters:** While loops are perfect when you don't know exactly how many iterations you need.
+
+**Real-world use:** Game loops, waiting for conditions, processing until empty, resource depletion.
+
+---
+
+#### Code
 
 ```lua
 --!strict
@@ -229,12 +721,30 @@ end
 export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
+    print("=== Ammo Depletion ===")
     local ammo = 5
     while ammo > 0 do
-        print(`Firing! Ammo left: {ammo}`)
+        print(`Bang! Ammo remaining: {ammo - 1}`)
         ammo -= 1
     end
-    print("Out of ammo")
+    print("Click! Out of ammo!")
+
+    print("\n=== Finding Factor ===")
+    local num = 100
+    local factor = 2
+    while num % factor ~= 0 do
+        factor += 1
+    end
+    print(`First factor of {100} greater than 1: {factor}`)
+
+    print("\n=== Power of 2 ===")
+    local value = 1
+    local target = 1000
+    while value < target do
+        value *= 2
+        print(`  {value}`)
+    end
+    print(`First power of 2 >= {target}: {value}`)
 
     return true
 end
@@ -252,7 +762,17 @@ end
 
 ---
 
-### Exercise 5: Repeat Until ⭐
+### Exercise 5: Repeat Until ⭐⭐
+
+**Goal:** Use repeat-until for loops that must run at least once.
+
+**Why this matters:** Sometimes you need to try something at least once before checking if you should continue.
+
+**Real-world use:** Retry mechanisms, input validation, initialization attempts.
+
+---
+
+#### Code
 
 ```lua
 --!strict
@@ -260,18 +780,25 @@ end
 export type Exercise5 = {}
 
 function init(self: Exercise5): boolean
+    print("=== Retry Until Success ===")
+
     local attempts = 0
     local success = false
 
     repeat
         attempts += 1
-        print(`Attempt {attempts}`)
+        print(`Attempt {attempts}...`)
+
+        -- Simulate: succeed on attempt 3
         if attempts >= 3 then
             success = true
+            print("  Success!")
+        else
+            print("  Failed, retrying...")
         end
-    until success
+    until success or attempts >= 5  -- Stop if success OR max attempts
 
-    print("Success!")
+    print(`Total attempts: {attempts}`)
 
     return true
 end
@@ -287,6 +814,187 @@ return function(): Node<Exercise5>
 end
 ```
 
+**Expected Output:**
+```
+=== Retry Until Success ===
+Attempt 1...
+  Failed, retrying...
+Attempt 2...
+  Failed, retrying...
+Attempt 3...
+  Success!
+Total attempts: 3
+```
+
+---
+
+### Exercise 6: Break and Continue ⭐⭐
+
+**Goal:** Control loop flow with break and continue.
+
+**Why this matters:** Break lets you exit early when you've found what you need. Continue lets you skip items you don't care about.
+
+**Real-world use:** Searching for items, filtering data, early exit optimization.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+function init(self: Exercise6): boolean
+    print("=== Part A: Break - Find First Even ===")
+    for i = 1, 10 do
+        if i % 2 == 0 then
+            print(`Found first even number: {i}`)
+            break  -- Exit immediately
+        end
+        print(`  {i} is odd`)
+    end
+
+    print("\n=== Part B: Continue - Skip Multiples of 3 ===")
+    for i = 1, 10 do
+        if i % 3 == 0 then
+            continue  -- Skip to next iteration
+        end
+        print(`  {i}`)
+    end
+
+    print("\n=== Part C: Search with Break ===")
+    local target = 7
+    local found = false
+    for i = 1, 10 do
+        print(`Checking {i}...`)
+        if i == target then
+            found = true
+            print(`  Found {target}!`)
+            break
+        end
+    end
+    if not found then
+        print(`{target} not found`)
+    end
+
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Output:**
+```
+=== Part A: Break - Find First Even ===
+  1 is odd
+Found first even number: 2
+=== Part B: Continue - Skip Multiples of 3 ===
+  1
+  2
+  4
+  5
+  7
+  8
+  10
+=== Part C: Search with Break ===
+Checking 1...
+Checking 2...
+...
+Checking 7...
+  Found 7!
+```
+
+---
+
+### Exercise 7: Animation State Machine ⭐⭐
+
+**Goal:** Combine conditionals and loops in a practical animation scenario.
+
+**Why this matters:** This is how real game logic works — updating state based on conditions every frame.
+
+**Real-world use:** Character state machines, animation transitions, game mechanics.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise7 = {
+    state: string,
+    health: number,
+    stamina: number,
+    frameCount: number,
+}
+
+function init(self: Exercise7): boolean
+    self.state = "idle"
+    self.health = 100
+    self.stamina = 50
+    self.frameCount = 0
+
+    print(`Initial state: {self.state}`)
+    print(`Health: {self.health}, Stamina: {self.stamina}`)
+
+    return true
+end
+
+function advance(self: Exercise7, elapsed: number): boolean
+    self.frameCount += 1
+
+    -- Simulate state changes based on conditions
+    if self.health <= 0 then
+        self.state = "dead"
+    elseif self.stamina <= 0 then
+        self.state = "exhausted"
+    elseif self.health <= 30 then
+        self.state = "wounded"
+    elseif self.frameCount % 60 < 30 then
+        self.state = "idle"
+    else
+        self.state = "walking"
+    end
+
+    -- Regenerate stamina over time
+    if self.state ~= "dead" and self.stamina < 100 then
+        self.stamina += 0.5
+        if self.stamina > 100 then self.stamina = 100 end
+    end
+
+    -- Print state every second (60 frames)
+    if self.frameCount % 60 == 0 then
+        print(`Frame {self.frameCount}: State={self.state}, HP={self.health}, Stamina={self.stamina // 1}`)
+    end
+
+    return true
+end
+
+function draw(self: Exercise7, renderer: Renderer)
+end
+
+return function(): Node<Exercise7>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        state = late(),
+        health = late(),
+        stamina = late(),
+        frameCount = late(),
+    }
+end
+```
+
 ---
 
 ## Knowledge Check
@@ -296,7 +1004,7 @@ end
   id="cf-q1"
   type="code"
   answer="end"
-  explanation="All control structures in Luau (if, for, while, repeat, function) end with the 'end' keyword."
+  explanation="All control structures in Luau (if, for, while, repeat, function) end with the 'end' keyword. JavaScript uses closing braces } instead."
 />
 
 <Quiz
@@ -306,7 +1014,7 @@ end
     { text: "for i = 10, 1 do" },
     { text: "for i = 10, 1, -1 do", correct: true },
     { text: "for i = 1, 10, -1 do" },
-    { text: "for i in 10..1 do" },
+    { text: "for (i = 10; i >= 1; i--)" },
   ]}
   explanation="The third parameter (-1) specifies the step. Without it, the loop won't run because the default step is +1."
 />
@@ -320,19 +1028,84 @@ end
     { text: "repeat until", correct: true },
     { text: "All of the above" },
   ]}
-  explanation="repeat-until checks the condition after each iteration, so the body always runs at least once."
+  explanation="repeat-until checks the condition AFTER each iteration, so the body always runs at least once. for and while check BEFORE."
+/>
+
+<Quiz
+  question="What is the Luau keyword for 'else if'?"
+  id="cf-q4"
+  options={[
+    { text: "else if (two words)" },
+    { text: "elseif (one word)", correct: true },
+    { text: "elif" },
+    { text: "elsif" },
+  ]}
+  explanation="Luau uses 'elseif' as a single word, not 'else if' like JavaScript or 'elif' like Python."
+/>
+
+<Quiz
+  question="What does 'continue' do in a loop?"
+  id="cf-q5"
+  options={[
+    { text: "Exits the loop immediately" },
+    { text: "Skips to the next iteration", correct: true },
+    { text: "Restarts the loop from the beginning" },
+    { text: "Pauses the loop" },
+  ]}
+  explanation="'continue' skips the rest of the current iteration and moves to the next one. 'break' exits the loop entirely."
 />
 
 ---
 
 ## Common Mistakes
 
-1. **Forgetting `then`**: `if x > 5 then` (not just `if x > 5`)
-2. **Missing `do` in loops**: `for i = 1, 10 do` (not just `for i = 1, 10`)
-3. **Wrong step direction**: `for i = 10, 1 do` won't run - need `for i = 10, 1, -1 do`
+:::danger Top Mistakes
+1. **Forgetting `then`** — `if x > 5 then` not `if x > 5`
+2. **Forgetting `do` in loops** — `for i = 1, 10 do` not `for i = 1, 10`
+3. **Forgetting `end`** — Every `if`, `for`, `while`, `function` needs `end`
+4. **Wrong step in countdown** — `for i = 10, 1, -1 do` not `for i = 10, 1 do`
+5. **Using `else if` instead of `elseif`** — It's one word in Luau!
+:::
+
+---
+
+## Quick Reference
+
+```lua
+-- If-Then-Else
+if condition then
+    -- code
+elseif other then
+    -- code
+else
+    -- code
+end
+
+-- Inline conditional
+local x = if condition then valueA else valueB
+
+-- For loop
+for i = start, stop, step do
+    -- code
+end
+
+-- While loop
+while condition do
+    -- code
+end
+
+-- Repeat until
+repeat
+    -- code
+until condition
+
+-- Loop control
+break     -- exit loop
+continue  -- skip to next iteration
+```
 
 ---
 
 ## Next Up
 
-**[1.3 Functions & Closures →](./functions)**
+**[1.3 Functions & Closures →](./functions)** — Learn to create reusable code blocks with functions.

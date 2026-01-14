@@ -1,0 +1,74 @@
+---
+sidebar_position: 6
+title: Assets
+description: Image, ImageFilter, ImageSampler, and ImageWrap
+---
+
+# Assets
+
+APIs for image assets and rendering options.
+
+---
+
+## Image
+
+Drawable image asset.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `width` | number | Width in pixels (read-only) |
+| `height` | number | Height in pixels (read-only) |
+
+**See Also:** [Renderer.drawImage](./drawing#rendererdrawimageimage-sampler-blendmode-opacity)
+
+---
+
+## ImageFilter
+
+Defines image sampling behavior during scaling or transformation.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `trilinear` | Smooth filtering (default) |
+| `nearest` | Pixel-perfect, no interpolation |
+
+**See Also:** [Image](#image), [ImageSampler](#imagesampler)
+
+---
+
+## ImageSampler
+
+Sampling parameters applied when drawing an image, including wrapping and filtering behavior.
+
+**Note:** The official scripting docs do not list concrete `ImageSampler` values. Use editor autocomplete to confirm what your build supports.
+
+### Usage
+
+ImageSampler is passed to `renderer:drawImage()` to control how images are rendered:
+
+```lua
+local sampler = ImageSampler.someValue -- Use a value supported by your build (check autocomplete)
+renderer:drawImage(image, sampler, BlendMode.srcOver, 1.0)
+```
+
+**See Also:** [ImageFilter](#imagefilter), [ImageWrap](#imagewrap)
+
+---
+
+## ImageWrap
+
+Defines how texture coordinates outside the [0, 1] range are handled.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `clamp` | Clamps coordinates to [0, 1] range |
+| `repeat` | Tiles the texture by repeating |
+| `mirror` | Mirrors the texture at boundaries |
+
+**See Also:** [ImageSampler](#imagesampler), [Image](#image)

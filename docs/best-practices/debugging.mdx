@@ -3,6 +3,648 @@ sidebar_position: 3
 title: Debugging
 ---
 
-# Debugging
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Debugging Rive Scripts
+
+Master the tools and techniques for finding and fixing issues in your Rive scripts.
+
+## Rive Context
+
+Rive scripts run inside the Rive runtime, not in a traditional development environment. Debugging relies on:
+
+- **Console Panel** - View `print()` output and runtime messages
+- **Strict Mode** - Catch type errors before runtime
+- **Systematic Logging** - Strategic print statements to trace execution
+
+:::tip Console Panel Location
+The Console panel is available in the Rive editor. Open it via **View > Console** or the panel menu to see `print()` output from your scripts.
+:::
+
+---
+
+## The print() Function
+
+`print()` is your primary debugging tool. Output appears in Rive's Console panel.
+
+```lua
+--!strict
+
+export type DebugDemo = {
+    counter: number,
+}
+
+function init(self: DebugDemo): boolean
+    print("Script initialized")
+    print("Counter starts at:", self.counter)
+    return true
+end
+
+function advance(self: DebugDemo, seconds: number): boolean
+    self.counter += 1
+
+    -- Only print occasionally to avoid flooding the console
+    if self.counter % 60 == 0 then
+        print(`Tick: {self.counter}, Elapsed: {self.counter / 60:.1f}s`)
+    end
+
+    return true
+end
+
+function draw(self: DebugDemo, renderer: Renderer)
+end
+
+return function(): Node<DebugDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        counter = 0,
+    }
+end
+```
+
+**Expected Console Output:**
+```
+Script initialized
+Counter starts at: 0
+Tick: 60, Elapsed: 1.0s
+Tick: 120, Elapsed: 2.0s
+```
+
+---
+
+## Exercise 1: Tracing Execution Flow
+
+**Goal**: Use print statements to understand when lifecycle functions are called.
+
+```lua
+--!strict
+
+export type LifecycleTracer = {
+    name: Input<string>,
+    frameCount: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: LifecycleTracer): boolean
+    print(`[{self.name.value}] init called`)
+    self.frameCount = 0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 150, 200) })
+    return true
+end
+
+function update(self: LifecycleTracer, context: Context)
+    print(`[{self.name.value}] update called - input changed`)
+end
+
+function advance(self: LifecycleTracer, seconds: number): boolean
+    self.frameCount += 1
+
+    -- Print only first 3 frames to avoid spam
+    if self.frameCount <= 3 then
+        print(`[{self.name.value}] advance #{self.frameCount}, dt={seconds:.4f}`)
+    end
+
+    return true
+end
+
+function draw(self: LifecycleTracer, renderer: Renderer)
+    -- Avoid printing in draw - it runs every frame!
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-30, -30))
+    self.path:lineTo(Vector.xy(30, -30))
+    self.path:lineTo(Vector.xy(30, 30))
+    self.path:lineTo(Vector.xy(-30, 30))
+    self.path:close()
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<LifecycleTracer>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        name = "Tracer",
+        frameCount = 0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Expected Console Output:**
+```
+[Tracer] init called
+[Tracer] advance #1, dt=0.0167
+[Tracer] advance #2, dt=0.0166
+[Tracer] advance #3, dt=0.0167
+```
+
+Change the `name` input in the inspector to see:
+```
+[Tracer] update called - input changed
+```
+
+---
+
+## Exercise 2: Debugging State Changes
+
+**Goal**: Track how values change over time.
+
+```lua
+--!strict
+
+export type StateDebugger = {
+    targetX: Input<number>,
+    currentX: number,
+    velocity: number,
+    path: Path,
+    paint: Paint,
+}
+
+local function logState(label: string, self: StateDebugger)
+    print(`[{label}] target={self.targetX.value}, current={self.currentX:.2f}, vel={self.velocity:.2f}`)
+end
+
+function init(self: StateDebugger): boolean
+    self.currentX = 0
+    self.velocity = 0
+    logState("INIT", self)
+    return true
+end
+
+function update(self: StateDebugger)
+    logState("INPUT CHANGED", self)
+end
+
+function advance(self: StateDebugger, seconds: number): boolean
+    local oldX = self.currentX
+    local oldVel = self.velocity
+
+    -- Spring physics
+    local displacement = self.targetX.value - self.currentX
+    local springForce = displacement * 100
+    local dampingForce = self.velocity * 10
+
+    self.velocity += (springForce - dampingForce) * seconds
+    self.currentX += self.velocity * seconds
+
+    -- Log significant changes only
+    local deltaX = math.abs(self.currentX - oldX)
+    if deltaX > 1 then
+        logState("MOVING", self)
+    end
+
+    -- Rebuild path
+    self.path:reset()
+    local size = 20
+    self.path:moveTo(Vector.xy(self.currentX - size, -size))
+    self.path:lineTo(Vector.xy(self.currentX + size, -size))
+    self.path:lineTo(Vector.xy(self.currentX + size, size))
+    self.path:lineTo(Vector.xy(self.currentX - size, size))
+    self.path:close()
+
+    return true
+end
+
+function draw(self: StateDebugger, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<StateDebugger>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        targetX = 0,
+        currentX = 0,
+        velocity = 0,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(80, 180, 120) }),
+    }
+end
+```
+
+**Key points:**
+- Use a helper function (`logState`) for consistent formatting
+- Add labels to identify where the log came from
+- Only log significant changes to avoid console spam
+
+---
+
+## Common Errors and Fixes
+
+### Error: Script Not Appearing in Menu
+
+**Symptom**: Your script does not show up when trying to add it to a node.
+
+**Cause**: Missing `draw` function or incorrect return type.
+
+```lua
+-- BAD: Missing draw function
+return function(): Node<MyType>
+    return {
+        init = init,
+        -- No draw!
+    }
+end
+
+-- GOOD: Include draw even if empty
+return function(): Node<MyType>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+### Error: "attempt to index nil"
+
+**Symptom**: Runtime error when accessing a property.
+
+**Cause**: Field not initialized or wrong name.
+
+```lua
+-- BAD: Accessing uninitialized field
+function init(self: MyNode): boolean
+    self.path:reset()  -- self.path is nil!
+    return true
+end
+
+-- GOOD: Initialize first
+function init(self: MyNode): boolean
+    self.path = Path.new()  -- Create it
+    self.path:reset()        -- Now safe
+    return true
+end
+```
+
+### Error: Type Mismatch
+
+**Symptom**: Strict mode error about incompatible types.
+
+**Cause**: Wrong type annotation or assignment.
+
+```lua
+-- BAD: Type mismatch
+export type MyNode = {
+    count: number,
+}
+
+function init(self: MyNode): boolean
+    self.count = "hello"  -- Error: string vs number
+    return true
+end
+
+-- GOOD: Correct type
+function init(self: MyNode): boolean
+    self.count = 0  -- Correct: number
+    return true
+end
+```
+
+### Error: "Unknown global"
+
+**Symptom**: Strict mode error about undefined variable.
+
+**Cause**: Typo in variable name or missing declaration.
+
+```lua
+-- BAD: Typo in variable name
+function advance(self: MyNode, seconds: number): boolean
+    self.elasped += seconds  -- Typo: "elasped" vs "elapsed"
+    return true
+end
+
+-- GOOD: Correct spelling
+function advance(self: MyNode, seconds: number): boolean
+    self.elapsed += seconds  -- Correct
+    return true
+end
+```
+
+---
+
+## Exercise 3: Debugging a Broken Script
+
+**Goal**: Find and fix the bugs in this script.
+
+**Buggy Version:**
+
+```lua
+--!strict
+
+export type BuggyCircle = {
+    radius: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: BuggyCircle): boolean
+    -- Bug 1: Missing initialization
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-self.radius.value, 0))
+
+    -- Bug 2: Wrong property name
+    self.colour = Color.rgb(255, 100, 100)
+
+    return true
+end
+
+function advance(self: BuggyCircle, seconds: number): boolean
+    -- Bug 3: Accessing wrong field
+    local r = self.rad.value
+    print("Radius:", r)
+    return true
+end
+
+function draw(self: BuggyCircle, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<BuggyCircle>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        radius = 50,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Fixed Version:**
+
+```lua
+--!strict
+
+export type FixedCircle = {
+    radius: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: FixedCircle): boolean
+    -- Fix 1: Initialize path before using
+    self.path = Path.new()
+    self.path:reset()
+
+    local r = self.radius.value
+    self.path:moveTo(Vector.xy(-r, 0))
+    self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
+    self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
+    self.path:close()
+
+    -- Fix 2: Correct property name (paint, not colour)
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 100, 100) })
+
+    print("Circle initialized with radius:", r)
+    return true
+end
+
+function advance(self: FixedCircle, seconds: number): boolean
+    -- Fix 3: Correct field name (radius, not rad)
+    local r = self.radius.value
+    -- Only print when debugging
+    -- print("Radius:", r)
+    return true
+end
+
+function draw(self: FixedCircle, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<FixedCircle>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        radius = 50,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+---
+
+## Strict Mode Errors
+
+Strict mode catches errors at edit time. Here are common ones:
+
+### Unknown Global
+
+```lua
+--!strict
+
+function init(self: MyNode): boolean
+    prnt("hello")  -- Error: Unknown global 'prnt'
+    print("hello") -- Correct
+    return true
+end
+```
+
+### Missing Type Annotation
+
+```lua
+--!strict
+
+-- Error: Missing type annotation
+function helper(x)
+    return x * 2
+end
+
+-- Correct: With types
+function helper(x: number): number
+    return x * 2
+end
+```
+
+### Incompatible Assignment
+
+```lua
+--!strict
+
+export type Counter = {
+    count: number,
+}
+
+function init(self: Counter): boolean
+    self.count = nil  -- Error: nil incompatible with number
+    self.count = 0    -- Correct
+    return true
+end
+```
+
+---
+
+## Debugging Workflow
+
+### Step 1: Identify the Symptom
+
+- Script not appearing? Check for `draw` function.
+- Runtime error? Check the error message for line number.
+- Wrong behavior? Add print statements.
+
+### Step 2: Add Strategic Logging
+
+```lua
+function advance(self: MyNode, seconds: number): boolean
+    print("advance START")
+    print("  seconds:", seconds)
+    print("  self.value:", self.value)
+
+    -- Your logic here
+
+    print("advance END, result:", self.value)
+    return true
+end
+```
+
+### Step 3: Isolate the Problem
+
+Comment out sections until the error disappears:
+
+```lua
+function init(self: MyNode): boolean
+    print("Step 1")
+    self.path = Path.new()
+
+    print("Step 2")
+    -- self.path:moveTo(Vector.xy(0, 0))  -- Comment out
+
+    print("Step 3")
+    -- self.path:close()  -- Comment out
+
+    return true
+end
+```
+
+### Step 4: Fix and Verify
+
+After fixing, remove debug prints or guard them:
+
+```lua
+local DEBUG = false
+
+function advance(self: MyNode, seconds: number): boolean
+    if DEBUG then
+        print("advance:", seconds)
+    end
+    return true
+end
+```
+
+---
+
+## Performance Debugging
+
+### Detecting Slow Code
+
+```lua
+--!strict
+
+export type PerfTest = {
+    frameCount: number,
+    totalTime: number,
+}
+
+function init(self: PerfTest): boolean
+    self.frameCount = 0
+    self.totalTime = 0
+    return true
+end
+
+function advance(self: PerfTest, seconds: number): boolean
+    self.frameCount += 1
+    self.totalTime += seconds
+
+    -- Report average frame time every 60 frames
+    if self.frameCount % 60 == 0 then
+        local avgMs = (self.totalTime / self.frameCount) * 1000
+        print(`Average frame time: {avgMs:.2f}ms`)
+    end
+
+    return true
+end
+
+function draw(self: PerfTest, renderer: Renderer)
+end
+
+return function(): Node<PerfTest>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        frameCount = 0,
+        totalTime = 0,
+    }
+end
+```
+
+---
+
+## Key Takeaways
+
+- Use `print()` strategically - too much output hides important messages
+- Add labels to identify where logs come from
+- Use strict mode to catch type errors early
+- Initialize all fields before using them
+- Comment out code to isolate problems
+- Remove debug prints before finalizing
+
+---
+
+<Quiz
+  question="Where does print() output appear in Rive?"
+  id="debugging-q1"
+  options={[
+    { text: "Browser developer console" },
+    { text: "Rive Console panel", correct: true },
+    { text: "System terminal" },
+    { text: "Log file on disk" },
+  ]}
+  explanation="print() output in Rive scripts appears in the Rive editor's Console panel, not the browser's developer console."
+/>
+
+<Quiz
+  question="Why should you avoid calling print() inside the draw function?"
+  id="debugging-q2"
+  options={[
+    { text: "It causes syntax errors" },
+    { text: "It runs every frame and floods the console", correct: true },
+    { text: "draw() doesn't have access to print()" },
+    { text: "It slows down rendering" },
+  ]}
+  explanation="The draw function runs every frame (60+ times per second), so print() calls there will flood the console with thousands of messages quickly."
+/>
+
+<Quiz
+  question="What is the most common cause of 'attempt to index nil' errors?"
+  id="debugging-q3"
+  options={[
+    { text: "Using the wrong function name" },
+    { text: "Missing --!strict directive" },
+    { text: "Accessing a field before initializing it", correct: true },
+    { text: "Incorrect return type" },
+  ]}
+  explanation="'attempt to index nil' typically means you're trying to access a property or call a method on a field that hasn't been initialized yet."
+/>
+
+<Quiz
+  question="What is the best way to isolate a bug when you don't know where it is?"
+  id="debugging-q4"
+  options={[
+    { text: "Delete the entire script and start over" },
+    { text: "Add print statements and comment out sections systematically", correct: true },
+    { text: "Disable strict mode" },
+    { text: "Run the script in a different browser" },
+  ]}
+  explanation="Systematic debugging involves adding print statements to trace execution and commenting out sections to narrow down where the problem occurs."
+/>

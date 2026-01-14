@@ -1,8 +1,703 @@
 ---
 sidebar_position: 6
 title: Procedural Geometry
+description: Dynamic path generation, animated shapes, and particle systems in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Procedural Geometry
 
-*Content being migrated...*
+## Rive Context: Drawing Shapes with Code
+
+Procedural geometry means creating shapes dynamically through code rather than importing static assets. In Rive Node Scripts, you build paths point-by-point using mathematical functions, enabling:
+
+- Shapes that respond to data or user input
+- Animated geometry (pulsing circles, flowing waves)
+- Particle systems and effects
+- Visualizations driven by external data
+
+**The pattern:** Build or update paths in `advance`, draw them in `draw`.
+
+---
+
+## Path Building Basics
+
+| Method | Description |
+|--------|-------------|
+| `path:moveTo(vec)` | Move pen to position (start a new subpath) |
+| `path:lineTo(vec)` | Draw straight line to position |
+| `path:cubicTo(c1, c2, end)` | Draw cubic bezier curve |
+| `path:close()` | Connect back to subpath start |
+| `path:reset()` | Clear all path data |
+
+---
+
+## Exercise 1: Procedural Polygon
+
+**Goal**: Generate a regular polygon with N sides.
+
+```lua
+--!strict
+
+export type Polygon = {
+    sides: Input<number>,
+    radius: Input<number>,
+    path: Path,
+    fill: Paint,
+    stroke: Paint,
+}
+
+local function buildPolygon(self: Polygon)
+    local n = math.floor(self.sides.value)
+    if n < 3 then n = 3 end
+    local r = self.radius.value
+
+    self.path:reset()
+
+    for i = 0, n - 1 do
+        local angle = (i / n) * math.pi * 2 - math.pi / 2
+        local x = math.cos(angle) * r
+        local y = math.sin(angle) * r
+
+        if i == 0 then
+            self.path:moveTo(Vector.xy(x, y))
+        else
+            self.path:lineTo(Vector.xy(x, y))
+        end
+    end
+
+    self.path:close()
+end
+
+function init(self: Polygon): boolean
+    buildPolygon(self)
+    return true
+end
+
+function update(self: Polygon)
+    buildPolygon(self)
+end
+
+function draw(self: Polygon, renderer: Renderer)
+    renderer:drawPath(self.path, self.fill)
+    renderer:drawPath(self.path, self.stroke)
+end
+
+return function(): Node<Polygon>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        sides = 6,
+        radius = 80,
+        path = Path.new(),
+        fill = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
+        stroke = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(40, 80, 140) }),
+    }
+end
+```
+
+**Key points:**
+- Calculate vertex positions using trigonometry
+- `update()` rebuilds when inputs change
+- Start angle offset (`- math.pi / 2`) points the first vertex upward
+
+---
+
+## Exercise 2: Animated Star
+
+**Goal**: Create a star shape with animated inner radius.
+
+```lua
+--!strict
+
+export type AnimatedStar = {
+    points: Input<number>,
+    outerRadius: Input<number>,
+    path: Path,
+    paint: Paint,
+    time: number,
+    innerRatio: number,
+}
+
+function init(self: AnimatedStar): boolean
+    self.time = 0
+    self.innerRatio = 0.5
+    return true
+end
+
+function advance(self: AnimatedStar, seconds: number): boolean
+    self.time += seconds
+    self.innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
+
+    local n = math.floor(self.points.value)
+    if n < 3 then n = 3 end
+    local outer = self.outerRadius.value
+    local inner = outer * self.innerRatio
+
+    self.path:reset()
+
+    for i = 0, n * 2 - 1 do
+        local angle = (i / (n * 2)) * math.pi * 2 - math.pi / 2
+        local r = if i % 2 == 0 then outer else inner
+        local x = math.cos(angle) * r
+        local y = math.sin(angle) * r
+
+        if i == 0 then
+            self.path:moveTo(Vector.xy(x, y))
+        else
+            self.path:lineTo(Vector.xy(x, y))
+        end
+    end
+
+    self.path:close()
+    return true
+end
+
+function draw(self: AnimatedStar, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<AnimatedStar>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        points = 5,
+        outerRadius = 100,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 60) }),
+        time = 0,
+        innerRatio = 0.5,
+    }
+end
+```
+
+**Key points:**
+- Alternate between outer and inner radius for star points
+- Animate `innerRatio` in `advance` for pulsing effect
+- Path rebuilt every frame when animating
+
+---
+
+## Exercise 3: Sine Wave Path
+
+**Goal**: Draw an animated sine wave using line segments.
+
+```lua
+--!strict
+
+export type SineWave = {
+    amplitude: Input<number>,
+    frequency: Input<number>,
+    segments: Input<number>,
+    path: Path,
+    paint: Paint,
+    time: number,
+}
+
+function init(self: SineWave): boolean
+    self.time = 0
+    return true
+end
+
+function advance(self: SineWave, seconds: number): boolean
+    self.time += seconds
+
+    local amp = self.amplitude.value
+    local freq = self.frequency.value
+    local segs = math.floor(self.segments.value)
+    local width = 300
+
+    self.path:reset()
+
+    for i = 0, segs do
+        local t = i / segs
+        local x = -width / 2 + t * width
+        local y = math.sin((t * freq + self.time) * math.pi * 2) * amp
+
+        if i == 0 then
+            self.path:moveTo(Vector.xy(x, y))
+        else
+            self.path:lineTo(Vector.xy(x, y))
+        end
+    end
+
+    return true
+end
+
+function draw(self: SineWave, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<SineWave>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        amplitude = 40,
+        frequency = 2,
+        segments = 50,
+        path = Path.new(),
+        paint = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(120, 220, 180), cap = "round" }),
+        time = 0,
+    }
+end
+```
+
+**Key points:**
+- Add `self.time` to the phase for animation
+- More segments = smoother curve
+- Use stroke style for line-based paths
+
+---
+
+## Exercise 4: Bezier Curves
+
+**Goal**: Create smooth curves using cubic bezier segments.
+
+```lua
+--!strict
+
+export type BezierDemo = {
+    path: Path,
+    paint: Paint,
+    time: number,
+}
+
+function init(self: BezierDemo): boolean
+    self.time = 0
+    return true
+end
+
+function advance(self: BezierDemo, seconds: number): boolean
+    self.time += seconds
+
+    local offset = math.sin(self.time * 1.5) * 30
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-120, 0))
+    self.path:cubicTo(
+        Vector.xy(-60, -80 + offset),
+        Vector.xy(60, 80 - offset),
+        Vector.xy(120, 0)
+    )
+
+    return true
+end
+
+function draw(self: BezierDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<BezierDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.with({ style = "stroke", thickness = 5, color = Color.rgb(255, 100, 150), cap = "round" }),
+        time = 0,
+    }
+end
+```
+
+**Key points:**
+- `cubicTo(control1, control2, end)` creates smooth curves
+- Animate control points for flowing motion
+- Bezier curves are resolution-independent
+
+---
+
+## Exercise 5: Simple Particle System
+
+**Goal**: Create a basic particle effect with spawning and aging.
+
+```lua
+--!strict
+
+type Particle = {
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    life: number,
+    maxLife: number,
+}
+
+export type ParticleSystem = {
+    particles: { Particle },
+    spawnRate: Input<number>,
+    path: Path,
+    paint: Paint,
+    spawnTimer: number,
+}
+
+local function spawnParticle(): Particle
+    local angle = math.random() * math.pi * 2
+    local speed = 40 + math.random() * 60
+    return {
+        x = 0,
+        y = 0,
+        vx = math.cos(angle) * speed,
+        vy = math.sin(angle) * speed,
+        life = 0,
+        maxLife = 1.0 + math.random() * 0.5,
+    }
+end
+
+function init(self: ParticleSystem): boolean
+    self.particles = {}
+    self.spawnTimer = 0
+    return true
+end
+
+function advance(self: ParticleSystem, seconds: number): boolean
+    self.spawnTimer += seconds
+    local spawnInterval = 1 / self.spawnRate.value
+
+    while self.spawnTimer >= spawnInterval do
+        self.spawnTimer -= spawnInterval
+        if #self.particles < 100 then
+            table.insert(self.particles, spawnParticle())
+        end
+    end
+
+    local alive: { Particle } = {}
+    for _, p in self.particles do
+        p.life += seconds
+        if p.life < p.maxLife then
+            p.x += p.vx * seconds
+            p.y += p.vy * seconds
+            p.vy += 50 * seconds
+            table.insert(alive, p)
+        end
+    end
+    self.particles = alive
+
+    return true
+end
+
+function draw(self: ParticleSystem, renderer: Renderer)
+    for _, p in self.particles do
+        local alpha = 1 - (p.life / p.maxLife)
+        local size = 4 * alpha
+
+        self.path:reset()
+        self.path:moveTo(Vector.xy(p.x - size, p.y - size))
+        self.path:lineTo(Vector.xy(p.x + size, p.y - size))
+        self.path:lineTo(Vector.xy(p.x + size, p.y + size))
+        self.path:lineTo(Vector.xy(p.x - size, p.y + size))
+        self.path:close()
+
+        self.paint.color = Color.rgba(255, 180, 80, math.floor(alpha * 255))
+        renderer:drawPath(self.path, self.paint)
+    end
+end
+
+return function(): Node<ParticleSystem>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        particles = {},
+        spawnRate = 20,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(255, 180, 80) }),
+        spawnTimer = 0,
+    }
+end
+```
+
+:::warning Performance Note
+This example modifies the path in `draw` for simplicity. For production particle systems, consider creating a pool of paths or using instanced rendering techniques.
+:::
+
+**Key points:**
+- Store particle data in a table
+- Update physics in `advance`, render in `draw`
+- Remove dead particles by filtering the array
+- Fade alpha based on remaining life
+
+---
+
+## Exercise 6: Circular Progress Ring
+
+**Goal**: Draw an arc that fills based on a progress value.
+
+```lua
+--!strict
+
+export type ProgressRing = {
+    progress: Input<number>,
+    radius: Input<number>,
+    thickness: Input<number>,
+    bgPath: Path,
+    fgPath: Path,
+    bgPaint: Paint,
+    fgPaint: Paint,
+}
+
+local function buildArc(path: Path, radius: number, startAngle: number, endAngle: number, segments: number)
+    path:reset()
+
+    for i = 0, segments do
+        local t = i / segments
+        local angle = startAngle + (endAngle - startAngle) * t
+        local x = math.cos(angle) * radius
+        local y = math.sin(angle) * radius
+
+        if i == 0 then
+            path:moveTo(Vector.xy(x, y))
+        else
+            path:lineTo(Vector.xy(x, y))
+        end
+    end
+end
+
+function init(self: ProgressRing): boolean
+    local r = self.radius.value
+    buildArc(self.bgPath, r, 0, math.pi * 2, 64)
+    return true
+end
+
+function update(self: ProgressRing)
+    local r = self.radius.value
+    local prog = math.clamp(self.progress.value, 0, 1)
+    local startAngle = -math.pi / 2
+    local endAngle = startAngle + prog * math.pi * 2
+
+    buildArc(self.bgPath, r, 0, math.pi * 2, 64)
+    buildArc(self.fgPath, r, startAngle, endAngle, math.floor(64 * prog) + 1)
+
+    self.bgPaint.thickness = self.thickness.value
+    self.fgPaint.thickness = self.thickness.value
+end
+
+function draw(self: ProgressRing, renderer: Renderer)
+    renderer:drawPath(self.bgPath, self.bgPaint)
+    renderer:drawPath(self.fgPath, self.fgPaint)
+end
+
+return function(): Node<ProgressRing>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        progress = 0.7,
+        radius = 60,
+        thickness = 8,
+        bgPath = Path.new(),
+        fgPath = Path.new(),
+        bgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgba(255, 255, 255, 40), cap = "round" }),
+        fgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgb(100, 200, 255), cap = "round" }),
+    }
+end
+```
+
+**Key points:**
+- Build arcs by calculating points around a circle
+- Use stroke style with `cap = "round"` for smooth ends
+- Segment count affects smoothness vs performance
+
+---
+
+## Exercise 7: Data-Driven Bar Chart
+
+**Goal**: Visualize an array of values as animated bars.
+
+```lua
+--!strict
+
+export type BarChart = {
+    values: { number },
+    targetValues: { number },
+    barWidth: Input<number>,
+    maxHeight: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: BarChart): boolean
+    self.values = { 0, 0, 0, 0, 0 }
+    self.targetValues = { 60, 80, 45, 90, 70 }
+    return true
+end
+
+function advance(self: BarChart, seconds: number): boolean
+    local speed = 3
+    for i, target in self.targetValues do
+        local current = self.values[i] or 0
+        self.values[i] = current + (target - current) * math.min(1, seconds * speed)
+    end
+    return true
+end
+
+function draw(self: BarChart, renderer: Renderer)
+    local barW = self.barWidth.value
+    local maxH = self.maxHeight.value
+    local gap = 10
+    local totalWidth = #self.values * (barW + gap) - gap
+    local startX = -totalWidth / 2
+
+    for i, val in self.values do
+        local height = (val / 100) * maxH
+        local x = startX + (i - 1) * (barW + gap)
+        local y = maxH / 2
+
+        self.path:reset()
+        self.path:moveTo(Vector.xy(x, y))
+        self.path:lineTo(Vector.xy(x + barW, y))
+        self.path:lineTo(Vector.xy(x + barW, y - height))
+        self.path:lineTo(Vector.xy(x, y - height))
+        self.path:close()
+
+        local hue = (i - 1) / #self.values
+        local r = math.floor(255 * (0.5 + 0.5 * math.sin(hue * math.pi * 2)))
+        local g = math.floor(255 * (0.5 + 0.5 * math.sin(hue * math.pi * 2 + 2)))
+        local b = math.floor(255 * (0.5 + 0.5 * math.sin(hue * math.pi * 2 + 4)))
+        self.paint.color = Color.rgb(r, g, b)
+
+        renderer:drawPath(self.path, self.paint)
+    end
+end
+
+return function(): Node<BarChart>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        values = {},
+        targetValues = {},
+        barWidth = 30,
+        maxHeight = 120,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
+    }
+end
+```
+
+**Key points:**
+- Animate values toward targets for smooth transitions
+- Calculate positions based on array index
+- Generate colors procedurally from index
+
+---
+
+## Optimization Tips
+
+### 1. Minimize Path Rebuilds
+
+If geometry doesn't change, build it once in `init`:
+
+```lua
+function init(self: Static): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-50, -50))
+    self.path:lineTo(Vector.xy(50, -50))
+    self.path:lineTo(Vector.xy(50, 50))
+    self.path:lineTo(Vector.xy(-50, 50))
+    self.path:close()
+    return true
+end
+```
+
+### 2. Use Transforms Instead of Rebuilding
+
+Instead of changing path coordinates, use renderer transforms:
+
+```lua
+function draw(self: Spinning, renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withRotation(self.angle))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+```
+
+### 3. Limit Particle Counts
+
+Set maximum limits and remove particles efficiently:
+
+```lua
+if #self.particles < MAX_PARTICLES then
+    table.insert(self.particles, newParticle)
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Where should you rebuild dynamic path geometry?"
+  id="procedural-q1"
+  options={[
+    { text: "In the draw function" },
+    { text: "In the advance function", correct: true },
+    { text: "In the factory return" },
+    { text: "In the init function only" },
+  ]}
+  explanation="Rebuild paths in advance, not draw. Modifying paths during draw can cause rendering artifacts because the render pass may read the path multiple times."
+/>
+
+<Quiz
+  question="What does path:cubicTo(c1, c2, end) create?"
+  id="procedural-q2"
+  options={[
+    { text: "A straight line" },
+    { text: "A cubic bezier curve", correct: true },
+    { text: "A circle segment" },
+    { text: "A rectangle" },
+  ]}
+  explanation="cubicTo creates a cubic bezier curve from the current position to the end point, using c1 and c2 as control points that define the curve shape."
+/>
+
+<Quiz
+  question="How do you animate a star shape's inner radius?"
+  id="procedural-q3"
+  options={[
+    { text: "Change the radius in draw" },
+    { text: "Update the ratio and rebuild the path in advance", correct: true },
+    { text: "Use a CSS animation" },
+    { text: "Modify the paint color" },
+  ]}
+  explanation="Animate the inner/outer ratio in advance and rebuild the star path each frame. The advance function handles all state changes, then draw renders the current state."
+/>
+
+<Quiz
+  question="What is the best way to move a static shape around the screen?"
+  id="procedural-q4"
+  options={[
+    { text: "Rebuild the path with new coordinates each frame" },
+    { text: "Use renderer:transform() with Mat2D", correct: true },
+    { text: "Create a new path each frame" },
+    { text: "Modify path vertices directly" },
+  ]}
+  explanation="Use renderer transforms instead of rebuilding geometry. Mat2D.withTranslation() can move shapes without recreating the path, which is more efficient."
+/>
+
+<Quiz
+  question="How do you remove dead particles from a particle system?"
+  id="procedural-q5"
+  options={[
+    { text: "Set particle.alive = false" },
+    { text: "Filter the array in advance, keeping only living particles", correct: true },
+    { text: "Call particle:destroy()" },
+    { text: "Particles are automatically garbage collected" },
+  ]}
+  explanation="Create a new array containing only particles with remaining life, then replace the old array. This efficiently removes dead particles each frame."
+/>
+
+---
+
+## Key Takeaway
+
+Procedural geometry gives you complete control over shapes through code. Build paths using trigonometry and math functions, update them in `advance`, and render them in `draw`. For moving or rotating static shapes, prefer renderer transforms over rebuilding geometry.
+
+---
+
+## Next Up
+
+**[Game Logic ->](./game-logic)**

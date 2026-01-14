@@ -5,72 +5,487 @@ description: Arrays, dictionaries, and data structures in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
 
 # Lesson 1.4: Tables
 
-## Rive Context
+## Learning Objectives
 
-Tables are the main data structure you use in Rive scripts: arrays for collections (enemies, particles), dictionaries for lookup (config, stats), and `self` for persistent state.
+By the end of this lesson, you will:
+- Create and manipulate arrays (sequential tables)
+- Create and use dictionaries (key-value tables)
+- Iterate over tables with different loop patterns
+- Understand table references vs copies
+- Use the `table` library for common operations
 
 ---
 
-## Table Basics
+## Syntax Note: Coming from JavaScript or After Effects?
 
-### Arrays (Sequential Tables)
+:::note JavaScript / After Effects Comparison
+| Concept | Luau | JavaScript |
+|---------|------|------------|
+| Array | `{1, 2, 3}` | `[1, 2, 3]` |
+| Object/Dict | `{a = 1, b = 2}` | `{a: 1, b: 2}` |
+| First index | `1` (one-based) | `0` (zero-based) |
+| Length | `#arr` | `arr.length` |
+| Add to end | `table.insert(arr, v)` | `arr.push(v)` |
+| Remove last | `table.remove(arr)` | `arr.pop()` |
+| Key check | `tbl.key ~= nil` | `"key" in obj` |
 
-Arrays use numeric indices starting at **1** (not 0):
+**Critical difference:** Luau arrays start at index **1**, not **0**!
+:::
+
+---
+
+## What Is a Table?
+
+A **table** is Luau's only data structure. It's incredibly flexible — the same syntax creates:
+
+- **Arrays**: Ordered lists of values (like JS arrays)
+- **Dictionaries**: Key-value pairs (like JS objects)
+- **Mixed tables**: Both at once
+- **Everything else**: Sets, matrices, objects, etc.
 
 ```lua
+-- Array (sequential numeric keys)
 local enemies = {"Slime", "Goblin", "Mage"}
-print(enemies[1])  -- "Slime"
-print(#enemies)    -- 3 (length)
 
-table.insert(enemies, "Boss")     -- Add to end
-table.remove(enemies, 1)          -- Remove first element
-```
+-- Dictionary (string keys)
+local player = { name = "Hero", health = 100 }
 
-### Dictionaries (Key-Value Tables)
-
-```lua
-local stats = {
-    health = 100,
-    mana = 50,
-    speed = 12,
+-- Mixed (both!)
+local mixed = {
+    "first",           -- index 1
+    "second",          -- index 2
+    name = "mixed",    -- key "name"
 }
-
-print(stats.health)       -- 100
-print(stats["health"])    -- 100 (same thing)
-stats.health = 80         -- Modify
-stats.armor = 25          -- Add new key
 ```
 
 ---
 
-## Iteration
+## Arrays (Sequential Tables)
 
-### Arrays (ipairs)
+### Creating Arrays
+
+```lua
+-- Create with values
+local fruits = {"Apple", "Banana", "Cherry"}
+
+-- Create empty and add later
+local scores = {}
+table.insert(scores, 100)
+table.insert(scores, 95)
+table.insert(scores, 87)
+```
+
+### Index Starts at 1!
+
+This is the **#1 confusion** for JavaScript developers:
 
 ```lua
 local items = {"Sword", "Shield", "Potion"}
+
+print(items[1])  -- "Sword" (FIRST element!)
+print(items[2])  -- "Shield"
+print(items[3])  -- "Potion"
+print(items[0])  -- nil (doesn't exist!)
+```
+
+:::danger Arrays Start at 1
+```lua
+-- WRONG mental model (JavaScript)
+-- items[0] = "Sword"  ❌
+
+-- CORRECT mental model (Luau)
+-- items[1] = "Sword"  ✓
+```
+
+Every time you write a loop, remember: `for i = 1, #arr` not `for i = 0, #arr - 1`
+:::
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript (0-indexed)
+const items = ["Sword", "Shield", "Potion"];
+console.log(items[0]);  // "Sword"
+
+for (let i = 0; i < items.length; i++) {
+    console.log(items[i]);
+}
+```
+
+```lua
+-- Luau (1-indexed)
+local items = {"Sword", "Shield", "Potion"}
+print(items[1])  -- "Sword"
+
+for i = 1, #items do
+    print(items[i])
+end
+```
+:::
+
+### Array Length
+
+```lua
+local arr = {10, 20, 30, 40, 50}
+print(#arr)  -- 5
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript
+arr.length  // Property
+
+// Luau
+#arr  -- Operator (like #string for string length)
+```
+:::
+
+### Modifying Arrays
+
+```lua
+local items = {"Sword", "Shield"}
+
+-- Add to end
+table.insert(items, "Potion")
+-- items = {"Sword", "Shield", "Potion"}
+
+-- Add at position 2
+table.insert(items, 2, "Armor")
+-- items = {"Sword", "Armor", "Shield", "Potion"}
+
+-- Remove last element
+local last = table.remove(items)
+-- last = "Potion", items = {"Sword", "Armor", "Shield"}
+
+-- Remove at position 1
+local first = table.remove(items, 1)
+-- first = "Sword", items = {"Armor", "Shield"}
+
+-- Modify directly
+items[1] = "Heavy Armor"
+-- items = {"Heavy Armor", "Shield"}
+```
+
+:::note JavaScript Comparison
+| Operation | JavaScript | Luau |
+|-----------|------------|------|
+| Add to end | `arr.push(x)` | `table.insert(arr, x)` |
+| Add at index | `arr.splice(i, 0, x)` | `table.insert(arr, i, x)` |
+| Remove last | `arr.pop()` | `table.remove(arr)` |
+| Remove at index | `arr.splice(i, 1)` | `table.remove(arr, i)` |
+| Find index | `arr.indexOf(x)` | `table.find(arr, x)` |
+:::
+
+---
+
+## Dictionaries (Key-Value Tables)
+
+### Creating Dictionaries
+
+```lua
+-- Object-like syntax
+local player = {
+    name = "Hero",
+    health = 100,
+    level = 5,
+}
+
+-- Access with dot notation
+print(player.name)    -- "Hero"
+print(player.health)  -- 100
+
+-- Access with bracket notation (same result)
+print(player["name"])    -- "Hero"
+print(player["health"])  -- 100
+```
+
+### When to Use Bracket Notation
+
+Use brackets when:
+- Key is a variable
+- Key has spaces or special characters
+- Key is computed at runtime
+
+```lua
+local stats = { hp = 100, mp = 50 }
+
+-- Key from variable
+local statName = "hp"
+print(stats[statName])  -- 100
+
+-- Key with space (must use brackets)
+local labels = {
+    ["health points"] = 100,
+    ["mana points"] = 50,
+}
+print(labels["health points"])  -- 100
+```
+
+:::note JavaScript Comparison
+This works exactly like JavaScript objects:
+
+```javascript
+// JavaScript
+const player = { name: "Hero", health: 100 };
+console.log(player.name);       // dot notation
+console.log(player["name"]);    // bracket notation
+console.log(player[varName]);   // variable key
+```
+
+```lua
+-- Luau
+local player = { name = "Hero", health = 100 }
+print(player.name)       -- dot notation
+print(player["name"])    -- bracket notation
+print(player[varName])   -- variable key
+```
+
+**Only difference:** Luau uses `=` not `:` in definitions.
+:::
+
+### Adding and Modifying
+
+```lua
+local inventory = {}
+
+-- Add new keys
+inventory.gold = 500
+inventory.gems = 10
+inventory["magic crystals"] = 3
+
+-- Modify existing
+inventory.gold = inventory.gold + 100
+
+-- Remove key (set to nil)
+inventory.gems = nil
+```
+
+---
+
+## Iterating Over Tables
+
+### Arrays: Use `ipairs` or Direct Loop
+
+```lua
+local items = {"Sword", "Shield", "Potion"}
+
+-- Method 1: ipairs (index and value)
 for i, item in ipairs(items) do
     print(`{i}: {item}`)
 end
+
+-- Method 2: direct iteration (Luau shortcut)
+for i, item in items do
+    print(`{i}: {item}`)
+end
+
+-- Method 3: numeric loop (most control)
+for i = 1, #items do
+    print(`{i}: {items[i]}`)
+end
 ```
 
-### Dictionaries (generalized iteration)
+**Output:**
+```
+1: Sword
+2: Shield
+3: Potion
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript forEach
+items.forEach((item, index) => {
+    console.log(`${index}: ${item}`);  // 0: Sword, 1: Shield...
+});
+
+// JavaScript for...of
+for (const item of items) {
+    console.log(item);
+}
+
+// JavaScript traditional for
+for (let i = 0; i < items.length; i++) {
+    console.log(items[i]);
+}
+```
 
 ```lua
-local loot = { gold = 100, gems = 3, keys = 1 }
-for key, value in loot do
+-- Luau ipairs
+for i, item in ipairs(items) do
+    print(`{i}: {item}`)  -- 1: Sword, 2: Shield...
+end
+
+-- Luau direct
+for i, item in items do
+    print(item)
+end
+
+-- Luau numeric
+for i = 1, #items do
+    print(items[i])
+end
+```
+:::
+
+### Dictionaries: Use `pairs` or Direct Loop
+
+```lua
+local stats = { health = 100, mana = 50, stamina = 75 }
+
+-- Method 1: pairs (key and value)
+for key, value in pairs(stats) do
+    print(`{key}: {value}`)
+end
+
+-- Method 2: direct iteration (Luau shortcut)
+for key, value in stats do
     print(`{key}: {value}`)
 end
 ```
+
+**Output** (order may vary):
+```
+health: 100
+mana: 50
+stamina: 75
+```
+
+:::warning Dictionary Order is Not Guaranteed
+Unlike arrays, dictionaries don't maintain insertion order. The loop may iterate in any order.
+:::
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript Object.entries
+for (const [key, value] of Object.entries(stats)) {
+    console.log(`${key}: ${value}`);
+}
+
+// JavaScript for...in (keys only)
+for (const key in stats) {
+    console.log(`${key}: ${stats[key]}`);
+}
+```
+
+```lua
+-- Luau pairs
+for key, value in pairs(stats) do
+    print(`{key}: {value}`)
+end
+
+-- Luau direct
+for key, value in stats do
+    print(`{key}: {value}`)
+end
+```
+:::
+
+---
+
+## Table References vs Copies
+
+**Critical concept:** When you assign a table to a variable, you're copying the **reference**, not the data!
+
+```lua
+local original = {1, 2, 3}
+local reference = original  -- NOT a copy!
+
+reference[1] = 999
+
+print(original[1])   -- 999 (also changed!)
+print(reference[1])  -- 999
+```
+
+### Creating True Copies
+
+```lua
+-- Shallow copy (one level deep)
+local original = {1, 2, 3}
+local copy = table.clone(original)
+
+copy[1] = 999
+print(original[1])  -- 1 (unchanged!)
+print(copy[1])      -- 999
+
+-- For nested tables, you need deep copy
+local function deepCopy(t)
+    if type(t) ~= "table" then return t end
+    local copy = {}
+    for k, v in pairs(t) do
+        copy[k] = deepCopy(v)
+    end
+    return copy
+end
+```
+
+:::note JavaScript Comparison
+Same behavior in JavaScript:
+
+```javascript
+// JavaScript - reference, not copy
+const original = [1, 2, 3];
+const reference = original;
+reference[0] = 999;
+console.log(original[0]); // 999
+
+// JavaScript - shallow copy
+const copy = [...original];
+// or: const copy = Object.assign({}, original);
+// or: const copy = JSON.parse(JSON.stringify(original));
+```
+
+```lua
+-- Luau - reference, not copy
+local original = {1, 2, 3}
+local reference = original
+reference[1] = 999
+print(original[1])  -- 999
+
+-- Luau - shallow copy
+local copy = table.clone(original)
+```
+:::
+
+---
+
+## Common Table Operations
+
+| Operation | Syntax | Description |
+|-----------|--------|-------------|
+| Length | `#tbl` | Number of sequential elements |
+| Insert at end | `table.insert(tbl, value)` | Add to end |
+| Insert at position | `table.insert(tbl, idx, value)` | Insert at index |
+| Remove from end | `table.remove(tbl)` | Remove and return last |
+| Remove at position | `table.remove(tbl, idx)` | Remove and return at index |
+| Find value | `table.find(tbl, value)` | Returns index or nil |
+| Clear all | `table.clear(tbl)` | Remove all elements |
+| Shallow copy | `table.clone(tbl)` | Copy one level |
+| Sort | `table.sort(tbl)` | Sort in place |
+| Concatenate | `table.concat(tbl, sep)` | Join strings |
 
 ---
 
 ## Exercises
 
-### Exercise 1: Arrays for Runtime Collections ⭐
+### Exercise 1: Arrays - Inventory System ⭐
+
+**Goal:** Practice array operations with a game inventory.
+
+**Why this matters:** Game inventories are arrays. You add items, remove items, check what's there.
+
+**Real-world use:** Inventory management, particle systems, enemy lists, waypoints.
+
+---
+
+#### Step-by-Step Setup
+
+1. **Create a new Node Script** named "Exercise1_Inventory"
+
+2. **Copy and paste:**
 
 ```lua
 --!strict
@@ -78,16 +493,48 @@ end
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
-    local enemies = {"Slime", "Goblin", "Mage"}
-    print(`First enemy: {enemies[1]}`)
-    print(`Enemy count: {#enemies}`)
+    -- Create inventory array
+    local inventory: {string} = {"Sword", "Shield", "Potion"}
 
-    table.insert(enemies, "Boss")
-    print(`Enemy count after insert: {#enemies}`)
-
-    for i, name in ipairs(enemies) do
-        print(`Enemy {i}: {name}`)
+    print("=== Initial Inventory ===")
+    print(`Items: {#inventory}`)
+    for i, item in ipairs(inventory) do
+        print(`  Slot {i}: {item}`)
     end
+
+    print("\n=== Adding Items ===")
+    -- Add to end
+    table.insert(inventory, "Helmet")
+    print(`Added Helmet at end`)
+
+    -- Add at specific position
+    table.insert(inventory, 2, "Armor")
+    print(`Added Armor at position 2`)
+
+    for i, item in ipairs(inventory) do
+        print(`  Slot {i}: {item}`)
+    end
+
+    print("\n=== Removing Items ===")
+    -- Remove last item
+    local removed = table.remove(inventory)
+    print(`Removed from end: {removed}`)
+
+    -- Remove at position
+    local removedAt2 = table.remove(inventory, 2)
+    print(`Removed from position 2: {removedAt2}`)
+
+    print("\n=== Final Inventory ===")
+    for i, item in ipairs(inventory) do
+        print(`  Slot {i}: {item}`)
+    end
+
+    print("\n=== Finding Items ===")
+    local swordIndex = table.find(inventory, "Sword")
+    print(`Sword is at index: {swordIndex or "not found"}`)
+
+    local bowIndex = table.find(inventory, "Bow")
+    print(`Bow is at index: {bowIndex or "not found"}`)
 
     return true
 end
@@ -103,9 +550,46 @@ return function(): Node<Exercise1>
 end
 ```
 
+**Expected Output:**
+```
+=== Initial Inventory ===
+Items: 3
+  Slot 1: Sword
+  Slot 2: Shield
+  Slot 3: Potion
+=== Adding Items ===
+Added Helmet at end
+Added Armor at position 2
+  Slot 1: Sword
+  Slot 2: Armor
+  Slot 3: Shield
+  Slot 4: Potion
+  Slot 5: Helmet
+=== Removing Items ===
+Removed from end: Helmet
+Removed from position 2: Armor
+=== Final Inventory ===
+  Slot 1: Sword
+  Slot 2: Shield
+  Slot 3: Potion
+=== Finding Items ===
+Sword is at index: 1
+Bow is at index: not found
+```
+
 ---
 
-### Exercise 2: Dictionaries for Config and State ⭐
+### Exercise 2: Dictionaries - Player Stats ⭐
+
+**Goal:** Practice dictionary operations with player statistics.
+
+**Why this matters:** Game stats, configuration, and state are often stored as dictionaries.
+
+**Real-world use:** Player stats, configuration objects, named properties, settings.
+
+---
+
+#### Code
 
 ```lua
 --!strict
@@ -113,15 +597,55 @@ end
 export type Exercise2 = {}
 
 function init(self: Exercise2): boolean
-    local stats = {
+    -- Create player stats dictionary
+    local player = {
+        name = "Hero",
         health = 100,
+        maxHealth = 100,
         mana = 50,
-        speed = 12,
+        level = 1,
+        experience = 0,
     }
 
-    print(`Health: {stats.health}`)
-    stats.health -= 20
-    print(`Health after damage: {stats.health}`)
+    print("=== Initial Stats ===")
+    print(`Name: {player.name}`)
+    print(`Health: {player.health}/{player.maxHealth}`)
+    print(`Mana: {player.mana}`)
+    print(`Level: {player.level}`)
+    print(`XP: {player.experience}`)
+
+    print("\n=== Taking Damage ===")
+    local damage = 25
+    player.health -= damage
+    print(`Took {damage} damage`)
+    print(`Health: {player.health}/{player.maxHealth}`)
+
+    print("\n=== Gaining Experience ===")
+    local xpGain = 150
+    player.experience += xpGain
+    print(`Gained {xpGain} XP`)
+
+    -- Level up check
+    local xpNeeded = player.level * 100
+    if player.experience >= xpNeeded then
+        player.level += 1
+        player.experience -= xpNeeded
+        player.maxHealth += 10
+        player.health = player.maxHealth  -- Full heal on level up
+        print("LEVEL UP!")
+        print(`Now level {player.level}`)
+        print(`Max health increased to {player.maxHealth}`)
+    end
+
+    print("\n=== Adding New Stat ===")
+    -- Add a stat that didn't exist before
+    player.strength = 10
+    print(`Added strength: {player.strength}`)
+
+    print("\n=== All Stats ===")
+    for stat, value in player do
+        print(`  {stat}: {value}`)
+    end
 
     return true
 end
@@ -139,23 +663,100 @@ end
 
 ---
 
-### Exercise 3: Persistent Tables on `self` ⭐⭐
+### Exercise 3: Nested Tables ⭐⭐
 
-When you need data across frames, store it on `self`.
+**Goal:** Work with tables inside tables.
+
+**Why this matters:** Real data is often hierarchical — players have inventories, inventories have items with properties.
+
+---
+
+#### Code
 
 ```lua
 --!strict
 
-export type Exercise3 = {
-    positions: {Vector},
+export type Exercise3 = {}
+
+-- Type for an item with properties
+type Item = {
+    name: string,
+    value: number,
+    quantity: number,
+}
+
+-- Type for a player with nested data
+type Player = {
+    name: string,
+    stats: {
+        health: number,
+        mana: number,
+    },
+    inventory: {Item},
+    equipped: {
+        weapon: string?,
+        armor: string?,
+    },
 }
 
 function init(self: Exercise3): boolean
-    self.positions = {
-        Vector.xy(0, 0),
-        Vector.xy(50, 50),
-        Vector.xy(100, 100),
+    -- Create a player with nested structures
+    local player: Player = {
+        name = "Hero",
+        stats = {
+            health = 100,
+            mana = 50,
+        },
+        inventory = {
+            { name = "Health Potion", value = 25, quantity = 3 },
+            { name = "Mana Potion", value = 30, quantity = 2 },
+            { name = "Iron Sword", value = 100, quantity = 1 },
+        },
+        equipped = {
+            weapon = nil,
+            armor = nil,
+        },
     }
+
+    print("=== Player Info ===")
+    print(`Name: {player.name}`)
+    print(`Health: {player.stats.health}`)
+    print(`Mana: {player.stats.mana}`)
+
+    print("\n=== Inventory ===")
+    local totalValue = 0
+    for i, item in ipairs(player.inventory) do
+        local itemTotal = item.value * item.quantity
+        totalValue += itemTotal
+        print(`  {i}. {item.name} x{item.quantity} (value: {itemTotal})`)
+    end
+    print(`Total inventory value: {totalValue}`)
+
+    print("\n=== Equipping Weapon ===")
+    -- Find sword in inventory
+    for i, item in ipairs(player.inventory) do
+        if item.name == "Iron Sword" then
+            player.equipped.weapon = item.name
+            print(`Equipped: {item.name}`)
+            break
+        end
+    end
+
+    print("\n=== Using Health Potion ===")
+    for i, item in ipairs(player.inventory) do
+        if item.name == "Health Potion" and item.quantity > 0 then
+            item.quantity -= 1
+            player.stats.health += 25
+            if player.stats.health > 100 then
+                player.stats.health = 100
+            end
+            print(`Used Health Potion`)
+            print(`Health: {player.stats.health}`)
+            print(`Potions remaining: {item.quantity}`)
+            break
+        end
+    end
+
     return true
 end
 
@@ -166,29 +767,84 @@ return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
-        positions = late(),
     }
 end
 ```
 
-:::tip Using `late()` for Complex Types
-When your `self` has a table or complex type that gets initialized in `init`, use `late()` in the factory return table. This tells the type system the value will be assigned later.
-:::
+---
+
+### Exercise 4: Persistent Tables on `self` ⭐⭐
+
+**Goal:** Store tables on `self` for data that persists across frames.
+
+**Why this matters:** Animation state, game entities, and accumulated data need to persist.
 
 ---
 
-### Exercise 4: Iteration Patterns ⭐⭐
+#### Code
 
 ```lua
 --!strict
 
-export type Exercise4 = {}
+export type Exercise4 = {
+    particles: {Vector},
+    velocities: {Vector},
+    frameCount: number,
+}
 
 function init(self: Exercise4): boolean
-    local loot = { gold = 100, gems = 3, keys = 1 }
+    -- Initialize particle system
+    self.particles = {}
+    self.velocities = {}
+    self.frameCount = 0
 
-    for key, value in loot do
-        print(`{key}: {value}`)
+    -- Create 5 particles at random positions
+    for i = 1, 5 do
+        table.insert(self.particles, Vector.xy(
+            math.random(50, 350),
+            math.random(50, 250)
+        ))
+        table.insert(self.velocities, Vector.xy(
+            math.random(-3, 3),
+            math.random(-3, 3)
+        ))
+    end
+
+    print(`Created {#self.particles} particles`)
+    return true
+end
+
+function advance(self: Exercise4, elapsed: number): boolean
+    self.frameCount += 1
+
+    -- Update particle positions
+    for i = 1, #self.particles do
+        local pos = self.particles[i]
+        local vel = self.velocities[i]
+
+        -- Move particle
+        local newX = pos.x + vel.x
+        local newY = pos.y + vel.y
+
+        -- Bounce off edges
+        if newX < 0 or newX > 400 then
+            self.velocities[i] = Vector.xy(-vel.x, vel.y)
+            newX = math.max(0, math.min(400, newX))
+        end
+        if newY < 0 or newY > 300 then
+            self.velocities[i] = Vector.xy(vel.x, -vel.y)
+            newY = math.max(0, math.min(300, newY))
+        end
+
+        self.particles[i] = Vector.xy(newX, newY)
+    end
+
+    -- Log every second
+    if self.frameCount % 60 == 0 then
+        print(`Frame {self.frameCount}: {#self.particles} particles active`)
+        for i, p in ipairs(self.particles) do
+            print(`  Particle {i}: ({p.x // 1}, {p.y // 1})`)
+        end
     end
 
     return true
@@ -200,6 +856,92 @@ end
 return function(): Node<Exercise4>
     return {
         init = init,
+        advance = advance,
+        draw = draw,
+        particles = late(),
+        velocities = late(),
+        frameCount = late(),
+    }
+end
+```
+
+---
+
+### Exercise 5: Table Utilities ⭐⭐
+
+**Goal:** Use common table operations to manipulate data.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+function init(self: Exercise5): boolean
+    print("=== Table Operations ===")
+
+    -- Sorting
+    local scores = {87, 92, 78, 95, 88, 73}
+    print(`Original: {table.concat(scores, ", ")}`)
+
+    table.sort(scores)
+    print(`Sorted (asc): {table.concat(scores, ", ")}`)
+
+    table.sort(scores, function(a, b) return a > b end)
+    print(`Sorted (desc): {table.concat(scores, ", ")}`)
+
+    -- Finding
+    local index = table.find(scores, 92)
+    print(`\n92 is at index: {index or "not found"}`)
+
+    -- Clearing
+    local temp = {1, 2, 3, 4, 5}
+    print(`\nBefore clear: {#temp} items`)
+    table.clear(temp)
+    print(`After clear: {#temp} items`)
+
+    -- Cloning
+    local original = {"a", "b", "c"}
+    local clone = table.clone(original)
+    clone[1] = "X"
+    print(`\nOriginal[1]: {original[1]}`)  -- Still "a"
+    print(`Clone[1]: {clone[1]}`)          -- "X"
+
+    -- Concatenating strings
+    local words = {"Hello", "Luau", "World"}
+    local sentence = table.concat(words, " ")
+    print(`\nConcatenated: {sentence}`)
+
+    -- Custom sorting with comparator
+    print("\n=== Custom Sorting ===")
+    local players = {
+        { name = "Alice", score = 150 },
+        { name = "Bob", score = 200 },
+        { name = "Charlie", score = 175 },
+    }
+
+    -- Sort by score (highest first)
+    table.sort(players, function(a, b)
+        return a.score > b.score
+    end)
+
+    print("Leaderboard:")
+    for i, p in ipairs(players) do
+        print(`  {i}. {p.name}: {p.score}`)
+    end
+
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
         draw = draw,
     }
 end
@@ -207,17 +949,99 @@ end
 
 ---
 
-## Common Table Operations
+### Exercise 6: Building a Simple Database ⭐⭐⭐
 
-| Operation | Syntax | Description |
-|-----------|--------|-------------|
-| Get length | `#tbl` | Number of array elements |
-| Insert | `table.insert(tbl, value)` | Add to end |
-| Insert at | `table.insert(tbl, index, value)` | Insert at position |
-| Remove | `table.remove(tbl, index)` | Remove and return |
-| Find | `table.find(tbl, value)` | Find index of value |
-| Clear | `table.clear(tbl)` | Remove all elements |
-| Clone | `table.clone(tbl)` | Shallow copy |
+**Goal:** Combine arrays and dictionaries for a practical lookup system.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+-- Enemy data type
+type EnemyData = {
+    id: string,
+    name: string,
+    health: number,
+    damage: number,
+    xpReward: number,
+}
+
+function init(self: Exercise6): boolean
+    -- Enemy database (dictionary for fast lookup by ID)
+    local enemyDB: {[string]: EnemyData} = {
+        slime = { id = "slime", name = "Slime", health = 20, damage = 5, xpReward = 10 },
+        goblin = { id = "goblin", name = "Goblin", health = 40, damage = 10, xpReward = 25 },
+        orc = { id = "orc", name = "Orc", health = 80, damage = 20, xpReward = 50 },
+        dragon = { id = "dragon", name = "Dragon", health = 500, damage = 100, xpReward = 500 },
+    }
+
+    -- Lookup by ID
+    print("=== Lookup by ID ===")
+    local enemy = enemyDB["goblin"]
+    if enemy then
+        print(`Found: {enemy.name}`)
+        print(`  Health: {enemy.health}`)
+        print(`  Damage: {enemy.damage}`)
+        print(`  XP Reward: {enemy.xpReward}`)
+    end
+
+    -- List all enemies
+    print("\n=== All Enemies ===")
+    for id, data in enemyDB do
+        print(`{id}: {data.name} (HP: {data.health})`)
+    end
+
+    -- Find enemies by criteria
+    print("\n=== Enemies with HP > 50 ===")
+    local strongEnemies: {EnemyData} = {}
+    for _, data in enemyDB do
+        if data.health > 50 then
+            table.insert(strongEnemies, data)
+        end
+    end
+
+    for _, enemy in ipairs(strongEnemies) do
+        print(`  {enemy.name}: {enemy.health} HP`)
+    end
+
+    -- Spawn list (array of IDs)
+    print("\n=== Spawn Wave ===")
+    local spawnWave = {"slime", "slime", "goblin", "slime", "orc"}
+    local totalXP = 0
+    local totalHP = 0
+
+    for i, enemyId in ipairs(spawnWave) do
+        local e = enemyDB[enemyId]
+        if e then
+            totalXP += e.xpReward
+            totalHP += e.health
+            print(`  Spawning: {e.name}`)
+        end
+    end
+
+    print(`\nWave totals:`)
+    print(`  Total enemies: {#spawnWave}`)
+    print(`  Total HP to deplete: {totalHP}`)
+    print(`  Total XP reward: {totalXP}`)
+
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
 
 ---
 
@@ -228,7 +1052,7 @@ end
   id="tbl-q1"
   type="code"
   answer="1"
-  explanation="Unlike most languages, Luau arrays start at index 1, not 0."
+  explanation="Unlike JavaScript and most other languages, Luau arrays start at index 1, not 0. This is inherited from Lua."
 />
 
 <Quiz
@@ -240,7 +1064,7 @@ end
     { text: "#array", correct: true },
     { text: "array.size()" },
   ]}
-  explanation="The # operator returns the length of an array (number of sequential elements)."
+  explanation="The # operator returns the length of an array (number of sequential elements). Same operator used for string length."
 />
 
 <Quiz
@@ -255,20 +1079,87 @@ end
   explanation="table.insert(tbl, value) adds to the end. table.insert(tbl, index, value) inserts at a specific position."
 />
 
+<Quiz
+  question="What happens when you assign a table to a new variable?"
+  id="tbl-q4"
+  options={[
+    { text: "The table is copied" },
+    { text: "A reference is copied (both point to same table)", correct: true },
+    { text: "An error occurs" },
+    { text: "The original table is deleted" },
+  ]}
+  explanation="Tables are reference types. Assigning to a new variable copies the reference, not the data. Changes through either variable affect the same table."
+/>
+
+<Quiz
+  question="Which function creates a shallow copy of a table?"
+  id="tbl-q5"
+  options={[
+    { text: "table.copy()" },
+    { text: "table.duplicate()" },
+    { text: "table.clone()", correct: true },
+    { text: "table.new()" },
+  ]}
+  explanation="table.clone() creates a shallow copy. Nested tables will still be shared references."
+/>
+
 ---
 
-## Key Takeaways
+## Common Mistakes
 
-1. **Arrays start at index 1** in Luau
-2. **#table** only counts consecutive integer keys
-3. **Tables are references** - assignment doesn't copy
-4. **table.clone** is shallow - nested tables are still shared
-5. Use **`self`** to store tables that need to persist across frames
+:::danger Top Mistakes
+1. **Using index 0** — Arrays start at 1 in Luau!
+2. **Forgetting `#` is only for sequential arrays** — It counts until the first nil
+3. **Thinking `=` copies tables** — It only copies the reference
+4. **Modifying while iterating** — Can cause skipped elements
+5. **Expecting dictionary order** — Dictionaries don't guarantee order
+:::
+
+---
+
+## Quick Reference
+
+```lua
+-- Arrays
+local arr = {1, 2, 3}
+arr[1]                    -- First element
+#arr                      -- Length
+table.insert(arr, v)      -- Add to end
+table.insert(arr, i, v)   -- Add at index
+table.remove(arr)         -- Remove last
+table.remove(arr, i)      -- Remove at index
+table.find(arr, v)        -- Find index
+
+-- Dictionaries
+local dict = { a = 1, b = 2 }
+dict.a                    -- Get by key
+dict["a"]                 -- Same thing
+dict.c = 3                -- Add/modify
+dict.a = nil              -- Remove
+
+-- Iteration
+for i, v in ipairs(arr) do ... end   -- Array
+for k, v in pairs(dict) do ... end   -- Dictionary
+for k, v in tbl do ... end           -- Both (Luau)
+
+-- Utilities
+table.sort(arr)           -- Sort ascending
+table.sort(arr, fn)       -- Sort with comparator
+table.clone(tbl)          -- Shallow copy
+table.clear(tbl)          -- Remove all
+table.concat(arr, sep)    -- Join strings
+```
 
 ---
 
 ## Module 1 Complete!
 
-You've finished the Fundamentals module. Next, we'll explore Luau's powerful type system.
+You've finished the Fundamentals module. You now know:
+- Variables and types
+- Control flow and loops
+- Functions and closures
+- Tables (arrays and dictionaries)
+
+Next, we'll explore Luau's powerful type system.
 
 **[→ Module 2: Type System](../types/intro)**

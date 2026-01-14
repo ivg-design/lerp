@@ -17,9 +17,38 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
+## AE/JS Syntax Comparison
+
+If you're coming from After Effects expressions or JavaScript/TypeScript, here's how custom types compare:
+
+| Concept | JavaScript/TypeScript | Luau (Rive) | Notes |
+|---------|----------------------|-------------|-------|
+| Type alias | `type Age = number` | `type Age = number` | Same syntax! |
+| Object type | `{ name: string }` | `{ name: string }` | Same syntax! |
+| Union type | `string \| number` | `string \| number` | Same syntax! |
+| Optional property | `email?: string` | `email: string?` | `?` placement differs! |
+| Literal union | `"up" \| "down"` | `"up" \| "down"` | Same syntax! |
+| Read-only | `readonly x: number` | `read x: number` | Different keyword |
+| Intersection | `A & B` | `A & B` | Same syntax! |
+
+:::danger Critical Difference: Optional Syntax
+```lua
+-- TypeScript: ? comes BEFORE the colon
+email?: string
+
+-- Luau: ? comes AFTER the type name
+email: string?
+```
+This is the most common source of confusion when coming from TypeScript!
+:::
+
+---
+
 ## Rive Context
 
 In Rive scripts, your `export type` defines the shape of `self`. Custom types help keep complex Rive data (inputs, paths, runtime state) clean and safe.
+
+**Why does this matter?** As your animations grow more complex, you need structured data. A character might have stats, inventory, and position. Custom types let you organize this cleanly.
 
 Common Rive use cases for custom types:
 - Nested state objects for complex animations
@@ -63,11 +92,38 @@ type StringOrNumber = string | number
 type MaybeString = string?
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript - almost identical!
+type Age = number;
+
+type Player = {
+    name: string;
+    health: number;
+};
+
+type StringOrNumber = string | number;
+
+type MaybeString = string | null;  // null instead of nil
+```
+
 ---
 
 ## Practice Exercises
 
 ### Exercise 1: Basic Type Aliases
+
+**Goal:** Create meaningful names for primitive types to improve code readability.
+
+**Why This Matters:** When you see `local width: Pixels = 1920`, it's immediately clear what the number represents. `local width: number = 1920` requires more context.
+
+**Real-World Use:** In game development, you might have `type Damage = number`, `type Health = number`, `type Percentage = number`—all numbers, but with different meanings.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add `--!strict` at the top
+3. Define type aliases before your `export type`
+4. Use those aliases in variable declarations
 
 **Task**: Create type aliases and use them in your code:
 
@@ -105,11 +161,23 @@ return function(): Node<TypeAliasDemo>
 end
 ```
 
-**Key insight**: Type aliases don't create new types - they're just names for existing types. A `Pixels` variable can accept any `number`.
+**Key insight**: Type aliases don't create new types—they're just names for existing types. A `Pixels` variable can accept any `number`. This is for documentation and clarity, not enforcement.
 
 ---
 
 ### Exercise 2: Table Types (Interfaces)
+
+**Goal:** Define the shape of complex objects using table types.
+
+**Why This Matters:** When you define a `type Enemy = { name: string, health: number, damage: number }`, you can't accidentally forget to include the `damage` property. The type checker enforces it.
+
+**Real-World Use:** Every game entity (player, enemy, item, projectile) should have a defined type. This prevents bugs like "undefined is not an object" that plague JavaScript.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Define table types using `type Name = { ... }`
+3. Create variables that match those types
+4. Try removing a required property to see the error
 
 **Task**: Define and use table types:
 
@@ -173,9 +241,39 @@ return function(): Node<TableTypesDemo>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript - nearly identical syntax
+type Enemy = {
+    name: string;
+    health: number;
+    damage: number;
+};
+
+const goblin: Enemy = {
+    name: "Goblin",
+    health: 30,
+    damage: 5
+};
+
+// This would also error in TypeScript:
+// const broken: Enemy = { name: "Orc" };  // Missing properties
+```
+
 ---
 
 ### Exercise 3: Nested and Complex Types
+
+**Goal:** Build sophisticated data structures by composing smaller types.
+
+**Why This Matters:** Real applications have nested data. A character has stats, which have individual values. A game has players, which have inventories, which have items. Type composition keeps this manageable.
+
+**Real-World Use:** RPG characters, UI component hierarchies, game configuration systems—all benefit from nested types.
+
+**Step-by-Step Setup:**
+1. Define small, focused types first
+2. Compose them into larger types
+3. Create factory functions that return properly typed objects
 
 **Task**: Build a character system with nested types:
 
@@ -262,6 +360,17 @@ end
 
 ### Exercise 4: Union Types
 
+**Goal:** Handle values that can be one of several different types.
+
+**Why This Matters:** Sometimes a function needs to accept different types. An ID might be a number OR a string. A movement command might be coordinates OR a direction name. Union types handle this safely.
+
+**Real-World Use:** API responses (success or error), form inputs (string or number), game commands (action or direction).
+
+**Step-by-Step Setup:**
+1. Define union types with the `|` operator
+2. Use `type()` to check which type you have
+3. Handle each case appropriately
+
 **Task**: Work with union types:
 
 ```lua
@@ -325,9 +434,34 @@ Direction: left
 Coordinates: (10, 20)
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript union types work the same way
+type ID = number | string;
+
+function printID(id: ID) {
+    if (typeof id === "number") {
+        console.log(`Numeric ID: ${id}`);
+    } else {
+        console.log(`String ID: ${id}`);
+    }
+}
+```
+
 ---
 
 ### Exercise 5: Optional Types
+
+**Goal:** Handle values that might not exist (can be nil).
+
+**Why This Matters:** Not every user has an email. Not every character has a weapon equipped. Optional types let you express "this might be missing" in the type system.
+
+**Real-World Use:** User profiles with optional fields, game inventories with empty slots, configuration with optional overrides.
+
+**Step-by-Step Setup:**
+1. Add `?` after a type to make it optional
+2. Always check for nil before using the value
+3. Use fallback values when appropriate
 
 **Task**: Handle optional values safely:
 
@@ -425,9 +559,33 @@ User 1 category: adult
 User 2 category: unknown
 ```
 
+:::danger Always Check Optionals
+```lua
+-- WRONG: email might be nil!
+sendEmail(user.email)  -- Type error: string? is not string
+
+-- CORRECT: Check first
+if user.email then
+    sendEmail(user.email)  -- Now Luau knows it's string
+end
+```
+:::
+
 ---
 
 ### Exercise 6: Discriminated Unions (State Machines)
+
+**Goal:** Use a "kind" field to distinguish between different states in a union.
+
+**Why This Matters:** State machines are everywhere—loading states, game states, animation states. Discriminated unions let you model these safely, with the type system ensuring you handle all cases.
+
+**Real-World Use:** Network request states (loading/success/error), character states (idle/walking/attacking), UI states (collapsed/expanded).
+
+**Step-by-Step Setup:**
+1. Define each state as a separate type with a `kind` field
+2. Create a union of all states
+3. Check `kind` to determine which state you're in
+4. Luau automatically narrows the type based on the `kind` check
 
 **Context**: A powerful pattern for state machines. Add a `kind` field to distinguish between states.
 
@@ -521,9 +679,39 @@ return function(): Node<StateDemo>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// This pattern is identical in TypeScript!
+type LoadingState = { kind: "idle" };
+type FetchingState = { kind: "fetching"; url: string; progress: number };
+type SuccessState = { kind: "success"; data: string };
+type ErrorState = { kind: "error"; message: string; code: number };
+
+type AppState = LoadingState | FetchingState | SuccessState | ErrorState;
+
+function renderState(state: AppState) {
+    switch (state.kind) {
+        case "idle":
+            console.log("Ready to load...");
+            break;
+        case "fetching":
+            // TypeScript knows state.url and state.progress exist here
+            console.log(`Loading ${state.url}: ${state.progress}%`);
+            break;
+        // ... etc
+    }
+}
+```
+
 ---
 
 ### Exercise 7: Read-Only Properties
+
+**Goal:** Prevent modification of certain properties after initialization.
+
+**Why This Matters:** Some values should never change—configuration constants, version numbers, IDs. Read-only properties enforce this at the type level.
+
+**Real-World Use:** Game configuration, entity IDs, immutable settings.
 
 **Task**: Prevent modification of certain properties:
 
@@ -579,6 +767,16 @@ end
 return function(): Node<ReadOnlyDemo>
     return { init = init, draw = draw }
 end
+```
+
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript uses 'readonly' instead of 'read'
+type ImmutableConfig = {
+    readonly version: string;
+    readonly maxPlayers: number;
+    readonly debug: boolean;
+};
 ```
 
 ---
@@ -637,10 +835,51 @@ end
 
 ## Common Mistakes
 
+:::danger Avoid These Errors
+
 1. **Forgetting required properties**: Table types require ALL non-optional properties
+   ```lua
+   type Enemy = { name: string, health: number }
+
+   -- WRONG: Missing health
+   local enemy: Enemy = { name = "Goblin" }
+
+   -- CORRECT: All properties provided
+   local enemy: Enemy = { name = "Goblin", health = 30 }
+   ```
+
 2. **Not checking optionals**: Always guard `string?` before use
+   ```lua
+   -- WRONG: email might be nil
+   print(user.email:upper())
+
+   -- CORRECT: Check first
+   if user.email then
+       print(user.email:upper())
+   end
+   ```
+
 3. **Accessing union properties without narrowing**: Check the type first
+   ```lua
+   type Result = {success: true, data: string} | {success: false, error: string}
+
+   -- WRONG: Don't know which type yet
+   print(result.data)
+
+   -- CORRECT: Check first
+   if result.success then
+       print(result.data)  -- Luau knows data exists
+   end
+   ```
+
 4. **Confusing `?` and `| nil`**: They're equivalent, but `?` is cleaner
+   ```lua
+   -- Both mean the same thing
+   email: string?
+   email: string | nil
+   ```
+
+:::
 
 ---
 

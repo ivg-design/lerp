@@ -3,6 +3,156 @@ sidebar_position: 4
 title: Resources
 ---
 
+import Quiz from '@site/src/components/Quiz';
+
 # Resources
 
-*Content being migrated...*
+Explore official documentation, community resources, and further learning materials for Rive development.
+
+## Rive Context
+
+Rive scripting uses Luau (Roblox's typed Lua variant) within a custom runtime environment. The resources below will help you deepen your understanding of both the language and the Rive platform.
+
+---
+
+## Official Rive Documentation
+
+### Core References
+
+- **[Rive Documentation](https://rive.app/docs/)** - Official documentation covering the Rive editor, formats, and features
+- **[Rive Community](https://rive.app/community/)** - Browse and remix community-created animations
+- **[Rive YouTube Channel](https://www.youtube.com/@rive-app)** - Video tutorials and feature walkthroughs
+
+### Runtime Integration
+
+- **[Rive Web Runtime](https://rive.app/docs/runtimes/overview)** - Integrate Rive animations into web applications
+- **[Rive iOS Runtime](https://github.com/rive-app/rive-ios)** - Native iOS integration
+- **[Rive Android Runtime](https://github.com/rive-app/rive-android)** - Native Android integration
+- **[Rive Flutter Runtime](https://github.com/rive-app/rive-flutter)** - Flutter plugin for Rive
+
+---
+
+## Luau Language Resources
+
+### Official Luau Documentation
+
+- **[Luau Documentation](https://luau-lang.org/)** - Official language documentation
+- **[Luau Type Checking](https://luau-lang.org/typecheck)** - Deep dive into Luau's type system
+- **[Luau Performance](https://luau-lang.org/performance)** - Understanding Luau's performance characteristics
+
+### Key Language Features
+
+| Feature | Documentation |
+|---------|--------------|
+| Type Annotations | [luau-lang.org/typecheck](https://luau-lang.org/typecheck) |
+| String Interpolation | [luau-lang.org/syntax#string-interpolation](https://luau-lang.org/syntax#string-interpolation) |
+| Generics | [luau-lang.org/typecheck#generics](https://luau-lang.org/typecheck#generics) |
+| Metatables | [luau-lang.org/library#table-library](https://luau-lang.org/library#table-library) |
+
+---
+
+## Community Resources
+
+### Forums and Discussion
+
+- **[Rive Community Forum](https://rive.app/community/)** - Ask questions and share work
+- **[Discord](https://discord.gg/rive)** - Real-time community chat
+
+### Learning Resources
+
+- **[Rive Examples](https://rive.app/community/)** - Community-created examples with source files
+- **[GitHub Rive Organization](https://github.com/rive-app)** - Open source runtimes and tools
+
+---
+
+## Related Technologies
+
+### Animation Fundamentals
+
+- **[The Illusion of Life](https://en.wikipedia.org/wiki/The_Illusion_of_Life:_Disney_Animation)** - Classic animation principles
+- **[Easings.net](https://easings.net/)** - Visual reference for easing functions
+- **[Cubic Bezier](https://cubic-bezier.com/)** - Interactive bezier curve editor
+
+### Graphics and Math
+
+- **[The Book of Shaders](https://thebookofshaders.com/)** - Excellent introduction to graphics programming concepts
+- **[3Blue1Brown Linear Algebra](https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab)** - Visual explanations of vectors and matrices
+- **[Red Blob Games](https://www.redblobgames.com/)** - Interactive tutorials on game development math
+
+---
+
+## Quick Reference Links
+
+### Rive Scripting
+
+| Topic | Link |
+|-------|------|
+| Node Protocol | This course: [Node Protocol](../rive/node-protocol) |
+| Util Protocol | This course: [Util Protocol](../rive/util-protocol) |
+| Inputs | This course: [Inputs](../rive/inputs) |
+| Drawing API | This course: [Drawing API](../advanced/drawing-api) |
+
+### Luau Basics
+
+| Topic | Link |
+|-------|------|
+| Variables | This course: [Variables](../fundamentals/variables) |
+| Functions | This course: [Functions](../fundamentals/functions) |
+| Tables | This course: [Tables](../fundamentals/tables) |
+| Type Annotations | This course: [Type Annotations](../types/intro) |
+
+---
+
+## Recommended Learning Path
+
+### Beginners
+
+1. Complete the **Fundamentals** section of this course
+2. Work through the **Rive** section to understand the protocol
+3. Build the projects in the **Projects** section
+
+### Intermediate
+
+1. Study the **Types** section for strict mode mastery
+2. Explore **OOP** patterns for complex scripts
+3. Read the Luau type checking documentation
+
+### Advanced
+
+1. Deep dive into **Advanced** topics
+2. Study the Rive runtime source code on GitHub
+3. Contribute to the Rive community
+
+---
+
+## Staying Updated
+
+- **[Rive Blog](https://rive.app/blog/)** - Product updates and feature announcements
+- **[Rive Twitter/X](https://twitter.com/abortreve)** - Quick updates and community highlights
+- **[Rive Newsletter](https://rive.app/)** - Subscribe at the bottom of the Rive homepage
+
+---
+
+<Quiz
+  question="Which language does Rive scripting use?"
+  id="resources-q1"
+  options={[
+    { text: "JavaScript" },
+    { text: "Python" },
+    { text: "Luau (typed Lua)", correct: true },
+    { text: "Swift" },
+  ]}
+  explanation="Rive scripting uses Luau, which is Roblox's typed variant of Lua. It adds features like type annotations and string interpolation to standard Lua."
+/>
+
+<Quiz
+  question="Where can you find the official Luau type checking documentation?"
+  id="resources-q2"
+  options={[
+    { text: "lua.org" },
+    { text: "luau-lang.org", correct: true },
+    { text: "roblox.com" },
+    { text: "rive.app" },
+  ]}
+  explanation="The official Luau documentation, including type checking, is hosted at luau-lang.org."
+/>

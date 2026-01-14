@@ -1,8 +1,1575 @@
 ---
 sidebar_position: 8
-title: OOP Patterns
+title: "3.8 OOP Patterns"
+description: Common OOP patterns for Rive - Factory, Prototype, Module, and more
 ---
 
-# OOP Patterns
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 3.8: OOP Patterns
+
+## Learning Objectives
+- Master the Factory pattern for flexible object creation
+- Use the Prototype pattern for efficient object cloning
+- Implement the Module pattern for organized code
+- Apply the Singleton pattern for shared state
+- Use the Observer pattern for reactive updates
+- Choose the right pattern for your Rive use case
+
+---
+
+## AE/JS Syntax Comparison
+
+| Pattern | After Effects | JavaScript/TypeScript | Luau (Rive) |
+|---------|--------------|----------------------|-------------|
+| Factory | N/A | `class Factory { static create(type) {...} }` | `Factory.create(config)` function |
+| Prototype | N/A | `Object.create(proto)` or `structuredClone()` | `template:clone()` method |
+| Module | N/A | ES modules (`export/import`) | IIFE returning table `(function() ... end)()` |
+| Singleton | N/A | `static instance` pattern | IIFE with captured state |
+| Observer | N/A | `EventEmitter` or `addEventListener` | `subscribe/publish` pattern |
+
+:::danger Critical Difference from JavaScript
+**JavaScript/TypeScript**: Has native support for modules, classes, and static members:
+```typescript
+// ES Module
+export class ShapeFactory {
+    static create(type: string): Shape {
+        switch(type) {
+            case 'circle': return new Circle();
+            case 'rect': return new Rectangle();
+        }
+    }
+}
+
+// Singleton
+class Cache {
+    private static instance: Cache;
+    static getInstance(): Cache {
+        if (!this.instance) this.instance = new Cache();
+        return this.instance;
+    }
+}
+```
+
+**Luau**: Uses functions and closures to implement patterns:
+```lua
+-- Factory
+local ShapeFactory = {}
+function ShapeFactory.create(config)
+    if config.type == "circle" then
+        return Circle.new(config.x, config.y, config.radius)
+    elseif config.type == "rect" then
+        return Rectangle.new(config.x, config.y, config.width, config.height)
+    end
+end
+
+-- Singleton (IIFE pattern)
+local Cache = (function()
+    local data = {}  -- Private state captured in closure
+    return {
+        get = function(key) return data[key] end,
+        set = function(key, value) data[key] = value end,
+    }
+end)()
+```
+
+Luau uses **closures and IIFEs** (Immediately Invoked Function Expressions) to achieve what JavaScript does with class syntax.
+:::
+
+---
+
+## Why Patterns Matter in Rive
+
+Rive Node Scripts benefit from established OOP patterns:
+
+- **Factory**: Create different types of drawables, particles, or UI elements
+- **Prototype**: Clone complex objects without re-running expensive setup
+- **Module**: Organize Util scripts with clean public/private separation
+- **Singleton**: Manage shared resources like asset caches or event buses
+- **Observer**: React to state changes for animations and UI updates
+
+**After Effects Comparison**: In AE, you're limited to expressions with no real architectural patterns. Every expression is standalone. In Luau, patterns let you build sophisticated, maintainable systems with reusable components.
+
+Each pattern solves specific problems you'll encounter in Rive development.
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Factory Pattern
+
+**Goal**: Create a factory that produces different shape types from configuration.
+
+**Why This Matters**: Instead of scattering object creation throughout your code, a factory centralizes it. When you need a new shape type, you add it to the factory—no hunting through code to find all the places that create shapes.
+
+**Real-World Use**: A Rive UI toolkit where designers specify component types in data (JSON/XML) and the factory creates the right objects. "Give me a button" vs "Give me a slider" vs "Give me a checkbox".
+
+**After Effects Comparison**: In AE, you'd create separate layers for each shape type. If you wanted to dynamically choose types, you'd need complex conditional expressions. A factory encapsulates all this cleanly.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+interface ShapeConfig {
+    type: 'circle' | 'rectangle' | 'triangle';
+    x: number;
+    y: number;
+    size?: number;
+    width?: number;
+    height?: number;
+    color: Color;
+}
+
+class ShapeFactory {
+    static create(config: ShapeConfig): Shape {
+        switch (config.type) {
+            case 'circle':
+                return new Circle(config.x, config.y, config.size || 20, config.color);
+            case 'rectangle':
+                return new Rectangle(config.x, config.y, config.width || 40, config.height || 40, config.color);
+            case 'triangle':
+                return new Triangle(config.x, config.y, config.size || 40, config.color);
+            default:
+                throw new Error(`Unknown shape type: ${config.type}`);
+        }
+    }
+
+    static createRandom(x: number, y: number): Shape {
+        const types = ['circle', 'rectangle', 'triangle'] as const;
+        const type = types[Math.floor(Math.random() * types.length)];
+        return this.create({ type, x, y, size: 20 + Math.random() * 30, color: randomColor() });
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "FactoryDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Two rows of shapes - configured shapes on top, random shapes below
+
+```lua
+--!strict
+
+-- =====================================================
+-- SHAPE IMPLEMENTATIONS
+-- =====================================================
+
+-- Base shape interface
+export type ShapeType = {
+    x: number,
+    y: number,
+    path: Path,
+    paint: Paint,
+    draw: (ShapeType, Renderer) -> (),
+}
+
+-- Circle implementation
+local Circle = {}
+Circle.__index = Circle
+
+function Circle.new(x: number, y: number, radius: number, color: Color): ShapeType
+    local self = setmetatable({}, Circle)
+    self.x = x
+    self.y = y
+    self.path = Path.new()
+    self.path:addEllipse(Vector.xy(0, 0), radius, radius)
+    self.paint = Paint.with({ style = "fill", color = color })
+    return (self :: any) :: ShapeType
+end
+
+function Circle:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- Rectangle implementation
+local Rectangle = {}
+Rectangle.__index = Rectangle
+
+function Rectangle.new(x: number, y: number, width: number, height: number, color: Color): ShapeType
+    local self = setmetatable({}, Rectangle)
+    self.x = x
+    self.y = y
+    self.path = Path.new()
+    local hw, hh = width / 2, height / 2
+    self.path:moveTo(Vector.xy(-hw, -hh))
+    self.path:lineTo(Vector.xy(hw, -hh))
+    self.path:lineTo(Vector.xy(hw, hh))
+    self.path:lineTo(Vector.xy(-hw, hh))
+    self.path:close()
+    self.paint = Paint.with({ style = "fill", color = color })
+    return (self :: any) :: ShapeType
+end
+
+function Rectangle:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- Triangle implementation
+local Triangle = {}
+Triangle.__index = Triangle
+
+function Triangle.new(x: number, y: number, size: number, color: Color): ShapeType
+    local self = setmetatable({}, Triangle)
+    self.x = x
+    self.y = y
+    self.path = Path.new()
+    local h = size * 0.866  -- height of equilateral triangle
+    self.path:moveTo(Vector.xy(0, -h * 2/3))
+    self.path:lineTo(Vector.xy(size / 2, h / 3))
+    self.path:lineTo(Vector.xy(-size / 2, h / 3))
+    self.path:close()
+    self.paint = Paint.with({ style = "fill", color = color })
+    return (self :: any) :: ShapeType
+end
+
+function Triangle:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- =====================================================
+-- THE FACTORY
+-- =====================================================
+local ShapeFactory = {}
+
+export type ShapeConfig = {
+    type: string,
+    x: number,
+    y: number,
+    size: number?,
+    width: number?,
+    height: number?,
+    radius: number?,
+    color: Color,
+}
+
+-- Main factory method - creates shape from config
+function ShapeFactory.create(config: ShapeConfig): ShapeType?
+    if config.type == "circle" then
+        return Circle.new(config.x, config.y, config.radius or config.size or 20, config.color)
+    elseif config.type == "rectangle" then
+        return Rectangle.new(config.x, config.y, config.width or config.size or 40, config.height or config.size or 40, config.color)
+    elseif config.type == "triangle" then
+        return Triangle.new(config.x, config.y, config.size or 40, config.color)
+    end
+    return nil
+end
+
+-- Convenience: random shape generator
+function ShapeFactory.createRandom(x: number, y: number): ShapeType
+    local types = { "circle", "rectangle", "triangle" }
+    local shapeType = types[math.random(1, 3)]
+    local color = Color.rgb(
+        math.random(100, 255),
+        math.random(100, 255),
+        math.random(100, 255)
+    )
+    return ShapeFactory.create({
+        type = shapeType,
+        x = x,
+        y = y,
+        size = 20 + math.random() * 30,
+        color = color,
+    }) :: ShapeType
+end
+
+-- =====================================================
+-- NODE SCRIPT
+-- =====================================================
+export type FactoryDemo = {
+    shapes: {ShapeType},
+}
+
+function init(self: FactoryDemo): boolean
+    self.shapes = {}
+
+    -- Create shapes from configuration (like data from a file)
+    local configs: {ShapeConfig} = {
+        { type = "circle", x = -80, y = -40, radius = 30, color = Color.rgb(255, 100, 100) },
+        { type = "rectangle", x = 0, y = -40, width = 60, height = 40, color = Color.rgb(100, 255, 100) },
+        { type = "triangle", x = 80, y = -40, size = 50, color = Color.rgb(100, 100, 255) },
+    }
+
+    for _, config in configs do
+        local shape = ShapeFactory.create(config)
+        if shape then
+            table.insert(self.shapes, shape)
+        end
+    end
+
+    -- Add random shapes for variety
+    for i = 1, 5 do
+        local x = -100 + (i - 1) * 50
+        table.insert(self.shapes, ShapeFactory.createRandom(x, 40))
+    end
+
+    return true
+end
+
+function draw(self: FactoryDemo, renderer: Renderer)
+    for _, shape in self.shapes do
+        shape:draw(renderer)
+    end
+end
+
+return function(): Node<FactoryDemo>
+    return {
+        init = init,
+        draw = draw,
+        shapes = {},
+    }
+end
+```
+
+**Key benefits**:
+- Add new shape types without changing client code
+- Centralized object creation logic
+- Easy to create from configuration data (JSON, XML, etc.)
+
+---
+
+### Exercise 2: Prototype Pattern (Clone)
+
+**Goal**: Create complex objects once, then spawn copies efficiently via cloning.
+
+**Why This Matters**: Building complex paths (stars, detailed icons, procedural shapes) is expensive. Instead of rebuilding the same path hundreds of times, create one template and clone it.
+
+**Real-World Use**: A Rive particle system where each particle is a clone of a complex template sprite. Or a game where enemies are clones of pre-configured templates.
+
+**After Effects Comparison**: In AE, you'd duplicate layers. But each duplicate is independent and you can't easily create new copies at runtime. Cloning in Luau lets you spawn instances programmatically.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class Sprite implements Cloneable {
+    path: Path;
+    paint: Paint;
+
+    // Expensive constructor
+    constructor(complexity: number) {
+        this.path = this.buildComplexPath(complexity);
+        this.paint = new Paint({ style: "fill" });
+    }
+
+    // Cheap clone
+    clone(): Sprite {
+        const copy = Object.create(Sprite.prototype);
+        copy.path = this.path.clone();  // Clone the path!
+        copy.paint = new Paint({ style: "fill", color: this.paint.color });
+        return copy;
+    }
+}
+
+// Registry pattern for managing templates
+const SpriteRegistry = {
+    templates: new Map<string, Sprite>(),
+    register(name: string, template: Sprite) { this.templates.set(name, template); },
+    spawn(name: string): Sprite | null {
+        return this.templates.get(name)?.clone() || null;
+    }
+};
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "PrototypeDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Multiple spinning star shapes - expensive templates created once, cheap clones spawned many times
+
+```lua
+--!strict
+
+-- =====================================================
+-- SPRITE WITH EXPENSIVE INITIALIZATION
+-- =====================================================
+local Sprite = {}
+Sprite.__index = Sprite
+
+export type SpriteType = {
+    x: number,
+    y: number,
+    rotation: number,
+    scale: number,
+    path: Path,
+    paint: Paint,
+    _complexity: number,
+}
+
+-- EXPENSIVE constructor - lots of path operations
+function Sprite.new(complexity: number): SpriteType
+    local self = setmetatable({}, Sprite)
+    self.x = 0
+    self.y = 0
+    self.rotation = 0
+    self.scale = 1
+
+    -- Simulate expensive path construction
+    self.path = Path.new()
+    self._complexity = complexity
+
+    -- Build a complex star shape (expensive!)
+    local points = complexity * 2
+    for i = 0, points - 1 do
+        local angle = (i / points) * math.pi * 2 - math.pi / 2
+        local radius = if i % 2 == 0 then 30 else 15
+        local px = math.cos(angle) * radius
+        local py = math.sin(angle) * radius
+        if i == 0 then
+            self.path:moveTo(Vector.xy(px, py))
+        else
+            self.path:lineTo(Vector.xy(px, py))
+        end
+    end
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 100) })
+
+    print(`Created sprite with complexity {complexity} (expensive!)`)
+    return (self :: any) :: SpriteType
+end
+
+-- CHEAP clone method - much faster than new()!
+function Sprite:clone(): SpriteType
+    local copy = setmetatable({}, Sprite)
+    copy.x = self.x
+    copy.y = self.y
+    copy.rotation = self.rotation
+    copy.scale = self.scale
+    copy._complexity = self._complexity
+
+    -- Clone the path (this is the key optimization)
+    copy.path = self.path:clone()
+
+    -- Create new paint with same settings
+    copy.paint = Paint.with({ style = "fill", color = self.paint.color })
+
+    -- Note: No print here - cloning is silent and fast
+    return (copy :: any) :: SpriteType
+end
+
+function Sprite:setPosition(x: number, y: number): SpriteType
+    self.x = x
+    self.y = y
+    return self  -- For chaining
+end
+
+function Sprite:setColor(color: Color): SpriteType
+    self.paint.color = color
+    return self
+end
+
+function Sprite:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:transform(Mat2D.withRotation(self.rotation))
+    renderer:transform(Mat2D.withScale(self.scale, self.scale))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- =====================================================
+-- PROTOTYPE REGISTRY
+-- Manages templates for spawning
+-- =====================================================
+local SpriteRegistry = {}
+local templates: { [string]: SpriteType } = {}
+
+function SpriteRegistry.register(name: string, template: SpriteType)
+    templates[name] = template
+end
+
+function SpriteRegistry.spawn(name: string): SpriteType?
+    local template = templates[name]
+    if template then
+        return template:clone()
+    end
+    return nil
+end
+
+-- =====================================================
+-- NODE SCRIPT
+-- =====================================================
+export type PrototypeDemo = {
+    sprites: {SpriteType},
+    elapsed: number,
+}
+
+function init(self: PrototypeDemo): boolean
+    -- Create expensive templates ONCE
+    print("Creating templates (expensive)...")
+    SpriteRegistry.register("simple", Sprite.new(4))   -- 8-point star
+    SpriteRegistry.register("complex", Sprite.new(12)) -- 24-point star
+
+    self.sprites = {}
+
+    -- Spawn many instances CHEAPLY via cloning
+    print("Spawning instances via clone (cheap)...")
+    for i = 1, 5 do
+        local sprite = SpriteRegistry.spawn("simple")
+        if sprite then
+            sprite:setPosition(-80 + (i - 1) * 40, -30)
+            sprite:setColor(Color.rgb(255, 100 + i * 30, 100))
+            table.insert(self.sprites, sprite)
+        end
+    end
+
+    for i = 1, 3 do
+        local sprite = SpriteRegistry.spawn("complex")
+        if sprite then
+            sprite:setPosition(-40 + (i - 1) * 40, 40)
+            sprite:setColor(Color.rgb(100, 100 + i * 50, 255))
+            table.insert(self.sprites, sprite)
+        end
+    end
+
+    self.elapsed = 0
+    return true
+end
+
+function advance(self: PrototypeDemo, seconds: number): boolean
+    self.elapsed += seconds
+    for i, sprite in self.sprites do
+        sprite.rotation = self.elapsed + i * 0.5
+    end
+    return true
+end
+
+function draw(self: PrototypeDemo, renderer: Renderer)
+    for _, sprite in self.sprites do
+        sprite:draw(renderer)
+    end
+end
+
+return function(): Node<PrototypeDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        sprites = {},
+        elapsed = 0,
+    }
+end
+```
+
+**Key benefits**:
+- Avoid repeated expensive construction
+- Pre-configure templates with complex paths
+- Spawn instances quickly via cloning
+
+---
+
+### Exercise 3: Module Pattern
+
+**Goal**: Organize code into self-contained units with clear public/private boundaries.
+
+**Why This Matters**: As your Rive projects grow, you need organization. Modules let you build reusable Util scripts with clean APIs and hidden implementation details.
+
+**Real-World Use**: An easing module (`Easing.easeOutBounce(t)`) or animation module (`Animate.tween(from, to, duration)`) that any Node script can use.
+
+**After Effects Comparison**: AE expressions have no module system. You can't share code between expressions except by copying. Luau modules let you build reusable libraries.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// ES Module pattern
+export const Easing = {
+    linear: (t: number) => t,
+    easeInQuad: (t: number) => t * t,
+    easeOutQuad: (t: number) => t * (2 - t),
+    easeOutBounce: (t: number) => { /* ... */ },
+};
+
+// Module with private state
+const Animate = (() => {
+    // Private
+    const activeTweens: Tween[] = [];
+
+    // Public API
+    return {
+        tween(from: number, to: number, duration: number, easing?: Function): Tween { /* ... */ },
+        updateAll(dt: number): void { /* ... */ },
+        getActiveCount(): number { return activeTweens.length; },
+    };
+})();
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "ModuleDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A circle that animates with various easing functions
+
+```lua
+--!strict
+
+-- =====================================================
+-- MODULE 1: Easing Functions
+-- Self-contained module with private helpers
+-- =====================================================
+local Easing = (function()
+    -- Private constants
+    local PI = math.pi
+    local HALF_PI = PI / 2
+
+    -- Private helper (not exposed!)
+    local function clamp01(t: number): number
+        return math.max(0, math.min(1, t))
+    end
+
+    -- Public interface
+    return {
+        -- Linear (no easing)
+        linear = function(t: number): number
+            return clamp01(t)
+        end,
+
+        -- Quadratic
+        easeInQuad = function(t: number): number
+            t = clamp01(t)
+            return t * t
+        end,
+
+        easeOutQuad = function(t: number): number
+            t = clamp01(t)
+            return t * (2 - t)
+        end,
+
+        easeInOutQuad = function(t: number): number
+            t = clamp01(t)
+            if t < 0.5 then
+                return 2 * t * t
+            end
+            return -1 + (4 - 2 * t) * t
+        end,
+
+        -- Cubic
+        easeInCubic = function(t: number): number
+            t = clamp01(t)
+            return t * t * t
+        end,
+
+        easeOutCubic = function(t: number): number
+            t = clamp01(t) - 1
+            return t * t * t + 1
+        end,
+
+        -- Elastic
+        easeOutElastic = function(t: number): number
+            t = clamp01(t)
+            if t == 0 or t == 1 then return t end
+            return math.pow(2, -10 * t) * math.sin((t - 0.1) * 5 * PI) + 1
+        end,
+
+        -- Bounce
+        easeOutBounce = function(t: number): number
+            t = clamp01(t)
+            if t < 1 / 2.75 then
+                return 7.5625 * t * t
+            elseif t < 2 / 2.75 then
+                t = t - 1.5 / 2.75
+                return 7.5625 * t * t + 0.75
+            elseif t < 2.5 / 2.75 then
+                t = t - 2.25 / 2.75
+                return 7.5625 * t * t + 0.9375
+            else
+                t = t - 2.625 / 2.75
+                return 7.5625 * t * t + 0.984375
+            end
+        end,
+    }
+end)()  -- IIFE: Immediately Invoked Function Expression
+
+-- =====================================================
+-- MODULE 2: Animation Helpers
+-- Module with private state
+-- =====================================================
+local Animate = (function()
+    -- Types
+    export type TweenType = {
+        update: (number) -> boolean,
+        getValue: () -> number,
+        isComplete: () -> boolean,
+        reset: () -> (),
+    }
+
+    -- Private state for active tweens (module-level)
+    local activeTweens: {TweenType} = {}
+
+    return {
+        -- Create a tween
+        tween = function(
+            from: number,
+            to: number,
+            duration: number,
+            easingFn: ((number) -> number)?
+        ): TweenType
+            local elapsed = 0
+            local value = from
+            local complete = false
+            local easing = easingFn or Easing.linear
+
+            local tween = {
+                update = function(dt: number): boolean
+                    if complete then return false end
+                    elapsed += dt
+                    local t = math.min(1, elapsed / duration)
+                    value = from + (to - from) * easing(t)
+                    if t >= 1 then
+                        complete = true
+                        value = to
+                    end
+                    return not complete
+                end,
+
+                getValue = function(): number
+                    return value
+                end,
+
+                isComplete = function(): boolean
+                    return complete
+                end,
+
+                reset = function()
+                    elapsed = 0
+                    value = from
+                    complete = false
+                end,
+            }
+
+            table.insert(activeTweens, tween)
+            return tween
+        end,
+
+        -- Update all active tweens
+        updateAll = function(dt: number)
+            local stillActive: {TweenType} = {}
+            for _, tween in activeTweens do
+                if tween.update(dt) then
+                    table.insert(stillActive, tween)
+                end
+            end
+            activeTweens = stillActive
+        end,
+
+        -- Clear all tweens
+        clear = function()
+            activeTweens = {}
+        end,
+
+        -- Get active count
+        getActiveCount = function(): number
+            return #activeTweens
+        end,
+    }
+end)()
+
+-- =====================================================
+-- NODE SCRIPT
+-- =====================================================
+export type TweenInterface = {
+    update: (number) -> boolean,
+    getValue: () -> number,
+    isComplete: () -> boolean,
+    reset: () -> (),
+}
+
+export type ModuleDemo = {
+    xTween: TweenInterface,
+    yTween: TweenInterface,
+    scaleTween: TweenInterface,
+    path: Path,
+    paint: Paint,
+    cycleTimer: number,
+}
+
+function init(self: ModuleDemo): boolean
+    -- Create tweens using the module's clean API
+    self.xTween = Animate.tween(-80, 80, 2, Easing.easeInOutQuad)
+    self.yTween = Animate.tween(-40, 40, 1.5, Easing.easeOutBounce)
+    self.scaleTween = Animate.tween(0.5, 1.5, 1, Easing.easeOutElastic)
+
+    self.path = Path.new()
+    self.path:addEllipse(Vector.xy(0, 0), 20, 20)
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 255) })
+    self.cycleTimer = 0
+
+    return true
+end
+
+function advance(self: ModuleDemo, seconds: number): boolean
+    -- Update all tweens via module
+    Animate.updateAll(seconds)
+
+    -- Reset tweens when complete
+    self.cycleTimer += seconds
+    if self.cycleTimer > 2.5 then
+        self.xTween.reset()
+        self.yTween.reset()
+        self.scaleTween.reset()
+        self.cycleTimer = 0
+    end
+
+    return true
+end
+
+function draw(self: ModuleDemo, renderer: Renderer)
+    local x = self.xTween.getValue()
+    local y = self.yTween.getValue()
+    local scale = self.scaleTween.getValue()
+
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(x, y))
+    renderer:transform(Mat2D.withScale(scale, scale))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<ModuleDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        xTween = Animate.tween(0, 0, 1, nil),
+        yTween = Animate.tween(0, 0, 1, nil),
+        scaleTween = Animate.tween(1, 1, 1, nil),
+        path = Path.new(),
+        paint = Paint.new(),
+        cycleTimer = 0,
+    }
+end
+```
+
+**Key benefits**:
+- Clear separation of concerns
+- Private implementation details hidden via IIFE
+- Composable, reusable modules
+
+---
+
+### Exercise 4: Singleton Pattern
+
+**Goal**: Create shared resources that exist as exactly one instance.
+
+**Why This Matters**: Some things should only exist once: an event bus, an asset cache, a configuration store. Singletons ensure global access to these shared resources.
+
+**Real-World Use**: An event bus for decoupled communication between components. A cache for expensive assets (complex paths, computed values) so they're created once and reused.
+
+**After Effects Comparison**: In AE, you might use layer markers or custom properties for shared state. But it's awkward and limited. Singletons in Luau provide clean, typed, global access.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// Singleton: Event Bus
+class EventBus {
+    private static instance: EventBus;
+    private listeners: Map<string, Function[]> = new Map();
+
+    static getInstance(): EventBus {
+        if (!this.instance) this.instance = new EventBus();
+        return this.instance;
+    }
+
+    subscribe(event: string, callback: Function): () => void { /* ... */ }
+    publish(event: string, data: any): void { /* ... */ }
+}
+
+// Usage
+EventBus.getInstance().publish('ball_bounced', { id: 1 });
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "SingletonDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Bouncing balls that publish events when they hit walls, demonstrating global event system
+
+```lua
+--!strict
+
+-- =====================================================
+-- SINGLETON: Event Bus
+-- Global event system for decoupled communication
+-- =====================================================
+local EventBus = (function()
+    -- Private state (only one instance ever)
+    local listeners: { [string]: { (any) -> () } } = {}
+    local eventHistory: { { event: string, data: any, time: number } } = {}
+    local maxHistory = 100
+
+    -- The singleton interface
+    return {
+        subscribe = function(event: string, callback: (any) -> ()): () -> ()
+            if not listeners[event] then
+                listeners[event] = {}
+            end
+            table.insert(listeners[event], callback)
+
+            -- Return unsubscribe function
+            return function()
+                local list = listeners[event]
+                if list then
+                    for i, cb in list do
+                        if cb == callback then
+                            table.remove(list, i)
+                            break
+                        end
+                    end
+                end
+            end
+        end,
+
+        publish = function(event: string, data: any)
+            -- Record history
+            table.insert(eventHistory, {
+                event = event,
+                data = data,
+                time = os.clock(),
+            })
+            if #eventHistory > maxHistory then
+                table.remove(eventHistory, 1)
+            end
+
+            -- Notify listeners
+            local list = listeners[event]
+            if list then
+                for _, callback in list do
+                    callback(data)
+                end
+            end
+        end,
+
+        getHistory = function(): { { event: string, data: any, time: number } }
+            return eventHistory
+        end,
+
+        clear = function()
+            listeners = {}
+            eventHistory = {}
+        end,
+    }
+end)()
+
+-- =====================================================
+-- SINGLETON: Asset Cache
+-- Shared cache for expensive resources
+-- =====================================================
+local AssetCache = (function()
+    local cache: { [string]: any } = {}
+    local hitCount = 0
+    local missCount = 0
+
+    return {
+        get = function<T>(key: string, loader: () -> T): T
+            if cache[key] then
+                hitCount += 1
+                return cache[key]
+            end
+
+            missCount += 1
+            local asset = loader()
+            cache[key] = asset
+            return asset
+        end,
+
+        invalidate = function(key: string)
+            cache[key] = nil
+        end,
+
+        clear = function()
+            cache = {}
+            hitCount = 0
+            missCount = 0
+        end,
+
+        getStats = function(): { hits: number, misses: number, size: number }
+            local size = 0
+            for _ in cache do size += 1 end
+            return { hits = hitCount, misses = missCount, size = size }
+        end,
+    }
+end)()
+
+-- =====================================================
+-- BALL COMPONENT (uses singletons)
+-- =====================================================
+local Ball = {}
+Ball.__index = Ball
+
+export type BallType = {
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    radius: number,
+    path: Path,
+    paint: Paint,
+    id: number,
+}
+
+local ballIdCounter = 0
+
+function Ball.new(x: number, y: number): BallType
+    local self = setmetatable({}, Ball)
+    ballIdCounter += 1
+    self.id = ballIdCounter
+    self.x = x
+    self.y = y
+    self.vx = (math.random() - 0.5) * 100
+    self.vy = (math.random() - 0.5) * 100
+    self.radius = 15
+
+    -- Use cached path (singleton pattern benefit!)
+    self.path = AssetCache.get("ball_path", function()
+        local p = Path.new()
+        p:addEllipse(Vector.xy(0, 0), 15, 15)
+        return p
+    end)
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(math.random(100, 255), math.random(100, 255), math.random(100, 255))
+    })
+
+    -- Publish creation event
+    EventBus.publish("ball_created", { id = self.id, x = x, y = y })
+
+    return (self :: any) :: BallType
+end
+
+function Ball:update(dt: number, bounds: { width: number, height: number })
+    self.x += self.vx * dt
+    self.y += self.vy * dt
+
+    -- Bounce off walls
+    local hw = bounds.width / 2
+    local hh = bounds.height / 2
+
+    if self.x < -hw + self.radius or self.x > hw - self.radius then
+        self.vx = -self.vx
+        self.x = math.clamp(self.x, -hw + self.radius, hw - self.radius)
+        EventBus.publish("ball_bounced", { id = self.id, wall = "horizontal" })
+    end
+
+    if self.y < -hh + self.radius or self.y > hh - self.radius then
+        self.vy = -self.vy
+        self.y = math.clamp(self.y, -hh + self.radius, hh - self.radius)
+        EventBus.publish("ball_bounced", { id = self.id, wall = "vertical" })
+    end
+end
+
+function Ball:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- =====================================================
+-- NODE SCRIPT
+-- =====================================================
+export type SingletonDemo = {
+    balls: {BallType},
+    bounceCount: number,
+    unsubscribe: () -> (),
+}
+
+function init(self: SingletonDemo): boolean
+    self.balls = {}
+    self.bounceCount = 0
+
+    -- Subscribe to events via singleton
+    self.unsubscribe = EventBus.subscribe("ball_bounced", function(data)
+        self.bounceCount += 1
+    end)
+
+    -- Create balls
+    for i = 1, 5 do
+        table.insert(self.balls, Ball.new(
+            (math.random() - 0.5) * 100,
+            (math.random() - 0.5) * 60
+        ))
+    end
+
+    -- Check cache stats
+    local stats = AssetCache.getStats()
+    print(`Cache stats: {stats.hits} hits, {stats.misses} misses, {stats.size} items`)
+
+    return true
+end
+
+function advance(self: SingletonDemo, seconds: number): boolean
+    local bounds = { width = 200, height = 120 }
+    for _, ball in self.balls do
+        ball:update(seconds, bounds)
+    end
+    return true
+end
+
+function draw(self: SingletonDemo, renderer: Renderer)
+    for _, ball in self.balls do
+        ball:draw(renderer)
+    end
+end
+
+return function(): Node<SingletonDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        balls = {},
+        bounceCount = 0,
+        unsubscribe = function() end,
+    }
+end
+```
+
+**Key benefits**:
+- Shared state accessible from anywhere
+- Decoupled communication via events
+- Efficient resource caching
+
+---
+
+### Exercise 5: Observer Pattern
+
+**Goal**: Create reactive data that automatically notifies UI when it changes.
+
+**Why This Matters**: Without Observer, you'd need to manually update every UI component when data changes. Observer automates this - change the data once, all subscribed components update automatically.
+
+**Real-World Use**: A game HUD where health, score, and ammo displays all update automatically when the underlying values change. Change `health.set(50)` and the health bar updates without you calling `healthBar.update()`.
+
+**After Effects Comparison**: AE expressions are inherently reactive - properties update automatically. But you can't create your own reactive systems. Luau's Observer pattern gives you AE-like reactivity for any data.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// Observable wrapper
+class Observable<T> {
+    private value: T;
+    private observers: Set<(newVal: T, oldVal: T) => void> = new Set();
+
+    constructor(initial: T) { this.value = initial; }
+
+    get(): T { return this.value; }
+
+    set(newValue: T): void {
+        if (newValue !== this.value) {
+            const oldValue = this.value;
+            this.value = newValue;
+            this.observers.forEach(cb => cb(newValue, oldValue));
+        }
+    }
+
+    observe(callback: (newVal: T, oldVal: T) => void): () => void {
+        this.observers.add(callback);
+        return () => this.observers.delete(callback);
+    }
+}
+
+// Usage
+const health = new Observable(100);
+health.observe((newVal, oldVal) => {
+    console.log(`Health changed: ${oldVal} -> ${newVal}`);
+    healthBar.setProgress(newVal / 100);
+});
+health.set(80);  // Automatically logs and updates health bar!
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "ObserverDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A health bar that automatically updates and changes color as health decreases
+
+```lua
+--!strict
+
+-- =====================================================
+-- OBSERVABLE: Reactive value wrapper
+-- =====================================================
+local function createObservable<T>(initial: T)
+    local value = initial
+    local observers: { (T, T) -> () } = {}
+
+    return {
+        get = function(): T
+            return value
+        end,
+
+        set = function(newValue: T)
+            if newValue ~= value then
+                local oldValue = value
+                value = newValue
+                -- Notify all observers
+                for _, observer in observers do
+                    observer(newValue, oldValue)
+                end
+            end
+        end,
+
+        observe = function(callback: (T, T) -> ()): () -> ()
+            table.insert(observers, callback)
+            -- Return unsubscribe function
+            return function()
+                for i, cb in observers do
+                    if cb == callback then
+                        table.remove(observers, i)
+                        break
+                    end
+                end
+            end
+        end,
+    }
+end
+
+export type Observable<T> = {
+    get: () -> T,
+    set: (T) -> (),
+    observe: ((T, T) -> ()) -> () -> (),
+}
+
+-- =====================================================
+-- UI COMPONENT: Progress Bar
+-- Reacts to state changes
+-- =====================================================
+local ProgressBar = {}
+ProgressBar.__index = ProgressBar
+
+export type ProgressBarType = {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    progress: number,
+    bgPath: Path,
+    fgPath: Path,
+    bgPaint: Paint,
+    fgPaint: Paint,
+}
+
+function ProgressBar.new(x: number, y: number, width: number, height: number): ProgressBarType
+    local self = setmetatable({}, ProgressBar)
+    self.x = x
+    self.y = y
+    self.width = width
+    self.height = height
+    self.progress = 0
+
+    -- Background
+    self.bgPath = Path.new()
+    self.bgPath:moveTo(Vector.xy(0, 0))
+    self.bgPath:lineTo(Vector.xy(width, 0))
+    self.bgPath:lineTo(Vector.xy(width, height))
+    self.bgPath:lineTo(Vector.xy(0, height))
+    self.bgPath:close()
+
+    self.bgPaint = Paint.with({ style = "fill", color = Color.rgb(60, 60, 60) })
+
+    -- Foreground
+    self.fgPath = Path.new()
+    self.fgPaint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 100) })
+
+    return (self :: any) :: ProgressBarType
+end
+
+function ProgressBar:setProgress(p: number)
+    self.progress = math.clamp(p, 0, 1)
+    self:_rebuildForeground()
+end
+
+function ProgressBar:_rebuildForeground()
+    local fillWidth = self.width * self.progress
+    self.fgPath:reset()
+    if fillWidth > 0 then
+        self.fgPath:moveTo(Vector.xy(0, 0))
+        self.fgPath:lineTo(Vector.xy(fillWidth, 0))
+        self.fgPath:lineTo(Vector.xy(fillWidth, self.height))
+        self.fgPath:lineTo(Vector.xy(0, self.height))
+        self.fgPath:close()
+    end
+
+    -- Color based on progress
+    if self.progress < 0.3 then
+        self.fgPaint.color = Color.rgb(255, 100, 100)  -- Red: danger!
+    elseif self.progress < 0.7 then
+        self.fgPaint.color = Color.rgb(255, 200, 100)  -- Yellow: caution
+    else
+        self.fgPaint.color = Color.rgb(100, 255, 100)  -- Green: good
+    end
+end
+
+function ProgressBar:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.bgPath, self.bgPaint)
+    renderer:drawPath(self.fgPath, self.fgPaint)
+    renderer:restore()
+end
+
+-- =====================================================
+-- NODE SCRIPT
+-- =====================================================
+export type ObserverDemo = {
+    healthObservable: Observable<number>,
+    healthBar: ProgressBarType,
+    damageTimer: number,
+}
+
+function init(self: ObserverDemo): boolean
+    -- Create observable state
+    self.healthObservable = createObservable(100)
+
+    -- Create UI that observes state
+    self.healthBar = ProgressBar.new(-75, -10, 150, 20)
+    self.healthBar:setProgress(1)
+
+    -- Set up observer - UI reacts to state changes AUTOMATICALLY!
+    self.healthObservable.observe(function(newHealth, oldHealth)
+        print(`Health changed: {oldHealth} -> {newHealth}`)
+        self.healthBar:setProgress(newHealth / 100)
+    end)
+
+    self.damageTimer = 0
+    return true
+end
+
+function advance(self: ObserverDemo, seconds: number): boolean
+    self.damageTimer += seconds
+
+    -- Simulate taking damage periodically
+    if self.damageTimer > 0.5 then
+        local currentHealth = self.healthObservable.get()
+        if currentHealth > 0 then
+            -- Setting the observable AUTOMATICALLY updates the UI!
+            self.healthObservable.set(math.max(0, currentHealth - 10))
+        else
+            -- Reset
+            self.healthObservable.set(100)
+        end
+        self.damageTimer = 0
+    end
+
+    return true
+end
+
+function draw(self: ObserverDemo, renderer: Renderer)
+    self.healthBar:draw(renderer)
+end
+
+return function(): Node<ObserverDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        healthObservable = createObservable(100),
+        healthBar = ProgressBar.new(0, 0, 100, 20),
+        damageTimer = 0,
+    }
+end
+```
+
+**Key benefits**:
+- Decoupled state and UI
+- Automatic updates when state changes
+- Easy to add new observers without modifying state logic
+
+---
+
+## Pattern Comparison
+
+| Pattern | Purpose | Memory | Complexity | Use Case |
+|---------|---------|--------|------------|----------|
+| Factory | Create varied objects | Low | Low | Shape types, particle variations |
+| Prototype | Clone complex objects | Medium | Low | Spawning configured sprites |
+| Module | Organize code | Low | Medium | Util scripts, libraries |
+| Singleton | Shared instance | Low | Low | Caches, event buses |
+| Observer | React to changes | Medium | Medium | UI updates, state sync |
+
+---
+
+## Choosing the Right Pattern
+
+**Factory** when:
+- You have multiple object types with similar interfaces
+- Object creation logic is complex or conditional
+- You want to add new types without changing client code
+
+**Prototype** when:
+- Object initialization is expensive
+- You need many similar copies
+- You want to avoid repeated configuration
+
+**Module** when:
+- You're building reusable Util scripts
+- You need clear public/private boundaries
+- You want to organize related functionality
+
+**Singleton** when:
+- You need exactly one instance (cache, event bus)
+- Global access is required
+- State must be shared across components
+
+**Observer** when:
+- Multiple components need to react to state changes
+- You want decoupled communication
+- UI should update automatically with data
+
+---
+
+## Common Mistakes
+
+### Mistake 1: Over-Engineering
+
+```lua
+-- OVERKILL: Factory for one shape type
+local ShapeFactory = {}
+function ShapeFactory.create(config)
+    return Circle.new(config.x, config.y, config.radius)
+end
+
+-- SIMPLER: Just use Circle.new() directly
+local circle = Circle.new(x, y, radius)
+```
+
+### Mistake 2: Wrong Pattern for the Job
+
+```lua
+-- WRONG: Singleton for something that should have multiple instances
+local PlayerSingleton = (function()
+    local name = ""
+    local score = 0
+    return { getName = function() return name end }
+end)()
+-- What if you need 2 players?
+
+-- CORRECT: Use a class or factory instead
+local Player = {}
+function Player.new(name: string)
+    return { name = name, score = 0 }
+end
+```
+
+### Mistake 3: Observer Memory Leaks
+
+```lua
+-- WRONG: Never unsubscribe
+function init(self)
+    healthObservable.observe(function(h)
+        self.display:update(h)
+    end)
+    -- If this node is destroyed, the callback still exists!
+end
+
+-- CORRECT: Store and call unsubscribe
+function init(self)
+    self.unsubscribe = healthObservable.observe(function(h)
+        self.display:update(h)
+    end)
+end
+
+-- Clean up when done
+function cleanup(self)
+    if self.unsubscribe then
+        self.unsubscribe()
+    end
+end
+```
+
+### Mistake 4: Prototype Without Clone
+
+```lua
+-- WRONG: Modifying shared reference
+local sprite = SpriteRegistry.spawn("enemy")
+sprite.path:reset()  -- This modifies the TEMPLATE's path!
+
+-- CORRECT: Clone returns a copy with its own path
+-- (The clone() method should clone the path too)
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What's the main benefit of the Factory pattern?"
+  id="patterns-q1"
+  options={[
+    { text: "Better performance" },
+    { text: "Creating objects without specifying exact types, allowing easy extension", correct: true },
+    { text: "Reduced memory usage" },
+    { text: "Automatic garbage collection" },
+  ]}
+  explanation="The Factory pattern centralizes object creation, making it easy to add new types without changing code that uses the factory."
+/>
+
+<Quiz
+  question="When should you use the Prototype pattern instead of just calling new()?"
+  id="patterns-q2"
+  options={[
+    { text: "Always - it's always better" },
+    { text: "When object initialization is expensive and you need many similar copies", correct: true },
+    { text: "Only for simple objects" },
+    { text: "When you need different object types" },
+  ]}
+  explanation="Prototype is valuable when new() is expensive (complex path building, resource loading). Cloning is much faster than re-running initialization."
+/>
+
+<Quiz
+  question="What makes a Singleton different from a regular module?"
+  id="patterns-q3"
+  options={[
+    { text: "Singletons are faster" },
+    { text: "Singletons maintain state and ensure only one instance exists", correct: true },
+    { text: "Modules can't have private functions" },
+    { text: "There's no difference" },
+  ]}
+  explanation="Singletons maintain persistent state and guarantee a single instance. Modules can be stateless or create multiple instances."
+/>
+
+<Quiz
+  question="What problem does the Observer pattern solve?"
+  id="patterns-q4"
+  options={[
+    { text: "Creating objects efficiently" },
+    { text: "Organizing code into modules" },
+    { text: "Notifying multiple components when state changes without tight coupling", correct: true },
+    { text: "Caching resources" },
+  ]}
+  explanation="Observer decouples state from reactions. Components subscribe to changes without the state needing to know about them."
+/>
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can implement and use the Factory pattern
+- [ ] I understand when Prototype is better than Factory
+- [ ] I can create well-organized Module patterns using IIFEs
+- [ ] I know when Singleton is appropriate
+- [ ] I can implement Observer for decoupled updates
+- [ ] I understand how to properly unsubscribe from observers
+- [ ] I can choose the right pattern for my use case
+
+---
+
+## Module 3 Complete!
+
+You've finished the OOP module. You now understand how to build reusable classes and apply professional design patterns for Rive Node scripts.
+
+**Key takeaways:**
+- Use metatables and `__index` for prototype-based OOP
+- The double-cast pattern `(self :: any) :: Type` satisfies strict mode
+- Intersection types (`Parent & { ... }`) enable typed inheritance
+- Keep hierarchies shallow and focused on shared drawing behavior
+- Use IIFEs `(function() ... end)()` for modules and singletons
+- Observer pattern enables reactive, decoupled UI updates
+- Choose patterns based on the problem, not complexity

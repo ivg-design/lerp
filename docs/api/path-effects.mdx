@@ -1,0 +1,145 @@
+---
+sidebar_position: 7
+title: Path Effects
+description: PathCommand, PathData, PathEffect, and CommandType
+---
+
+# Path Effects
+
+APIs for path commands and scripted path effects.
+
+---
+
+## PathCommand
+
+A single drawing instruction inside a Path.
+
+### Attributes
+
+#### `command.type`
+
+The command type. **Type:** `CommandType` (read-only)
+
+### Methods
+
+#### Length (`#`)
+
+Returns the number of points in the command.
+
+```lua
+local pointCount = #command
+```
+
+**Point counts by type:**
+| Type | Points |
+|------|--------|
+| `moveTo` | 2 |
+| `lineTo` | 2 |
+| `quadTo` | 4 |
+| `cubicTo` | 6 |
+| `close` | 0 |
+
+**See Also:** [CommandType](#commandtype), [PathData](#pathdata)
+
+---
+
+## PathData
+
+Indexed collection of PathCommand objects. Behaves like an array and supports `ipairs` iteration.
+
+### Methods
+
+#### Length (`#`)
+
+Returns the number of commands in the path.
+
+```lua
+local count = #pathData
+```
+
+#### `pathData:contours()`
+
+Returns a ContourMeasure for the first contour. Returns nil if no contours exist.
+
+```lua
+pathData:contours(): ContourMeasure?
+```
+
+#### `pathData:measure()`
+
+Returns a PathMeasure for the entire path.
+
+```lua
+pathData:measure(): PathMeasure
+```
+
+**Example: Iterating Commands**
+```lua
+for i, command in ipairs(pathData) do
+    print(command.type, #command, "points")
+end
+```
+
+**See Also:** [PathCommand](#pathcommand), [ContourMeasure](./drawing#contourmeasure)
+
+---
+
+## PathEffect
+
+Scripted effect applied to a path. Use for custom path transformations.
+
+### Protocol Methods
+
+#### `init(self): boolean`
+
+Called once when the effect is created.
+
+```lua
+function init(self: MyEffect): boolean
+    -- Setup logic
+    return true  -- Return true to keep effect active
+end
+```
+
+#### `update(self, pathData): PathData`
+
+Receives the original path data and returns a modified path.
+
+```lua
+function update(self: MyEffect, pathData: PathData): PathData
+    -- Transform the path
+    return modifiedPathData
+end
+```
+
+#### `advance(self, seconds): boolean`
+
+Optional per-frame update.
+
+```lua
+function advance(self: MyEffect, seconds: number): boolean
+    -- Animation logic
+    return true  -- Continue receiving advance calls
+end
+```
+
+**See Also:** [PathData](#pathdata), [PathMeasure](./drawing#pathmeasure)
+
+---
+
+## CommandType
+
+Enum describing path drawing command types.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `none` | Placeholder (not normally encountered) |
+| `moveTo` | Move to a point without drawing |
+| `lineTo` | Draw a straight line |
+| `quadTo` | Quadratic Bezier curve |
+| `cubicTo` | Cubic Bezier curve |
+| `close` | Close the path |
+
+**See Also:** [PathCommand](#pathcommand)

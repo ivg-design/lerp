@@ -1,14 +1,62 @@
 ---
 sidebar_position: 1
-title: "3.1 Metatables & __index"
-description: Understand metatables and the __index metamethod
+title: "Metatables & __index"
+description: Understand metatables and the __index metamethod - the foundation of OOP in Luau
 ---
 
 import Quiz from '@site/src/components/Quiz';
 
-# Lesson 3.1: Metatables & __index
+# Metatables & __index
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects | JavaScript | Luau (Rive) |
+|---------|---------------|------------|-------------|
+| Object creation | N/A (no objects) | `{ key: value }` or `new Class()` | `{ key = value }` with `setmetatable()` |
+| Method inheritance | N/A | `class extends` or prototype chain | `__index` metamethod |
+| Property lookup | Direct expression refs | `obj.prop` or prototype chain | Table lookup → metatable `__index` |
+| Shared behavior | Copy-paste expressions | Class methods / prototype | Metatable with shared functions |
+| Constructor | N/A | `constructor()` or factory | Factory function with `setmetatable()` |
+| `this` / `self` | `thisLayer`, `thisComp` | `this` keyword | `self` parameter (explicit) |
+
+:::danger Critical Difference: No Built-in Classes or Inheritance
+
+**After Effects**: Has no object-oriented programming. Expressions are purely functional - you write formulas that compute values. You cannot create "objects" that hold state and methods together.
+
+**JavaScript**: Has both prototype-based inheritance (original) and class syntax (ES6+). Classes are syntactic sugar over prototypes.
+
+```javascript
+class Animal {
+    constructor(name) { this.name = name; }
+    speak() { return `${this.name} says hello`; }
+}
+```
+
+**Luau (Rive)**: Has NO `class` keyword. Instead, you use **metatables** - special tables that define custom behavior. The `__index` metamethod creates inheritance by telling Luau "if a key isn't found in this table, look in that other table."
+
+```lua
+-- This is how you create "classes" in Luau
+local Animal = {}
+Animal.__index = Animal  -- Key pattern!
+
+function Animal.new(name)
+    local self = setmetatable({}, Animal)
+    self.name = name
+    return self
+end
+
+function Animal:speak()
+    return `{self.name} says hello`
+end
+```
+
+This is not just syntax difference - it's a fundamentally different mental model. Understanding metatables is **essential** for writing any non-trivial Rive scripts.
+:::
+
+---
 
 ## Learning Objectives
+
 - Understand what metatables are and how they work
 - Use `setmetatable()` to attach behavior to tables
 - Master the `__index` metamethod for property lookup
@@ -35,50 +83,226 @@ Think of a metatable as a "behavior manual" for a table. When Luau doesn't know 
 
 **Real-world analogy**: If you find a device you've never seen before, you'd look for an instruction manual. The metatable is that manual.
 
+**JavaScript Equivalent Concept:**
+
+```typescript
+// JavaScript prototype chain (similar concept)
+const animalProto = {
+    speak() { return `${this.name} says hello`; }
+};
+
+const dog = Object.create(animalProto);
+dog.name = "Rex";
+dog.speak();  // "Rex says hello"
+// dog doesn't have speak(), so JavaScript looks in animalProto
+```
+
+```lua
+-- Luau equivalent
+local animalProto = {
+    speak = function(self)
+        return `{self.name} says hello`
+    end
+}
+
+local dog = setmetatable({ name = "Rex" }, { __index = animalProto })
+print(dog:speak())  -- "Rex says hello"
+-- dog doesn't have speak(), so Luau looks in animalProto via __index
+```
+
 ---
 
-## Standard Rive Pattern (Prototype + Node Script)
+## Exercises
+
+### Exercise 1: Your First Metatable
+
+**Goal**: Create a table that inherits behavior from another table using `__index`.
+
+**Why This Matters**: This is the foundation of ALL object-oriented programming in Luau. Every "class" you create, every reusable component, every Rive drawing helper uses this pattern. Without understanding this, you cannot build anything beyond simple scripts.
+
+**Real-World Use**:
+- Creating multiple sprites that share drawing logic
+- Building particle systems with shared physics
+- Making UI components with common behavior
+- Any reusable animation component
+
+**JavaScript Equivalent**:
+
+```typescript
+// JavaScript: prototype chain
+const defaults = {
+    color: 'red',
+    size: 10,
+    visible: true
+};
+
+const obj = Object.create(defaults);
+obj.color = 'blue';  // Override
+
+console.log(obj.color);    // "blue" (own property)
+console.log(obj.size);     // 10 (from prototype)
+console.log(obj.visible);  // true (from prototype)
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a Node script** in Rive
+
+2. **Type this code**:
 
 ```lua
 --!strict
 
--- Prototype table
+export type FirstMetatable = {}
+
+function init(self: FirstMetatable): boolean
+    -- The "parent" table with default values
+    local defaults = {
+        color = "red",
+        size = 10,
+        visible = true,
+    }
+
+    -- Create a "child" table that inherits from defaults
+    local obj = setmetatable({
+        color = "blue",  -- Override this one
+    }, { __index = defaults })
+
+    -- Test the inheritance
+    print(`obj.color: {obj.color}`)      -- "blue" (found in obj itself)
+    print(`obj.size: {obj.size}`)        -- 10 (NOT in obj, found in defaults via __index)
+    print(`obj.visible: {obj.visible}`)  -- true (NOT in obj, found in defaults via __index)
+
+    -- The lookup process:
+    -- 1. Look for "size" in obj -> not found
+    -- 2. obj has a metatable -> check it
+    -- 3. Metatable has __index -> it's the defaults table
+    -- 4. Look for "size" in defaults -> found! Return 10
+
+    return true
+end
+
+function draw(self: FirstMetatable, renderer: Renderer)
+end
+
+return function(): Node<FirstMetatable>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+3. **Run the script** and observe the Console output
+
+4. **Experiment**: Try adding more properties to `defaults` and accessing them through `obj`
+
+---
+
+### Exercise 2: The Standard Rive Class Pattern
+
+**Goal**: Learn the canonical pattern for creating "classes" in Luau/Rive.
+
+**Why This Matters**: This is THE pattern you'll use in 90% of your Rive scripts. It's how you create reusable sprites, particles, UI components, physics objects, and everything else. Memorize this pattern.
+
+**Real-World Use**:
+- Every drawable component (sprites, shapes, text)
+- Physics simulations (springs, particles, collisions)
+- State machines and animation controllers
+- UI components (buttons, sliders, progress bars)
+
+**JavaScript/TypeScript Equivalent**:
+
+```typescript
+class Thing {
+    x: number;
+    y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
+
+    update(dt: number) {
+        this.x += dt;
+    }
+}
+
+// Usage
+const thing = new Thing(10, 20);
+thing.update(0.016);
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a Node script**
+
+2. **Type this code** - study each line carefully:
+
+```lua
+--!strict
+
+-- STEP 1: Create the "class" table
+-- This table will hold all shared methods
 local Thing = {}
+
+-- STEP 2: Make Thing its own __index
+-- This is the KEY PATTERN: Thing.__index = Thing
+-- It means: "if a key isn't found in an instance, look in Thing"
 Thing.__index = Thing
 
+-- STEP 3: Define the instance type
+-- This describes what data each instance will have
 export type Thing = {
     x: number,
     y: number,
     update: (Thing, number) -> (),
 }
 
+-- STEP 4: Create a constructor (factory function)
+-- This creates new instances with the metatable set
 function Thing.new(x: number, y: number): Thing
+    -- Create empty table, link to Thing via metatable
     local self = setmetatable({}, Thing)
+
+    -- Initialize instance data
     self.x = x
     self.y = y
+
+    -- The double-cast is required for --!strict mode
+    -- It tells the type checker "trust me, this is a Thing"
     return (self :: any) :: Thing
 end
 
+-- STEP 5: Define methods on the class table
+-- These are shared by ALL instances (memory efficient!)
 function Thing:update(dt: number)
     self.x += dt
 end
 
--- Node script
+-- Node script that uses the class
 export type Demo = {
     items: {Thing},
 }
 
 function init(self: Demo): boolean
+    -- Create instances using the constructor
     self.items = {
         Thing.new(0, 0),
         Thing.new(100, 50),
     }
+
+    -- Each instance has its own x, y
+    -- But they SHARE the update method
+    print(`Item 1 x: {self.items[1].x}`)
+    print(`Item 2 x: {self.items[2].x}`)
+
     return true
 end
 
 function advance(self: Demo, seconds: number): boolean
     for _, item in self.items do
-        item:update(seconds)
+        item:update(seconds)  -- Calls shared method
     end
     return true
 end
@@ -96,17 +320,70 @@ return function(): Node<Demo>
 end
 ```
 
+3. **Trace the method lookup**: When you call `item:update(seconds)`:
+   - Look for `update` in `item` → not found
+   - Check metatable → has `__index = Thing`
+   - Look for `update` in `Thing` → found!
+   - Call with `item` as `self`
+
 ---
 
-## Practice Exercises
+### Exercise 3: Shared Drawing Methods with Metatables
 
-### Exercise 1: Shared Drawing Methods with __index
+**Goal**: Use metatables to share drawing logic across multiple drawable instances.
 
-**Goal**: Use a prototype table to share `draw()` across multiple instances.
+**Why This Matters**: In Rive, you often have many similar objects (particles, sprites, UI elements) that all need to draw themselves. Without metatables, you'd duplicate the drawing code for each instance. With metatables, you write the code once and share it.
+
+**Real-World Use**:
+- Particle systems with hundreds of particles
+- Tile-based games with many similar tiles
+- Data visualizations with repeated elements
+- Any scene with multiple similar drawables
+
+**JavaScript Equivalent**:
+
+```typescript
+class Box {
+    position: { x: number, y: number };
+    width: number;
+    height: number;
+    ctx: CanvasRenderingContext2D;
+    color: string;
+
+    constructor(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string) {
+        this.ctx = ctx;
+        this.position = { x, y };
+        this.width = w;
+        this.height = h;
+        this.color = color;
+    }
+
+    rebuild() {
+        // Would rebuild path in canvas context
+    }
+
+    draw() {
+        this.ctx.fillStyle = this.color;
+        this.ctx.fillRect(
+            this.position.x - this.width/2,
+            this.position.y - this.height/2,
+            this.width,
+            this.height
+        );
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a Node script**
+
+2. **Type this code**:
 
 ```lua
 --!strict
 
+-- The "class" for drawable boxes
 local BoxProto = {}
 BoxProto.__index = BoxProto
 
@@ -127,10 +404,14 @@ function BoxProto.new(position: Vector, width: number, height: number, color: Co
     self.height = height
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = color })
+
+    -- Call rebuild to construct the path
     BoxProto.rebuild(self)
+
     return (self :: any) :: Box
 end
 
+-- SHARED METHOD: All boxes use this exact same function
 function BoxProto:rebuild()
     local halfW = self.width / 2
     local halfH = self.height / 2
@@ -143,25 +424,32 @@ function BoxProto:rebuild()
     self.path:close()
 end
 
+-- SHARED METHOD: All boxes use this exact same function
 function BoxProto:draw(renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
+-- Node script
 export type BoxDemo = {
     boxes: {Box},
 }
 
 function init(self: BoxDemo): boolean
+    -- Create multiple boxes - they all SHARE the draw and rebuild methods
+    -- Only the DATA (position, width, height, path, paint) is per-instance
     self.boxes = {
         BoxProto.new(Vector.xy(-80, 0), 120, 80, Color.rgb(255, 80, 90)),
         BoxProto.new(Vector.xy(90, 20), 160, 60, Color.rgb(80, 170, 255)),
+        BoxProto.new(Vector.xy(0, -50), 80, 40, Color.rgb(100, 255, 120)),
     }
+
+    print(`Created {#self.boxes} boxes, all sharing the same draw method`)
     return true
 end
 
 function draw(self: BoxDemo, renderer: Renderer)
     for _, box in self.boxes do
-        box:draw(renderer)
+        box:draw(renderer)  -- Same method called on each, but different self
     end
 end
 
@@ -174,13 +462,43 @@ return function(): Node<BoxDemo>
 end
 ```
 
-**Why this is Rive-specific:** In a Node script, you often want a list of drawables that share logic but store their own `Path` and `Paint`. Metatables give you that without classes.
+3. **Key insight**: The `draw` and `rebuild` functions exist ONCE in memory (in `BoxProto`). Each box instance has its own `path` and `paint`, but they all share the same methods. This is memory-efficient!
 
 ---
 
-### Exercise 2: Default Styles with __index
+### Exercise 4: Default Styles with __index
 
-**Goal**: Use `__index` fallback to keep style defaults in one place.
+**Goal**: Use `__index` fallback to create a style system with defaults.
+
+**Why This Matters**: In real Rive projects, you want consistent styling across many elements but with the ability to override specific properties. The `__index` pattern is perfect for this - define defaults once, override what you need.
+
+**Real-World Use**:
+- Design systems with consistent colors and sizes
+- Theme support (light/dark mode)
+- Configuration with sensible defaults
+- Animation presets with customizable parameters
+
+**JavaScript Equivalent**:
+
+```typescript
+// JavaScript: Object spread for defaults
+const defaults = {
+    thickness: 6,
+    cap: 'round',
+    join: 'round',
+    color: '#2888ff'
+};
+
+// Override only what you need
+const warm = { ...defaults, color: '#ff7844' };
+const cool = { ...defaults, thickness: 10 };
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a Node script**
+
+2. **Type this code**:
 
 ```lua
 --!strict
@@ -188,11 +506,14 @@ end
 export type StrokeDemo = {
     lineA: Path,
     lineB: Path,
+    lineC: Path,
     paintA: Paint,
     paintB: Paint,
+    paintC: Paint,
 }
 
 function init(self: StrokeDemo): boolean
+    -- Define default style settings ONCE
     local defaults = {
         thickness = 6,
         cap = "round",
@@ -200,32 +521,63 @@ function init(self: StrokeDemo): boolean
         color = Color.rgb(40, 180, 255),
     }
 
-    local warm = setmetatable({ color = Color.rgb(255, 120, 60) }, { __index = defaults })
-    local cool = setmetatable({ thickness = 10 }, { __index = defaults })
+    -- Create style variations that inherit from defaults
+    -- Each only specifies what's DIFFERENT
 
+    -- Warm style: only override color
+    local warm = setmetatable({
+        color = Color.rgb(255, 120, 60)
+    }, { __index = defaults })
+
+    -- Cool style: override thickness and color
+    local cool = setmetatable({
+        thickness = 10,
+        color = Color.rgb(60, 200, 180)
+    }, { __index = defaults })
+
+    -- Bold style: only override thickness
+    local bold = setmetatable({
+        thickness = 12
+    }, { __index = defaults })
+
+    -- Create paints using the style objects
+    -- When we access warm.cap, it's not in warm, so we get defaults.cap
     self.paintA = Paint.with({
         style = "stroke",
-        thickness = warm.thickness,
-        cap = warm.cap,
-        join = warm.join,
-        color = warm.color,
+        thickness = warm.thickness,  -- From defaults (6)
+        cap = warm.cap,              -- From defaults ("round")
+        join = warm.join,            -- From defaults ("round")
+        color = warm.color,          -- From warm (orange)
     })
 
     self.paintB = Paint.with({
         style = "stroke",
-        thickness = cool.thickness,
-        cap = cool.cap,
-        join = cool.join,
-        color = cool.color,
+        thickness = cool.thickness,  -- From cool (10)
+        cap = cool.cap,              -- From defaults ("round")
+        join = cool.join,            -- From defaults ("round")
+        color = cool.color,          -- From cool (teal)
     })
 
+    self.paintC = Paint.with({
+        style = "stroke",
+        thickness = bold.thickness,  -- From bold (12)
+        cap = bold.cap,              -- From defaults ("round")
+        join = bold.join,            -- From defaults ("round")
+        color = bold.color,          -- From defaults (blue)
+    })
+
+    -- Create lines
     self.lineA = Path.new()
-    self.lineA:moveTo(Vector.xy(-140, -20))
-    self.lineA:lineTo(Vector.xy(140, -20))
+    self.lineA:moveTo(Vector.xy(-140, -40))
+    self.lineA:lineTo(Vector.xy(140, -40))
 
     self.lineB = Path.new()
-    self.lineB:moveTo(Vector.xy(-120, 40))
-    self.lineB:lineTo(Vector.xy(120, 40))
+    self.lineB:moveTo(Vector.xy(-120, 0))
+    self.lineB:lineTo(Vector.xy(120, 0))
+
+    self.lineC = Path.new()
+    self.lineC:moveTo(Vector.xy(-100, 40))
+    self.lineC:lineTo(Vector.xy(100, 40))
 
     return true
 end
@@ -233,27 +585,64 @@ end
 function draw(self: StrokeDemo, renderer: Renderer)
     renderer:drawPath(self.lineA, self.paintA)
     renderer:drawPath(self.lineB, self.paintB)
+    renderer:drawPath(self.lineC, self.paintC)
 end
 
 return function(): Node<StrokeDemo>
     return {
         init = init,
         draw = draw,
-        lineA = Path.new(),
-        lineB = Path.new(),
-        paintA = Paint.new(),
-        paintB = Paint.new(),
+        lineA = late(),
+        lineB = late(),
+        lineC = late(),
+        paintA = late(),
+        paintB = late(),
+        paintC = late(),
     }
 end
 ```
 
-**Rive takeaway:** Default styles help you keep a consistent look across procedural drawings.
-
 ---
 
-### Exercise 3: Computed Lookups with __index
+### Exercise 5: Computed Properties with __index Function
 
-**Goal**: Use `__index` as a function to compute derived values for hit-testing.
+**Goal**: Use `__index` as a function to compute derived values on-demand.
+
+**Why This Matters**: Sometimes you want properties that are calculated from other properties - like bounding box corners from position and size, or distance from coordinates. Using `__index` as a function lets you compute these only when accessed.
+
+**Real-World Use**:
+- Hit detection with computed bounding boxes
+- Derived animation values
+- Lazy evaluation of expensive calculations
+- Virtual properties that always reflect current state
+
+**JavaScript Equivalent**:
+
+```typescript
+class Box {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+
+    constructor(x: number, y: number, w: number, h: number) {
+        this.x = x; this.y = y; this.width = w; this.height = h;
+    }
+
+    // Computed getters
+    get centerX() { return this.x + this.width / 2; }
+    get centerY() { return this.y + this.height / 2; }
+    get right() { return this.x + this.width; }
+    get bottom() { return this.y + this.height; }
+    get area() { return this.width * this.height; }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a Node script**
+
+2. **Type this code**:
 
 ```lua
 --!strict
@@ -267,17 +656,41 @@ function init(self: HitDemo): boolean
     self.center = Vector.xy(0, 0)
     self.radius = 80
 
-    local hitbox = setmetatable({ center = self.center, radius = self.radius }, {
+    -- Create a hitbox with COMPUTED properties
+    -- When we access hitbox.min or hitbox.max, __index COMPUTES them
+    local hitbox = setmetatable({
+        center = self.center,
+        radius = self.radius
+    }, {
         __index = function(tbl, key)
+            -- This function is called when a key isn't found in tbl
             if key == "min" then
+                -- Compute min corner of bounding box
                 return Vector.xy(tbl.center.x - tbl.radius, tbl.center.y - tbl.radius)
             elseif key == "max" then
+                -- Compute max corner of bounding box
                 return Vector.xy(tbl.center.x + tbl.radius, tbl.center.y + tbl.radius)
+            elseif key == "area" then
+                -- Compute area of bounding box
+                return (tbl.radius * 2) * (tbl.radius * 2)
+            elseif key == "circumference" then
+                -- Compute circumference of circle
+                return 2 * math.pi * tbl.radius
             end
             return nil
         end
     })
 
+    -- These values are COMPUTED when accessed, not stored
+    print(`Hitbox center: ({hitbox.center.x}, {hitbox.center.y})`)
+    print(`Hitbox min: ({hitbox.min.x}, {hitbox.min.y})`)
+    print(`Hitbox max: ({hitbox.max.x}, {hitbox.max.y})`)
+    print(`Hitbox area: {hitbox.area}`)
+    print(`Circle circumference: {hitbox.circumference:.2f}`)
+
+    -- If we change center, min/max automatically update!
+    hitbox.center = Vector.xy(50, 30)
+    print(`\nAfter moving:`)
     print(`Hitbox min: ({hitbox.min.x}, {hitbox.min.y})`)
     print(`Hitbox max: ({hitbox.max.x}, {hitbox.max.y})`)
 
@@ -297,116 +710,83 @@ return function(): Node<HitDemo>
 end
 ```
 
-**Rive takeaway:** Use computed lookups to keep derived geometry centralized and consistent.
+**Key insight**: Unlike stored properties, computed properties via `__index` function always reflect the current state. If `center` changes, `min` and `max` automatically compute correctly.
 
 ---
 
-### Exercise 4: The Self-Referential Pattern
+### Exercise 6: Other Metamethods
 
-**Task**: Implement the canonical OOP pattern in a complete Node script.
+**Goal**: Explore other common metamethods beyond `__index`.
 
-```lua
---!strict
+**Why This Matters**: `__index` is just one of many metamethods. Others let you customize how tables behave with operators (`+`, `-`, `*`), how they convert to strings, and more. This is useful for creating Vector and Matrix types with natural syntax.
 
--- The "Class" table
-local Enemy = {}
-Enemy.__index = Enemy
+**Real-World Use**:
+- Custom Vector math: `v1 + v2`
+- Matrix multiplication: `m1 * m2`
+- Debug printing: `print(myObject)` shows useful info
+- Length operator: `#myList` returns custom count
 
-export type EnemyType = {
-    name: string,
-    health: number,
-}
+**JavaScript Equivalent**:
 
-function Enemy.new(name: string, health: number): EnemyType
-    local instance = setmetatable({}, Enemy)
-    instance.name = name
-    instance.health = health
-    return (instance :: any) :: EnemyType
-end
+```typescript
+// JavaScript doesn't have operator overloading
+// You'd use methods instead:
+class Vector {
+    constructor(public x: number, public y: number) {}
 
-function Enemy:takeDamage(amount: number)
-    self.health -= amount
-    print(`{self.name} takes {amount} damage! HP: {self.health}`)
-end
-
-function Enemy:isAlive(): boolean
-    return self.health > 0
-end
-
-function Enemy:describe()
-    local status = if self:isAlive() then "alive" else "dead"
-    print(`{self.name}: {self.health} HP ({status})`)
-end
-
-export type SelfReferential = {
-    goblin: EnemyType,
-    orc: EnemyType,
-}
-
-function init(self: SelfReferential): boolean
-    self.goblin = Enemy.new("Goblin", 30)
-    self.orc = Enemy.new("Orc", 100)
-
-    self.goblin:describe()
-    self.orc:describe()
-
-    self.goblin:takeDamage(15)
-    self.orc:takeDamage(30)
-
-    self.goblin:takeDamage(20)
-    self.goblin:describe()
-
-    print(`\nGoblin health: {self.goblin.health}`)
-    print(`Orc health: {self.orc.health}`)
-
-    return true
-end
-
-function draw(self: SelfReferential, renderer: Renderer)
-end
-
-return function(): Node<SelfReferential>
-    return {
-        init = init,
-        draw = draw,
-        goblin = Enemy.new("", 0),
-        orc = Enemy.new("", 0),
+    add(other: Vector): Vector {
+        return new Vector(this.x + other.x, this.y + other.y);
     }
-end
+
+    toString(): string {
+        return `Vector(${this.x}, ${this.y})`;
+    }
+}
+
+const v = new Vector(3, 4).add(new Vector(1, 2));
+console.log(v.toString());  // "Vector(4, 6)"
 ```
 
-**Trace the lookup for `goblin:takeDamage(15)`**:
-1. `goblin.takeDamage` - not in goblin table
-2. Check metatable - it's `Enemy`
-3. Check `Enemy.__index` - it's `Enemy` itself
-4. Check `Enemy.takeDamage` - found!
-5. Call with `goblin` as `self`
+**Step-by-Step Setup**:
 
----
+1. **Create a Node script**
 
-### Exercise 5: Other Metamethods
-
-**Task**: Explore other common metamethods in a complete Node script.
+2. **Type this code**:
 
 ```lua
 --!strict
 
+-- Define a metatable with multiple metamethods
 local VectorMeta = {
+    -- __tostring: Called by print() and string interpolation
     __tostring = function(v): string
         return `Vector({v.x}, {v.y})`
     end,
+
+    -- __add: Called by the + operator
     __add = function(a, b)
         return setmetatable({x = a.x + b.x, y = a.y + b.y}, VectorMeta)
     end,
+
+    -- __sub: Called by the - operator
+    __sub = function(a, b)
+        return setmetatable({x = a.x - b.x, y = a.y - b.y}, VectorMeta)
+    end,
+
+    -- __mul: Called by the * operator
     __mul = function(v, scalar)
         if type(scalar) == "number" then
             return setmetatable({x = v.x * scalar, y = v.y * scalar}, VectorMeta)
         end
         error("Can only multiply Vector by number")
     end,
+
+    -- __eq: Called by the == operator
     __eq = function(a, b): boolean
         return a.x == b.x and a.y == b.y
     end,
+
+    -- __len: Called by the # operator
     __len = function(v): number
         return math.sqrt(v.x * v.x + v.y * v.y)
     end,
@@ -421,19 +801,22 @@ export type OtherMetamethods = {}
 
 function init(self: OtherMetamethods): boolean
     local v1 = newVector(3, 4)
-    print(`v1 = {v1}`)
+    print(`v1 = {v1}`)  -- Uses __tostring: "Vector(3, 4)"
 
     local v2 = newVector(1, 2)
-    local v3 = v1 + v2
-    print(`v1 + v2 = {v3}`)
+    local v3 = v1 + v2  -- Uses __add
+    print(`v1 + v2 = {v3}`)  -- "Vector(4, 6)"
 
-    local v4 = v1 * 2
-    print(`v1 * 2 = {v4}`)
+    local v4 = v1 - v2  -- Uses __sub
+    print(`v1 - v2 = {v4}`)  -- "Vector(2, 2)"
 
-    local v5 = newVector(3, 4)
-    print(`v1 == v5? {v1 == v5}`)
+    local v5 = v1 * 2  -- Uses __mul
+    print(`v1 * 2 = {v5}`)  -- "Vector(6, 8)"
 
-    print(`Length of v1: {#v1}`)
+    local v6 = newVector(3, 4)
+    print(`v1 == v6? {v1 == v6}`)  -- Uses __eq: true
+
+    print(`Length of v1: {#v1}`)  -- Uses __len: 5
 
     return true
 end
@@ -449,7 +832,8 @@ return function(): Node<OtherMetamethods>
 end
 ```
 
-**Common Metamethods:**
+**Common Metamethods Reference:**
+
 | Metamethod | Triggered By | Example |
 |------------|--------------|---------|
 | `__index` | Missing key lookup | `t.missingKey` |
@@ -465,6 +849,84 @@ end
 
 ---
 
+## Common Mistakes
+
+### Mistake 1: Forgetting `setmetatable()`
+
+```lua
+-- WRONG: Created metatable but never attached it
+local MyClass = {}
+MyClass.__index = MyClass
+
+function MyClass.new()
+    local self = {}  -- No setmetatable!
+    self.value = 10
+    return self
+end
+
+local obj = MyClass.new()
+obj:someMethod()  -- ERROR: obj doesn't have a metatable!
+
+-- RIGHT: Always use setmetatable
+function MyClass.new()
+    local self = setmetatable({}, MyClass)  -- Attach metatable
+    self.value = 10
+    return self
+end
+```
+
+### Mistake 2: Wrong `__index` Direction
+
+```lua
+-- WRONG: Parent points to child (backwards!)
+local Parent = {}
+local Child = {}
+
+setmetatable(Parent, { __index = Child })  -- WRONG direction!
+
+-- RIGHT: Child points to parent
+setmetatable(Child, { __index = Parent })  -- Child inherits from Parent
+```
+
+### Mistake 3: Expecting `__index` for Existing Keys
+
+```lua
+local t = { x = 10 }
+setmetatable(t, {
+    __index = function(tbl, key)
+        print("Looking up: " .. key)
+        return 0
+    end
+})
+
+print(t.x)  -- Prints "10" - NO __index call! Key exists in t.
+print(t.y)  -- Prints "Looking up: y" then "0" - __index called
+```
+
+### Mistake 4: Forgetting `T.__index = T`
+
+```lua
+-- WRONG: No __index set
+local MyClass = {}
+
+function MyClass.new()
+    return setmetatable({}, MyClass)
+end
+
+function MyClass:doSomething()
+    print("hello")
+end
+
+local obj = MyClass.new()
+obj:doSomething()  -- ERROR! No __index to find the method
+
+-- RIGHT: Set __index to the class itself
+local MyClass = {}
+MyClass.__index = MyClass  -- THIS IS ESSENTIAL
+```
+
+---
+
 ## Knowledge Check
 
 <Quiz
@@ -476,11 +938,11 @@ end
     { text: "Only for string keys" },
     { text: "Never automatically" },
   ]}
-  explanation="__index is only called when the key is not found in the table itself. Existing keys are returned directly."
+  explanation="__index is only called when the key is not found in the table itself. Existing keys are returned directly without consulting the metatable."
 />
 
 <Quiz
-  question="What does MyClass.__index = MyClass do?"
+  question="What does MyClass.__index = MyClass accomplish?"
   id="meta-q2"
   options={[
     { text: "Creates an infinite loop" },
@@ -488,7 +950,7 @@ end
     { text: "Prevents method inheritance" },
     { text: "Makes the class immutable" },
   ]}
-  explanation="This pattern makes instances use the class table as their fallback for missing keys, enabling method sharing."
+  explanation="This pattern makes instances use the class table as their fallback for missing keys. When you call obj:method(), if method isn't in obj, Luau finds it in MyClass."
 />
 
 <Quiz
@@ -500,31 +962,46 @@ end
     { text: "The metatable and the key" },
     { text: "No arguments" },
   ]}
-  explanation="The __index function receives the table being accessed and the key that wasn't found."
+  explanation="The __index function receives the table being accessed and the key that wasn't found: function(tbl, key)"
 />
 
----
-
-## Common Mistakes
-
-1. **Forgetting `setmetatable()`**: Creating a metatable but not attaching it
-2. **Wrong `__index` direction**: Remember, child uses parent as `__index`, not vice versa
-3. **Expecting `__index` for existing keys**: It ONLY fires for missing keys
-4. **Not setting `__index` to self**: `MyClass.__index = MyClass` is essential for methods
+<Quiz
+  question="Why do methods go on the prototype (class table) rather than in each instance?"
+  id="meta-q4"
+  options={[
+    { text: "It's required by Luau" },
+    { text: "To save memory - methods are shared instead of duplicated", correct: true },
+    { text: "Methods don't work in instance tables" },
+    { text: "For type checking purposes" },
+  ]}
+  explanation="Methods on the class table are shared by all instances via metatable lookup. If methods were in each instance, you'd waste memory duplicating the same functions."
+/>
 
 ---
 
 ## Self-Assessment Checklist
 
 - [ ] I can create a metatable and attach it with `setmetatable()`
-- [ ] I understand when `__index` is triggered
+- [ ] I understand when `__index` is triggered (missing keys only)
 - [ ] I can use `__index` with both tables and functions
-- [ ] I can trace the lookup chain through multiple levels
-- [ ] I can implement `__tostring` for better debugging
-- [ ] I understand the self-referential pattern (`T.__index = T`)
+- [ ] I can trace the lookup chain when a method is called
+- [ ] I understand the pattern `MyClass.__index = MyClass`
+- [ ] I can implement other metamethods like `__tostring` and `__add`
+
+---
+
+## Summary
+
+| Concept | Purpose |
+|---------|---------|
+| **Metatable** | Special table that defines custom behavior for another table |
+| **`setmetatable(t, mt)`** | Attaches metatable `mt` to table `t` |
+| **`__index`** | Called when accessing a missing key - enables inheritance |
+| **`T.__index = T`** | Standard pattern - instances inherit methods from class |
+| **Double cast** | `(self :: any) :: Type` satisfies strict mode |
 
 ---
 
 ## Next Up
 
-**[3.2 Building Classes →](./classes)**
+**[Building Classes →](./classes)**

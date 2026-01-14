@@ -1,0 +1,395 @@
+---
+sidebar_position: 2
+title: Drawing
+description: Path, Paint, Gradient, and Renderer for custom drawing
+---
+
+# Drawing
+
+APIs for vector paths, styling, and rendering commands.
+
+---
+
+## Path
+
+Vector path for custom geometry.
+
+### Constructors
+
+#### `Path.new()`
+
+Creates an empty path.
+
+```lua
+Path.new(): Path
+```
+
+### Methods
+
+#### `path:moveTo(point)`
+
+Moves the pen to a new position, starting a new subpath.
+
+```lua
+path:moveTo(point: Vector)
+```
+
+#### `path:lineTo(point)`
+
+Draws a straight line from the current position.
+
+```lua
+path:lineTo(point: Vector)
+```
+
+#### `path:quadTo(control, end)`
+
+Draws a quadratic Bezier curve.
+
+```lua
+path:quadTo(control: Vector, endPoint: Vector)
+```
+
+#### `path:cubicTo(c1, c2, end)`
+
+Draws a cubic Bezier curve.
+
+```lua
+path:cubicTo(controlOut: Vector, controlIn: Vector, endPoint: Vector)
+```
+
+#### `path:close()`
+
+Closes the current subpath with a line to the start.
+
+```lua
+path:close()
+```
+
+#### `path:reset()`
+
+Clears all path data. **Warning:** Don't call while rendering.
+
+```lua
+path:reset()
+```
+
+#### `path:add(other, transform?)`
+
+Merges another path into this one.
+
+```lua
+path:add(other: Path, transform?: Mat2D)
+```
+
+#### `path:measure()`
+
+Returns a PathMeasure for the entire path.
+
+```lua
+path:measure(): PathMeasure
+```
+
+#### `path:contours()`
+
+Returns a ContourMeasure for the first contour.
+
+```lua
+path:contours(): ContourMeasure?
+```
+
+### Operators
+
+#### Length (`#`)
+
+Returns the number of path commands.
+
+```lua
+local commandCount = #path
+```
+
+### Example: Drawing a Triangle
+
+```lua
+local path = Path.new()
+path:moveTo(Vector.xy(50, 0))
+path:lineTo(Vector.xy(100, 100))
+path:lineTo(Vector.xy(0, 100))
+path:close()
+```
+
+**See Also:** [PathMeasure](#pathmeasure), [Renderer.drawPath](#rendererdrawpathpath-paint)
+
+---
+
+## PathMeasure
+
+Measures and manipulates paths.
+
+### Attributes
+
+#### `measure.length`
+
+Total length of the path across all contours. **Type:** `number` (read-only)
+
+#### `measure.isClosed`
+
+True only if the path has exactly one closed contour. **Type:** `boolean` (read-only)
+
+### Methods
+
+#### `measure:positionAndTangent(distance)`
+
+Returns the position and tangent at a distance along the path.
+
+```lua
+measure:positionAndTangent(distance: number): Vector, Vector
+```
+
+**Returns:** position, tangent (both Vector)
+
+**Example:**
+```lua
+local measure = path:measure()
+local pos, tan = measure:positionAndTangent(measure.length / 2)
+```
+
+#### `measure:warp(point)`
+
+Warps a point onto the path. X = distance along path, Y = perpendicular offset.
+
+```lua
+measure:warp(point: Vector): Vector
+```
+
+#### `measure:extract(start, end, dest, startWithMove?)`
+
+Extracts a segment into a destination path.
+
+```lua
+measure:extract(startDist: number, endDist: number, dest: Path, startWithMove?: boolean)
+```
+
+**Example: Animated Line Drawing**
+```lua
+local displayPath = Path.new()
+measure:extract(0, measure.length * progress, displayPath, true)
+```
+
+**See Also:** [ContourMeasure](#contourmeasure), [Path.measure](#pathmeasure-1)
+
+---
+
+## ContourMeasure
+
+Iterator for individual contours within a path. Use with `path:contours()` to iterate through multi-contour paths.
+
+### Attributes
+
+#### `contour.next`
+
+Next contour, or nil if this is the last. **Type:** `ContourMeasure?` (read-only)
+
+> **Note:** ContourMeasure provides iteration only. For length measurement and path manipulation, use [PathMeasure](#pathmeasure) instead.
+
+### Example: Iterating Contours
+
+```lua
+local contour = path:contours()
+local count = 0
+while contour do
+    count += 1
+    contour = contour.next
+end
+print("Path has", count, "contours")
+```
+
+**See Also:** [PathMeasure](#pathmeasure)
+
+---
+
+## Paint
+
+Defines how paths are rendered (fill/stroke, color, etc.).
+
+### Constructors
+
+#### `Paint.new()`
+
+Creates a paint with default settings.
+
+```lua
+Paint.new(): Paint
+```
+
+#### `Paint.with(definition)`
+
+Creates a paint with multiple properties at once.
+
+```lua
+Paint.with(definition: PaintDefinition): Paint
+```
+
+**Example:**
+```lua
+local stroke = Paint.with({
+    style = "stroke",
+    thickness = 3,
+    color = Color.rgb(255, 0, 102),
+    cap = "round",
+    join = "round"
+})
+```
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `style` | `"fill"` or `"stroke"` | Rendering style |
+| `color` | Color | Fill or stroke color |
+| `thickness` | number | Stroke width (stroke only) |
+| `cap` | `"round"`, `"butt"`, `"square"` | Line endings (stroke only) |
+| `join` | `"round"`, `"bevel"`, `"miter"` | Corner style (stroke only) |
+| `blendMode` | BlendMode | Compositing mode |
+| `feather` | number | Feathering amount |
+| `gradient` | Gradient? | Applied gradient |
+
+### Methods
+
+#### `paint:copy(overrides?)`
+
+Creates a copy with optional property overrides.
+
+```lua
+paint:copy(overrides?: PaintDefinition): Paint
+```
+
+**Example:**
+```lua
+local highlight = basePaint:copy({ color = Color.rgb(255, 255, 0) })
+```
+
+**See Also:** [Gradient](#gradient), [Renderer.drawPath](#rendererdrawpathpath-paint)
+
+---
+
+## Gradient
+
+Color gradients for fills.
+
+### Constructors
+
+#### `Gradient.linear(from, to, stops)`
+
+Creates a linear gradient.
+
+```lua
+Gradient.linear(from: Vector, to: Vector, stops: {GradientStop}): Gradient
+```
+
+**Example:**
+```lua
+local gradient = Gradient.linear(
+    Vector.xy(0, 0),
+    Vector.xy(100, 0),
+    {
+        { position = 0, color = Color.rgb(255, 0, 0) },
+        { position = 1, color = Color.rgb(0, 0, 255) }
+    }
+)
+```
+
+#### `Gradient.radial(center, radius, stops)`
+
+Creates a radial gradient.
+
+```lua
+Gradient.radial(center: Vector, radius: number, stops: {GradientStop}): Gradient
+```
+
+### GradientStop Type
+
+```lua
+type GradientStop = {
+    position: number,  -- 0.0 to 1.0
+    color: Color
+}
+```
+
+**See Also:** [GradientStop](./styling#gradientstop)
+
+---
+
+## Renderer
+
+Drawing commands and state management. Passed to `draw()` functions.
+
+### Methods
+
+#### `renderer:drawPath(path, paint)`
+
+Draws a path with the specified paint.
+
+```lua
+renderer:drawPath(path: Path, paint: Paint)
+```
+
+#### `renderer:drawImage(image, sampler, blendMode, opacity)`
+
+Draws an image.
+
+```lua
+renderer:drawImage(image: Image, sampler: ImageSampler, blend: BlendMode, opacity: number)
+```
+
+#### `renderer:drawImageMesh(image, vertices, uvs, indices)`
+
+Draws an image using mesh data (vertices, UVs, and triangle indices).
+
+#### `renderer:save()`
+
+Pushes the current state (transform, clip) onto the stack.
+
+```lua
+renderer:save()
+```
+
+#### `renderer:restore()`
+
+Pops the last saved state. **Always pair with `save()`!**
+
+```lua
+renderer:restore()
+```
+
+#### `renderer:transform(mat)`
+
+Applies a transformation to subsequent drawing.
+
+```lua
+renderer:transform(mat: Mat2D)
+```
+
+#### `renderer:clipPath(path)`
+
+Restricts drawing to the path region until `restore()`.
+
+```lua
+renderer:clipPath(path: Path)
+```
+
+### Example: Drawing a Rotated Object
+
+```lua
+function draw(self, renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:transform(Mat2D.withRotation(self.angle))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+```
+
+**Warning:** Unbalanced `save()`/`restore()` calls cause rendering bugs in later frames.
+
+**See Also:** [Mat2D](./core-types#mat2d), [Path](#path), [Paint](#paint)

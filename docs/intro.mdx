@@ -7,6 +7,8 @@ slug: /
 
 import Quiz from '@site/src/components/Quiz';
 import Term from '@site/src/components/Term';
+import FillBlanks from '@site/src/components/FillBlanks';
+import ParsonsProblem from '@site/src/components/ParsonsProblems';
 
 # LERP: Luau Education for Rive Professionals
 
@@ -75,6 +77,36 @@ Let's see what you already know!
     { text: "Graphics" },
   ]}
   explanation="Path is one of the core Drawing API types in Rive, along with Paint and Renderer."
+/>
+
+### Fill in the Blanks
+
+<FillBlanks
+  id="intro-fill1"
+  code={`function __BLANK__(self: MyScript): __BLANK__
+    self.count = 0
+    return __BLANK__
+end`}
+  blanks={["init", "boolean", "true"]}
+  hints={["Lifecycle function called once at start", "Return type for success/failure", "Return value indicating success"]}
+  explanation="The init function returns a boolean - true means the script initialized successfully."
+/>
+
+### Arrange the Code
+
+<ParsonsProblem
+  id="intro-parsons1"
+  description="Put these lines in order to create a valid Node script factory function:"
+  blocks={[
+    "return function(): Node<MyScript>",
+    "    return {",
+    "        init = init,",
+    "        draw = draw,",
+    "    }",
+    "end",
+  ]}
+  hint="The factory function returns a table with lifecycle functions."
+  explanation="Node scripts end with a factory function that returns a table containing the lifecycle functions (init, draw, advance, etc.)."
 />
 
 ## Ready to Begin?

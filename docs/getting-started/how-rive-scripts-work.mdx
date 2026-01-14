@@ -1,0 +1,586 @@
+---
+sidebar_position: 3
+title: How Rive Scripts Work
+description: Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+
+# How Rive Scripts Work
+
+:::info For Complete Beginners
+This page explains **why** Rive scripts look the way they do. If you've never programmed before, or if you're coming from After Effects expressions or JavaScript, this will make everything click.
+:::
+
+## The Big Picture: What Is a Rive Script?
+
+A Rive script is a small program that runs **inside** your Rive animation. Unlike a web page's JavaScript that runs once when the page loads, a Rive script runs **continuously** — potentially 60 times per second — to animate your graphics in real-time.
+
+Think of it like this:
+
+| Regular Code | Rive Script |
+|-------------|-------------|
+| Runs once and stops | Runs every frame (60 times/second) |
+| You control when it starts | Rive controls when it runs |
+| Variables exist until page closes | Variables must be carefully managed |
+| You call functions when ready | Rive calls YOUR functions automatically |
+
+---
+
+## Why Can't I Just Write Code?
+
+In After Effects expressions or regular JavaScript, you write code and it runs:
+
+```javascript
+// After Effects expression - just write it!
+value + [100, 0]
+
+// JavaScript - just write it!
+console.log("Hello!");
+```
+
+But Rive scripts can't work this way because:
+
+1. **Rive needs to call your code at specific times** (when initializing, when drawing, when advancing)
+2. **Your code runs repeatedly**, so data must persist between runs
+3. **Multiple copies of your script can exist** on different objects
+
+This is why Rive scripts have a specific **structure** or "protocol" — it's how Rive knows what code to run and when.
+
+---
+
+## The Protocol: A Contract With Rive
+
+A "protocol" is like a contract. Rive promises to call certain functions at certain times, and you promise to provide those functions in a specific format.
+
+### The Minimum Valid Script
+
+Here's the smallest script that works:
+
+```lua
+--!strict
+
+export type MyScript = {}
+
+function init(self: MyScript): boolean
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+end
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**That's 17 lines before you even do anything!** Let's understand WHY each part exists.
+
+---
+
+## Breaking Down Each Part
+
+### 1. `--!strict` — Catching Mistakes Early
+
+```lua
+--!strict
+```
+
+**What it does:** Turns on "strict mode" — the type checker analyzes your code before it runs.
+
+**Why it exists:** Without this, typos become runtime errors. With it, the editor catches mistakes immediately.
+
+**Coming from JavaScript?** This is like TypeScript's strict mode. Without it, you can write `const x = "hello"; x.toFixed(2)` and it fails at runtime. With strict mode, you catch it immediately.
+
+**Coming from After Effects?** AE expressions don't have this — errors only show when the expression runs. Strict mode is like having a spell-checker that also checks your logic.
+
+:::tip Real Benefit
+If you mistype a variable name or call a function with wrong arguments, you'll see a red underline immediately — not a runtime crash.
+:::
+
+---
+
+### 2. `export type MyScript = {}` — Describing Your Data
+
+```lua
+export type MyScript = {
+    health: number,
+    name: string,
+}
+```
+
+**What it does:** Defines the "shape" of your script's persistent data.
+
+**Why it exists:** Rive creates an object for your script, and this tells Rive what properties that object will have. The type checker uses this to ensure you don't accidentally access properties that don't exist.
+
+**Coming from JavaScript?** This is like TypeScript's interface:
+```typescript
+// JavaScript/TypeScript equivalent
+interface MyScript {
+    health: number;
+    name: string;
+}
+```
+
+**Coming from After Effects?** AE expressions don't have typed data structures. You just use variables. The `export type` is how you declare "my script will have these values that persist between frames."
+
+**Why "export"?** The `export` keyword makes the type visible to Rive's type system. Without it, Rive can't verify your script is correctly structured.
+
+---
+
+### 3. `function init(self: MyScript): boolean` — Running Once at Startup
+
+```lua
+function init(self: MyScript): boolean
+    self.health = 100
+    print("Script started!")
+    return true
+end
+```
+
+**What it does:** Runs **once** when your script starts. This is where you set up initial values.
+
+**The strange syntax explained:**
+
+| Part | Meaning |
+|------|---------|
+| `self: MyScript` | The first parameter is your script's data object, with the type `MyScript` |
+| `: boolean` at the end | This function must return `true` or `false` |
+| `return true` | Tells Rive "initialization succeeded, keep running" |
+
+**Coming from JavaScript?**
+```javascript
+// JavaScript mental model
+function init(self /*: MyScript */) /*: boolean */ {
+    self.health = 100;
+    console.log("Script started!");
+    return true; // Keep running
+}
+```
+
+**Coming from After Effects?** This is similar to running code at time=0. But instead of checking `if (time === 0)`, Rive automatically calls `init` once at the start.
+
+**Why return true/false?**
+- `return true` = "Everything is fine, keep my script running"
+- `return false` = "Something went wrong, disable my script"
+
+---
+
+### 4. `function draw(self: MyScript, renderer: Renderer)` — Rendering Every Frame
+
+```lua
+function draw(self: MyScript, renderer: Renderer)
+    -- Drawing code goes here
+end
+```
+
+**What it does:** Called every frame when Rive needs to draw your graphics.
+
+**Why it exists:** Rive's rendering system needs to know what to draw. The `renderer` parameter is how you tell Rive to draw shapes, paths, etc.
+
+**Even if empty, it must exist!** Rive needs this function to recognize your script as a Node script. Without it, you can't attach the script to nodes.
+
+**Coming from JavaScript Canvas?**
+```javascript
+// Similar concept in Canvas
+function draw(ctx) {
+    ctx.fillRect(0, 0, 100, 100);
+}
+requestAnimationFrame(draw);
+```
+
+---
+
+### 5. `return function(): Node<MyScript>` — The Factory Function
+
+This is the most confusing part for beginners. Let's break it down:
+
+```lua
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**What it does:** Returns a "factory" — a function that creates new instances of your script.
+
+**Why it exists:** You might attach your script to 10 different objects. Each one needs its own separate data. The factory function creates a fresh copy for each.
+
+**Coming from JavaScript classes?**
+```javascript
+// JavaScript mental model
+class MyScript {
+    constructor() {
+        this.health = 100;
+    }
+
+    init() {
+        return true;
+    }
+
+    draw(renderer) {
+        // ...
+    }
+}
+
+// The factory is like:
+export default () => new MyScript();
+```
+
+**Why not just write the code directly?**
+
+If you had:
+```lua
+-- WRONG: No factory
+local data = { health = 100 }  -- Only ONE copy ever!
+```
+
+Then every object using this script would share the same `health` variable! When one object takes damage, ALL objects take damage.
+
+The factory pattern ensures each object gets its own fresh data:
+```lua
+-- RIGHT: Factory creates fresh data for each object
+return function()
+    return {
+        health = late(),  -- Each object gets its own health
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+## What is `self`?
+
+The `self` parameter is your script's **persistent data storage**. It's passed to every function so you can access and modify your data.
+
+```lua
+function init(self: MyScript): boolean
+    self.score = 0  -- Store initial score
+    return true
+end
+
+function advance(self: MyScript, elapsed: number): boolean
+    self.score += 1  -- Update score
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+    print(self.score)  -- Read score
+end
+```
+
+**Coming from JavaScript classes?** `self` is like `this`:
+```javascript
+class MyScript {
+    init() {
+        this.score = 0;
+    }
+
+    advance(elapsed) {
+        this.score += 1;
+    }
+}
+```
+
+**Why `self` instead of `this`?** Luau (and Lua) don't have a `this` keyword. By convention, the first parameter is named `self` and serves the same purpose.
+
+---
+
+## What is `late()`?
+
+You'll see this mysterious function in scripts:
+
+```lua
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+        health = late(),  -- What does this mean?
+    }
+end
+```
+
+**What it does:** `late()` is a placeholder that says "this value will be set later."
+
+**Why it exists:** When the factory function runs, you can't yet create Rive objects like `Path.new()` or `Paint.new()`. Those only work inside `init()`. So you use `late()` to tell the type system "trust me, I'll set this in `init()`."
+
+**When to use `late()`:**
+```lua
+export type MyScript = {
+    path: Path,        -- Rive object → use late()
+    paint: Paint,      -- Rive object → use late()
+    startTime: number, -- Set in init() → use late()
+    speed: Input<number>,  -- Input → use DIRECT VALUE, not late()
+}
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),    -- Will be set in init()
+        paint = late(),   -- Will be set in init()
+        startTime = late(), -- Will be set in init()
+        speed = 100,      -- Direct default value for Input
+    }
+end
+```
+
+**The rule:**
+- `Input<T>` properties → direct default value
+- Everything else set in `init()` → `late()`
+
+---
+
+## What is `Input<T>`?
+
+Inputs are values that appear in the Rive Editor's inspector panel, allowing designers to tweak values without editing code.
+
+```lua
+export type MyScript = {
+    speed: Input<number>,
+    playerName: Input<string>,
+    isEnabled: Input<boolean>,
+}
+```
+
+**Accessing Input values:**
+```lua
+function init(self: MyScript): boolean
+    -- Inputs are read directly in this course
+    print(self.speed)       -- The number, e.g. 100
+    print(self.playerName)  -- The string, e.g. "Hero"
+    print(self.isEnabled)   -- The boolean, e.g. true
+    return true
+end
+```
+
+Inputs are still read-only, but you access them directly (e.g., `self.speed`).
+
+---
+
+## The Complete Picture
+
+Here's how everything fits together:
+
+```lua
+--!strict  -- ① Turn on type checking
+
+-- ② Define what data your script stores
+export type GameScript = {
+    path: Path,               -- Rive drawing object
+    paint: Paint,             -- Rive styling object
+    score: number,            -- Persistent data
+    speed: Input<number>,     -- Editor-editable input
+}
+
+-- ③ Initialization (runs once)
+function init(self: GameScript): boolean
+    -- Create Rive objects
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.paint.color = Color.rgba(255, 0, 0, 255)
+
+    -- Set initial values
+    self.score = 0
+
+    print(`Starting with speed: {self.speed}`)
+    return true  -- Keep running
+end
+
+-- ④ Update logic (runs every frame, optional)
+function advance(self: GameScript, elapsed: number): boolean
+    self.score += self.speed * elapsed
+    return true  -- Keep running
+end
+
+-- ⑤ Drawing (runs every frame)
+function draw(self: GameScript, renderer: Renderer)
+    self.path:reset()
+    self.path:circle(Vector.xy(100, 100), 50)
+    renderer:drawPath(self.path, self.paint)
+end
+
+-- ⑥ Factory function (creates instances)
+return function(): Node<GameScript>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        -- Rive objects and computed values: late()
+        path = late(),
+        paint = late(),
+        score = late(),
+        -- Inputs: direct default values
+        speed = 100,
+    }
+end
+```
+
+---
+
+## Lifecycle: When Things Run
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    RIVE STARTS YOUR SCRIPT                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Factory Function                          │
+│    Creates a new table with your properties and functions    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                         init()                               │
+│    Runs ONCE. Set up Rive objects and initial state.        │
+│    Return true to continue, false to abort.                  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+       ┌──────────────────────────────────────────┐
+       │         MAIN LOOP (every frame)          │
+       │                                          │
+       │  ┌────────────────────────────────────┐  │
+       │  │           advance()                │  │
+       │  │  Update logic, physics, animation  │  │
+       │  │  Return false to stop the script   │  │
+       │  └────────────────────────────────────┘  │
+       │                    │                     │
+       │                    ▼                     │
+       │  ┌────────────────────────────────────┐  │
+       │  │            draw()                  │  │
+       │  │  Render graphics using renderer    │  │
+       │  └────────────────────────────────────┘  │
+       │                    │                     │
+       │                    ▼                     │
+       │           (next frame...)               │
+       └──────────────────────────────────────────┘
+```
+
+---
+
+## AE Expressions vs Luau: Quick Comparison
+
+| Concept | After Effects | Luau/Rive |
+|---------|--------------|-----------|
+| Run timing | Evaluates for each frame | `advance()` and `draw()` run each frame |
+| Setup code | `if (time === 0)` check | `init()` function |
+| Persistent data | Not available | `self.variableName` |
+| Types | None | `export type`, annotations |
+| Variables | `var x = 5;` | `local x = 5` |
+| Functions | `function f() {}` | `function f() end` |
+| Not equal | `!==` | `~=` |
+| String join | `"a" + "b"` | `"a" .. "b"` or interpolation |
+| Array length | `arr.length` | `#arr` |
+| Comments | `// comment` | `-- comment` |
+| Blocks | `{ }` | `then`/`do`/`end` |
+
+---
+
+## JavaScript vs Luau: Quick Comparison
+
+| Concept | JavaScript | Luau |
+|---------|-----------|------|
+| Variable | `let x = 5;` | `local x = 5` |
+| Constant | `const x = 5;` | `local x = 5` (no const) |
+| Function | `function f() {}` | `function f() end` |
+| Arrow | `(x) => x * 2` | `function(x) return x * 2 end` |
+| Not equal | `!==` | `~=` |
+| And/Or | `&&` / `||` | `and` / `or` |
+| Not | `!x` | `not x` |
+| String join | `"a" + "b"` | `"a" .. "b"` |
+| Template | `` `Hello ${name}` `` | `` `Hello {name}` `` |
+| Array | `[1, 2, 3]` | `{1, 2, 3}` |
+| Object | `{a: 1}` | `{a = 1}` |
+| Array length | `arr.length` | `#arr` |
+| For loop | `for (let i = 0; i < 10; i++)` | `for i = 0, 9 do ... end` |
+| For-each | `for (const item of arr)` | `for _, item in arr do ... end` |
+| If | `if (x) { }` | `if x then ... end` |
+| Else | `else { }` | `else ... end` |
+| Null | `null` / `undefined` | `nil` |
+| This | `this.x` | `self.x` |
+| Class | `class X {}` | (no classes, use tables) |
+| Falsy | `false, 0, "", null, undefined` | `false, nil` only |
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Why does a Rive script need a factory function?"
+  id="how-q1"
+  options={[
+    { text: "To make the code run faster" },
+    { text: "To create separate data for each object using the script", correct: true },
+    { text: "To connect to the Rive server" },
+    { text: "Factory functions are optional" },
+  ]}
+  explanation="The factory function creates a fresh set of data for each object. Without it, all objects would share the same data, causing unintended interactions."
+/>
+
+<Quiz
+  question="What does 'return true' in init() mean?"
+  id="how-q2"
+  options={[
+    { text: "The script calculated a true value" },
+    { text: "Initialization succeeded, keep the script running", correct: true },
+    { text: "The script should restart" },
+    { text: "Debug mode is enabled" },
+  ]}
+  explanation="Returning true from init() tells Rive that initialization succeeded and the script should continue running. Returning false would disable the script."
+/>
+
+<Quiz
+  question="When should you use late() vs a direct value?"
+  id="how-q3"
+  options={[
+    { text: "late() for everything, direct values never" },
+    { text: "Direct values for Input<T>, late() for values set in init()", correct: true },
+    { text: "late() for numbers, direct values for strings" },
+    { text: "They're interchangeable" },
+  ]}
+  explanation="Input<T> properties need direct default values in the factory. Everything else that gets set in init() (like Path, Paint, computed values) uses late()."
+/>
+
+<Quiz
+  question="What is 'self' in a Rive script?"
+  id="how-q4"
+  options={[
+    { text: "A reserved keyword like 'this' in JavaScript" },
+    { text: "The script's persistent data object passed to each function", correct: true },
+    { text: "A global variable" },
+    { text: "The Rive editor" },
+  ]}
+  explanation="'self' is the first parameter passed to lifecycle functions. It's your script's data object, containing all the properties defined in your export type."
+/>
+
+---
+
+## Summary: The Essential Pattern
+
+Every Rive script follows this pattern:
+
+1. **Enable strict mode** (`--!strict`)
+2. **Define your data type** (`export type`)
+3. **Implement lifecycle functions** (`init`, `draw`, optionally `advance`)
+4. **Return a factory function** that creates instances
+
+Once you understand WHY each part exists, the structure becomes second nature!
+
+---
+
+## Next Steps
+
+Now that you understand the structure, let's learn the language itself:
+
+**[→ Variables, Types & Operators](/fundamentals/variables)**

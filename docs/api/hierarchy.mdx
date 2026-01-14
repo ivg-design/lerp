@@ -1,0 +1,91 @@
+---
+sidebar_position: 10
+title: Hierarchy
+description: NodeData, NodeReadData, and Layout
+---
+
+# Hierarchy
+
+Node data access and layout scripting.
+
+---
+
+## NodeData
+
+Writable node data with transform properties and hierarchy access.
+
+### Attributes
+
+#### `node.children`
+
+Child nodes. **Type:** table of NodeData (read-only)
+
+#### `node.parent`
+
+Parent node, or nil if root. **Type:** `NodeData?` (read-only)
+
+### Methods
+
+#### `node:decompose(worldTransform)`
+
+Updates position, rotation, and scale from a world transform matrix.
+
+```lua
+node:decompose(worldTransform: Mat2D)
+```
+
+**See Also:** [NodeReadData](#nodereaddata)
+
+---
+
+## NodeReadData
+
+Read-only node data providing transform properties.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `position` | Vector | Local position |
+| `rotation` | number | Local rotation in radians |
+| `scale` | Vector | Local scale |
+| `worldTransform` | Mat2D | World transform matrix |
+| `x` | number | Local position X |
+| `y` | number | Local position Y |
+| `scaleX` | number | Local scale X |
+| `scaleY` | number | Local scale Y |
+| `paint` | Paint? | Paint data (if Path node) |
+
+**See Also:** [NodeData](#nodedata), [Mat2D](./core-types#mat2d)
+
+---
+
+## Layout
+
+Scripted layout that fits into layout boxes.
+
+### Protocol Methods
+
+#### `measure(self)`
+
+Optional. Enables intrinsic sizing. After measurement, `resize()` is called with granted dimensions.
+
+```lua
+function measure(self: MyLayout): Vector
+    -- Request specific size (may be constrained by min/max)
+    return Vector.xy(100, 100)
+end
+```
+
+#### `resize(self, size)`
+
+Required. Called on initial size and whenever size changes.
+
+```lua
+function resize(self: MyLayout, size: Vector)
+    self.width = size.x
+    self.height = size.y
+end
+```
+
+**Note:** Layout scripts function like Node scripts but respond to layout box sizing.

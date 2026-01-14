@@ -16,9 +16,35 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
+## AE/JS Syntax Comparison
+
+If you're coming from After Effects expressions or JavaScript, here's how Luau's type system compares:
+
+| Concept | JavaScript/AE | Luau (Rive) | Notes |
+|---------|--------------|-------------|-------|
+| Variable with type | `let x = 5` (inferred) | `local x: number = 5` | Luau uses `:` for type annotations |
+| Function parameters | `function foo(x) {}` | `function foo(x: number)` | Parameters need explicit types |
+| Return type | Implicit | `function foo(): number` | Return types come after `)` |
+| Type checking mode | None (runtime only) | `--!strict` | Luau catches errors at compile time |
+| Optional type | `x?: number` (TypeScript) | `x: number?` | `?` comes AFTER the type name |
+| Union type | `x: number \| string` (TS) | `x: number \| string` | Same syntax! |
+| Type alias | `type X = number` (TS) | `type X = number` | Same syntax! |
+| Interface/Object type | `{ name: string }` (TS) | `{ name: string }` | Same syntax! |
+| Any type | `any` (TS) | `any` | Avoid when possible |
+
+:::danger Critical Difference
+**JavaScript has NO compile-time type checking.** Errors happen at runtime when your code runs.
+
+**Luau with `--!strict` catches type errors BEFORE your code runs.** This is why Rive requires strict mode—bugs are caught during development, not when users see your animation.
+:::
+
+---
+
 ## Rive Context
 
 Rive scripts run in `--!strict` mode by default. That means your script must define types for persistent state and inputs, and the engine enforces them.
+
+**Why does this matter?** When your animation runs on a user's device, there's no debugger. Strict mode catches bugs during development so your animation works reliably everywhere.
 
 Key rules in Rive:
 - Use `export type` to describe your script instance (`self`)
@@ -62,6 +88,27 @@ local function greet(name: string): string
 end
 ```
 
+**JavaScript Equivalent:**
+```javascript
+// JavaScript (no type checking)
+let age = 25;
+let name = "Hero";
+let active = true;
+
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+
+// TypeScript (similar to Luau)
+let age: number = 25;
+let name: string = "Hero";
+let active: boolean = true;
+
+function greet(name: string): string {
+    return `Hello, ${name}!`;
+}
+```
+
 ## Type Inference
 
 Luau can often infer types automatically:
@@ -71,13 +118,26 @@ local score = 100        -- Luau infers: number
 local items = {"a", "b"} -- Luau infers: {string}
 ```
 
+**Why This Matters:** You don't need to annotate every single variable. Luau is smart enough to figure out obvious types. But for function parameters and complex structures, explicit types prevent errors.
+
 ---
 
 ## Practice Exercises
 
 ### Exercise 1: Enable Strict Mode
 
-**Part A**: Create a Node Script with this buggy code (NO strict mode):
+**Goal:** Understand how `--!strict` catches bugs that would otherwise slip through.
+
+**Why This Matters:** In JavaScript and AE expressions, type bugs crash at runtime—sometimes only in specific conditions. Strict mode catches them during development, saving hours of debugging.
+
+**Real-World Use:** Every professional Rive animation uses strict mode. It's the difference between "works on my machine" and "works everywhere."
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Start WITHOUT the strict directive to see what happens
+3. Then add `--!strict` to see the errors
+
+**Part A - WITHOUT strict mode (DON'T DO THIS IN PRODUCTION):**
 
 ```lua
 export type BuggyScript = {}
@@ -102,7 +162,16 @@ end
 
 **Question 1**: What happens when you run this? Does it catch the bug?
 
-**Part B**: Now add `--!strict` at the very top:
+**JavaScript Equivalent:**
+```javascript
+// This would also fail silently in JavaScript!
+let damage = "50";  // String, not number
+let health = 100;
+let result = health - damage;  // JavaScript converts "50" to 50 (coercion)
+console.log(result);  // Prints 50, but this hides a bug!
+```
+
+**Part B - WITH strict mode (DO THIS):**
 
 ```lua
 --!strict
@@ -118,6 +187,18 @@ export type BuggyScript = {}
 ---
 
 ### Exercise 2: Variable Type Annotations
+
+**Goal:** Learn the syntax for annotating variables with their types.
+
+**Why This Matters:** When you see `local level: number = 15`, you immediately know what kind of data `level` holds. This makes code readable and prevents accidental misuse.
+
+**Real-World Use:** In a game character script, you'd annotate health, position, and inventory to ensure you never accidentally assign a string to a number field.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add the `--!strict` directive
+3. Copy the code below
+4. Run to see the output
 
 **Task**: Add type annotations to ALL variables:
 
@@ -152,9 +233,34 @@ return function(): Node<CharacterStats>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript (similar concept)
+let playerName: string = "Warrior";
+let level: number = 15;
+let experience: number = 2500.75;
+let isAlive: boolean = true;
+let inventory: string[] = ["sword", "shield", "potion"];
+let position: { x: number, y: number } = { x: 100, y: 200 };
+```
+
+**Key Difference:** In TypeScript, arrays use `string[]` or `Array<string>`. In Luau, it's `{string}` with curly braces.
+
 ---
 
 ### Exercise 3: Function Type Annotations
+
+**Goal:** Learn how to annotate function parameters and return types.
+
+**Why This Matters:** When you call `calculateDamage(50, "armor")` by mistake, strict mode catches it immediately. Without types, this bug might only appear in specific gameplay scenarios.
+
+**Real-World Use:** Game logic functions like damage calculation, collision detection, and animation timing all benefit from typed parameters.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add the `--!strict` directive
+3. Implement the functions with proper type annotations
+4. Test by calling them in `init()`
 
 **Task**: Add complete type annotations (parameters AND return types):
 
@@ -207,9 +313,41 @@ return function(): Node<FunctionTypes>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript
+function add(a: number, b: number): number {
+    return a + b;
+}
+
+function average(numbers: number[]): number {
+    if (numbers.length === 0) return 0;
+    return numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
+}
+
+function calculateDamage(baseDamage: number, armor: number): number {
+    return Math.max(0, baseDamage - armor);
+}
+
+function createGreeting(name: string): string {
+    return `Welcome, ${name}!`;
+}
+```
+
 ---
 
 ### Exercise 4: Type Inference Investigation
+
+**Goal:** Understand when Luau can infer types and when you must provide them explicitly.
+
+**Why This Matters:** You don't want to over-annotate (clutters code), but you also can't under-annotate (causes errors). This exercise teaches the balance.
+
+**Real-World Use:** Professional code uses inference for obvious cases (like `local x = 5`) but explicit types for function signatures and empty collections.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add the `--!strict` directive
+3. Try uncommenting the problem lines to see errors
 
 **Task**: For each variable, predict what type Luau infers:
 
@@ -247,13 +385,44 @@ return function(): Node<InferenceTest>
 end
 ```
 
-**Key insight**: Empty tables (`{}`) MUST have explicit type annotations in strict mode because Luau cannot infer what type of elements they will contain.
+:::danger Critical Rule
+**Empty tables (`{}`) MUST have explicit type annotations in strict mode** because Luau cannot infer what type of elements they will contain.
+
+```lua
+-- WRONG - Error in strict mode
+local items = {}
+
+-- CORRECT - Explicit type
+local items: {string} = {}
+```
+:::
+
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript has the same inference behavior
+let a = 42;              // number (inferred)
+let b = "hello";         // string (inferred)
+
+// Empty arrays also need types in TypeScript
+let items: string[] = [];  // Must specify type
+```
 
 ---
 
 ### Exercise 5: Type Refinement
 
+**Goal:** Learn how Luau automatically narrows types based on control flow checks.
+
+**Why This Matters:** When you have a `string?` (optional string), you can't use it directly—it might be nil. But after an `if value then` check, Luau knows it's definitely a string. This is called "type narrowing" or "refinement."
+
+**Real-World Use:** When loading user data, many fields might be optional. Type refinement lets you handle missing data safely.
+
 **Context**: Luau tracks types through control flow. This is called "type refinement" or "narrowing."
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add the `--!strict` directive
+3. Study how the `if` checks affect what types Luau allows
 
 ```lua
 --!strict
@@ -325,9 +494,44 @@ return function(): Node<RefinementTest>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript has the same type narrowing feature
+type UserProfile = {
+    name: string;
+    email?: string;  // Optional (string | undefined)
+};
+
+function processUser(user: UserProfile) {
+    if (user.email) {
+        // TypeScript knows email is string here, not undefined
+        sendEmail(user.email);
+    }
+}
+
+function processValue(value: number | string): number {
+    if (typeof value === "number") {
+        return value * 2;
+    } else {
+        return value.length;
+    }
+}
+```
+
 ---
 
 ### Exercise 6: Real-World Rive Types
+
+**Goal:** Learn how to use Rive's built-in types correctly with proper constructors.
+
+**Why This Matters:** Rive has special types like `Vector`, `Color`, `Path`, and `Paint`. You can't just use plain tables—you must use the constructors. This exercise teaches the correct patterns.
+
+**Real-World Use:** Every Rive animation that draws custom graphics uses `Path` and `Paint`. Every animation that positions elements uses `Vector`.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add the `--!strict` directive
+3. Note the use of `late()` for values set in `init()`
 
 **Task**: Fix the type errors in this Rive script:
 
@@ -366,6 +570,34 @@ return function(): Node<RiveTypesDemo>
         paint = late(),
     }
 end
+```
+
+:::danger Common Mistake - Plain Tables vs Rive Constructors
+```lua
+-- WRONG - Plain table is NOT a Vector
+self.position = {x = 100, y = 50}  -- Type error!
+
+-- CORRECT - Use the Vector constructor
+self.position = Vector.xy(100, 50)
+
+-- WRONG - String is NOT a Color
+self.color = "#FF0000"  -- Type error!
+
+-- CORRECT - Use the Color constructor
+self.color = Color.rgba(255, 0, 0, 255)
+```
+:::
+
+**JavaScript Equivalent (conceptually):**
+```javascript
+// In JavaScript, you might use plain objects:
+let position = { x: 100, y: 50 };
+
+// In Rive/Luau, you MUST use constructors:
+// self.position = Vector.xy(100, 50)
+
+// This is similar to how you'd use a class in JS:
+// let position = new Vector(100, 50);
 ```
 
 ---
@@ -420,11 +652,57 @@ end
 
 ## Common Mistakes
 
+:::danger Avoid These Errors
+
 1. **Forgetting `--!strict`**: Always add it as the first line
-2. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
-3. **Wrong Rive constructors**: Use `Vector.xy()` not plain tables
-4. **Not checking optionals**: Always guard `string?` before using as `string`
+   ```lua
+   -- WRONG: No directive
+   export type MyScript = {}
+
+   -- CORRECT: Strict mode enabled
+   --!strict
+   export type MyScript = {}
+   ```
+
+2. **Empty tables without types**:
+   ```lua
+   -- WRONG
+   local t = {}
+
+   -- CORRECT
+   local t: {string} = {}
+   ```
+
+3. **Wrong Rive constructors**:
+   ```lua
+   -- WRONG
+   self.position = {x = 100, y = 50}
+
+   -- CORRECT
+   self.position = Vector.xy(100, 50)
+   ```
+
+4. **Not checking optionals**:
+   ```lua
+   -- WRONG: email might be nil
+   sendEmail(user.email)
+
+   -- CORRECT: Check first
+   if user.email then
+       sendEmail(user.email)
+   end
+   ```
+
 5. **Redundant annotations**: Don't annotate when inference is obvious
+   ```lua
+   -- Unnecessary (Luau knows it's number)
+   local x: number = 5
+
+   -- Better (let Luau infer)
+   local x = 5
+   ```
+
+:::
 
 ---
 

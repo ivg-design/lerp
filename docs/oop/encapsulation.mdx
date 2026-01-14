@@ -1,8 +1,1328 @@
 ---
 sidebar_position: 7
-title: Encapsulation
+title: "3.7 Encapsulation"
+description: Private state patterns and closures for encapsulation in Rive
 ---
 
-# Encapsulation
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 3.7: Encapsulation
+
+## Learning Objectives
+- Understand encapsulation and why it matters
+- Use closures to create truly private state
+- Implement the module pattern for encapsulated objects
+- Know the trade-offs of different privacy approaches
+- Apply encapsulation patterns in Rive Node Scripts
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects | JavaScript/TypeScript | Luau (Rive) |
+|---------|--------------|----------------------|-------------|
+| Private variable | N/A | `private x = 0;` or `#x = 0;` | Closure-captured variable |
+| Protected variable | N/A | `protected x = 0;` | No equivalent (use conventions) |
+| Public variable | `thisProperty` | `public x = 0;` | Regular table field |
+| Getter | `thisProperty.value` | `get x() { return this.#x; }` | `getX = function() return x end` |
+| Setter | N/A | `set x(v) { this.#x = v; }` | `setX = function(v) x = v end` |
+| Private convention | N/A | `_privateField` | `_privateField` (same) |
+
+:::danger Critical Difference from JavaScript/TypeScript
+**TypeScript**: Has built-in `private` and `protected` keywords enforced by the compiler
+```typescript
+class Player {
+    private health: number = 100;      // Can't access from outside
+    protected maxHealth: number = 100;  // Only subclasses can access
+    public name: string = "Hero";       // Anyone can access
+
+    getHealth(): number {
+        return this.health;  // Access inside class is fine
+    }
+}
+
+const player = new Player();
+player.health = 999;  // ERROR: Property 'health' is private
+```
+
+**Luau**: Has NO privacy keywords - use closures for TRUE privacy
+```lua
+local function createPlayer(name: string)
+    -- These variables are TRULY private (not on any object)
+    local health = 100
+    local maxHealth = 100
+
+    return {
+        name = name,  -- Public
+        getHealth = function() return health end,
+        setHealth = function(h: number)
+            health = math.min(h, maxHealth)
+        end,
+    }
+end
+
+local player = createPlayer("Hero")
+print(player.health)  -- nil! Doesn't exist on the table
+print(player.getHealth())  -- 100 (through getter)
+```
+
+In Luau, **closures are the ONLY way** to enforce true privacy. Underscore prefixes (`_privateField`) are just conventions that rely on programmer discipline.
+:::
+
+---
+
+## Why Encapsulation Matters in Rive
+
+In Rive Node Scripts, encapsulation helps you:
+
+- **Protect internal state** of animation controllers and physics systems
+- **Hide implementation details** of complex drawable components
+- **Prevent accidental modification** of critical properties like paths and paints
+- **Create clean APIs** for reusable Util scripts
+
+**After Effects Comparison**: In AE, expressions have limited scope and can only access values through specific properties. You can't really "protect" data - anyone can modify any property. In Luau, closures give you TRUE privacy that JavaScript's `private` keyword only approximates.
+
+---
+
+## The Problem: No Built-in Privacy
+
+Lua tables are completely open by default - anyone can access or modify any field:
+
+```lua
+local player = {
+    health = 100,
+    _maxHealth = 100,  -- Convention: underscore means "private"
+}
+
+-- But nothing stops this:
+player._maxHealth = 9999  -- Oops, broke the game balance!
+player.health = 999999    -- Cheating made easy!
+```
+
+**JavaScript has the same problem** with underscore conventions:
+```javascript
+const player = {
+    health: 100,
+    _maxHealth: 100,  // "Private" by convention
+};
+
+player._maxHealth = 9999;  // Still works! Convention doesn't enforce anything
+```
+
+Naming conventions (`_privateField`) are just hints - they don't enforce anything in either language.
+
+---
+
+## Solution 1: Closure-Based Privacy
+
+Closures can capture variables that are truly inaccessible from outside:
+
+```lua
+local function createCounter()
+    -- This variable is TRULY private
+    local count = 0
+
+    return {
+        increment = function()
+            count = count + 1
+        end,
+        get = function()
+            return count
+        end,
+    }
+end
+
+local c = createCounter()
+c.increment()
+print(c.get())  -- 1
+print(c.count)  -- nil! Can't access it - doesn't exist on the table
+```
+
+**JavaScript equivalent** (using closures, not classes):
+```javascript
+function createCounter() {
+    // This variable is truly private
+    let count = 0;
+
+    return {
+        increment() { count++; },
+        get() { return count; },
+    };
+}
+
+const c = createCounter();
+c.increment();
+console.log(c.get());  // 1
+console.log(c.count);  // undefined! Can't access it
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Encapsulated State Machine
+
+**Goal**: Create a state machine where the current state and transitions are truly private.
+
+**Why This Matters**: In a game or interactive animation, you don't want code to be able to set arbitrary states. The state machine should enforce valid transitions only.
+
+**Real-World Use**: A Rive character animation that can only transition between valid states (idle → walking → running, but NOT idle → flying directly). Prevents bugs and cheating.
+
+**After Effects Comparison**: In AE, you might use an expression selector or if/else chain to manage states. But anyone can set the state variable to any value. In Luau, closures enforce that only valid transitions are allowed.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class StateMachine {
+    #currentState: string;  // Private field (ES2022+)
+    #transitions: Map<string, string[]> = new Map();
+    #history: string[] = [];
+
+    constructor(initial: string) {
+        this.#currentState = initial;
+        this.#history.push(initial);
+    }
+
+    addTransition(from: string, to: string): void {
+        if (!this.#transitions.has(from)) {
+            this.#transitions.set(from, []);
+        }
+        this.#transitions.get(from)!.push(to);
+    }
+
+    transition(to: string): boolean {
+        const allowed = this.#transitions.get(this.#currentState);
+        if (allowed?.includes(to)) {
+            this.#currentState = to;
+            this.#history.push(to);
+            return true;
+        }
+        return false;
+    }
+
+    getState(): string { return this.#currentState; }
+    getHistory(): string[] { return [...this.#history]; }  // Return copy!
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "StateMachineDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Console output showing valid and invalid state transitions
+
+```lua
+--!strict
+
+-- Factory function that creates an encapsulated state machine
+local function createStateMachine(initialState: string)
+    -- =====================================================
+    -- PRIVATE STATE - completely inaccessible from outside
+    -- =====================================================
+    local currentState = initialState
+    local history: {string} = { initialState }
+    local transitions: { [string]: {string} } = {}
+
+    -- Return public interface only
+    return {
+        -- Add allowed transition
+        addTransition = function(from: string, to: string)
+            if not transitions[from] then
+                transitions[from] = {}
+            end
+            table.insert(transitions[from], to)
+        end,
+
+        -- Attempt state transition (enforces rules!)
+        transition = function(to: string): boolean
+            local allowed = transitions[currentState]
+            if allowed then
+                for _, state in allowed do
+                    if state == to then
+                        currentState = to
+                        table.insert(history, to)
+                        return true
+                    end
+                end
+            end
+            print(`Transition from {currentState} to {to} not allowed`)
+            return false
+        end,
+
+        -- Get current state (read-only)
+        getState = function(): string
+            return currentState
+        end,
+
+        -- Get history (returns a COPY, not the original!)
+        getHistory = function(): {string}
+            local copy = {}
+            for _, s in history do
+                table.insert(copy, s)
+            end
+            return copy
+        end,
+    }
+end
+
+export type StateMachineDemo = {
+    machine: {
+        addTransition: (string, string) -> (),
+        transition: (string) -> boolean,
+        getState: () -> string,
+        getHistory: () -> {string},
+    },
+}
+
+function init(self: StateMachineDemo): boolean
+    -- Create encapsulated state machine
+    self.machine = createStateMachine("idle")
+
+    -- Define allowed transitions
+    self.machine.addTransition("idle", "walking")
+    self.machine.addTransition("idle", "jumping")
+    self.machine.addTransition("walking", "idle")
+    self.machine.addTransition("walking", "running")
+    self.machine.addTransition("running", "walking")
+    self.machine.addTransition("jumping", "idle")
+
+    -- Test valid transitions
+    print(`Initial state: {self.machine.getState()}`)
+
+    self.machine.transition("walking")
+    print(`After walking: {self.machine.getState()}`)
+
+    self.machine.transition("running")
+    print(`After running: {self.machine.getState()}`)
+
+    -- Try INVALID transition (running -> jumping is not defined!)
+    self.machine.transition("jumping")  -- Will print error, won't change state
+    print(`After invalid: {self.machine.getState()}`)  -- Still "running"
+
+    -- Show history
+    local hist = self.machine.getHistory()
+    print(`History: {table.concat(hist, " -> ")}`)
+
+    -- Can't cheat! These fields don't exist on the returned table:
+    -- self.machine.currentState = "flying"  -- ERROR: field doesn't exist!
+    -- self.machine.transitions = {}         -- ERROR: field doesn't exist!
+
+    return true
+end
+
+function draw(self: StateMachineDemo, renderer: Renderer)
+end
+
+return function(): Node<StateMachineDemo>
+    return {
+        init = init,
+        draw = draw,
+        machine = createStateMachine(""),
+    }
+end
+```
+
+**Key insight**: `currentState`, `history`, and `transitions` are captured in closures. There's NO way to access them except through the provided functions. This is stronger than JavaScript's `private` keyword!
+
+---
+
+### Exercise 2: Encapsulated Animation Controller
+
+**Goal**: Create a spring animation controller with private physics state.
+
+**Why This Matters**: Physics simulations have internal state (velocity, position) that shouldn't be modified directly. External code should only be able to set targets and read positions.
+
+**Real-World Use**: A Rive button that springs into position when hovered. The spring physics are hidden - external code just calls `setTarget()` and `getPosition()`.
+
+**After Effects Comparison**: In AE, you might use the built-in `wiggle()` or `ease()` functions. You can't create your own physics system with protected state. In Luau, you can build sophisticated physics with encapsulated internal state.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+function createSpringController(initial: number, stiffness: number, damping: number) {
+    // Private state
+    let position = initial;
+    let velocity = 0;
+    let target = initial;
+    let isSettled = true;
+
+    return {
+        setTarget(t: number) {
+            target = t;
+            isSettled = false;
+        },
+        step(dt: number) {
+            if (isSettled) return;
+            const displacement = target - position;
+            velocity += displacement * stiffness * dt;
+            velocity *= Math.max(0, 1 - damping * dt);
+            position += velocity * dt;
+            // Check if settled...
+        },
+        getPosition(): number { return position; },
+        getVelocity(): number { return velocity; },
+    };
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "SpringDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A circle that smoothly springs around the artboard following a circular path
+
+```lua
+--!strict
+
+-- Encapsulated spring animation controller
+local function createSpringController(initial: number, stiffness: number, damping: number)
+    -- =====================================================
+    -- PRIVATE STATE - physics internals are hidden
+    -- =====================================================
+    local position = initial
+    local velocity = 0
+    local target = initial
+    local isSettled = true
+    local settleThreshold = 0.01
+
+    return {
+        setTarget = function(t: number)
+            target = t
+            isSettled = false
+        end,
+
+        step = function(dt: number)
+            if isSettled then return end
+
+            -- Spring physics (users can't mess with this!)
+            local displacement = target - position
+            velocity = velocity + displacement * stiffness * dt
+            velocity = velocity * math.max(0, 1 - damping * dt)
+            position = position + velocity * dt
+
+            -- Check if settled
+            if math.abs(displacement) < settleThreshold and math.abs(velocity) < settleThreshold then
+                position = target
+                velocity = 0
+                isSettled = true
+            end
+        end,
+
+        getPosition = function(): number
+            return position
+        end,
+
+        getVelocity = function(): number
+            return velocity
+        end,
+
+        isMoving = function(): boolean
+            return not isSettled
+        end,
+
+        snap = function(value: number)
+            position = value
+            target = value
+            velocity = 0
+            isSettled = true
+        end,
+    }
+end
+
+export type SpringControllerType = {
+    setTarget: (number) -> (),
+    step: (number) -> (),
+    getPosition: () -> number,
+    getVelocity: () -> number,
+    isMoving: () -> boolean,
+    snap: (number) -> (),
+}
+
+export type AnimControllerDemo = {
+    xSpring: SpringControllerType,
+    ySpring: SpringControllerType,
+    path: Path,
+    paint: Paint,
+    elapsed: number,
+}
+
+function init(self: AnimControllerDemo): boolean
+    -- Create encapsulated controllers (different stiffness/damping)
+    self.xSpring = createSpringController(0, 50, 8)
+    self.ySpring = createSpringController(0, 30, 6)
+
+    self.path = Path.new()
+    self.path:addEllipse(Vector.xy(0, 0), 20, 20)
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 255) })
+    self.elapsed = 0
+
+    return true
+end
+
+function advance(self: AnimControllerDemo, seconds: number): boolean
+    self.elapsed += seconds
+
+    -- Periodically set new targets (circular motion)
+    if math.floor(self.elapsed) % 2 == 0 then
+        local angle = self.elapsed * 0.5
+        self.xSpring.setTarget(math.cos(angle) * 80)
+        self.ySpring.setTarget(math.sin(angle) * 60)
+    end
+
+    -- Update springs
+    self.xSpring.step(seconds)
+    self.ySpring.step(seconds)
+
+    return true
+end
+
+function draw(self: AnimControllerDemo, renderer: Renderer)
+    local x = self.xSpring.getPosition()
+    local y = self.ySpring.getPosition()
+
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(x, y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<AnimControllerDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        xSpring = createSpringController(0, 1, 1),
+        ySpring = createSpringController(0, 1, 1),
+        path = Path.new(),
+        paint = Paint.new(),
+        elapsed = 0,
+    }
+end
+```
+
+---
+
+### Exercise 3: Weak Privacy with Conventions
+
+**Goal**: Use underscore prefixes for simpler cases where true enforcement isn't needed.
+
+**Why This Matters**: Closure-based privacy has a cost - each instance gets its own copy of all methods. For internal implementation details where you trust your own code, underscore conventions are simpler and more efficient.
+
+**Real-World Use**: A sprite class with internal `_path` and `_paint` fields that shouldn't be touched directly, but true enforcement isn't critical.
+
+**After Effects Comparison**: This is similar to how AE expressions work - variables are accessible but some are "meant" to be internal. The `_` prefix is just a hint to other developers.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class Sprite {
+    x: number;
+    y: number;
+    _path: Path;       // "Private" by convention
+    _paint: Paint;     // "Private" by convention
+    _dirty: boolean;   // "Private" by convention
+
+    setColor(color: Color): void {
+        this._paint.color = color;  // OK to use internally
+    }
+
+    _rebuildPath(): void {  // Private method by convention
+        if (!this._dirty) return;
+        // ... rebuild logic
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "ConventionDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A colored circle that can change color through the public API
+
+```lua
+--!strict
+
+local Sprite = {}
+Sprite.__index = Sprite
+
+export type SpriteType = {
+    x: number,
+    y: number,
+    _path: Path,      -- "Private" - don't touch directly
+    _paint: Paint,    -- "Private" - don't touch directly
+    _dirty: boolean,  -- "Private" - internal flag
+}
+
+function Sprite.new(x: number, y: number, color: Color): SpriteType
+    local self = setmetatable({}, Sprite)
+    self.x = x
+    self.y = y
+    self._path = Path.new()
+    self._paint = Paint.with({ style = "fill", color = color })
+    self._dirty = true
+    return (self :: any) :: SpriteType
+end
+
+-- Public method to change color
+function Sprite:setColor(color: Color)
+    self._paint.color = color
+end
+
+-- Internal method (convention: underscore prefix)
+function Sprite:_rebuildPath()
+    if not self._dirty then return end
+    self._path:reset()
+    self._path:addEllipse(Vector.xy(0, 0), 25, 25)
+    self._dirty = false
+end
+
+function Sprite:draw(renderer: Renderer)
+    self:_rebuildPath()
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self._path, self._paint)
+    renderer:restore()
+end
+
+export type ConventionDemo = {
+    sprite: SpriteType,
+    elapsed: number,
+}
+
+function init(self: ConventionDemo): boolean
+    self.sprite = Sprite.new(0, 0, Color.rgb(100, 200, 255))
+    self.elapsed = 0
+    return true
+end
+
+function advance(self: ConventionDemo, seconds: number): boolean
+    self.elapsed += seconds
+
+    -- Change color over time using PUBLIC API
+    local r = math.floor((math.sin(self.elapsed) * 0.5 + 0.5) * 255)
+    local g = math.floor((math.sin(self.elapsed * 1.3) * 0.5 + 0.5) * 255)
+    local b = math.floor((math.sin(self.elapsed * 1.7) * 0.5 + 0.5) * 255)
+    self.sprite:setColor(Color.rgb(r, g, b))
+
+    -- Could do this, but convention says don't:
+    -- self.sprite._paint.color = Color.rgb(255, 0, 0)
+
+    return true
+end
+
+function draw(self: ConventionDemo, renderer: Renderer)
+    self.sprite:draw(renderer)
+end
+
+return function(): Node<ConventionDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        sprite = Sprite.new(0, 0, Color.rgb(0, 0, 0)),
+        elapsed = 0,
+    }
+end
+```
+
+**Trade-off**: Simpler code, methods shared via metatables (more efficient), but privacy relies on programmer discipline.
+
+---
+
+### Exercise 4: Module Pattern
+
+**Goal**: Combine closures with a cleaner factory interface for reusable modules.
+
+**Why This Matters**: The module pattern is ideal for Util scripts that create encapsulated instances. It provides a clean public API while hiding all implementation details.
+
+**Real-World Use**: A particle system module that you import into any Node script. Users call `emit()`, `update()`, `draw()` but can't mess with the internal particle array.
+
+**After Effects Comparison**: AE has no equivalent - you can't create reusable modules with private state. In Luau, the module pattern lets you build sophisticated reusable components.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// Module pattern in JavaScript
+const ParticleSystem = {
+    create(maxParticles: number) {
+        // Private state
+        const particles: Particle[] = [];
+
+        // Private helper
+        function createParticle(x: number, y: number): Particle {
+            // ...
+        }
+
+        // Public interface
+        return {
+            emit(x: number, y: number, count: number) { /* ... */ },
+            update(dt: number) { /* ... */ },
+            draw(renderer: Renderer) { /* ... */ },
+            getCount(): number { return particles.length; },
+        };
+    }
+};
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "ParticleDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Particles emitting from the center and falling with gravity
+
+```lua
+--!strict
+
+-- Module that creates encapsulated particle systems
+local ParticleSystem = {}
+
+export type Particle = {
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    life: number,
+}
+
+export type ParticleSystemType = {
+    emit: (number, number, number) -> (),
+    update: (number) -> (),
+    draw: (Renderer, Path, Paint) -> (),
+    getCount: () -> number,
+    clear: () -> (),
+}
+
+function ParticleSystem.create(maxParticles: number): ParticleSystemType
+    -- =====================================================
+    -- PRIVATE STATE AND HELPERS
+    -- =====================================================
+    local particles: {Particle} = {}
+    local gravity = 100
+
+    -- Private helper function (not exposed!)
+    local function createParticle(x: number, y: number): Particle
+        local angle = math.random() * math.pi * 2
+        local speed = 50 + math.random() * 100
+        return {
+            x = x,
+            y = y,
+            vx = math.cos(angle) * speed,
+            vy = math.sin(angle) * speed,
+            life = 1 + math.random(),
+        }
+    end
+
+    -- Another private helper
+    local function updateParticle(p: Particle, dt: number): boolean
+        p.x += p.vx * dt
+        p.y += p.vy * dt
+        p.vy += gravity * dt
+        p.life -= dt
+        return p.life > 0
+    end
+
+    -- =====================================================
+    -- PUBLIC INTERFACE
+    -- =====================================================
+    return {
+        emit = function(x: number, y: number, count: number)
+            for i = 1, count do
+                if #particles < maxParticles then
+                    table.insert(particles, createParticle(x, y))
+                end
+            end
+        end,
+
+        update = function(dt: number)
+            local alive: {Particle} = {}
+            for _, p in particles do
+                if updateParticle(p, dt) then
+                    table.insert(alive, p)
+                end
+            end
+            particles = alive
+        end,
+
+        draw = function(renderer: Renderer, path: Path, paint: Paint)
+            for _, p in particles do
+                local alpha = math.min(1, p.life)
+                paint.color = Color.rgba(255, 200, 100, alpha)
+                path:reset()
+                path:addEllipse(Vector.xy(p.x, p.y), 4, 4)
+                renderer:drawPath(path, paint)
+            end
+        end,
+
+        getCount = function(): number
+            return #particles
+        end,
+
+        clear = function()
+            particles = {}
+        end,
+    }
+end
+
+export type ModulePatternDemo = {
+    system: ParticleSystemType,
+    path: Path,
+    paint: Paint,
+    emitTimer: number,
+}
+
+function init(self: ModulePatternDemo): boolean
+    self.system = ParticleSystem.create(200)
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill" })
+    self.emitTimer = 0
+    return true
+end
+
+function advance(self: ModulePatternDemo, seconds: number): boolean
+    self.emitTimer += seconds
+
+    -- Emit particles periodically from center
+    if self.emitTimer > 0.1 then
+        self.system.emit(0, -50, 5)
+        self.emitTimer = 0
+    end
+
+    self.system.update(seconds)
+    return true
+end
+
+function draw(self: ModulePatternDemo, renderer: Renderer)
+    self.system.draw(renderer, self.path, self.paint)
+end
+
+return function(): Node<ModulePatternDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        system = ParticleSystem.create(1),
+        path = Path.new(),
+        paint = Paint.new(),
+        emitTimer = 0,
+    }
+end
+```
+
+---
+
+### Exercise 5: Read-Only Properties
+
+**Goal**: Create properties that can be read but not directly written.
+
+**Why This Matters**: Game state (score, level, lives) should only be modified through specific actions (addScore, loseLife). Direct assignment could break game logic or enable cheating.
+
+**Real-World Use**: A Rive game HUD where the score display reads from `getScore()` but can't directly set the score. All score changes go through validated `addScore()` calls.
+
+**After Effects Comparison**: AE properties are generally read-only from expressions (you can't set another layer's position from an expression). Luau closures achieve the same effect but with custom logic.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class GameState {
+    #score = 0;   // Private
+    #level = 1;   // Private
+    #lives = 3;   // Private
+
+    get score(): number { return this.#score; }      // Read-only
+    get level(): number { return this.#level; }      // Read-only
+    get lives(): number { return this.#lives; }      // Read-only
+
+    addScore(points: number): void {
+        this.#score += points;
+        // Level up logic...
+    }
+
+    loseLife(): void {
+        this.#lives--;
+        // Game over logic...
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "GameStateDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Console output showing game state changes through the controlled API
+
+```lua
+--!strict
+
+local function createGameState()
+    -- =====================================================
+    -- PRIVATE MUTABLE STATE
+    -- =====================================================
+    local score = 0
+    local level = 1
+    local lives = 3
+    local gameOver = false
+
+    return {
+        -- =====================================================
+        -- READ-ONLY ACCESSORS (getters)
+        -- =====================================================
+        getScore = function(): number return score end,
+        getLevel = function(): number return level end,
+        getLives = function(): number return lives end,
+        isGameOver = function(): boolean return gameOver end,
+
+        -- =====================================================
+        -- CONTROLLED MUTATIONS (validated setters)
+        -- =====================================================
+        addScore = function(points: number)
+            if not gameOver then
+                score += points
+                -- Level up every 1000 points
+                local newLevel = math.floor(score / 1000) + 1
+                if newLevel > level then
+                    level = newLevel
+                    print(`Level up! Now level {level}`)
+                end
+            end
+        end,
+
+        loseLife = function()
+            if not gameOver then
+                lives -= 1
+                if lives <= 0 then
+                    gameOver = true
+                    print("Game Over!")
+                end
+            end
+        end,
+
+        reset = function()
+            score = 0
+            level = 1
+            lives = 3
+            gameOver = false
+        end,
+    }
+end
+
+export type GameStateType = {
+    getScore: () -> number,
+    getLevel: () -> number,
+    getLives: () -> number,
+    isGameOver: () -> boolean,
+    addScore: (number) -> (),
+    loseLife: () -> (),
+    reset: () -> (),
+}
+
+export type ReadOnlyDemo = {
+    state: GameStateType,
+}
+
+function init(self: ReadOnlyDemo): boolean
+    self.state = createGameState()
+
+    print(`Starting: Score={self.state.getScore()}, Level={self.state.getLevel()}, Lives={self.state.getLives()}`)
+
+    -- Play the game through the API
+    self.state.addScore(500)
+    print(`After 500 points: Score={self.state.getScore()}`)
+
+    self.state.addScore(600)  -- This triggers level up (total 1100)
+    print(`After 600 more: Score={self.state.getScore()}, Level={self.state.getLevel()}`)
+
+    -- Lose some lives
+    self.state.loseLife()
+    self.state.loseLife()
+    print(`After 2 hits: Lives={self.state.getLives()}`)
+
+    self.state.loseLife()  -- Game over
+    print(`Game over: {self.state.isGameOver()}`)
+
+    -- CAN'T CHEAT! These fields don't exist:
+    -- self.state.score = 999999  -- ERROR: field doesn't exist!
+    -- self.state.lives = 99      -- ERROR: field doesn't exist!
+    -- self.state.gameOver = false -- ERROR: field doesn't exist!
+
+    return true
+end
+
+function draw(self: ReadOnlyDemo, renderer: Renderer)
+end
+
+return function(): Node<ReadOnlyDemo>
+    return {
+        init = init,
+        draw = draw,
+        state = createGameState(),
+    }
+end
+```
+
+---
+
+### Exercise 6: Combining Approaches
+
+**Goal**: Mix closure-based privacy with convention-based privacy for optimal results.
+
+**Why This Matters**: Real applications need both approaches. Use true privacy for critical state (game logic) and conventions for internal implementation details (UI components).
+
+**Real-World Use**: A countdown timer Util (closure-based, critical logic) used inside a visual Countdown class (convention-based, internal paths/paints).
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "CombinedDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A circular countdown timer that changes color as time runs out
+
+```lua
+--!strict
+
+-- =====================================================
+-- UTIL: Timer Module (true encapsulation via closures)
+-- =====================================================
+local Timer = {}
+
+export type TimerType = {
+    start: () -> (),
+    stop: () -> (),
+    reset: () -> (),
+    tick: (number) -> boolean,
+    getElapsed: () -> number,
+    getRemaining: () -> number,
+    isRunning: () -> boolean,
+    isComplete: () -> boolean,
+}
+
+function Timer.create(duration: number): TimerType
+    -- Private state (truly encapsulated)
+    local elapsed = 0
+    local running = false
+    local complete = false
+
+    return {
+        start = function()
+            running = true
+        end,
+
+        stop = function()
+            running = false
+        end,
+
+        reset = function()
+            elapsed = 0
+            running = false
+            complete = false
+        end,
+
+        tick = function(dt: number): boolean
+            if running and not complete then
+                elapsed += dt
+                if elapsed >= duration then
+                    elapsed = duration
+                    complete = true
+                    running = false
+                    return true  -- Timer just completed
+                end
+            end
+            return false
+        end,
+
+        getElapsed = function(): number
+            return elapsed
+        end,
+
+        getRemaining = function(): number
+            return math.max(0, duration - elapsed)
+        end,
+
+        isRunning = function(): boolean
+            return running
+        end,
+
+        isComplete = function(): boolean
+            return complete
+        end,
+    }
+end
+
+-- =====================================================
+-- CLASS: Countdown (convention-based internal state)
+-- Uses Timer module for critical logic
+-- =====================================================
+local Countdown = {}
+Countdown.__index = Countdown
+
+export type CountdownType = {
+    _timer: TimerType,  -- Convention: internal detail
+    _duration: number,  -- Convention: internal detail
+    x: number,
+    y: number,
+    path: Path,
+    bgPaint: Paint,
+    fgPaint: Paint,
+}
+
+function Countdown.new(x: number, y: number, duration: number): CountdownType
+    local self = setmetatable({}, Countdown)
+    self._timer = Timer.create(duration)
+    self._duration = duration
+    self.x = x
+    self.y = y
+
+    -- Visual setup
+    self.path = Path.new()
+    self.bgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgb(60, 60, 60) })
+    self.fgPaint = Paint.with({ style = "stroke", thickness = 8, cap = "round" })
+
+    self._timer.start()
+    return (self :: any) :: CountdownType
+end
+
+function Countdown:update(dt: number): boolean
+    return self._timer.tick(dt)
+end
+
+function Countdown:draw(renderer: Renderer)
+    local radius = 40
+    local progress = 1 - (self._timer.getElapsed() / self._duration)
+
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+
+    -- Background circle
+    self.path:reset()
+    self.path:addEllipse(Vector.xy(0, 0), radius, radius)
+    renderer:drawPath(self.path, self.bgPaint)
+
+    -- Progress arc
+    if progress > 0 then
+        self.path:reset()
+        local startAngle = -math.pi / 2
+
+        -- Draw arc as line segments
+        local segments = 32
+        for i = 0, segments do
+            local t = i / segments
+            local angle = startAngle + t * progress * math.pi * 2
+            local px = math.cos(angle) * radius
+            local py = math.sin(angle) * radius
+            if i == 0 then
+                self.path:moveTo(Vector.xy(px, py))
+            else
+                self.path:lineTo(Vector.xy(px, py))
+            end
+        end
+
+        -- Color based on time remaining
+        local remaining = self._timer.getRemaining()
+        if remaining > 2 then
+            self.fgPaint.color = Color.rgb(100, 255, 100)  -- Green
+        elseif remaining > 1 then
+            self.fgPaint.color = Color.rgb(255, 255, 100)  -- Yellow
+        else
+            self.fgPaint.color = Color.rgb(255, 100, 100)  -- Red
+        end
+
+        renderer:drawPath(self.path, self.fgPaint)
+    end
+
+    renderer:restore()
+end
+
+export type CombinedDemo = {
+    countdown: CountdownType,
+}
+
+function init(self: CombinedDemo): boolean
+    self.countdown = Countdown.new(0, 0, 5)
+    return true
+end
+
+function advance(self: CombinedDemo, seconds: number): boolean
+    if self.countdown:update(seconds) then
+        print("Countdown complete!")
+    end
+    return true
+end
+
+function draw(self: CombinedDemo, renderer: Renderer)
+    self.countdown:draw(renderer)
+end
+
+return function(): Node<CombinedDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        countdown = Countdown.new(0, 0, 1),
+    }
+end
+```
+
+---
+
+## Trade-offs Summary
+
+| Approach | Privacy Level | Performance | Flexibility |
+|----------|--------------|-------------|-------------|
+| Underscore convention | Weak (honor system) | Best (shared methods) | High |
+| Closure-based | Strong (enforced) | Good (methods per instance) | Limited |
+| Module pattern | Strong (enforced) | Good | Moderate |
+
+**Recommendation for Rive:**
+- Use **closures** for critical state (game logic, security, physics)
+- Use **underscore convention** for internal implementation details (paths, paints)
+- Use **module pattern** for reusable Util scripts
+
+---
+
+## Common Mistakes
+
+### Mistake 1: Returning Private Data Directly
+
+```lua
+-- WRONG: Returns the actual private table (can be modified!)
+local function createBad()
+    local data = { secret = 42 }
+    return {
+        getData = function() return data end,  -- DANGER!
+    }
+end
+
+local bad = createBad()
+bad.getData().secret = 999  -- Oops, modified private data!
+
+-- CORRECT: Return a copy
+local function createGood()
+    local data = { secret = 42 }
+    return {
+        getData = function()
+            return { secret = data.secret }  -- Return COPY
+        end,
+    }
+end
+```
+
+### Mistake 2: Forgetting Closures Capture by Reference
+
+```lua
+-- SURPRISING: All buttons share the same 'i' value!
+local buttons = {}
+for i = 1, 3 do
+    buttons[i] = {
+        click = function()
+            print(`Button {i}`)  -- Will always print "Button 3"!
+        end,
+    }
+end
+
+-- CORRECT: Create a new scope for each iteration
+for i = 1, 3 do
+    local index = i  -- Create new variable
+    buttons[i] = {
+        click = function()
+            print(`Button {index}`)  -- Captures correct value
+        end,
+    }
+end
+```
+
+### Mistake 3: Over-Encapsulating Everything
+
+```lua
+-- OVERKILL: Not everything needs closures
+local function createPoint(x: number, y: number)
+    local px = x
+    local py = y
+    return {
+        getX = function() return px end,
+        getY = function() return py end,
+        setX = function(v: number) px = v end,
+        setY = function(v: number) py = v end,
+    }
+end
+
+-- SIMPLER: Just use a plain table
+local function createPoint(x: number, y: number)
+    return { x = x, y = y }
+end
+```
+
+### Mistake 4: Mixing Patterns Inconsistently
+
+```lua
+-- INCONSISTENT: Some fields use conventions, some use closures
+local function createMixed()
+    local private1 = 0
+    return {
+        _private2 = 0,  -- Convention
+        getPrivate1 = function() return private1 end,
+        -- No getter for _private2?
+    }
+end
+
+-- CONSISTENT: Pick one approach per module
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="How do closures provide true privacy in Lua?"
+  id="encap-q1"
+  options={[
+    { text: "By using the private keyword" },
+    { text: "By capturing variables that are only accessible within the closure", correct: true },
+    { text: "By encrypting the data" },
+    { text: "By using underscore prefixes" },
+  ]}
+  explanation="Variables captured by a closure are only accessible to functions defined in the same scope. There's no way to access them from outside."
+/>
+
+<Quiz
+  question="What's the main trade-off of closure-based encapsulation?"
+  id="encap-q2"
+  options={[
+    { text: "It's slower than metatables" },
+    { text: "Methods can't be shared between instances (each instance has its own functions)", correct: true },
+    { text: "It doesn't work in strict mode" },
+    { text: "It prevents inheritance" },
+  ]}
+  explanation="With closures, each instance gets its own copy of the methods, unlike metatables where methods are shared. This uses more memory but provides true privacy."
+/>
+
+<Quiz
+  question="When should you use underscore conventions instead of closures?"
+  id="encap-q3"
+  options={[
+    { text: "Never - closures are always better" },
+    { text: "For internal implementation details where true enforcement isn't critical", correct: true },
+    { text: "Only for public APIs" },
+    { text: "When you need better performance" },
+  ]}
+  explanation="Underscore conventions are simpler and allow method sharing via metatables. They're fine for internal details where you trust the code won't abuse them."
+/>
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand why Lua tables don't have built-in privacy
+- [ ] I can create truly private state using closures
+- [ ] I know when to use closure-based privacy vs underscore conventions
+- [ ] I can implement the module pattern
+- [ ] I can create read-only properties with getters
+- [ ] I understand the memory trade-offs of different approaches
+- [ ] I can combine approaches appropriately (closures for critical state, conventions for internals)
+
+---
+
+## Next Up
+
+**[OOP Patterns →](./patterns)**
+
+Learn reusable design patterns (Factory, Singleton, Observer) that build on encapsulation concepts.

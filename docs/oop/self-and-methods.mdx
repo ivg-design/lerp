@@ -1,8 +1,978 @@
 ---
 sidebar_position: 5
 title: self and Methods
+description: The colon syntax, self parameter, and method calls in Lua
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # self and Methods
 
-*Content being migrated...*
+## Learning Objectives
+- Understand the difference between dot (`.`) and colon (`:`) syntax
+- Master how `self` is passed to methods
+- Know when to use each syntax
+- Avoid common pitfalls with method binding
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects | JavaScript | Luau (Rive) |
+|---------|--------------|------------|-------------|
+| Object reference | `this` | `this` | `self` |
+| Method call | N/A | `obj.method()` | `obj:method()` (colon!) |
+| Static call | N/A | `Class.method()` | `Class.method()` (dot) |
+| Define method | N/A | `method() { ... }` | `function Class:method() ... end` |
+| Pass different context | N/A | `method.call(other)` | `Class.method(other)` |
+
+:::danger Critical Difference: Colon vs Dot
+This is the **#1 source of bugs** for people learning Luau!
+
+```lua
+obj.method()   -- WRONG: self is nil inside method!
+obj:method()   -- CORRECT: self is obj
+```
+
+The colon (`:`) is **syntactic sugar** that automatically passes the object as the first argument (`self`). Forget it, and you'll get "attempt to index nil" errors.
+
+**JavaScript** always passes `this` automatically.
+**Luau** requires you to use `:` to get `self` passed automatically.
+:::
+
+---
+
+## Rive Context
+
+In Rive Node Scripts, you constantly work with methods:
+
+- **Renderer methods**: `renderer:drawPath()`, `renderer:save()`, `renderer:restore()`
+- **Path methods**: `path:moveTo()`, `path:lineTo()`, `path:close()`
+- **Your own class methods**: `sprite:update()`, `particle:draw()`
+
+Understanding the colon syntax is essential for writing correct Rive code. Get it wrong, and your `self` will be `nil` or the wrong object entirely.
+
+---
+
+## The Colon Syntax: Syntactic Sugar
+
+The colon (`:`) is **syntactic sugar** that automatically passes the object as the first argument:
+
+```lua
+-- These are EXACTLY equivalent:
+obj:method(arg1, arg2)
+obj.method(obj, arg1, arg2)
+```
+
+**Definition time:**
+```lua
+-- These are EXACTLY equivalent:
+function MyClass:doSomething(x)
+    print(self.value + x)
+end
+
+function MyClass.doSomething(self, x)
+    print(self.value + x)
+end
+```
+
+The colon is just shorthand - nothing magical happens.
+
+---
+
+## Exercise 1: Dot vs Colon Basics
+
+**Goal**: See exactly what the colon syntax does.
+
+**Why This Matters**: Until you understand that `:` is just sugar for passing `self`, you'll be mystified by errors. Once you understand it, method calls become transparent.
+
+**Real-World Use**: Every single Rive API call uses colon syntax. Every custom class you write uses colon syntax. This is fundamental to ALL Luau programming.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Watch the console to see both calling styles produce identical results
+
+```lua
+--!strict
+
+local Counter = {}
+Counter.__index = Counter
+
+export type CounterType = {
+    value: number,
+}
+
+function Counter.new(initial: number): CounterType
+    local self = setmetatable({}, Counter)
+    self.value = initial
+    return (self :: any) :: CounterType
+end
+
+-- Method defined with colon (receives self automatically)
+function Counter:increment()
+    self.value += 1
+end
+
+-- Method defined with dot (self is explicit first parameter)
+function Counter.add(self: CounterType, amount: number)
+    self.value += amount
+end
+
+-- Static function (no self at all)
+function Counter.create(): CounterType
+    return Counter.new(0)
+end
+
+export type DotColonDemo = {
+    counter: CounterType,
+}
+
+function init(self: DotColonDemo): boolean
+    self.counter = Counter.new(10)
+    print(`Initial: {self.counter.value}`)
+
+    -- Call with colon - self passed automatically
+    self.counter:increment()
+    print(`After :increment(): {self.counter.value}`)
+
+    -- Call with dot - must pass self manually
+    Counter.increment(self.counter)
+    print(`After .increment(counter): {self.counter.value}`)
+
+    -- Either works for add
+    self.counter:add(5)
+    print(`After :add(5): {self.counter.value}`)
+
+    Counter.add(self.counter, 3)
+    print(`After .add(counter, 3): {self.counter.value}`)
+
+    -- Static call - no object needed
+    local fresh = Counter.create()
+    print(`Fresh counter: {fresh.value}`)
+
+    return true
+end
+
+function draw(self: DotColonDemo, renderer: Renderer)
+end
+
+return function(): Node<DotColonDemo>
+    return {
+        init = init,
+        draw = draw,
+        counter = Counter.new(0),
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+class Counter {
+    value;
+
+    constructor(initial) {
+        this.value = initial;
+    }
+
+    increment() {
+        this.value += 1;  // 'this' is automatic in JavaScript
+    }
+
+    add(amount) {
+        this.value += amount;
+    }
+
+    static create() {
+        return new Counter(0);
+    }
+}
+
+const counter = new Counter(10);
+counter.increment();  // JavaScript always passes 'this'
+Counter.prototype.increment.call(counter);  // Explicit 'this' like Luau dot
+```
+
+---
+
+## Exercise 2: Why self Matters - Multiple Instances
+
+**Goal**: See how `self` refers to the specific object the method was called on.
+
+**Why This Matters**: When you have multiple objects (sprites, particles, enemies), each one needs to update its OWN data. `self` is what makes this possible—it's the "which one?" answer.
+
+**Real-World Use**: A game with 100 enemies. When you call `enemy:takeDamage(10)`, `self` refers to THAT specific enemy, not all enemies. Without `self`, you couldn't distinguish between instances.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Notice how the same method produces different results for different objects
+
+```lua
+--!strict
+
+local Sprite = {}
+Sprite.__index = Sprite
+
+export type SpriteType = {
+    id: string,
+    x: number,
+    y: number,
+    path: Path,
+    paint: Paint,
+}
+
+function Sprite.new(id: string, x: number, y: number, color: Color): SpriteType
+    local self = setmetatable({}, Sprite)
+    self.id = id
+    self.x = x
+    self.y = y
+    self.path = Path.new()
+    self.path:addEllipse(Vector.xy(0, 0), 25, 25)
+    self.paint = Paint.with({ style = "fill", color = color })
+    return (self :: any) :: SpriteType
+end
+
+function Sprite:report()
+    print(`I am {self.id} at ({self.x}, {self.y})`)
+end
+
+function Sprite:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+export type SelfIdentityDemo = {
+    spriteA: SpriteType,
+    spriteB: SpriteType,
+}
+
+function init(self: SelfIdentityDemo): boolean
+    self.spriteA = Sprite.new("A", -60, 0, Color.rgb(255, 100, 100))
+    self.spriteB = Sprite.new("B", 60, 0, Color.rgb(100, 100, 255))
+
+    -- Each sprite knows its own identity via self
+    self.spriteA:report()  -- "I am A at (-60, 0)"
+    self.spriteB:report()  -- "I am B at (60, 0)"
+
+    -- What if we grab the function and call it wrong?
+    local reportFunc = Sprite.report
+
+    -- This would error or print wrong data:
+    -- reportFunc()  -- self is nil!
+
+    -- Must pass self explicitly with dot syntax
+    reportFunc(self.spriteA)  -- "I am A at (-60, 0)"
+    reportFunc(self.spriteB)  -- "I am B at (60, 0)"
+
+    return true
+end
+
+function draw(self: SelfIdentityDemo, renderer: Renderer)
+    self.spriteA:draw(renderer)
+    self.spriteB:draw(renderer)
+end
+
+return function(): Node<SelfIdentityDemo>
+    return {
+        init = init,
+        draw = draw,
+        spriteA = Sprite.new("", 0, 0, Color.rgb(0, 0, 0)),
+        spriteB = Sprite.new("", 0, 0, Color.rgb(0, 0, 0)),
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+class Sprite {
+    constructor(id, x, y) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+    }
+
+    report() {
+        console.log(`I am ${this.id} at (${this.x}, ${this.y})`);
+    }
+}
+
+const spriteA = new Sprite("A", -60, 0);
+const spriteB = new Sprite("B", 60, 0);
+
+spriteA.report();  // "I am A..."
+spriteB.report();  // "I am B..."
+
+// JavaScript has similar issues when extracting methods:
+const reportFunc = spriteA.report;
+reportFunc();  // Error! 'this' is undefined
+reportFunc.call(spriteA);  // Works - like Luau's dot syntax
+```
+
+---
+
+## Exercise 3: The Common Mistake - Forgetting self
+
+**Goal**: Experience and debug the most common error in Luau OOP.
+
+**Why This Matters**: This error will happen to you. Recognizing it immediately saves debugging time. The error message "attempt to index nil" almost always means `self` wasn't passed.
+
+**Real-World Use**: You write `widget.describe()` instead of `widget:describe()` and spend 10 minutes wondering why `self.name` is nil. After this exercise, you'll spot the bug instantly.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Observe the debugging techniques for self-related errors
+
+```lua
+--!strict
+
+local Widget = {}
+Widget.__index = Widget
+
+export type WidgetType = {
+    name: string,
+    width: number,
+    height: number,
+}
+
+function Widget.new(name: string, width: number, height: number): WidgetType
+    local self = setmetatable({}, Widget)
+    self.name = name
+    self.width = width
+    self.height = height
+    return (self :: any) :: WidgetType
+end
+
+function Widget:describe(): string
+    -- If self is wrong, this will error or return garbage
+    return `{self.name}: {self.width}x{self.height}`
+end
+
+function Widget:resize(w: number, h: number)
+    self.width = w
+    self.height = h
+end
+
+export type DebugSelfDemo = {
+    widget: WidgetType,
+}
+
+function init(self: DebugSelfDemo): boolean
+    self.widget = Widget.new("MyWidget", 100, 50)
+
+    -- Correct usage
+    print("Correct colon call:")
+    print(self.widget:describe())
+
+    -- What happens with dot?
+    print("\nDot call (must pass self):")
+    print(Widget.describe(self.widget))
+
+    -- Storing a method for later - CAREFUL!
+    local describeMethod = self.widget.describe
+
+    -- WRONG: calling without self
+    -- print(describeMethod())  -- ERROR: self is nil
+
+    -- CORRECT: must bind or pass self
+    print("\nStored function with explicit self:")
+    print(describeMethod(self.widget))
+
+    -- Pattern: Create a bound wrapper
+    local boundDescribe = function()
+        return self.widget:describe()
+    end
+    print("\nBound wrapper:")
+    print(boundDescribe())
+
+    return true
+end
+
+function draw(self: DebugSelfDemo, renderer: Renderer)
+end
+
+return function(): Node<DebugSelfDemo>
+    return {
+        init = init,
+        draw = draw,
+        widget = Widget.new("", 0, 0),
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+class Widget {
+    constructor(name, width, height) {
+        this.name = name;
+        this.width = width;
+        this.height = height;
+    }
+
+    describe() {
+        return `${this.name}: ${this.width}x${this.height}`;
+    }
+}
+
+const widget = new Widget("MyWidget", 100, 50);
+
+// JavaScript has the same problem!
+const describeMethod = widget.describe;
+describeMethod();  // Error: Cannot read property 'name' of undefined
+
+// Solutions:
+describeMethod.call(widget);  // Explicit this
+const bound = widget.describe.bind(widget);  // Bound method
+const arrow = () => widget.describe();  // Arrow function wrapper
+```
+
+---
+
+## When to Use Dot vs Colon
+
+### Use Colon (`:`) for:
+- **Instance methods** that need `self`
+- **Any method that accesses instance properties**
+- **Most method calls in practice**
+
+```lua
+self.sprite:draw(renderer)
+self.spring:step(dt)
+path:lineTo(point)
+```
+
+### Use Dot (`.`) for:
+- **Static functions** (constructors, utilities)
+- **When you need to pass a different `self`**
+- **Storing method references**
+
+```lua
+local sprite = Sprite.new(0, 0)      -- Constructor
+local dist = Vector.distance(a, b)   -- Static utility
+MyClass.method(differentObj, args)   -- Explicit self
+```
+
+---
+
+## Exercise 4: Method Patterns in Rive
+
+**Goal**: See the complete patterns for methods in a real Rive context.
+
+**Why This Matters**: This exercise shows the patterns you'll use daily: static utilities with dot, instance methods with colon, and how they work together.
+
+**Real-World Use**: A particle system with: `MathUtil.lerp()` (static utility), `Particle.new()` (constructor), `particle:update()` (instance method), `particle:draw()` (instance method).
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Study how static functions use dot and instance methods use colon
+
+```lua
+--!strict
+
+-- Util-style module with static functions
+local MathUtil = {}
+
+function MathUtil.lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
+end
+
+function MathUtil.clamp(value: number, min: number, max: number): number
+    return math.max(min, math.min(max, value))
+end
+
+-- Class with instance methods
+local Particle = {}
+Particle.__index = Particle
+
+export type ParticleType = {
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    life: number,
+    maxLife: number,
+}
+
+function Particle.new(x: number, y: number): ParticleType
+    local self = setmetatable({}, Particle)
+    self.x = x
+    self.y = y
+    self.vx = (math.random() - 0.5) * 100
+    self.vy = (math.random() - 0.5) * 100
+    self.life = 0
+    self.maxLife = 2 + math.random() * 2
+    return (self :: any) :: ParticleType
+end
+
+-- Instance method: needs self for particle properties
+function Particle:update(dt: number): boolean
+    self.x += self.vx * dt
+    self.y += self.vy * dt
+    self.life += dt
+    return self.life < self.maxLife
+end
+
+-- Instance method: uses self and external util
+function Particle:getAlpha(): number
+    local progress = self.life / self.maxLife
+    -- Use static util function (dot syntax)
+    return MathUtil.lerp(1.0, 0.0, progress)
+end
+
+-- Instance method: drawing
+function Particle:draw(renderer: Renderer, path: Path, paint: Paint)
+    local alpha = self:getAlpha()  -- Call own method with colon
+    paint.color = Color.rgba(255, 200, 100, alpha)
+
+    path:reset()
+    path:addEllipse(Vector.xy(self.x, self.y), 5, 5)
+    renderer:drawPath(path, paint)
+end
+
+export type MethodPatternsDemo = {
+    particles: {ParticleType},
+    path: Path,
+    paint: Paint,
+    elapsed: number,
+}
+
+function init(self: MethodPatternsDemo): boolean
+    self.particles = {}
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill" })
+    self.elapsed = 0
+
+    -- Spawn initial particles
+    for i = 1, 20 do
+        -- Static constructor - dot syntax
+        table.insert(self.particles, Particle.new(0, 0))
+    end
+
+    return true
+end
+
+function advance(self: MethodPatternsDemo, seconds: number): boolean
+    self.elapsed += seconds
+
+    -- Update particles - colon syntax for instance methods
+    local alive = {}
+    for _, p in self.particles do
+        if p:update(seconds) then  -- Colon: p is self
+            table.insert(alive, p)
+        end
+    end
+    self.particles = alive
+
+    -- Spawn new particles periodically
+    if #self.particles < 50 and math.random() < 0.3 then
+        table.insert(self.particles, Particle.new(0, 0))
+    end
+
+    return true
+end
+
+function draw(self: MethodPatternsDemo, renderer: Renderer)
+    for _, p in self.particles do
+        -- Colon: p needs to access its own properties
+        p:draw(renderer, self.path, self.paint)
+    end
+end
+
+return function(): Node<MethodPatternsDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        particles = {},
+        path = Path.new(),
+        paint = Paint.new(),
+        elapsed = 0,
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+// Static utility module
+const MathUtil = {
+    lerp: (a, b, t) => a + (b - a) * t,
+    clamp: (value, min, max) => Math.max(min, Math.min(max, value)),
+};
+
+class Particle {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 100;
+        this.vy = (Math.random() - 0.5) * 100;
+        this.life = 0;
+        this.maxLife = 2 + Math.random() * 2;
+    }
+
+    update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life += dt;
+        return this.life < this.maxLife;
+    }
+
+    getAlpha() {
+        const progress = this.life / this.maxLife;
+        return MathUtil.lerp(1.0, 0.0, progress);  // Static call
+    }
+
+    draw(ctx) {
+        const alpha = this.getAlpha();  // Instance call
+        // draw...
+    }
+}
+```
+
+---
+
+## Exercise 5: Method Chaining
+
+**Goal**: Implement methods that return `self` for fluent API design.
+
+**Why This Matters**: Method chaining makes code more readable and expressive. Instead of 5 separate lines, you get one flowing statement. Many popular APIs use this pattern.
+
+**Real-World Use**: jQuery uses chaining: `$('#el').addClass('foo').show().fadeIn()`. Path builders use chaining: `path:moveTo(0,0):lineTo(10,0):lineTo(10,10):close()`.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Notice how returning `self` enables the chain
+
+```lua
+--!strict
+
+local Builder = {}
+Builder.__index = Builder
+
+export type BuilderType = {
+    path: Path,
+}
+
+function Builder.new(): BuilderType
+    local self = setmetatable({}, Builder)
+    self.path = Path.new()
+    return (self :: any) :: BuilderType
+end
+
+function Builder:moveTo(x: number, y: number): BuilderType
+    self.path:moveTo(Vector.xy(x, y))
+    return self  -- Return self for chaining
+end
+
+function Builder:lineTo(x: number, y: number): BuilderType
+    self.path:lineTo(Vector.xy(x, y))
+    return self
+end
+
+function Builder:close(): BuilderType
+    self.path:close()
+    return self
+end
+
+function Builder:getPath(): Path
+    return self.path
+end
+
+export type ChainingDemo = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: ChainingDemo): boolean
+    -- Fluent API with method chaining
+    self.path = Builder.new()
+        :moveTo(-50, -50)
+        :lineTo(50, -50)
+        :lineTo(50, 50)
+        :lineTo(-50, 50)
+        :close()
+        :getPath()
+
+    self.paint = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(100, 200, 255) })
+
+    return true
+end
+
+function draw(self: ChainingDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<ChainingDemo>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+class Builder {
+    constructor() {
+        this.path = [];
+    }
+
+    moveTo(x, y) {
+        this.path.push({ type: 'move', x, y });
+        return this;  // Return this for chaining
+    }
+
+    lineTo(x, y) {
+        this.path.push({ type: 'line', x, y });
+        return this;
+    }
+
+    close() {
+        this.path.push({ type: 'close' });
+        return this;
+    }
+}
+
+// Fluent chain
+const path = new Builder()
+    .moveTo(-50, -50)
+    .lineTo(50, -50)
+    .lineTo(50, 50)
+    .close();
+```
+
+---
+
+## Exercise 6: Callbacks and self (The Binding Problem)
+
+**Goal**: Handle the problem of passing methods as callbacks.
+
+**Why This Matters**: When you pass a method to an event handler or timer callback, `self` gets lost. This is a classic bug in both Luau and JavaScript. Knowing the solutions saves hours of debugging.
+
+**Real-World Use**: You want a button click to call `player:takeDamage()`. If you just pass `player.takeDamage`, it won't work because `self` is lost. You need to wrap it.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. See how closures preserve `self` for callbacks
+
+```lua
+--!strict
+
+local Button = {}
+Button.__index = Button
+
+export type ButtonType = {
+    label: string,
+    onClick: (() -> ())?,
+}
+
+function Button.new(label: string): ButtonType
+    local self = setmetatable({}, Button)
+    self.label = label
+    self.onClick = nil
+    return (self :: any) :: ButtonType
+end
+
+function Button:handleClick()
+    print(`{self.label} was clicked!`)
+end
+
+export type CallbackDemo = {
+    button: ButtonType,
+}
+
+function init(self: CallbackDemo): boolean
+    self.button = Button.new("Submit")
+
+    -- WRONG: This loses self
+    -- self.button.onClick = self.button.handleClick
+
+    -- CORRECT: Wrap in a closure to capture self
+    local btn = self.button
+    self.button.onClick = function()
+        btn:handleClick()
+    end
+
+    -- Test it
+    if self.button.onClick then
+        self.button.onClick()
+    end
+
+    return true
+end
+
+function draw(self: CallbackDemo, renderer: Renderer)
+end
+
+return function(): Node<CallbackDemo>
+    return {
+        init = init,
+        draw = draw,
+        button = Button.new(""),
+    }
+end
+```
+
+**JavaScript Equivalent**:
+```javascript
+class Button {
+    constructor(label) {
+        this.label = label;
+        this.onClick = null;
+    }
+
+    handleClick() {
+        console.log(`${this.label} was clicked!`);
+    }
+}
+
+const button = new Button("Submit");
+
+// WRONG: loses 'this'
+button.onClick = button.handleClick;
+button.onClick();  // Error!
+
+// CORRECT options:
+button.onClick = () => button.handleClick();  // Arrow function
+button.onClick = button.handleClick.bind(button);  // Explicit bind
+```
+
+---
+
+## Quick Reference: Dot vs Colon
+
+| Scenario | Syntax | Example |
+|----------|--------|---------|
+| Call instance method | `:` | `obj:draw(renderer)` |
+| Call static function | `.` | `Sprite.new(0, 0)` |
+| Define instance method | `:` | `function Sprite:draw()` |
+| Define static function | `.` | `function Sprite.new()` |
+| Pass different self | `.` | `Sprite.draw(other, r)` |
+| Store method reference | `.` | `local fn = obj.method` |
+| Call stored method | `.` | `fn(obj, args)` |
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What does the colon syntax (obj:method()) do?"
+  id="self-q1"
+  options={[
+    { text: "Creates a new method on the object" },
+    { text: "Automatically passes obj as the first argument (self)", correct: true },
+    { text: "Makes the method private" },
+    { text: "Calls the method asynchronously" },
+  ]}
+  explanation="The colon is syntactic sugar that passes the object before the colon as the first argument (self) to the method."
+/>
+
+<Quiz
+  question="When defining function MyClass:method(), what is self?"
+  id="self-q2"
+  options={[
+    { text: "The MyClass table" },
+    { text: "An implicit first parameter that receives the caller", correct: true },
+    { text: "A global variable" },
+    { text: "Always nil" },
+  ]}
+  explanation="When using colon syntax in a definition, self becomes an implicit first parameter, filled in when the method is called."
+/>
+
+<Quiz
+  question="What happens if you call obj.method() instead of obj:method()?"
+  id="self-q3"
+  options={[
+    { text: "Nothing, they're the same" },
+    { text: "self will be nil or the wrong value inside the method", correct: true },
+    { text: "It runs faster" },
+    { text: "It creates a copy of the method" },
+  ]}
+  explanation="Using dot syntax doesn't pass obj as self. Inside the method, self will be nil (or whatever was the first argument), likely causing errors."
+/>
+
+<Quiz
+  question="How do you safely store a method for later use as a callback?"
+  id="self-q4"
+  options={[
+    { text: "local fn = obj.method (and call fn() later)" },
+    { text: "Wrap it in a closure that calls obj:method()", correct: true },
+    { text: "Use obj::method syntax" },
+    { text: "Methods can't be stored" },
+  ]}
+  explanation="Storing obj.method loses the binding to obj. Wrapping in a closure like function() obj:method() end preserves the correct self."
+/>
+
+---
+
+## Common Mistakes
+
+### 1. Using Dot When Colon is Needed
+
+```lua
+-- WRONG: Dot doesn't pass self
+obj.method()  -- self is nil!
+
+-- CORRECT: Colon passes self
+obj:method()  -- self is obj
+```
+
+### 2. Using Colon for Static Functions
+
+```lua
+-- WRONG: Constructor doesn't need self
+local sprite = Sprite:new(0, 0)  -- Passes Sprite as first arg!
+
+-- CORRECT: Constructor uses dot
+local sprite = Sprite.new(0, 0)
+```
+
+### 3. Forgetting self in Method Definitions
+
+```lua
+-- WRONG: Using dot but accessing self
+function MyClass.method()
+    print(self.value)  -- self doesn't exist!
+end
+
+-- CORRECT: Use colon for methods that need self
+function MyClass:method()
+    print(self.value)  -- self is passed automatically
+end
+```
+
+### 4. Storing Methods Without Binding
+
+```lua
+-- WRONG: Loses self
+local fn = obj.method
+fn()  -- self is nil!
+
+-- CORRECT: Wrap in closure
+local fn = function() obj:method() end
+fn()  -- Works!
+```
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand that colon is syntactic sugar for passing self
+- [ ] I know when to use dot vs colon for calls
+- [ ] I know when to use dot vs colon for definitions
+- [ ] I can debug "attempt to index nil" errors related to self
+- [ ] I understand how to properly store methods as callbacks
+- [ ] I can implement method chaining with return self
+
+---
+
+## Next Up
+
+**[Encapsulation →](./encapsulation)**

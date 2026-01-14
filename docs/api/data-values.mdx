@@ -1,0 +1,312 @@
+---
+sidebar_position: 8
+title: Data Values
+description: DataValue types, Converter, and Property types
+---
+
+# Data Values
+
+Type-safe data containers and property types for ViewModel binding.
+
+---
+
+## DataValue
+
+Type-safe wrapper for storing typed values in inputs.
+
+### Static Constructors
+
+#### `DataValue.number()`
+
+Creates a numeric data value container.
+
+```lua
+DataValue.number(): DataValueNumber
+```
+
+#### `DataValue.string()`
+
+Creates a string data value container.
+
+```lua
+DataValue.string(): DataValueString
+```
+
+#### `DataValue.boolean()`
+
+Creates a boolean data value container.
+
+```lua
+DataValue.boolean(): DataValueBoolean
+```
+
+#### `DataValue.color()`
+
+Creates a color data value container.
+
+```lua
+DataValue.color(): DataValueColor
+```
+
+### Type Checking Methods
+
+| Method | Returns true when... |
+|--------|---------------------|
+| `isNumber` | Container holds a number |
+| `isString` | Container holds a string |
+| `isBoolean` | Container holds a boolean |
+| `isColor` | Container holds a Color |
+
+**Note:** The official docs show both `dv.isNumber` and `dv:isNumber()` forms. Use the form your editor accepts.
+
+**Example:**
+```lua
+local val = DataValue.number()
+print(val.isNumber)   -- true
+print(val.isString)   -- false
+```
+
+**See Also:** [Converter](#converter), [DataValueNumber](#datavaluenumber)
+
+---
+
+## DataValueNumber
+
+A DataValue that stores a numeric value.
+
+### Attributes
+
+#### `value`
+
+The numeric value. **Type:** `number` (read/write)
+
+### Example
+
+```lua
+local dv: DataValueNumber = DataValue.number()
+dv.value = 200
+```
+
+**See Also:** [DataValue](#datavalue)
+
+---
+
+## DataValueString
+
+A DataValue that stores a string value.
+
+### Attributes
+
+#### `value`
+
+The string value. **Type:** `string` (read/write)
+
+### Example
+
+```lua
+local dv: DataValueString = DataValue.string()
+dv.value = "Hello Rive"
+```
+
+**See Also:** [DataValue](#datavalue)
+
+---
+
+## DataValueBoolean
+
+A DataValue that stores a boolean value.
+
+### Attributes
+
+#### `value`
+
+The boolean value. **Type:** `boolean` (read/write)
+
+### Example
+
+```lua
+local dv: DataValueBoolean = DataValue.boolean()
+dv.value = true
+```
+
+**See Also:** [DataValue](#datavalue)
+
+---
+
+## DataValueColor
+
+A DataValue that stores a color value with RGBA components.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `value` | number | Full encoded color value |
+| `red` | number | Red component (0-255) |
+| `green` | number | Green component (0-255) |
+| `blue` | number | Blue component (0-255) |
+| `alpha` | number | Alpha component (0-255) |
+
+### Example
+
+```lua
+local dv: DataValueColor = DataValue.color()
+dv.value = Color.rgba(255, 0, 0, 255)
+-- Or access individual components:
+dv.red = 255
+dv.green = 128
+dv.blue = 0
+dv.alpha = 255
+```
+
+**See Also:** [DataValue](#datavalue), [Color](./core-types#color)
+
+---
+
+## Converter
+
+Transforms values between ViewModel data bindings and Rive properties.
+
+### Type Parameters
+
+- `T`: The converter type
+- `I`: Input type (DataValue variant)
+- `O`: Output type (DataValue variant)
+
+### Protocol Methods
+
+#### `init(self): boolean`
+
+Called once when converter is created.
+
+```lua
+function init(self: MyConverter): boolean
+    return true
+end
+```
+
+#### `convert(self, input): O`
+
+Transforms input to output.
+
+```lua
+function convert(self: MyConverter, input: DataValueNumber): DataValueString
+    return DataValue.string()  -- Return converted value
+end
+```
+
+#### `reverseConvert(self, output): I`
+
+Inverse transformation.
+
+```lua
+function reverseConvert(self: MyConverter, output: DataValueString): DataValueNumber
+    return DataValue.number()
+end
+```
+
+#### `advance(self, seconds): boolean`
+
+Optional per-frame update.
+
+**See Also:** [DataValue](#datavalue)
+
+---
+
+## PropertyList
+
+Dynamic list property with array-like operations.
+
+### Attributes
+
+#### `list.length`
+
+Number of items in the list. **Type:** `number` (read-only)
+
+### Methods
+
+#### `list:push(item)`
+
+Adds item to end of list.
+
+#### `list:pop()`
+
+Removes and returns last item.
+
+#### `list:shift()`
+
+Removes and returns first item.
+
+#### `list:insert(index, item)`
+
+Inserts item at specific position.
+
+#### `list:swap(indexA, indexB)`
+
+Exchanges two items' positions.
+
+---
+
+## PropertyEnum
+
+Represents an enum property in a ViewModel.
+
+### Methods
+
+#### `enum:values()`
+
+Returns the available enum values.
+
+```lua
+enum:values(): EnumValues
+```
+
+**See Also:** [EnumValues](./system#enumvalues)
+
+---
+
+## PropertyTrigger
+
+Trigger property that fires events and notifies listeners.
+
+### Methods
+
+#### `trigger:fire()`
+
+Invokes the trigger, notifying all listeners.
+
+```lua
+trigger:fire()
+```
+
+#### `trigger:addListener(callback)`
+
+Registers a callback for trigger events.
+
+```lua
+trigger:addListener(callback: () -> ())
+```
+
+#### `trigger:removeListener(callback)`
+
+Removes a previously registered callback.
+
+```lua
+trigger:removeListener(callback: () -> ())
+```
+
+**See Also:** [Trigger](./events#trigger)
+
+---
+
+## PropertyViewModel
+
+ViewModel property wrapper (exposes the nested ViewModel via `.value`).
+
+### Attributes
+
+#### `property.value`
+
+The property value. **Type:** varies by ViewModel definition
+
+**See Also:** [ViewModel](./data-input#viewmodel), [Property](./data-input#property)

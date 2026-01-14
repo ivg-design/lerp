@@ -3,6 +3,562 @@ sidebar_position: 1
 title: Architecture
 ---
 
-# Architecture
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Script Architecture
+
+Organize your Rive scripts for maintainability, reusability, and clarity.
+
+## Rive Context
+
+Rive provides two distinct script types with different purposes:
+
+| Script Type | Purpose | Has Lifecycle | Returns |
+|-------------|---------|---------------|---------|
+| **Node** | Visual behavior attached to artboard nodes | Yes (`init`, `advance`, `draw`) | Factory function |
+| **Util** | Reusable code shared across scripts | No | Module table |
+
+Understanding when to use each type is fundamental to writing clean, maintainable Rive projects.
+
+---
+
+## Node vs Util: Decision Guide
+
+### Use a Node Script When:
+
+- You need to draw something on screen
+- You need per-frame updates (`advance`)
+- You need to respond to inputs
+- The code represents a visual behavior
+
+### Use a Util Script When:
+
+- You have math helpers or easing functions
+- You want to share types across scripts
+- You need configuration or constants
+- The code has no visual component
+
+---
+
+## Exercise 1: Single Responsibility Principle
+
+**Goal**: Separate concerns by keeping Node scripts focused and moving reusable logic to Util scripts.
+
+**File: `Easing` (Util Script)**
+
+```lua
+--!strict
+
+local Easing = {}
+
+function Easing.easeInQuad(t: number): number
+    return t * t
+end
+
+function Easing.easeOutQuad(t: number): number
+    return 1 - (1 - t) * (1 - t)
+end
+
+function Easing.easeInOutQuad(t: number): number
+    if t < 0.5 then
+        return 2 * t * t
+    else
+        return 1 - ((-2 * t + 2) ^ 2) / 2
+    end
+end
+
+function Easing.lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
+end
+
+return Easing
+```
+
+**File: `AnimatedSquare` (Node Script)**
+
+```lua
+--!strict
+
+local Easing = require("Easing")
+
+export type AnimatedSquare = {
+    duration: Input<number>,
+    startX: number,
+    endX: number,
+    elapsed: number,
+    x: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: AnimatedSquare): boolean
+    self.elapsed = 0
+    self.x = self.startX
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) })
+    return true
+end
+
+function advance(self: AnimatedSquare, seconds: number): boolean
+    self.elapsed += seconds
+    local t = math.min(self.elapsed / self.duration.value, 1)
+    local eased = Easing.easeInOutQuad(t)
+    self.x = Easing.lerp(self.startX, self.endX, eased)
+
+    self.path:reset()
+    local size = 20
+    self.path:moveTo(Vector.xy(self.x - size, -size))
+    self.path:lineTo(Vector.xy(self.x + size, -size))
+    self.path:lineTo(Vector.xy(self.x + size, size))
+    self.path:lineTo(Vector.xy(self.x - size, size))
+    self.path:close()
+
+    return true
+end
+
+function draw(self: AnimatedSquare, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<AnimatedSquare>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        duration = 2,
+        startX = -100,
+        endX = 100,
+        elapsed = 0,
+        x = -100,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- The Node script handles visual behavior and state
+- The Util script provides pure functions with no side effects
+- Logic is testable and reusable
+
+---
+
+## Exercise 2: State Management Patterns
+
+**Goal**: Use a typed state table to organize complex script data.
+
+```lua
+--!strict
+
+export type ButtonState = "idle" | "hover" | "pressed"
+
+export type InteractiveButton = {
+    state: ButtonState,
+    scale: number,
+    targetScale: number,
+    path: Path,
+    paint: Paint,
+}
+
+local SCALE_BY_STATE: { [ButtonState]: number } = {
+    idle = 1.0,
+    hover = 1.1,
+    pressed = 0.95,
+}
+
+local COLOR_BY_STATE: { [ButtonState]: Color } = {
+    idle = Color.rgb(80, 140, 220),
+    hover = Color.rgb(100, 160, 240),
+    pressed = Color.rgb(60, 120, 200),
+}
+
+local function rebuildPath(self: InteractiveButton)
+    local halfSize = 40 * self.scale
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-halfSize, -halfSize * 0.5))
+    self.path:lineTo(Vector.xy(halfSize, -halfSize * 0.5))
+    self.path:lineTo(Vector.xy(halfSize, halfSize * 0.5))
+    self.path:lineTo(Vector.xy(-halfSize, halfSize * 0.5))
+    self.path:close()
+end
+
+function init(self: InteractiveButton): boolean
+    self.state = "idle"
+    self.scale = 1.0
+    self.targetScale = 1.0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE.idle })
+    rebuildPath(self)
+    return true
+end
+
+function advance(self: InteractiveButton, seconds: number): boolean
+    -- Smooth interpolation toward target scale
+    self.scale += (self.targetScale - self.scale) * math.min(seconds * 10, 1)
+    rebuildPath(self)
+    return true
+end
+
+function draw(self: InteractiveButton, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+-- Called when state changes (e.g., from pointer events)
+local function setState(self: InteractiveButton, newState: ButtonState)
+    self.state = newState
+    self.targetScale = SCALE_BY_STATE[newState]
+    self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE[newState] })
+end
+
+return function(): Node<InteractiveButton>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        state = "idle",
+        scale = 1.0,
+        targetScale = 1.0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- Use union types (`"idle" | "hover" | "pressed"`) for finite states
+- Store configuration in lookup tables
+- Keep state transitions in dedicated functions
+
+---
+
+## Exercise 3: Layered Architecture
+
+**Goal**: Structure a complex feature with multiple Util scripts.
+
+**File: `Config` (Util Script)**
+
+```lua
+--!strict
+
+local Config = {}
+
+Config.PARTICLE_COUNT = 50
+Config.GRAVITY = 200
+Config.SPAWN_RATE = 0.05
+
+export type ParticleConfig = {
+    count: number,
+    gravity: number,
+    spawnRate: number,
+}
+
+function Config.default(): ParticleConfig
+    return {
+        count = Config.PARTICLE_COUNT,
+        gravity = Config.GRAVITY,
+        spawnRate = Config.SPAWN_RATE,
+    }
+end
+
+return Config
+```
+
+**File: `Particle` (Util Script)**
+
+```lua
+--!strict
+
+local Particle = {}
+
+export type ParticleData = {
+    x: number,
+    y: number,
+    vx: number,
+    vy: number,
+    life: number,
+    maxLife: number,
+}
+
+function Particle.new(x: number, y: number): ParticleData
+    local angle = math.random() * math.pi * 2
+    local speed = 50 + math.random() * 100
+    return {
+        x = x,
+        y = y,
+        vx = math.cos(angle) * speed,
+        vy = math.sin(angle) * speed,
+        life = 0,
+        maxLife = 1 + math.random() * 2,
+    }
+end
+
+function Particle.update(p: ParticleData, dt: number, gravity: number): boolean
+    p.x += p.vx * dt
+    p.y += p.vy * dt
+    p.vy += gravity * dt
+    p.life += dt
+    return p.life < p.maxLife
+end
+
+function Particle.alpha(p: ParticleData): number
+    return 1 - (p.life / p.maxLife)
+end
+
+return Particle
+```
+
+**File: `ParticleSystem` (Node Script)**
+
+```lua
+--!strict
+
+local Config = require("Config")
+local Particle = require("Particle")
+
+export type ParticleSystem = {
+    particles: { Particle.ParticleData },
+    config: Config.ParticleConfig,
+    spawnTimer: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: ParticleSystem): boolean
+    self.particles = {}
+    self.config = Config.default()
+    self.spawnTimer = 0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 100) })
+    return true
+end
+
+function advance(self: ParticleSystem, seconds: number): boolean
+    -- Spawn new particles
+    self.spawnTimer += seconds
+    while self.spawnTimer >= self.config.spawnRate do
+        self.spawnTimer -= self.config.spawnRate
+        if #self.particles < self.config.count then
+            table.insert(self.particles, Particle.new(0, 0))
+        end
+    end
+
+    -- Update existing particles
+    local alive = {}
+    for _, p in self.particles do
+        if Particle.update(p, seconds, self.config.gravity) then
+            table.insert(alive, p)
+        end
+    end
+    self.particles = alive
+
+    return true
+end
+
+function draw(self: ParticleSystem, renderer: Renderer)
+    for _, p in self.particles do
+        self.path:reset()
+        local size = 4
+        self.path:moveTo(Vector.xy(p.x - size, p.y - size))
+        self.path:lineTo(Vector.xy(p.x + size, p.y - size))
+        self.path:lineTo(Vector.xy(p.x + size, p.y + size))
+        self.path:lineTo(Vector.xy(p.x - size, p.y + size))
+        self.path:close()
+
+        local alpha = Particle.alpha(p)
+        self.paint = Paint.with({
+            style = "fill",
+            color = Color.rgba(255, 200, 100, alpha),
+        })
+        renderer:drawPath(self.path, self.paint)
+    end
+end
+
+return function(): Node<ParticleSystem>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        particles = {},
+        config = Config.default(),
+        spawnTimer = 0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Architecture breakdown:**
+- `Config` - Constants and configuration types
+- `Particle` - Data structure and pure update logic
+- `ParticleSystem` - Orchestrates particles and handles rendering
+
+---
+
+## Common Patterns
+
+### Factory Functions in Util Scripts
+
+```lua
+--!strict
+
+local Timer = {}
+
+export type TimerState = {
+    elapsed: number,
+    duration: number,
+    looping: boolean,
+}
+
+function Timer.new(duration: number, looping: boolean?): TimerState
+    return {
+        elapsed = 0,
+        duration = duration,
+        looping = looping or false,
+    }
+end
+
+function Timer.tick(timer: TimerState, dt: number): boolean
+    timer.elapsed += dt
+    if timer.elapsed >= timer.duration then
+        if timer.looping then
+            timer.elapsed = timer.elapsed % timer.duration
+        end
+        return true
+    end
+    return false
+end
+
+return Timer
+```
+
+### Type-Safe Event Tables
+
+```lua
+--!strict
+
+export type EventType = "spawn" | "destroy" | "collect"
+
+export type Event = {
+    type: EventType,
+    timestamp: number,
+    data: { [string]: any }?,
+}
+
+local Events = {}
+
+function Events.create(eventType: EventType, data: { [string]: any }?): Event
+    return {
+        type = eventType,
+        timestamp = os.clock(),
+        data = data,
+    }
+end
+
+return Events
+```
+
+---
+
+## Anti-Patterns to Avoid
+
+### Mixing Concerns in Node Scripts
+
+```lua
+-- BAD: Math utilities embedded in Node script
+function advance(self, seconds: number): boolean
+    -- Don't define helpers inline
+    local function lerp(a, b, t)
+        return a + (b - a) * t
+    end
+    self.x = lerp(0, 100, self.t)
+    return true
+end
+```
+
+### God Util Scripts
+
+```lua
+-- BAD: One massive Util script with everything
+local Utils = {}
+Utils.lerp = ...
+Utils.clamp = ...
+Utils.createParticle = ...
+Utils.parseColor = ...
+Utils.formatTime = ...
+-- 500 more functions...
+return Utils
+```
+
+### Circular Dependencies
+
+```lua
+-- BAD: A requires B, B requires A
+-- File: A.lua
+local B = require("B")  -- B requires A!
+
+-- GOOD: Extract shared code to a third module
+-- File: Shared.lua (no dependencies)
+-- File: A.lua requires Shared
+-- File: B.lua requires Shared
+```
+
+---
+
+## Key Takeaways
+
+- **Node scripts** are for visual behavior with lifecycle
+- **Util scripts** are for pure functions and shared types
+- Keep scripts focused on a single responsibility
+- Use typed lookup tables for state management
+- Layer complex features: Config, Data, Orchestration
+- Avoid circular dependencies by extracting shared code
+
+---
+
+<Quiz
+  question="When should you use a Util script instead of a Node script?"
+  id="architecture-q1"
+  options={[
+    { text: "When you need to draw shapes" },
+    { text: "When you have reusable logic with no visual component", correct: true },
+    { text: "When you need per-frame updates" },
+    { text: "When you want faster performance" },
+  ]}
+  explanation="Util scripts are for reusable code that has no visual component - math helpers, types, and configuration. Node scripts are for visual behavior that needs lifecycle functions."
+/>
+
+<Quiz
+  question="What is the recommended way to handle finite states in a Node script?"
+  id="architecture-q2"
+  options={[
+    { text: "Use boolean flags for each state" },
+    { text: "Use numbers (0, 1, 2) for states" },
+    { text: "Use union types and lookup tables", correct: true },
+    { text: "Use string comparisons" },
+  ]}
+  explanation="Union types (e.g., 'idle' | 'hover' | 'pressed') provide type safety, and lookup tables keep configuration organized and easy to modify."
+/>
+
+<Quiz
+  question="What is the problem with defining helper functions inside Node script lifecycle functions?"
+  id="architecture-q3"
+  options={[
+    { text: "It causes syntax errors" },
+    { text: "The function is recreated every call and can't be reused elsewhere", correct: true },
+    { text: "Rive doesn't support nested functions" },
+    { text: "It makes the script run slower" },
+  ]}
+  explanation="Helper functions defined inside lifecycle functions are recreated on every call and cannot be shared with other scripts. Move them to Util scripts for reusability."
+/>
+
+<Quiz
+  question="How should you structure a complex feature with multiple concerns?"
+  id="architecture-q4"
+  options={[
+    { text: "Put everything in one large Node script" },
+    { text: "Layer with Config, Data, and Orchestration modules", correct: true },
+    { text: "Use only Util scripts" },
+    { text: "Create one Util script per function" },
+  ]}
+  explanation="Complex features benefit from layered architecture: Config for constants, Data modules for pure logic, and a Node script to orchestrate rendering and state."
+/>

@@ -45,9 +45,9 @@ local function rebuild(self: BarChart)
     }
 
     for i, value in ipairs(values) do
-        local height = (clamp(value, 0, 100) / 100) * self.maxHeight.value
-        local x = (i - 2) * (self.barWidth.value + 20)
-        local halfW = self.barWidth.value / 2
+        local height = (clamp(value, 0, 100) / 100) * self.maxHeight
+        local x = (i - 2) * (self.barWidth + 20)
+        local halfW = self.barWidth / 2
 
         local path = self.paths[i]
         path:reset()

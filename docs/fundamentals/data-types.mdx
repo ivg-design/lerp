@@ -1,49 +1,1282 @@
 ---
 sidebar_position: 2
 title: Data Types
-description: Understanding Luau's fundamental data types
+description: Understanding Luau's fundamental data types for Rive animations
 ---
+
+import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Data Types
 
-Luau is dynamically typed by default, meaning a variable can hold a value of any type.
+## Learning Objectives
 
-## Fundamental Types
+By the end of this lesson, you will be able to:
+- Identify and use all fundamental Luau data types
+- Understand the difference between `nil` and `false`
+- Work with numbers in various formats (decimal, hex, binary)
+- Create and manipulate strings using multiple syntaxes
+- Use string interpolation for dynamic text
+- Understand how types differ from JavaScript and After Effects
 
-| Type | Example | Description |
-|------|---------|-------------|
-| `nil` | `nil` | Absence of value |
-| `boolean` | `true`, `false` | Logical values |
-| `number` | `42`, `3.14`, `0xFF` | All numbers (double-precision) |
-| `string` | `"hello"`, `'world'` | Text |
-| `table` | `{}`, `{1,2,3}` | Arrays and dictionaries |
-| `function` | `function() end` | Callable code |
+---
 
-## Number Literals
+## AE/JS Syntax Comparison
+
+Before diving in, here's how Luau data types compare to what you may already know:
+
+| Concept | After Effects Expression | JavaScript | Luau |
+|---------|--------------------------|------------|------|
+| No value | N/A | `null` / `undefined` | `nil` |
+| Boolean | `true`, `false` | `true`, `false` | `true`, `false` |
+| Number | `42`, `3.14` | `42`, `3.14` | `42`, `3.14` |
+| Text | `"hello"` | `"hello"` or `'hello'` | `"hello"` or `'hello'` |
+| Array | `[1, 2, 3]` | `[1, 2, 3]` | `{1, 2, 3}` |
+| Object | N/A | `{key: value}` | `{key = value}` |
+| String join | `"Hello " + name` | `"Hello " + name` | `"Hello " .. name` |
+| Template | N/A | `` `Hello ${name}` `` | `` `Hello {name}` `` |
+
+:::warning Key Differences from JavaScript
+- **No `null` vs `undefined`**: Luau has only `nil`
+- **No separate integer type**: All numbers are double-precision floats
+- **Curly braces for arrays**: Use `{}` not `[]`
+- **Different string concatenation**: Use `..` not `+`
+- **Simpler interpolation**: Use `{var}` not `${var}`
+:::
+
+---
+
+## The nil Type
+
+`nil` represents the **absence of a value**. It's Luau's way of saying "nothing" or "not set."
 
 ```lua
-local decimal = 123
-local float = 3.14159
-local hex = 0xFF           -- 255
-local binary = 0b1010      -- 10
-local readable = 1_000_000 -- Underscores for readability
+local uninitializedVariable  -- This is nil
+local explicitNil = nil      -- Explicitly set to nil
+
+-- Check if something exists
+if uninitializedVariable == nil then
+    print("Variable has no value")
+end
 ```
 
-## Strings
+### JavaScript Comparison
+
+```javascript
+// JavaScript has TWO "nothing" types - confusing!
+let a;           // undefined
+let b = null;    // null
+a === undefined  // true
+b === null       // true
+a == b           // true (loose equality)
+a === b          // false (strict equality)
+```
 
 ```lua
-local single = 'Hello'
-local double = "World"
-local multi = [[
-  Multi-line
-  string
-]]
+-- Luau has ONE "nothing" type - simple!
+local a          -- nil
+local b = nil    -- nil
+a == nil         -- true
+b == nil         -- true
+a == b           -- true (always straightforward)
+```
 
--- String interpolation (Luau feature!)
-local name = "Player"
-local greeting = `Hello, {name}!`  -- "Hello, Player!"
+### Why nil Matters in Rive
+
+In Rive Node Scripts, `nil` is commonly used with:
+- **Uninitialized values**: Before `init()` runs, fields may be `nil`
+- **Optional parameters**: Functions can have optional arguments
+- **Missing table keys**: Accessing a non-existent key returns `nil`
+- **late() initializer**: Returns `nil` before the engine provides the value
+
+```lua
+export type MyScript = {
+    health: number?,  -- The ? means this can be nil
+}
+
+function init(self: MyScript): boolean
+    -- health might be nil if not set
+    if self.health == nil then
+        self.health = 100
+    end
+    return true
+end
 ```
 
 ---
 
-**[→ Next: Operators](/fundamentals/operators)**
+## The boolean Type
+
+Booleans represent logical values: `true` or `false`.
+
+```lua
+local isActive = true
+local hasCollided = false
+
+-- From comparisons
+local isPositive = 5 > 0       -- true
+local isEmpty = #"hello" == 0  -- false
+```
+
+### Truthy and Falsy Values
+
+:::danger Critical Difference from JavaScript!
+In Luau, **only `false` and `nil` are falsy**. Everything else is truthy!
+
+```lua
+-- These are ALL truthy in Luau:
+if 0 then print("0 is truthy!") end           -- PRINTS!
+if "" then print("empty string is truthy!") end -- PRINTS!
+if {} then print("empty table is truthy!") end  -- PRINTS!
+```
+:::
+
+### JavaScript Comparison
+
+```javascript
+// JavaScript falsy values (6 total):
+if (false) {}     // falsy
+if (null) {}      // falsy
+if (undefined) {} // falsy
+if (0) {}         // falsy ← Different from Luau!
+if ("") {}        // falsy ← Different from Luau!
+if (NaN) {}       // falsy
+
+// Common JS pattern that DOESN'T work the same in Luau:
+let score = 0;
+if (!score) {
+    console.log("No score"); // This prints in JS!
+}
+```
+
+```lua
+-- Luau falsy values (2 only):
+if false then end  -- falsy
+if nil then end    -- falsy
+
+-- This behaves DIFFERENTLY than JS:
+local score = 0
+if not score then
+    print("No score")  -- DOES NOT PRINT! 0 is truthy!
+end
+
+-- Correct Luau way:
+if score == 0 then
+    print("Score is zero")
+end
+```
+
+---
+
+## The number Type
+
+All numbers in Luau are **double-precision floating-point** (64-bit). There's no separate integer type.
+
+### Number Literals
+
+```lua
+-- Standard decimal
+local count = 42
+local price = 19.99
+local negative = -100
+
+-- Hexadecimal (base 16) - useful for colors
+local red = 0xFF0000     -- 16711680
+local green = 0x00FF00   -- 65280
+local blue = 0x0000FF    -- 255
+
+-- Binary (base 2) - useful for bit flags
+local flags = 0b1010     -- 10
+local mask = 0b11110000  -- 240
+
+-- Underscores for readability (large numbers)
+local million = 1_000_000      -- 1000000
+local precise = 3.141_592_653  -- 3.141592653
+```
+
+### JavaScript Comparison
+
+```javascript
+// JavaScript numbers are similar
+let count = 42;
+let price = 19.99;
+let hex = 0xFF0000;
+let binary = 0b1010;
+let bigNumber = 1_000_000;  // ES2021+
+
+// JavaScript also has BigInt (Luau doesn't)
+let huge = 9007199254740993n;  // No equivalent in Luau
+```
+
+### Precision Note
+
+Since all numbers are floats, very large integers may lose precision:
+
+```lua
+local big = 9007199254740992    -- Safe max integer
+local tooBig = 9007199254740993 -- May lose precision!
+```
+
+### Special Number Values
+
+```lua
+local infinity = math.huge      -- Positive infinity
+local negInfinity = -math.huge  -- Negative infinity
+local notANumber = 0/0          -- NaN (not a number)
+
+-- Check for special values
+local x = 0/0
+if x ~= x then
+    print("x is NaN")  -- NaN is the only value that doesn't equal itself!
+end
+```
+
+---
+
+## The string Type
+
+Strings are sequences of characters for text data.
+
+### String Syntax Options
+
+Luau offers three ways to create strings:
+
+```lua
+-- Single quotes
+local single = 'Hello, World!'
+
+-- Double quotes (most common)
+local double = "Hello, World!"
+
+-- Multi-line strings with [[]]
+local multi = [[
+This is a
+multi-line string.
+It preserves line breaks!
+]]
+```
+
+### Escape Sequences
+
+```lua
+local newline = "Line 1\nLine 2"     -- \n = new line
+local tab = "Column1\tColumn2"        -- \t = tab
+local quote = "He said \"Hello!\""    -- \" = literal quote
+local backslash = "Path\\to\\file"    -- \\ = literal backslash
+```
+
+### String Concatenation
+
+:::warning Use `..` not `+`
+Luau uses `..` for string concatenation, NOT `+` like JavaScript!
+:::
+
+```lua
+-- Luau concatenation
+local first = "Hello"
+local second = "World"
+local greeting = first .. " " .. second  -- "Hello World"
+
+-- Numbers are automatically converted
+local score = 100
+local message = "Score: " .. score  -- "Score: 100"
+```
+
+```javascript
+// JavaScript uses +
+let greeting = first + " " + second;
+let message = "Score: " + score;
+```
+
+### String Interpolation (Backticks)
+
+Luau supports **string interpolation** with backticks - this is the cleanest way to build dynamic strings:
+
+```lua
+local name = "Player"
+local level = 42
+local health = 85.5
+
+-- Old way with concatenation (messy)
+local old = "Welcome, " .. name .. "! Level " .. level .. " - HP: " .. health
+
+-- New way with interpolation (clean)
+local new = `Welcome, {name}! Level {level} - HP: {health}`
+
+-- Both produce: "Welcome, Player! Level 42 - HP: 85.5"
+```
+
+### JavaScript Comparison
+
+```javascript
+// JavaScript template literals use ${}
+let message = `Welcome, ${name}! Level ${level} - HP: ${health}`;
+```
+
+```lua
+-- Luau interpolation uses {} (no $ needed)
+local message = `Welcome, {name}! Level {level} - HP: {health}`
+```
+
+### String Length
+
+```lua
+local text = "Hello"
+local length = #text  -- 5
+
+-- Works with variables too
+local message = "Rive is awesome!"
+print(`Message has {#message} characters`)  -- "Message has 16 characters"
+```
+
+---
+
+## The table Type
+
+Tables are Luau's only data structure - they serve as arrays, dictionaries, and objects.
+
+```lua
+-- Array-style (sequential integer keys)
+local colors = {"red", "green", "blue"}
+
+-- Dictionary-style (named keys)
+local player = {
+    name = "Hero",
+    health = 100,
+    position = {x = 0, y = 0}
+}
+
+-- Mixed (possible but not recommended)
+local mixed = {
+    "first",        -- Index 1
+    "second",       -- Index 2
+    name = "mixed"  -- Named key
+}
+```
+
+:::info Learn More
+Tables are covered in depth in the [Tables lesson](./tables). This is just an overview of the type.
+:::
+
+---
+
+## The function Type
+
+Functions are first-class values in Luau - they can be stored in variables, passed as arguments, and returned from other functions.
+
+```lua
+-- Function stored in variable
+local greet = function(name: string): string
+    return `Hello, {name}!`
+end
+
+-- Call it
+local message = greet("World")  -- "Hello, World!"
+
+-- Type of function
+print(type(greet))  -- "function"
+```
+
+:::info Learn More
+Functions are covered in depth in the [Functions lesson](./functions). This is just an overview of the type.
+:::
+
+---
+
+## Type Checking with type()
+
+The built-in `type()` function returns the type of any value as a string:
+
+```lua
+print(type(nil))          -- "nil"
+print(type(true))         -- "boolean"
+print(type(42))           -- "number"
+print(type("hello"))      -- "string"
+print(type({}))           -- "table"
+print(type(function() end)) -- "function"
+```
+
+### Runtime Type Guards
+
+```lua
+local function processValue(value: any)
+    if type(value) == "number" then
+        print(`Number: {value * 2}`)
+    elseif type(value) == "string" then
+        print(`String: {value:upper()}`)
+    elseif type(value) == "boolean" then
+        print(`Boolean: {if value then "yes" else "no"}`)
+    elseif type(value) == "nil" then
+        print("Got nil!")
+    else
+        print(`Unknown type: {type(value)}`)
+    end
+end
+```
+
+---
+
+## Exercises
+
+### Exercise 1: Type Explorer
+
+**Goal**: Understand how `type()` works and explore all fundamental types.
+
+**Why This Matters**: When debugging Rive scripts, you'll often need to check what type a variable actually is. This exercise builds familiarity with Luau's type system.
+
+**Step-by-Step Setup**:
+1. Create a new Rive file with a Node Script
+2. Copy the code below into your script
+3. Run the animation and check the console output
+
+```lua
+--!strict
+
+export type TypeExplorer = {}
+
+function init(self: TypeExplorer): boolean
+    print("=== Exploring Luau Types ===\n")
+
+    -- nil type
+    local nothing = nil
+    print(`1. nil value:`)
+    print(`   Value: {tostring(nothing)}`)
+    print(`   Type: {type(nothing)}\n`)
+
+    -- boolean type
+    local yes = true
+    local no = false
+    print(`2. boolean values:`)
+    print(`   true → Type: {type(yes)}`)
+    print(`   false → Type: {type(no)}\n`)
+
+    -- number type (various formats)
+    local integer = 42
+    local decimal = 3.14159
+    local hex = 0xFF
+    local binary = 0b1010
+    local readable = 1_000_000
+
+    print(`3. number values:`)
+    print(`   42 → Type: {type(integer)}`)
+    print(`   3.14159 → Type: {type(decimal)}`)
+    print(`   0xFF → Value: {hex}, Type: {type(hex)}`)
+    print(`   0b1010 → Value: {binary}, Type: {type(binary)}`)
+    print(`   1_000_000 → Value: {readable}, Type: {type(readable)}\n`)
+
+    -- string type (various syntaxes)
+    local single = 'single quotes'
+    local double = "double quotes"
+    local interpolated = `interpolated: {integer}`
+
+    print(`4. string values:`)
+    print(`   'single quotes' → Type: {type(single)}`)
+    print(`   "double quotes" → Type: {type(double)}`)
+    print(`   Interpolated → "{interpolated}", Type: {type(interpolated)}\n`)
+
+    -- table type
+    local array = {1, 2, 3}
+    local dict = {name = "test", value = 42}
+
+    print(`5. table values:`)
+    print(`   Array {1,2,3} → Type: {type(array)}`)
+    print(`   Dictionary → Type: {type(dict)}\n`)
+
+    -- function type
+    local myFunc = function() end
+    print(`6. function value:`)
+    print(`   function() end → Type: {type(myFunc)}\n`)
+
+    print("=== All 6 fundamental types explored! ===")
+
+    return true
+end
+
+function draw(self: TypeExplorer, renderer: Renderer)
+end
+
+return function(): Node<TypeExplorer>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Output**:
+```
+=== Exploring Luau Types ===
+
+1. nil value:
+   Value: nil
+   Type: nil
+
+2. boolean values:
+   true → Type: boolean
+   false → Type: boolean
+
+3. number values:
+   42 → Type: number
+   3.14159 → Type: number
+   0xFF → Value: 255, Type: number
+   0b1010 → Value: 10, Type: number
+   1_000_000 → Value: 1000000, Type: number
+
+4. string values:
+   'single quotes' → Type: string
+   "double quotes" → Type: string
+   Interpolated → "interpolated: 42", Type: string
+
+5. table values:
+   Array {1,2,3} → Type: table
+   Dictionary → Type: table
+
+6. function value:
+   function() end → Type: function
+
+=== All 6 fundamental types explored! ===
+```
+
+**JavaScript Equivalent**:
+```javascript
+// JavaScript type checking
+console.log(typeof null);        // "object" (historical bug!)
+console.log(typeof undefined);   // "undefined"
+console.log(typeof true);        // "boolean"
+console.log(typeof 42);          // "number"
+console.log(typeof "hello");     // "string"
+console.log(typeof [1,2,3]);     // "object" (not "array"!)
+console.log(typeof {a: 1});      // "object"
+console.log(typeof function(){}); // "function"
+
+// Array.isArray() needed for arrays in JS
+Array.isArray([1,2,3]);  // true
+```
+
+---
+
+### Exercise 2: Truthy/Falsy Challenge
+
+**Goal**: Understand the critical difference between Luau and JavaScript truthiness.
+
+**Why This Matters**: If you're coming from JavaScript, this is one of the most common sources of bugs. Understanding that `0` and `""` are truthy in Luau will save you hours of debugging!
+
+**Step-by-Step Setup**:
+1. Create a new Node Script in Rive
+2. Copy the code below
+3. Before running, predict which values will print "truthy"
+4. Run and compare your predictions
+
+```lua
+--!strict
+
+export type TruthyTest = {}
+
+function init(self: TruthyTest): boolean
+    print("=== Truthy/Falsy Test ===\n")
+    print("Testing which values are truthy in Luau:\n")
+
+    local testValues: {any} = {
+        false,           -- 1. false
+        nil,             -- 2. nil
+        true,            -- 3. true
+        0,               -- 4. zero
+        1,               -- 5. one
+        -1,              -- 6. negative one
+        "",              -- 7. empty string
+        "hello",         -- 8. non-empty string
+        {},              -- 9. empty table
+        {1, 2, 3},       -- 10. non-empty table
+    }
+
+    local labels = {
+        "false",
+        "nil",
+        "true",
+        "0 (zero)",
+        "1",
+        "-1",
+        '"" (empty string)',
+        '"hello"',
+        "{} (empty table)",
+        "{1,2,3} (array)"
+    }
+
+    print("Results:")
+    print("---------")
+
+    for i, value in ipairs(testValues) do
+        local result = if value then "TRUTHY" else "FALSY"
+        print(`{i}. {labels[i]}: {result}`)
+    end
+
+    print("\n=== Key Takeaway ===")
+    print("Only 'false' and 'nil' are falsy in Luau!")
+    print("0, empty string, and empty table are ALL truthy!")
+
+    return true
+end
+
+function draw(self: TruthyTest, renderer: Renderer)
+end
+
+return function(): Node<TruthyTest>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Output**:
+```
+=== Truthy/Falsy Test ===
+
+Testing which values are truthy in Luau:
+
+Results:
+---------
+1. false: FALSY
+2. nil: FALSY
+3. true: TRUTHY
+4. 0 (zero): TRUTHY
+5. 1: TRUTHY
+6. -1: TRUTHY
+7. "" (empty string): TRUTHY
+8. "hello": TRUTHY
+9. {} (empty table): TRUTHY
+10. {1,2,3} (array): TRUTHY
+
+=== Key Takeaway ===
+Only 'false' and 'nil' are falsy in Luau!
+0, empty string, and empty table are ALL truthy!
+```
+
+**JavaScript Equivalent**:
+```javascript
+// Same test in JavaScript - notice the different results!
+const testValues = [false, null, undefined, true, 0, 1, -1, "", "hello", [], [1,2,3]];
+const labels = ["false", "null", "undefined", "true", "0", "1", "-1", '""', '"hello"', "[]", "[1,2,3]"];
+
+testValues.forEach((value, i) => {
+    const result = value ? "TRUTHY" : "FALSY";
+    console.log(`${labels[i]}: ${result}`);
+});
+
+// JavaScript results would be:
+// false: FALSY
+// null: FALSY
+// undefined: FALSY
+// true: TRUTHY
+// 0: FALSY          ← Different from Luau!
+// 1: TRUTHY
+// -1: TRUTHY
+// "": FALSY         ← Different from Luau!
+// "hello": TRUTHY
+// []: TRUTHY
+// [1,2,3]: TRUTHY
+```
+
+---
+
+### Exercise 3: String Operations
+
+**Goal**: Master string creation, concatenation, and interpolation.
+
+**Why This Matters**: Building dynamic text for UI elements, debug messages, and state descriptions is essential in Rive animations. String interpolation is the cleanest approach.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Run and observe how different string operations work
+4. Experiment with your own string combinations
+
+```lua
+--!strict
+
+export type StringOps = {}
+
+function init(self: StringOps): boolean
+    print("=== String Operations Demo ===\n")
+
+    -- Part 1: Basic string creation
+    print("Part 1: String Creation")
+    print("-----------------------")
+    local single = 'Using single quotes'
+    local double = "Using double quotes"
+    print(single)
+    print(double)
+
+    -- Part 2: Multi-line strings
+    print("\nPart 2: Multi-line Strings")
+    print("--------------------------")
+    local poem = [[
+Roses are red,
+Violets are blue,
+Luau is great,
+And so are you!]]
+    print(poem)
+
+    -- Part 3: Escape sequences
+    print("\nPart 3: Escape Sequences")
+    print("------------------------")
+    local escaped = "Tab:\tHere\nNewline above"
+    local quoted = "She said \"Hello!\""
+    print(escaped)
+    print(quoted)
+
+    -- Part 4: Concatenation with ..
+    print("\nPart 4: Concatenation")
+    print("---------------------")
+    local firstName = "Rive"
+    local lastName = "Developer"
+    local fullName = firstName .. " " .. lastName
+    print(`Concatenated: {fullName}`)
+
+    -- Numbers auto-convert in concatenation
+    local score = 9001
+    local message = "Power level: " .. score
+    print(message)
+
+    -- Part 5: String interpolation (preferred method)
+    print("\nPart 5: String Interpolation (Backticks)")
+    print("----------------------------------------")
+    local playerName = "Hero"
+    local level = 42
+    local health = 85.5
+    local isAlive = true
+
+    -- Clean and readable!
+    local status = `Player: {playerName}, Level: {level}, HP: {health}, Alive: {isAlive}`
+    print(status)
+
+    -- Expressions inside interpolation
+    local damage = 30
+    local remaining = `After {damage} damage: {health - damage} HP remaining`
+    print(remaining)
+
+    -- Part 6: String length
+    print("\nPart 6: String Length")
+    print("---------------------")
+    local text = "Hello, World!"
+    print(`"{text}" has {#text} characters`)
+
+    local empty = ""
+    print(`Empty string length: {#empty}`)
+
+    return true
+end
+
+function draw(self: StringOps, renderer: Renderer)
+end
+
+return function(): Node<StringOps>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Output**:
+```
+=== String Operations Demo ===
+
+Part 1: String Creation
+-----------------------
+Using single quotes
+Using double quotes
+
+Part 2: Multi-line Strings
+--------------------------
+Roses are red,
+Violets are blue,
+Luau is great,
+And so are you!
+
+Part 3: Escape Sequences
+------------------------
+Tab:	Here
+Newline above
+She said "Hello!"
+
+Part 4: Concatenation
+---------------------
+Concatenated: Rive Developer
+Power level: 9001
+
+Part 5: String Interpolation (Backticks)
+----------------------------------------
+Player: Hero, Level: 42, HP: 85.5, Alive: true
+After 30 damage: 55.5 HP remaining
+
+Part 6: String Length
+---------------------
+"Hello, World!" has 13 characters
+Empty string length: 0
+```
+
+**JavaScript Equivalent**:
+```javascript
+// JavaScript string operations
+const firstName = "Rive";
+const lastName = "Developer";
+
+// Concatenation (same concept, different operator)
+const fullName = firstName + " " + lastName;
+
+// Template literals (similar to Luau interpolation)
+const level = 42;
+const status = `Player: ${playerName}, Level: ${level}`;
+
+// String length
+const text = "Hello";
+console.log(text.length);  // 5 (property, not operator)
+```
+
+---
+
+### Exercise 4: Number Formats in Practice
+
+**Goal**: Use different number formats for real Rive animation scenarios.
+
+**Why This Matters**: Hexadecimal is essential for colors, binary is useful for flags and bitmasking, and readable number formats help with large values like milliseconds.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Run and observe how different number formats work
+4. Try modifying the color values and see the results
+
+```lua
+--!strict
+
+export type NumberFormats = {}
+
+function init(self: NumberFormats): boolean
+    print("=== Number Formats in Practice ===\n")
+
+    -- Part 1: Colors with Hexadecimal
+    print("Part 1: Hex Colors")
+    print("------------------")
+    local red = 0xFF0000
+    local green = 0x00FF00
+    local blue = 0x0000FF
+    local white = 0xFFFFFF
+    local black = 0x000000
+    local orange = 0xFFA500
+
+    print(`Red:    0xFF0000 = {red}`)
+    print(`Green:  0x00FF00 = {green}`)
+    print(`Blue:   0x0000FF = {blue}`)
+    print(`White:  0xFFFFFF = {white}`)
+    print(`Black:  0x000000 = {black}`)
+    print(`Orange: 0xFFA500 = {orange}`)
+
+    -- Extract RGB components
+    local color = 0xFFA500  -- Orange
+    local r = bit32.rshift(bit32.band(color, 0xFF0000), 16)
+    local g = bit32.rshift(bit32.band(color, 0x00FF00), 8)
+    local b = bit32.band(color, 0x0000FF)
+    print(`\nOrange RGB: R={r}, G={g}, B={b}`)
+
+    -- Part 2: Binary for Flags
+    print("\nPart 2: Binary Flags")
+    print("--------------------")
+    local FLAG_VISIBLE = 0b0001    -- 1
+    local FLAG_ACTIVE = 0b0010     -- 2
+    local FLAG_SELECTED = 0b0100   -- 4
+    local FLAG_LOCKED = 0b1000     -- 8
+
+    print(`FLAG_VISIBLE:  0b0001 = {FLAG_VISIBLE}`)
+    print(`FLAG_ACTIVE:   0b0010 = {FLAG_ACTIVE}`)
+    print(`FLAG_SELECTED: 0b0100 = {FLAG_SELECTED}`)
+    print(`FLAG_LOCKED:   0b1000 = {FLAG_LOCKED}`)
+
+    -- Combine flags
+    local objectFlags = FLAG_VISIBLE + FLAG_ACTIVE
+    print(`\nObject with VISIBLE + ACTIVE = {objectFlags}`)
+
+    -- Check if flag is set
+    local hasVisible = bit32.band(objectFlags, FLAG_VISIBLE) > 0
+    local hasLocked = bit32.band(objectFlags, FLAG_LOCKED) > 0
+    print(`Has VISIBLE: {hasVisible}`)
+    print(`Has LOCKED: {hasLocked}`)
+
+    -- Part 3: Readable Large Numbers
+    print("\nPart 3: Readable Numbers")
+    print("------------------------")
+    local milliseconds = 1_000        -- 1 second
+    local oneMinute = 60_000          -- 60 seconds
+    local oneHour = 3_600_000         -- 3600 seconds
+    local gameScore = 1_234_567
+    local precise = 3.141_592_653
+
+    print(`1 second in ms: {milliseconds}`)
+    print(`1 minute in ms: {oneMinute}`)
+    print(`1 hour in ms: {oneHour}`)
+    print(`Game score: {gameScore}`)
+    print(`Pi: {precise}`)
+
+    -- Part 4: Decimal precision
+    print("\nPart 4: Decimal Numbers")
+    print("-----------------------")
+    local opacity = 0.75
+    local scale = 1.5
+    local rotation = 45.0
+    local verySmall = 0.001
+
+    print(`Opacity: {opacity}`)
+    print(`Scale: {scale}x`)
+    print(`Rotation: {rotation} degrees`)
+    print(`Very small: {verySmall}`)
+
+    return true
+end
+
+function draw(self: NumberFormats, renderer: Renderer)
+end
+
+return function(): Node<NumberFormats>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Output**:
+```
+=== Number Formats in Practice ===
+
+Part 1: Hex Colors
+------------------
+Red:    0xFF0000 = 16711680
+Green:  0x00FF00 = 65280
+Blue:   0x0000FF = 255
+White:  0xFFFFFF = 16777215
+Black:  0x000000 = 0
+Orange: 0xFFA500 = 16753920
+
+Orange RGB: R=255, G=165, B=0
+
+Part 2: Binary Flags
+--------------------
+FLAG_VISIBLE:  0b0001 = 1
+FLAG_ACTIVE:   0b0010 = 2
+FLAG_SELECTED: 0b0100 = 4
+FLAG_LOCKED:   0b1000 = 8
+
+Object with VISIBLE + ACTIVE = 3
+Has VISIBLE: true
+Has LOCKED: false
+
+Part 3: Readable Numbers
+------------------------
+1 second in ms: 1000
+1 minute in ms: 60000
+1 hour in ms: 3600000
+Game score: 1234567
+Pi: 3.141592653
+
+Part 4: Decimal Numbers
+-----------------------
+Opacity: 0.75
+Scale: 1.5x
+Rotation: 45 degrees
+Very small: 0.001
+```
+
+---
+
+### Exercise 5: nil Handling Patterns
+
+**Goal**: Learn safe patterns for working with potentially nil values.
+
+**Why This Matters**: In Rive Node Scripts, values are often `nil` before initialization. Learning to handle `nil` safely prevents runtime errors and creates robust animations.
+
+**Step-by-Step Setup**:
+1. Create a new Node Script
+2. Copy the code below
+3. Run and observe each nil-handling pattern
+4. These patterns will be essential in your Rive development
+
+```lua
+--!strict
+
+export type NilHandling = {
+    health: number?,      -- Optional (can be nil)
+    name: string?,
+    inventory: {string}?,
+}
+
+function init(self: NilHandling): boolean
+    print("=== nil Handling Patterns ===\n")
+
+    -- Pattern 1: Check before use
+    print("Pattern 1: Explicit nil Check")
+    print("------------------------------")
+    local maybeValue: number? = nil
+
+    if maybeValue ~= nil then
+        print(`Value is: {maybeValue}`)
+    else
+        print("Value is nil - cannot use")
+    end
+
+    -- Pattern 2: Default values with 'or'
+    print("\nPattern 2: Default with 'or'")
+    print("----------------------------")
+    local inputName: string? = nil
+    local displayName = inputName or "Anonymous"
+    print(`Display name: {displayName}`)
+
+    local inputScore: number? = nil
+    local displayScore = inputScore or 0
+    print(`Display score: {displayScore}`)
+
+    -- Pattern 3: Safe self initialization
+    print("\nPattern 3: Safe self Initialization")
+    print("------------------------------------")
+    if self.health == nil then
+        self.health = 100
+        print("Initialized health to 100")
+    end
+
+    if self.name == nil then
+        self.name = "Player"
+        print("Initialized name to 'Player'")
+    end
+
+    if self.inventory == nil then
+        self.inventory = {}
+        print("Initialized inventory to empty table")
+    end
+
+    print(`\nFinal state:`)
+    print(`  Health: {self.health}`)
+    print(`  Name: {self.name}`)
+    print(`  Inventory size: {#self.inventory}`)
+
+    -- Pattern 4: Guard clauses
+    print("\nPattern 4: Guard Clauses")
+    print("------------------------")
+    local target: {name: string}? = nil
+
+    -- Early return pattern
+    local function attackTarget(t: {name: string}?)
+        if t == nil then
+            print("No target to attack!")
+            return
+        end
+
+        -- Safe to use t here
+        print(`Attacking {t.name}!`)
+    end
+
+    attackTarget(nil)
+    attackTarget({name = "Dragon"})
+
+    -- Pattern 5: Optional chaining simulation
+    print("\nPattern 5: Safe Table Access")
+    print("----------------------------")
+    local player: {stats: {health: number}?}? = nil
+
+    -- Unsafe (would error):
+    -- local hp = player.stats.health
+
+    -- Safe nested access:
+    local function getHealth(p: {stats: {health: number}?}?): number
+        if p == nil then return 0 end
+        if p.stats == nil then return 0 end
+        return p.stats.health
+    end
+
+    print(`Player health (nil player): {getHealth(nil)}`)
+    print(`Player health (nil stats): {getHealth({stats = nil})}`)
+    print(`Player health (valid): {getHealth({stats = {health = 85}})}`)
+
+    return true
+end
+
+function draw(self: NilHandling, renderer: Renderer)
+end
+
+return function(): Node<NilHandling>
+    return {
+        init = init,
+        draw = draw,
+        health = nil,
+        name = nil,
+        inventory = nil,
+    }
+end
+```
+
+**Expected Output**:
+```
+=== nil Handling Patterns ===
+
+Pattern 1: Explicit nil Check
+------------------------------
+Value is nil - cannot use
+
+Pattern 2: Default with 'or'
+----------------------------
+Display name: Anonymous
+Display score: 0
+
+Pattern 3: Safe self Initialization
+------------------------------------
+Initialized health to 100
+Initialized name to 'Player'
+Initialized inventory to empty table
+
+Final state:
+  Health: 100
+  Name: Player
+  Inventory size: 0
+
+Pattern 4: Guard Clauses
+------------------------
+No target to attack!
+Attacking Dragon!
+
+Pattern 5: Safe Table Access
+----------------------------
+Player health (nil player): 0
+Player health (nil stats): 0
+Player health (valid): 85
+```
+
+**JavaScript Equivalent**:
+```javascript
+// JavaScript has optional chaining (Luau doesn't)
+const hp = player?.stats?.health ?? 0;
+
+// JavaScript nullish coalescing
+const name = inputName ?? "Anonymous";
+
+// Note: In JS, ?? only considers null/undefined
+// In Luau, 'or' considers false as well as nil
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="In Luau, what values are considered 'falsy'?"
+  id="dt-q1"
+  options={[
+    { text: "false, nil, 0, and empty string" },
+    { text: "false and nil only", correct: true },
+    { text: "false, nil, and 0" },
+    { text: "Only false" },
+  ]}
+  explanation="This is a critical difference from JavaScript! In Luau, only 'false' and 'nil' are falsy. The number 0, empty strings, and empty tables are all truthy."
+/>
+
+<Quiz
+  question="What operator is used for string concatenation in Luau?"
+  id="dt-q2"
+  options={[
+    { text: "+" },
+    { text: "&" },
+    { text: "..", correct: true },
+    { text: "~" },
+  ]}
+  explanation="Luau uses '..' for string concatenation, not '+' like JavaScript. Example: 'Hello' .. ' World' produces 'Hello World'."
+/>
+
+<Quiz
+  question="What is the correct syntax for string interpolation in Luau?"
+  id="dt-q3"
+  options={[
+    { text: '`Hello ${name}`' },
+    { text: '`Hello {name}`', correct: true },
+    { text: '"Hello #{name}"' },
+    { text: 'f"Hello {name}"' },
+  ]}
+  explanation="Luau uses backticks with {variable} for interpolation (no $ needed). JavaScript uses ${variable}, Python uses f-strings with {}, and Ruby uses #{}."
+/>
+
+<Quiz
+  question="What does type({1, 2, 3}) return in Luau?"
+  id="dt-q4"
+  type="code"
+  answer="table"
+  explanation="Arrays in Luau are just tables with numeric keys. The type() function returns 'table' for both arrays and dictionaries."
+/>
+
+<Quiz
+  question="What is the value of: local x = nil or 'default'"
+  id="dt-q5"
+  type="code"
+  answer="default"
+  explanation="The 'or' operator returns the first truthy value. Since nil is falsy, it evaluates the second operand and returns 'default'."
+/>
+
+<Quiz
+  question="What number format would you use to represent a color like red in Rive?"
+  id="dt-q6"
+  options={[
+    { text: "Binary: 0b11111111" },
+    { text: "Hexadecimal: 0xFF0000", correct: true },
+    { text: "Decimal: 255,0,0" },
+    { text: "String: 'red'" },
+  ]}
+  explanation="Hexadecimal (0xRRGGBB) is the standard format for colors. Red is 0xFF0000, green is 0x00FF00, blue is 0x0000FF."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Common Data Type Errors
+1. **Assuming 0 is falsy** - In Luau, 0 is truthy! Use explicit `== 0` checks
+2. **Using + for string concatenation** - Use `..` instead: `"Hello" .. "World"`
+3. **Using ${} in interpolation** - Use `{var}` not `${var}` in backtick strings
+4. **Forgetting nil checks** - Always verify values exist before using them
+5. **Confusing nil with false** - `nil == false` is FALSE! They are different values
+6. **Using [] for arrays** - Use `{}`: `{1, 2, 3}` not `[1, 2, 3]`
+:::
+
+---
+
+## Quick Reference
+
+```lua
+-- Types
+nil                  -- No value
+true, false          -- Booleans
+42, 3.14, 0xFF       -- Numbers (all double-precision)
+"hello", 'world'     -- Strings
+{1, 2, 3}            -- Table (array)
+{key = "value"}      -- Table (dictionary)
+function() end       -- Function
+
+-- Type checking
+type(value)          -- Returns "nil", "boolean", "number", "string", "table", "function"
+
+-- String operations
+"Hello" .. " World"  -- Concatenation: "Hello World"
+#"Hello"             -- Length: 5
+`Value: {var}`       -- Interpolation
+
+-- nil handling
+value or default     -- Default value pattern
+if x ~= nil then     -- Explicit nil check
+
+-- Number formats
+42                   -- Decimal
+0xFF                 -- Hexadecimal (255)
+0b1010               -- Binary (10)
+1_000_000            -- Readable (1000000)
+```
+
+---
+
+## Next Up
+
+**[Operators](./operators)** - Learn arithmetic, comparison, logical, and compound operators.

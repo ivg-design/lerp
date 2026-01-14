@@ -1,8 +1,497 @@
 ---
 sidebar_position: 3
 title: ViewModels
+description: Binding scripts to ViewModels for reactive data-driven animations
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # ViewModels
 
-*Content being migrated...*
+## Rive Context: ViewModels Connect Data to Graphics
+
+ViewModels are Rive's data binding system. They let you expose properties (numbers, strings, booleans, colors, enums, lists) that can be controlled from:
+
+- The Rive runtime (your app)
+- State machines
+- Other Node Scripts
+
+**Key concepts:**
+- ViewModels define a **schema** of properties
+- Properties are **reactive**: changes propagate automatically
+- Scripts can **read**, **write**, and **listen** to ViewModel properties
+- Use `context:viewModel()` for the artboard's main ViewModel
+- Use `Input<Data.X>` for nested ViewModel references
+
+---
+
+## Accessing the Main ViewModel
+
+Every artboard can have a ViewModel bound to it. Access it through the `context` parameter in `init`.
+
+```lua
+--!strict
+
+export type VMReader = {}
+
+function init(self: VMReader, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        print("ViewModel found!")
+    else
+        print("No ViewModel bound to this artboard.")
+    end
+    return true
+end
+
+function draw(self: VMReader, renderer: Renderer)
+end
+
+return function(): Node<VMReader>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+## ViewModel Property Access Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `vm:getNumber(name)` | `Property<number>?` | Get a numeric property |
+| `vm:getString(name)` | `Property<string>?` | Get a string property |
+| `vm:getBoolean(name)` | `Property<boolean>?` | Get a boolean property |
+| `vm:getColor(name)` | `Property<Color>?` | Get a color property |
+| `vm:getEnum(name)` | `Property<string>?` | Get an enum property (returns string) |
+| `vm:getList(name)` | `List?` | Get a list property |
+| `vm:getTrigger(name)` | `Trigger?` | Get a trigger |
+
+All getters return `nil` if the property doesn't exist. Always check before using.
+
+---
+
+## Exercise 1: Read and Display ViewModel Data
+
+**Goal**: Read properties from the main ViewModel and use them in your script.
+
+```lua
+--!strict
+
+export type ScoreDisplay = {
+    vm: ViewModel?,
+    scoreProp: Property<number>?,
+    path: Path,
+    paint: Paint,
+    barWidth: number,
+}
+
+function init(self: ScoreDisplay, context: Context): boolean
+    self.vm = context:viewModel()
+    self.barWidth = 0
+
+    if self.vm then
+        self.scoreProp = self.vm:getNumber("score")
+        if self.scoreProp then
+            self.barWidth = self.scoreProp.value * 2
+        end
+    end
+
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+
+    return true
+end
+
+function advance(self: ScoreDisplay, seconds: number): boolean
+    if self.scoreProp then
+        self.barWidth = self.scoreProp.value * 2
+    end
+    return true
+end
+
+function draw(self: ScoreDisplay, renderer: Renderer)
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-100, -10))
+    self.path:lineTo(Vector.xy(-100 + self.barWidth, -10))
+    self.path:lineTo(Vector.xy(-100 + self.barWidth, 10))
+    self.path:lineTo(Vector.xy(-100, 10))
+    self.path:close()
+
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<ScoreDisplay>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        vm = nil,
+        scoreProp = nil,
+        path = Path.new(),
+        paint = Paint.new(),
+        barWidth = 0,
+    }
+end
+```
+
+:::warning Path Reset Location
+In this example, `path:reset()` is in `draw` for simplicity. For production code, move path updates to `advance` to avoid potential rendering artifacts.
+:::
+
+**Key points:**
+- Access `.value` to read the property's current value
+- Store the property reference to avoid repeated lookups
+- Check for `nil` before using properties
+
+---
+
+## Exercise 2: Writing to ViewModel Properties
+
+**Goal**: Update ViewModel properties from your script to drive animations.
+
+```lua
+--!strict
+
+export type PositionDriver = {
+    vm: ViewModel?,
+    xProp: Property<number>?,
+    yProp: Property<number>?,
+    time: number,
+}
+
+function init(self: PositionDriver, context: Context): boolean
+    self.time = 0
+    self.vm = context:viewModel()
+
+    if self.vm then
+        self.xProp = self.vm:getNumber("posX")
+        self.yProp = self.vm:getNumber("posY")
+    end
+
+    return true
+end
+
+function advance(self: PositionDriver, seconds: number): boolean
+    self.time += seconds
+
+    if self.xProp then
+        self.xProp.value = math.sin(self.time) * 100
+    end
+
+    if self.yProp then
+        self.yProp.value = math.cos(self.time * 1.5) * 50
+    end
+
+    return true
+end
+
+function draw(self: PositionDriver, renderer: Renderer)
+end
+
+return function(): Node<PositionDriver>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        vm = nil,
+        xProp = nil,
+        yProp = nil,
+        time = 0,
+    }
+end
+```
+
+**Key points:**
+- Write to `.value` to update the property
+- Changes propagate to all bound elements automatically
+- ViewModel properties are the bridge between scripts and visual elements
+
+---
+
+## Exercise 3: Listening for Property Changes
+
+**Goal**: React when external code (runtime, state machine) changes a ViewModel property.
+
+```lua
+--!strict
+
+export type ChangeListener = {
+    vm: ViewModel?,
+    modeProp: Property<string>?,
+    currentMode: string,
+    paint: Paint,
+    path: Path,
+}
+
+function init(self: ChangeListener, context: Context): boolean
+    self.currentMode = "idle"
+    self.vm = context:viewModel()
+
+    if self.vm then
+        self.modeProp = self.vm:getString("mode")
+        if self.modeProp then
+            self.currentMode = self.modeProp.value
+
+            self.modeProp:addListener(function()
+                self.currentMode = self.modeProp.value
+                if self.currentMode == "active" then
+                    self.paint.color = Color.rgb(255, 100, 100)
+                else
+                    self.paint.color = Color.rgb(100, 100, 255)
+                end
+            end)
+        end
+    end
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-40, -40))
+    self.path:lineTo(Vector.xy(40, -40))
+    self.path:lineTo(Vector.xy(40, 40))
+    self.path:lineTo(Vector.xy(-40, 40))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 100, 255) })
+
+    return true
+end
+
+function draw(self: ChangeListener, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<ChangeListener>
+    return {
+        init = init,
+        draw = draw,
+        vm = nil,
+        modeProp = nil,
+        currentMode = "idle",
+        paint = Paint.new(),
+        path = Path.new(),
+    }
+end
+```
+
+**Key points:**
+- `addListener()` registers a callback that fires on property changes
+- Listeners persist for the lifetime of the script
+- Use listeners for event-driven logic (mode changes, state transitions)
+
+---
+
+## Exercise 4: Firing Triggers
+
+**Goal**: Use triggers for one-shot events (play sound, spawn particle, etc.).
+
+```lua
+--!strict
+
+export type TriggerDemo = {
+    vm: ViewModel?,
+    hitTrigger: Trigger?,
+    clickCount: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: TriggerDemo, context: Context): boolean
+    self.clickCount = 0
+    self.vm = context:viewModel()
+
+    if self.vm then
+        self.hitTrigger = self.vm:getTrigger("onHit")
+
+        if self.hitTrigger then
+            self.hitTrigger:addListener(function()
+                self.clickCount += 1
+                print(`Hit trigger fired! Count: {self.clickCount}`)
+            end)
+        end
+    end
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-30, -30))
+    self.path:lineTo(Vector.xy(30, -30))
+    self.path:lineTo(Vector.xy(30, 30))
+    self.path:lineTo(Vector.xy(-30, 30))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 180, 60) })
+
+    return true
+end
+
+function draw(self: TriggerDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<TriggerDemo>
+    return {
+        init = init,
+        draw = draw,
+        vm = nil,
+        hitTrigger = nil,
+        clickCount = 0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**To fire a trigger from your script:**
+
+```lua
+if self.hitTrigger then
+    self.hitTrigger:fire()
+end
+```
+
+**Key points:**
+- Triggers are one-shot events with no persistent value
+- Use `getTrigger()` to access, `fire()` to activate, `addListener()` to respond
+- Common uses: collision events, button presses, animation completion signals
+
+---
+
+## Exercise 5: Nested ViewModel Inputs
+
+**Goal**: Use script inputs to bind to nested ViewModels.
+
+```lua
+--!strict
+
+export type CharacterController = {
+    character: Input<Data.Character>,
+    speed: Input<number>,
+    time: number,
+}
+
+function init(self: CharacterController): boolean
+    self.time = 0
+    return true
+end
+
+function advance(self: CharacterController, seconds: number): boolean
+    self.time += seconds
+
+    local offset = math.sin(self.time * self.speed.value) * 80
+    self.character.posX.value = offset
+    self.character.posY.value = math.cos(self.time * self.speed.value * 0.7) * 40
+
+    return true
+end
+
+function draw(self: CharacterController, renderer: Renderer)
+end
+
+return function(): Node<CharacterController>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        character = late(),
+        speed = 2.0,
+        time = 0,
+    }
+end
+```
+
+**Editor setup:**
+1. Create a `Character` ViewModel with `posX` and `posY` number properties
+2. Bind the ViewModel to an element in your artboard
+3. In the script's input panel, assign the ViewModel instance to the `character` input
+
+**Key points:**
+- `Input<Data.X>` where X is your ViewModel name
+- Use `late()` because the value is assigned in the editor
+- Access nested properties directly: `self.character.posX.value`
+
+---
+
+## ViewModel vs Script Inputs
+
+| Feature | `context:viewModel()` | `Input<Data.X>` |
+|---------|----------------------|-----------------|
+| Scope | Artboard-level (global) | Per-instance |
+| Setup | Automatic | Requires editor binding |
+| Use case | Shared state across scripts | Component-specific data |
+| Access | In `init` via context | Available immediately |
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="How do you access the artboard's main ViewModel?"
+  id="viewmodels-q1"
+  options={[
+    { text: "self.viewModel" },
+    { text: "context:viewModel()", correct: true },
+    { text: "ViewModel.get()" },
+    { text: "context.vm" },
+  ]}
+  explanation="Use context:viewModel() in the init function to access the ViewModel bound to the artboard."
+/>
+
+<Quiz
+  question="What does property:addListener(callback) do?"
+  id="viewmodels-q2"
+  options={[
+    { text: "Replaces the property value" },
+    { text: "Registers a function to call when the property changes", correct: true },
+    { text: "Returns the property's current value" },
+    { text: "Removes the property from the ViewModel" },
+  ]}
+  explanation="addListener() registers a callback function that fires whenever the property's value changes, enabling reactive behavior."
+/>
+
+<Quiz
+  question="How do you read the current value of a ViewModel property?"
+  id="viewmodels-q3"
+  options={[
+    { text: "property.get()" },
+    { text: "property.value", correct: true },
+    { text: "property:read()" },
+    { text: "property()" },
+  ]}
+  explanation="Access the .value property to read the current value. Use the same property to write: property.value = newValue"
+/>
+
+<Quiz
+  question="When should you use late() for an input?"
+  id="viewmodels-q4"
+  options={[
+    { text: "When the input has a default value" },
+    { text: "When the input will be assigned in the Rive editor", correct: true },
+    { text: "When the input is optional" },
+    { text: "When the input changes frequently" },
+  ]}
+  explanation="late() indicates that the input doesn't have a value at construction time but will be assigned in the editor before init runs."
+/>
+
+<Quiz
+  question="What is the difference between a Property and a Trigger?"
+  id="viewmodels-q5"
+  options={[
+    { text: "Properties are read-only, Triggers are write-only" },
+    { text: "Properties hold persistent values, Triggers are one-shot events", correct: true },
+    { text: "Triggers are faster than Properties" },
+    { text: "There is no difference" },
+  ]}
+  explanation="Properties maintain a value that can be read and written. Triggers have no persistent value - they simply fire events that listeners can respond to."
+/>
+
+---
+
+## Key Takeaway
+
+ViewModels are the bridge between your animation data and your scripts. Use `context:viewModel()` for artboard-level shared data, and `Input<Data.X>` with `late()` for component-specific bindings. Listeners make your scripts reactive to external changes.
+
+---
+
+## Next Up
+
+**[Procedural Geometry ->](./procedural)**

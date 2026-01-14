@@ -5,32 +5,176 @@ description: Define functions, understand scope, and use closures in Rive Node S
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
 
 # Lesson 1.3: Functions & Closures
 
-## Rive Context
+## Learning Objectives
 
-Functions and closures are used inside lifecycle functions. If you need persistent data across frames, store it on `self`, not in a local variable inside `init`.
+By the end of this lesson, you will:
+- Define and call functions in Luau
+- Understand function parameters and return values
+- Use type annotations on function signatures
+- Create and use closures for encapsulated state
+- Know when to use local functions vs helper functions
 
 ---
 
-## Function Basics
+## Syntax Note: Coming from JavaScript or After Effects?
 
-### Defining Functions
+:::note JavaScript / After Effects Comparison
+| Concept | Luau | JavaScript |
+|---------|------|------------|
+| Function declaration | `function name() end` | `function name() {}` |
+| Local function | `local function name() end` | `const name = function() {}` |
+| Arrow function | Not available | `(x) => x * 2` |
+| Return | `return value` | `return value;` |
+| Multiple returns | `return a, b` | `return [a, b];` (array) |
+| Default params | Not built-in | `function(x = 5) {}` |
+
+**Key differences:**
+- Luau uses `end` to close functions, not `}`
+- Luau can return multiple values directly (no array needed)
+- No arrow functions in Luau — use `function() end`
+:::
+
+---
+
+## Why Functions?
+
+Functions are reusable blocks of code. Instead of writing the same calculation multiple times:
 
 ```lua
--- Local function (preferred)
-local function add(a: number, b: number): number
+-- WITHOUT functions - repetitive!
+local damage1 = 50 * 2.5 - 10
+local damage2 = 75 * 1.5 - 10
+local damage3 = 30 * 3.0 - 10
+```
+
+You write a function once and call it:
+
+```lua
+-- WITH functions - clean and reusable!
+local function calculateDamage(base, multiplier)
+    return base * multiplier - 10
+end
+
+local damage1 = calculateDamage(50, 2.5)
+local damage2 = calculateDamage(75, 1.5)
+local damage3 = calculateDamage(30, 3.0)
+```
+
+---
+
+## Defining Functions
+
+### Basic Function Syntax
+
+```lua
+-- Named function (declare with 'local' for proper scoping)
+local function greet(name: string): string
+    return `Hello, {name}!`
+end
+
+-- Call the function
+print(greet("Player"))  -- "Hello, Player!"
+```
+
+**Breaking down the syntax:**
+
+```lua
+local function greet(name: string): string
+--    --------       ----  ------   ------
+--    keyword        param param    return
+--                   name  type     type
+```
+
+| Part | Meaning |
+|------|---------|
+| `local function` | Declares a local function (recommended) |
+| `greet` | The function's name |
+| `name: string` | Parameter `name` with type `string` |
+| `: string` after `)` | Return type is `string` |
+| `return` | Sends a value back to the caller |
+| `end` | Ends the function body |
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript (with TypeScript types)
+function greet(name: string): string {
+    return `Hello, ${name}!`;
+}
+
+// Or as arrow function
+const greet = (name: string): string => `Hello, ${name}!`;
+```
+
+```lua
+-- Luau
+local function greet(name: string): string
+    return `Hello, {name}!`
+end
+```
+:::
+
+---
+
+### Anonymous Functions
+
+Functions without names — useful for callbacks:
+
+```lua
+-- Anonymous function assigned to a variable
+local add = function(a: number, b: number): number
     return a + b
 end
 
--- Anonymous function
-local multiply = function(a: number, b: number): number
-    return a * b
-end
+print(add(2, 3))  -- 5
 ```
 
+:::note JavaScript Comparison
+```javascript
+// JavaScript
+const add = function(a, b) {
+    return a + b;
+};
+
+// Or arrow function
+const add = (a, b) => a + b;
+```
+
+**Note:** Luau has no arrow functions. Use `function() end` for inline functions.
+:::
+
+---
+
+### Functions Without Returns
+
+Functions that don't return a value:
+
+```lua
+local function logMessage(message: string)
+    print(`[LOG] {message}`)
+    -- No return statement needed
+end
+
+logMessage("Player spawned")  -- [LOG] Player spawned
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript - implicitly returns undefined
+function logMessage(message) {
+    console.log(`[LOG] ${message}`);
+}
+```
+:::
+
+---
+
 ### Multiple Return Values
+
+Luau can return multiple values directly — no arrays or objects needed!
 
 ```lua
 local function minMax(a: number, b: number): (number, number)
@@ -41,20 +185,114 @@ local function minMax(a: number, b: number): (number, number)
     end
 end
 
-local min, max = minMax(5, 3)  -- min = 3, max = 5
+-- Receive both values
+local min, max = minMax(10, 5)
+print(`Min: {min}, Max: {max}`)  -- Min: 5, Max: 10
 ```
+
+:::note JavaScript Comparison
+JavaScript can't return multiple values directly. You must use arrays or objects:
+
+```javascript
+// JavaScript - must use array destructuring
+function minMax(a, b) {
+    return a < b ? [a, b] : [b, a];
+}
+
+const [min, max] = minMax(10, 5);
+```
+
+```lua
+-- Luau - direct multiple returns
+local function minMax(a: number, b: number): (number, number)
+    if a < b then return a, b else return b, a end
+end
+
+local min, max = minMax(10, 5)
+```
+
+Luau's approach is more efficient — no temporary objects created.
+:::
+
+---
+
+## Function Parameters
+
+### Required Parameters
+
+All parameters are required by default:
+
+```lua
+local function greet(name: string, title: string): string
+    return `Hello, {title} {name}!`
+end
+
+print(greet("Smith", "Dr."))  -- "Hello, Dr. Smith!"
+-- print(greet("Smith"))      -- ERROR: missing argument
+```
+
+### Optional Parameters
+
+Use `?` to make parameters optional:
+
+```lua
+local function greet(name: string, title: string?): string
+    if title then
+        return `Hello, {title} {name}!`
+    else
+        return `Hello, {name}!`
+    end
+end
+
+print(greet("Smith", "Dr."))  -- "Hello, Dr. Smith!"
+print(greet("Smith"))         -- "Hello, Smith!"
+```
+
+### Default Values Pattern
+
+Luau doesn't have built-in default parameters, but you can simulate them:
+
+```lua
+local function attack(damage: number, multiplier: number?): number
+    local mult = multiplier or 1.0  -- Default to 1.0 if nil
+    return damage * mult
+end
+
+print(attack(50))       -- 50 (uses default multiplier 1.0)
+print(attack(50, 2.0))  -- 100
+```
+
+:::note JavaScript Comparison
+```javascript
+// JavaScript has built-in default parameters
+function attack(damage, multiplier = 1.0) {
+    return damage * multiplier;
+}
+```
+
+```lua
+-- Luau uses the 'or' pattern
+local function attack(damage: number, multiplier: number?): number
+    multiplier = multiplier or 1.0
+    return damage * multiplier
+end
+```
+:::
 
 ---
 
 ## Closures
 
-A **closure** is a function that captures variables from its surrounding scope. These captured variables are called **upvalues**.
+### What Is a Closure?
+
+A **closure** is a function that "remembers" variables from the scope where it was created. These captured variables are called **upvalues**.
 
 ```lua
 local function makeCounter()
-    local count = 0  -- This is captured by the inner function
+    local count = 0  -- This variable is "captured"
+
     return function()
-        count += 1
+        count += 1   -- The inner function remembers 'count'
         return count
     end
 end
@@ -65,11 +303,140 @@ print(counter())  -- 2
 print(counter())  -- 3
 ```
 
-:::tip Closures in Rive
-Closures are especially useful in Rive for:
-- Input listeners (`input:addListener(function() ... end)`)
-- Callbacks
-- Factory functions for parameterized behavior
+**How it works:**
+
+1. `makeCounter()` creates a local variable `count`
+2. It returns an inner function that uses `count`
+3. Even after `makeCounter` finishes, the inner function remembers `count`
+4. Each call to `counter()` updates and returns the same `count`
+
+:::note JavaScript Comparison
+Closures work the same way in JavaScript:
+
+```javascript
+// JavaScript closure
+function makeCounter() {
+    let count = 0;
+    return function() {
+        count++;
+        return count;
+    };
+}
+
+const counter = makeCounter();
+console.log(counter()); // 1
+console.log(counter()); // 2
+```
+:::
+
+---
+
+### Why Are Closures Useful?
+
+**1. Creating private state:**
+
+```lua
+local function createPlayer(name: string)
+    local health = 100  -- Private - can't be accessed directly
+
+    return {
+        getName = function() return name end,
+        getHealth = function() return health end,
+        takeDamage = function(amount: number)
+            health -= amount
+            if health < 0 then health = 0 end
+        end,
+    }
+end
+
+local player = createPlayer("Hero")
+print(player.getName())     -- "Hero"
+print(player.getHealth())   -- 100
+player.takeDamage(30)
+print(player.getHealth())   -- 70
+-- print(health)            -- ERROR: can't access directly
+```
+
+**2. Factory functions for parameterized behavior:**
+
+```lua
+local function makeMultiplier(factor: number)
+    return function(value: number): number
+        return value * factor
+    end
+end
+
+local double = makeMultiplier(2)
+local triple = makeMultiplier(3)
+
+print(double(10))  -- 20
+print(triple(10))  -- 30
+```
+
+---
+
+### Closures in Rive Scripts
+
+Closures are especially useful in Rive for callbacks and listeners:
+
+```lua
+export type ButtonScript = {
+    clickCount: number,
+    button: Input<Artboard<Data.ButtonVM>?>,
+}
+
+function init(self: ButtonScript): boolean
+    self.clickCount = 0
+
+    if self.button.value then
+        -- This closure captures 'self'
+        self.button.value:addListener(function(event: ButtonEvent)
+            if event.type == "click" then
+                self.clickCount += 1  -- Modifies self through closure
+                print(`Clicked {self.clickCount} times`)
+            end
+        end)
+    end
+
+    return true
+end
+```
+
+---
+
+## Function Scope
+
+### Local vs Module-Level Functions
+
+```lua
+--!strict
+
+-- Module-level function (accessible throughout the file)
+local function helperFunction()
+    print("I'm accessible anywhere in this file")
+end
+
+function init(self: MyScript): boolean
+    -- Local function (only accessible inside init)
+    local function innerHelper()
+        print("I only exist inside init")
+    end
+
+    helperFunction()  -- Works
+    innerHelper()     -- Works
+
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+    helperFunction()  -- Works
+    -- innerHelper()  -- ERROR: not accessible here
+end
+```
+
+:::tip Best Practice
+- **Helper functions** that are reused → Define at module level
+- **Single-use functions** → Define locally where needed
 :::
 
 ---
@@ -78,18 +445,57 @@ Closures are especially useful in Rive for:
 
 ### Exercise 1: Basic Functions ⭐
 
+**Goal:** Define and call simple functions.
+
+**Why this matters:** Functions are the building blocks of all code. Every Rive script uses lifecycle functions, and you'll create helpers constantly.
+
+**Real-world use:** Damage calculations, animation easing, value clamping, string formatting.
+
+---
+
+#### Step-by-Step Setup
+
+1. **Create a new Node Script** named "Exercise1_Functions"
+
+2. **Copy and paste:**
+
 ```lua
 --!strict
 
 export type Exercise1 = {}
 
+-- Define helper functions at module level
 local function add(a: number, b: number): number
     return a + b
 end
 
+local function subtract(a: number, b: number): number
+    return a - b
+end
+
+local function multiply(a: number, b: number): number
+    return a * b
+end
+
+local function divide(a: number, b: number): number
+    if b == 0 then
+        return 0  -- Avoid division by zero
+    end
+    return a / b
+end
+
 function init(self: Exercise1): boolean
-    print(add(2, 3))
-    print(add(10, -4))
+    -- Test each function
+    print(`add(5, 3) = {add(5, 3)}`)
+    print(`subtract(10, 4) = {subtract(10, 4)}`)
+    print(`multiply(6, 7) = {multiply(6, 7)}`)
+    print(`divide(20, 4) = {divide(20, 4)}`)
+    print(`divide(10, 0) = {divide(10, 0)}`)  -- Safe division
+
+    -- Chain function calls
+    local result = add(multiply(3, 4), 5)
+    print(`3 * 4 + 5 = {result}`)
+
     return true
 end
 
@@ -104,38 +510,77 @@ return function(): Node<Exercise1>
 end
 ```
 
+**Expected Output:**
+```
+add(5, 3) = 8
+subtract(10, 4) = 6
+multiply(6, 7) = 42
+divide(20, 4) = 5
+divide(10, 0) = 0
+3 * 4 + 5 = 17
+```
+
 ---
 
-### Exercise 2: Closures Inside `init` ⭐⭐
+### Exercise 2: Functions with Type Annotations ⭐
 
-This shows how closures work in Rive scripts when executed inside `init`.
+**Goal:** Practice typed function signatures.
+
+**Why this matters:** Type annotations catch errors early and improve autocomplete in the Rive Editor.
+
+---
+
+#### Code
 
 ```lua
 --!strict
 
-export type ClosureDemo = {}
+export type Exercise2 = {}
 
-function init(self: ClosureDemo): boolean
-    local function makeCounter()
-        local count = 0
-        return function()
-            count += 1
-            return count
-        end
-    end
+-- Function that returns a formatted string
+local function formatCurrency(amount: number, symbol: string): string
+    return `{symbol}{amount}`
+end
 
-    local counter = makeCounter()
-    print(counter())  -- 1
-    print(counter())  -- 2
-    print(counter())  -- 3
+-- Function that calculates percentage
+local function percentage(value: number, total: number): number
+    if total == 0 then return 0 end
+    return (value / total) * 100
+end
+
+-- Function with multiple returns
+local function getStats(health: number, maxHealth: number): (number, string)
+    local percent = percentage(health, maxHealth)
+    local status = if percent > 50 then "Healthy"
+        elseif percent > 25 then "Wounded"
+        elseif percent > 0 then "Critical"
+        else "Dead"
+    return percent, status
+end
+
+function init(self: Exercise2): boolean
+    -- Test formatCurrency
+    print(formatCurrency(99.99, "$"))   -- $99.99
+    print(formatCurrency(1250, "G"))    -- G1250 (gold)
+
+    -- Test percentage
+    print(`50/200 = {percentage(50, 200)}%`)  -- 25%
+    print(`75/100 = {percentage(75, 100)}%`)  -- 75%
+
+    -- Test getStats (multiple returns)
+    local pct, status = getStats(75, 100)
+    print(`Health: {pct}% - {status}`)  -- Health: 75% - Healthy
+
+    local pct2, status2 = getStats(20, 100)
+    print(`Health: {pct2}% - {status2}`)  -- Health: 20% - Critical
 
     return true
 end
 
-function draw(self: ClosureDemo, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<ClosureDemo>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
@@ -145,78 +590,300 @@ end
 
 ---
 
-### Exercise 3: Persisting State Across Frames ⭐⭐
+### Exercise 3: Closures - Counter Factory ⭐⭐
 
-If you need the counter to tick every frame, store the count on `self` and update in `advance`.
+**Goal:** Create closures that maintain private state.
+
+**Why this matters:** Closures let you create functions with "memory" — essential for tracking state, creating reusable utilities, and implementing callbacks.
+
+---
+
+#### Code
 
 ```lua
 --!strict
 
-export type FrameCounter = {
-    count: number,
+export type Exercise3 = {}
+
+-- Factory function that creates counter closures
+local function makeCounter(start: number?, step: number?)
+    local count = start or 0
+    local increment = step or 1
+
+    return {
+        -- Get current count
+        get = function(): number
+            return count
+        end,
+        -- Increment and return new count
+        tick = function(): number
+            count += increment
+            return count
+        end,
+        -- Reset to starting value
+        reset = function()
+            count = start or 0
+        end,
+    }
+end
+
+function init(self: Exercise3): boolean
+    print("=== Counter 1 (default) ===")
+    local counter1 = makeCounter()
+    print(counter1.tick())  -- 1
+    print(counter1.tick())  -- 2
+    print(counter1.tick())  -- 3
+
+    print("\n=== Counter 2 (start at 100, step by 5) ===")
+    local counter2 = makeCounter(100, 5)
+    print(counter2.tick())  -- 105
+    print(counter2.tick())  -- 110
+    print(counter2.tick())  -- 115
+
+    print("\n=== Independent counters ===")
+    print(`Counter1: {counter1.get()}`)  -- Still 3
+    print(`Counter2: {counter2.get()}`)  -- 115
+
+    print("\n=== Reset ===")
+    counter2.reset()
+    print(`Counter2 after reset: {counter2.get()}`)  -- 100
+
+    return true
+end
+
+function draw(self: Exercise3, renderer: Renderer)
+end
+
+return function(): Node<Exercise3>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Exercise 4: Persisting State Across Frames ⭐⭐
+
+**Goal:** Understand the difference between local variables and `self` for state that persists across frames.
+
+**Why this matters:** This is a critical distinction in Rive scripts! Local variables in `init()` disappear when `init()` ends. Only `self` persists.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise4 = {
+    frameCount: number,
+    elapsed: number,
 }
 
-function init(self: FrameCounter): boolean
-    self.count = 0
-    return true
-end
-
-function advance(self: FrameCounter, seconds: number): boolean
-    self.count += 1
-    if self.count % 60 == 0 then
-        print(`Frames: {self.count}`)
-    end
-    return true
-end
-
-function draw(self: FrameCounter, renderer: Renderer)
-end
-
-return function(): Node<FrameCounter>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        count = late(),
-    }
-end
-```
-
-:::info Key Insight
-Local variables in `init` only exist during that function call. To persist data across frames, use `self.property`.
-:::
-
----
-
-### Exercise 4: Functions That Return Functions ⭐⭐
-
-Use a factory to create parameterized behavior inside `init`.
-
-```lua
---!strict
-
-export type Exercise4 = {}
-
-local function makeMultiplier(factor: number)
-    return function(value: number): number
-        return value * factor
-    end
-end
-
 function init(self: Exercise4): boolean
-    local double = makeMultiplier(2)
-    local triple = makeMultiplier(3)
+    -- Initialize state that will persist
+    self.frameCount = 0
+    self.elapsed = 0
 
-    print(double(5)) -- 10
-    print(triple(5)) -- 15
+    -- This local variable ONLY exists during init()
+    local initMessage = "Script initialized!"
+    print(initMessage)
+
+    -- After init() returns, initMessage is GONE
+    -- But self.frameCount persists because it's on self
+
+    return true
+end
+
+function advance(self: Exercise4, seconds: number): boolean
+    self.frameCount += 1
+    self.elapsed += seconds
+
+    -- Log every second (approximately 60 frames)
+    if self.frameCount % 60 == 0 then
+        print(`Frame {self.frameCount}: {self.elapsed // 1} seconds elapsed`)
+    end
 
     return true
 end
 
 function draw(self: Exercise4, renderer: Renderer)
+    -- self.frameCount is available here too!
 end
 
 return function(): Node<Exercise4>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        frameCount = late(),
+        elapsed = late(),
+    }
+end
+```
+
+---
+
+### Exercise 5: Factory Functions for Easing ⭐⭐
+
+**Goal:** Create factory functions that return customized easing functions.
+
+**Why this matters:** Animation relies heavily on easing functions. Creating factories lets you generate different easings with different parameters.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+-- Factory for linear interpolation
+local function makeLerp(start: number, finish: number)
+    return function(t: number): number
+        return start + (finish - start) * t
+    end
+end
+
+-- Factory for exponential easing
+local function makeEaseIn(power: number)
+    return function(t: number): number
+        return t ^ power
+    end
+end
+
+local function makeEaseOut(power: number)
+    return function(t: number): number
+        return 1 - (1 - t) ^ power
+    end
+end
+
+function init(self: Exercise5): boolean
+    print("=== Linear Interpolation ===")
+    local posLerp = makeLerp(0, 100)
+    local colorLerp = makeLerp(0, 255)
+
+    for t = 0, 10, 2 do
+        local progress = t / 10
+        print(`t={progress}: pos={posLerp(progress)}, color={colorLerp(progress)}`)
+    end
+
+    print("\n=== Easing Functions ===")
+    local easeIn2 = makeEaseIn(2)   -- Quadratic ease in
+    local easeIn3 = makeEaseIn(3)   -- Cubic ease in
+    local easeOut2 = makeEaseOut(2) -- Quadratic ease out
+
+    print("Progress | EaseIn2 | EaseIn3 | EaseOut2")
+    for t = 0, 4 do
+        local progress = t / 4
+        print(`{progress}       | {easeIn2(progress) // 0.01 / 100}     | {easeIn3(progress) // 0.01 / 100}     | {easeOut2(progress) // 0.01 / 100}`)
+    end
+
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Exercise 6: Utility Functions Library ⭐⭐⭐
+
+**Goal:** Build a collection of reusable utility functions.
+
+**Why this matters:** Real projects need utility functions for clamping, mapping, rounding, and other common operations.
+
+---
+
+#### Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+-- Clamp a value between min and max
+local function clamp(value: number, min: number, max: number): number
+    if value < min then return min end
+    if value > max then return max end
+    return value
+end
+
+-- Map a value from one range to another
+local function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number
+    local normalized = (value - inMin) / (inMax - inMin)
+    return outMin + normalized * (outMax - outMin)
+end
+
+-- Round to specified decimal places
+local function round(value: number, decimals: number?): number
+    local mult = 10 ^ (decimals or 0)
+    return math.floor(value * mult + 0.5) / mult
+end
+
+-- Linear interpolation
+local function lerp(a: number, b: number, t: number): number
+    return a + (b - a) * clamp(t, 0, 1)
+end
+
+-- Inverse lerp (find t given value)
+local function inverseLerp(a: number, b: number, value: number): number
+    if a == b then return 0 end
+    return clamp((value - a) / (b - a), 0, 1)
+end
+
+-- Smoothstep (smooth interpolation)
+local function smoothstep(t: number): number
+    t = clamp(t, 0, 1)
+    return t * t * (3 - 2 * t)
+end
+
+function init(self: Exercise6): boolean
+    print("=== clamp ===")
+    print(`clamp(150, 0, 100) = {clamp(150, 0, 100)}`)  -- 100
+    print(`clamp(-50, 0, 100) = {clamp(-50, 0, 100)}`)  -- 0
+    print(`clamp(50, 0, 100) = {clamp(50, 0, 100)}`)    -- 50
+
+    print("\n=== mapRange ===")
+    print(`mapRange(50, 0, 100, 0, 1) = {mapRange(50, 0, 100, 0, 1)}`)  -- 0.5
+    print(`mapRange(0.5, 0, 1, 0, 255) = {mapRange(0.5, 0, 1, 0, 255)}`)  -- 127.5
+
+    print("\n=== round ===")
+    print(`round(3.14159) = {round(3.14159)}`)        -- 3
+    print(`round(3.14159, 2) = {round(3.14159, 2)}`)  -- 3.14
+
+    print("\n=== lerp ===")
+    print(`lerp(0, 100, 0.25) = {lerp(0, 100, 0.25)}`)  -- 25
+    print(`lerp(0, 100, 0.5) = {lerp(0, 100, 0.5)}`)    -- 50
+
+    print("\n=== inverseLerp ===")
+    print(`inverseLerp(0, 100, 25) = {inverseLerp(0, 100, 25)}`)  -- 0.25
+    print(`inverseLerp(0, 100, 50) = {inverseLerp(0, 100, 50)}`)  -- 0.5
+
+    print("\n=== smoothstep ===")
+    for t = 0, 4 do
+        local progress = t / 4
+        print(`smoothstep({progress}) = {round(smoothstep(progress), 2)}`)
+    end
+
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
     return {
         init = init,
         draw = draw,
@@ -253,19 +920,89 @@ end
 />
 
 <Quiz
-  question="Which lifecycle function runs every frame for logic updates?"
+  question="How do you make a function return multiple values in Luau?"
   id="fn-q3"
+  options={[
+    { text: "Return an array" },
+    { text: "Use return a, b, c", correct: true },
+    { text: "Return an object" },
+    { text: "You can only return one value" },
+  ]}
+  explanation="Luau supports multiple return values directly. Just separate them with commas: return a, b, c. The caller receives them as: local x, y, z = func()"
+/>
+
+<Quiz
+  question="What is the correct syntax for a function with type annotations?"
+  id="fn-q4"
+  options={[
+    { text: "function add(a, b): number" },
+    { text: "function add(a: number, b: number): number", correct: true },
+    { text: "function add(a number, b number) number" },
+    { text: "function(a: number, b: number): number add" },
+  ]}
+  explanation="Parameter types come after the parameter name with a colon. The return type comes after the closing parenthesis with a colon."
+/>
+
+<Quiz
+  question="Which lifecycle function runs every frame for logic updates?"
+  id="fn-q5"
   options={[
     { text: "init" },
     { text: "advance", correct: true },
     { text: "draw" },
     { text: "update" },
   ]}
-  explanation="advance(self, seconds) runs every frame and receives the delta time. Use it for per-frame logic updates."
+  explanation="advance(self, seconds) runs every frame and receives the delta time. Use it for per-frame logic updates. init() runs once at startup."
 />
+
+---
+
+## Common Mistakes
+
+:::danger Top Mistakes
+1. **Forgetting `end`** — Every function needs `end`
+2. **Using `{}` instead of `end`** — Luau uses `end`, not braces
+3. **Storing frame data in local variables** — Use `self.property` for persistence
+4. **Forgetting to `return`** — Functions need explicit returns (no implicit return)
+5. **Type mismatch** — Ensure parameter and return types match annotations
+:::
+
+---
+
+## Quick Reference
+
+```lua
+-- Basic function
+local function name(param: Type): ReturnType
+    return value
+end
+
+-- Anonymous function
+local func = function(param: Type): ReturnType
+    return value
+end
+
+-- Multiple returns
+local function multi(): (number, string)
+    return 42, "hello"
+end
+local num, str = multi()
+
+-- Optional parameter
+local function opt(required: number, optional: string?)
+    local s = optional or "default"
+end
+
+-- Closure
+local function factory(x: number)
+    return function(): number
+        return x * 2
+    end
+end
+```
 
 ---
 
 ## Next Up
 
-**[1.4 Tables →](./tables)**
+**[1.4 Tables →](./tables)** — Learn about Luau's most powerful data structure — tables (arrays, dictionaries, and objects).

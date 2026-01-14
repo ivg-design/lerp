@@ -1,8 +1,1117 @@
 ---
 sidebar_position: 7
-title: The late() Initializer
+title: "The late() Initializer"
+description: Understand when and how to use late() for engine-provided and deferred values
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # The late() Initializer
 
-*Content being migrated...*
+## Learning Objectives
+- Understand why `late()` exists in Rive's type system
+- Know when to use `late()` vs direct values
+- Apply `late()` correctly with Input types
+- Avoid common `late()` mistakes
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Uninitialized variable | `let x;` (undefined) | Not allowed in strict mode |
+| Declare now, assign later | `let x; x = 5;` | `property = late()` then set in `init()` |
+| Default parameter | `function f(x = 10)` | `speed: Input<number>` with default `10` |
+| Null reference | `null` or `undefined` | `nil` |
+| Factory pattern | `new Class()` or `createThing()` | Factory function returns `Node<T>` |
+| Constructor | `constructor() { this.x = new Path(); }` | `init(self)` lifecycle method |
+
+:::danger Critical Concept: Two-Phase Initialization
+**This is the #1 source of confusion for JavaScript developers!**
+
+In JavaScript/TypeScript:
+```javascript
+class MyComponent {
+  path = new Path();  // Created immediately when class is instantiated
+}
+```
+
+In Rive Node Scripts:
+```lua
+-- Factory runs FIRST (limited context - no Rive APIs)
+return function(): Node<MyScript>
+    return {
+        path = late(),  -- Placeholder: "I'll set this later"
+    }
+end
+
+-- init() runs SECOND (full context - Rive APIs available)
+function init(self: MyScript): boolean
+    self.path = Path.new()  -- NOW we can create the path
+    return true
+end
+```
+
+The factory function runs in a restricted environment where `Path.new()`, `Paint.new()`, etc. are NOT available. You must use `late()` as a placeholder and create these objects in `init()`.
+:::
+
+---
+
+## Rive Context
+
+In Rive Node Scripts, objects are created in two phases:
+
+1. **Factory phase**: The factory function returns a table with property values
+2. **Init phase**: The `init()` function runs and can set up additional state
+
+The problem: Some values cannot be known at factory time. They are either:
+- **Engine-provided**: Values the Rive engine supplies (like `Path.new()` or `Paint.new()`)
+- **Init-created**: Values you create or compute in `init()`
+
+The `late()` function is a type-safe placeholder that tells the type system: "Trust me, this value will be provided later."
+
+```lua
+--!strict
+
+export type MyScript = {
+    path: Path,
+    paint: Paint,
+}
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+        -- These MUST use late() because Path.new() isn't available yet
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent concept:
+// In JS, you'd just create objects in the constructor
+class MyScript {
+    path: Path;
+    paint: Paint;
+
+    constructor() {
+        // JS allows this - Luau's factory phase does NOT
+        this.path = new Path();
+        this.paint = new Paint();
+    }
+}
+```
+
+---
+
+## When to Use late()
+
+### Use late() for:
+
+1. **Rive objects created in init()**: `Path`, `Paint`, `Font`, etc.
+2. **Computed values**: Values calculated from inputs or other data in init()
+3. **External data**: Values loaded from elsewhere during initialization
+
+### Use direct values for:
+
+1. **Input defaults**: `Input<T>` properties get direct default values
+2. **Constants**: Values known at compile time
+3. **Factory-provided defaults**: Values that don't change
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Understanding the Two-Phase Model
+
+:::info Goal
+See why `late()` is necessary by understanding the two-phase object creation model.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE expressions, everything runs in a single context—you can call any function at any time. In Rive, the factory function runs in a restricted sandbox where many APIs aren't available yet. Understanding this is KEY to avoiding frustration.
+
+**Real-World Use**: Every Rive Node Script you write will use this pattern. Get this wrong and nothing works; get it right and you'll never think about it again. This is foundational knowledge.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Rive file or open an existing one
+2. Add a Node Script to any artboard
+3. Copy the code below
+4. Pay attention to the comments explaining WHEN each part runs
+
+</details>
+
+```lua
+--!strict
+
+export type TwoPhaseDemo = {
+    -- These are set in init(), so they need late()
+    path: Path,
+    paint: Paint,
+    startTime: number,
+    computedValue: number,
+
+    -- This is an Input with a default - NO late() needed
+    speed: Input<number>,
+}
+
+-- Phase 2: init() runs AFTER the factory
+function init(self: TwoPhaseDemo): boolean
+    -- NOW we can create Rive objects
+    self.path = Path.new()
+    self.paint = Paint.new()
+
+    -- NOW we can compute values
+    self.startTime = os.clock()
+    self.computedValue = self.speed * 10
+
+    print(`Created at {self.startTime}`)
+    print(`Computed value: {self.computedValue}`)
+
+    return true
+end
+
+function draw(self: TwoPhaseDemo, renderer: Renderer)
+    self.path:reset()
+    self.path:circle(Vector.xy(100, 100), 50)
+    renderer:drawPath(self.path, self.paint)
+end
+
+-- Phase 1: Factory runs FIRST
+return function(): Node<TwoPhaseDemo>
+    return {
+        init = init,
+        draw = draw,
+
+        -- late() = "will be set in init()"
+        path = late(),
+        paint = late(),
+        startTime = late(),
+        computedValue = late(),
+
+        -- Direct value = "here's the default for this Input"
+        speed = 10,
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+
+class TwoPhaseDemo {
+    path: Path;
+    paint: Paint;
+    startTime: number;
+    computedValue: number;
+    speed: number = 10;  // Default like Input<number>
+
+    constructor() {
+        // In JS, this all happens at once
+        // In Luau, this is SPLIT across factory and init()
+        this.path = new Path();
+        this.paint = new Paint();
+        this.startTime = performance.now();
+        this.computedValue = this.speed * 10;
+    }
+}
+```
+
+**Key insight**: The factory function runs first and must return immediately. It cannot call `Path.new()` or do complex calculations. Those happen in `init()`.
+
+---
+
+### Exercise 2: Input Types Don't Use late()
+
+:::info Goal
+Understand the critical difference between `Input<T>` defaults and `late()`.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you create an effect control and set a default value. That value is immediately available. Rive's `Input<T>` works similarly—you provide a default, and the engine handles the rest. NO `late()` needed for inputs!
+
+**Real-World Use**: This is the most common mistake beginners make. They see `late()` and think "I'll use it everywhere to be safe." But inputs are different—they need real default values that the Rive editor can show and modify.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below
+3. Open the Rive editor and see how Input defaults appear
+4. Try changing `speed = 100` to `speed = late()` and see the error
+
+</details>
+
+```lua
+--!strict
+
+export type InputVsLate = {
+    -- Inputs: use direct default values (NOT late())
+    playerSpeed: Input<number>,
+    playerName: Input<string>,
+    isEnabled: Input<boolean>,
+    playerColor: Input<Color>,
+
+    -- Non-Input properties set in init(): use late()
+    actualSpeed: number,
+    greeting: string,
+}
+
+function init(self: InputVsLate): boolean
+    -- Inputs are ready to use - their value is the default (or editor-set value)
+    print(`Speed input: {self.playerSpeed}`)
+    print(`Name input: {self.playerName}`)
+    print(`Enabled input: {self.isEnabled}`)
+
+    -- Computed values based on inputs need late()
+    self.actualSpeed = self.playerSpeed * 2
+    self.greeting = `Hello, {self.playerName}!`
+
+    print(`Actual speed: {self.actualSpeed}`)
+    print(`Greeting: {self.greeting}`)
+
+    return true
+end
+
+function draw(self: InputVsLate, renderer: Renderer)
+end
+
+return function(): Node<InputVsLate>
+    return {
+        init = init,
+        draw = draw,
+
+        -- CORRECT: Inputs get direct default values
+        playerSpeed = 100,
+        playerName = "Hero",
+        isEnabled = true,
+        playerColor = Color.rgba(255, 0, 0, 255),
+
+        -- CORRECT: Non-inputs set in init() use late()
+        actualSpeed = late(),
+        greeting = late(),
+
+        -- WRONG examples (commented out):
+        -- playerSpeed = late(),  -- ERROR: Input needs a default value
+        -- actualSpeed = 0,       -- This works but is misleading if set in init()
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+
+class InputVsLate {
+    // These are like class properties with defaults
+    playerSpeed: number = 100;
+    playerName: string = "Hero";
+    isEnabled: boolean = true;
+
+    // These are computed in constructor (like init())
+    actualSpeed: number;
+    greeting: string;
+
+    constructor() {
+        // Computed from the defaults
+        this.actualSpeed = this.playerSpeed * 2;
+        this.greeting = `Hello, ${this.playerName}!`;
+    }
+}
+```
+
+**Rule of thumb**:
+- `Input<T>` = direct default value
+- Everything else set in `init()` = `late()`
+
+---
+
+### Exercise 3: Common Patterns with late()
+
+:::info Goal
+Learn the standard patterns for using `late()` in different scenarios.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might have different initialization patterns—some values come from effect controls, some from expressions, some from external data. Rive has similar patterns, but you must be explicit about which values come from where.
+
+**Real-World Use**: These four patterns cover 95% of use cases: (1) Rive drawing objects, (2) computed state, (3) collections, (4) nested objects. Master these and you'll handle any situation.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below—it shows all four common patterns
+3. Study each pattern and when to use it
+4. The combined example at the end shows real-world usage
+
+</details>
+
+```lua
+--!strict
+
+-- Pattern 1: Rive drawing objects
+export type DrawingPattern = {
+    path: Path,
+    fillPaint: Paint,
+    strokePaint: Paint,
+}
+
+function initDrawing(self: DrawingPattern): boolean
+    self.path = Path.new()
+
+    self.fillPaint = Paint.new()
+    self.fillPaint.style = PaintStyle.fill
+    self.fillPaint.color = Color.rgba(100, 150, 200, 255)
+
+    self.strokePaint = Paint.new()
+    self.strokePaint.style = PaintStyle.stroke
+    self.strokePaint.thickness = 2
+    self.strokePaint.color = Color.rgba(0, 0, 0, 255)
+
+    return true
+end
+
+-- Pattern 2: Computed state from inputs
+export type ComputedPattern = {
+    baseSpeed: Input<number>,
+    multiplier: Input<number>,
+    finalSpeed: number,  -- Computed from inputs
+    speedSquared: number,  -- Derived value
+}
+
+function initComputed(self: ComputedPattern): boolean
+    self.finalSpeed = self.baseSpeed * self.multiplier
+    self.speedSquared = self.finalSpeed * self.finalSpeed
+
+    print(`Base: {self.baseSpeed}, Mult: {self.multiplier}`)
+    print(`Final: {self.finalSpeed}, Squared: {self.speedSquared}`)
+    return true
+end
+
+-- Pattern 3: Arrays and collections
+export type CollectionPattern = {
+    maxItems: Input<number>,
+    items: {string},
+    scores: {[string]: number},
+}
+
+function initCollection(self: CollectionPattern): boolean
+    -- Initialize empty collections with proper types
+    self.items = {}
+    self.scores = {}
+
+    -- Pre-populate based on input
+    for i = 1, self.maxItems do
+        table.insert(self.items, `Item {i}`)
+        self.scores[`player{i}`] = i * 100
+    end
+
+    print(`Created {#self.items} items`)
+    return true
+end
+
+-- Pattern 4: Nested objects
+type Stats = {
+    health: number,
+    mana: number,
+    stamina: number,
+}
+
+export type NestedPattern = {
+    initialHealth: Input<number>,
+    stats: Stats,
+}
+
+function initNested(self: NestedPattern): boolean
+    self.stats = {
+        health = self.initialHealth,
+        mana = 100,
+        stamina = 50,
+    }
+
+    print(`Stats: HP={self.stats.health}, MP={self.stats.mana}`)
+    return true
+end
+
+-- Combined example
+export type CombinedPatterns = {
+    path: Path,
+    paint: Paint,
+    speed: Input<number>,
+    computedSpeed: number,
+    enemies: {string},
+}
+
+function init(self: CombinedPatterns): boolean
+    -- Rive objects
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.paint.color = Color.rgba(255, 128, 0, 255)
+
+    -- Computed values
+    self.computedSpeed = self.speed * 1.5
+
+    -- Collections
+    self.enemies = {"Goblin", "Orc", "Dragon"}
+
+    print(`Speed: {self.speed} -> {self.computedSpeed}`)
+    print(`Enemies: {#self.enemies}`)
+
+    return true
+end
+
+function draw(self: CombinedPatterns, renderer: Renderer)
+    self.path:reset()
+    self.path:circle(Vector.xy(100, 100), 30)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<CombinedPatterns>
+    return {
+        init = init,
+        draw = draw,
+        -- Rive objects: late()
+        path = late(),
+        paint = late(),
+        -- Input: direct value
+        speed = 100,
+        -- Computed in init(): late()
+        computedSpeed = late(),
+        -- Collection created in init(): late()
+        enemies = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent patterns:
+
+class CombinedPatterns {
+    // Would be created in constructor (like init)
+    path: Path;
+    paint: Paint;
+    computedSpeed: number;
+    enemies: string[];
+
+    // Would be class property with default (like Input)
+    speed: number = 100;
+
+    constructor() {
+        // Pattern 1: Objects
+        this.path = new Path();
+        this.paint = new Paint();
+
+        // Pattern 2: Computed
+        this.computedSpeed = this.speed * 1.5;
+
+        // Pattern 3: Collections
+        this.enemies = ["Goblin", "Orc", "Dragon"];
+    }
+}
+```
+
+---
+
+### Exercise 4: What Happens Without late()
+
+:::info Goal
+Understand the errors that occur without proper `late()` usage.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, if you try to use an undefined variable, you get a runtime error when the expression runs. In Rive with strict mode, you get a COMPILE-TIME error that prevents the mistake entirely. But only if you use `late()` correctly!
+
+**Real-World Use**: When you see cryptic errors about "cannot call in factory context," this exercise helps you understand what went wrong. The error messages aren't always clear, so knowing the pattern is essential.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Look at the WRONG examples (commented out) to see what NOT to do
+3. Try uncommenting one of the wrong lines to see the error
+4. The CORRECT version shows the proper approach
+
+</details>
+
+```lua
+--!strict
+
+-- This script demonstrates what goes WRONG without late()
+
+export type WrongPatterns = {
+    path: Path,
+    paint: Paint,
+    count: number,
+}
+
+function init(self: WrongPatterns): boolean
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.count = 42
+    return true
+end
+
+function draw(self: WrongPatterns, renderer: Renderer)
+end
+
+-- WRONG: This causes errors!
+-- return function(): Node<WrongPatterns>
+--     return {
+--         init = init,
+--         draw = draw,
+--         -- ERROR: Path.new() cannot be called here (factory context)
+--         path = Path.new(),
+--         -- ERROR: Paint.new() cannot be called here
+--         paint = Paint.new(),
+--         -- This MIGHT work but is misleading - it's overwritten in init()
+--         count = 0,
+--     }
+-- end
+
+-- CORRECT: Use late() for values set in init()
+return function(): Node<WrongPatterns>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),
+        paint = late(),
+        count = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript mental model - why this is confusing:
+
+// In JavaScript, this is perfectly fine:
+class MyClass {
+    path = new Path();  // Created when class instantiates
+    paint = new Paint();
+    count = 0;
+}
+
+// But in Rive's factory function, it's like:
+function factory() {
+    // This runs in a sandbox with NO access to Path, Paint, etc.
+    return {
+        path: ???,  // Can't call Path.new() here!
+        paint: ???,
+    };
+}
+
+// That's why late() exists - it's a placeholder saying
+// "this will be set in init() where the APIs are available"
+```
+
+---
+
+### Exercise 5: late() with Complex Types
+
+:::info Goal
+Use `late()` with more complex type scenarios including custom types, nested objects, and systems.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might have complex expression setups with multiple arrays, objects, and computed values. The same patterns apply in Rive, but you need `late()` for any complex structure you build in `init()`.
+
+**Real-World Use**: Game systems have enemies, particle systems, game state—all created dynamically at runtime. This exercise shows how to structure complex initialization while keeping everything type-safe.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below—it's a mini game system
+3. Study how custom types are created in `init()`
+4. All complex structures use `late()` in the factory
+
+</details>
+
+```lua
+--!strict
+
+-- Custom types
+type Enemy = {
+    name: string,
+    health: number,
+    damage: number,
+}
+
+type GameState = {
+    phase: "loading" | "playing" | "paused" | "gameover",
+    score: number,
+    level: number,
+}
+
+type ParticleSystem = {
+    particles: {Vector},
+    velocities: {Vector},
+    colors: {Color},
+    count: number,
+}
+
+export type ComplexLateDemo = {
+    -- Simple Inputs
+    maxEnemies: Input<number>,
+    difficulty: Input<number>,
+
+    -- Complex values set in init()
+    enemies: {Enemy},
+    gameState: GameState,
+    particleSystem: ParticleSystem,
+
+    -- Rive objects
+    path: Path,
+    paint: Paint,
+}
+
+local function createEnemy(name: string, healthMult: number): Enemy
+    return {
+        name = name,
+        health = 100 * healthMult,
+        damage = 10 * healthMult,
+    }
+end
+
+local function createParticleSystem(count: number): ParticleSystem
+    local particles: {Vector} = {}
+    local velocities: {Vector} = {}
+    local colors: {Color} = {}
+
+    for i = 1, count do
+        table.insert(particles, Vector.xy(
+            math.random(0, 400),
+            math.random(0, 300)
+        ))
+        table.insert(velocities, Vector.xy(
+            math.random(-5, 5),
+            math.random(-5, 5)
+        ))
+        table.insert(colors, Color.rgba(
+            math.random(128, 255),
+            math.random(64, 128),
+            0,
+            255
+        ))
+    end
+
+    return {
+        particles = particles,
+        velocities = velocities,
+        colors = colors,
+        count = count,
+    }
+end
+
+function init(self: ComplexLateDemo): boolean
+    -- Initialize game state
+    self.gameState = {
+        phase = "loading",
+        score = 0,
+        level = 1,
+    }
+
+    -- Create enemies based on inputs
+    self.enemies = {}
+    local diff = self.difficulty
+    for i = 1, self.maxEnemies do
+        local enemy = createEnemy(`Enemy_{i}`, 1 + (diff * 0.1))
+        table.insert(self.enemies, enemy)
+    end
+
+    -- Create particle system
+    self.particleSystem = createParticleSystem(50)
+
+    -- Create Rive objects
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.paint.style = PaintStyle.fill
+
+    -- Transition to playing
+    self.gameState.phase = "playing"
+
+    print(`Created {#self.enemies} enemies at difficulty {diff}`)
+    print(`Particle system: {self.particleSystem.count} particles`)
+    print(`Game phase: {self.gameState.phase}`)
+
+    return true
+end
+
+function draw(self: ComplexLateDemo, renderer: Renderer)
+    -- Draw particles
+    for i, pos in self.particleSystem.particles do
+        self.path:reset()
+        self.path:circle(pos, 3)
+        self.paint.color = self.particleSystem.colors[i]
+        renderer:drawPath(self.path, self.paint)
+    end
+end
+
+return function(): Node<ComplexLateDemo>
+    return {
+        init = init,
+        draw = draw,
+        -- Inputs: direct defaults
+        maxEnemies = 5,
+        difficulty = 1,
+        -- Everything else: late()
+        enemies = late(),
+        gameState = late(),
+        particleSystem = late(),
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+interface Enemy {
+    name: string;
+    health: number;
+    damage: number;
+}
+
+interface GameState {
+    phase: "loading" | "playing" | "paused" | "gameover";
+    score: number;
+    level: number;
+}
+
+class ComplexDemo {
+    // Inputs (with defaults)
+    maxEnemies: number = 5;
+    difficulty: number = 1;
+
+    // Complex values (created in constructor/init)
+    enemies: Enemy[];
+    gameState: GameState;
+    particleSystem: ParticleSystem;
+    path: Path;
+    paint: Paint;
+
+    constructor() {
+        // All of this happens in init() in Luau
+        this.gameState = { phase: "loading", score: 0, level: 1 };
+        this.enemies = this.createEnemies();
+        this.particleSystem = this.createParticleSystem(50);
+        this.path = new Path();
+        this.paint = new Paint();
+    }
+}
+```
+
+---
+
+### Exercise 6: Artboard Inputs with late()
+
+:::info Goal
+Work with `Input<Artboard<T>>` types, which always need `late()` since they are bound at runtime by the engine.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might link to properties in other layers using `thisComp.layer("Other").effect(...)`. Rive's artboard inputs work similarly—you're referencing another artboard's ViewModel. But these references are set up by the ENGINE, not by your code.
+
+**Real-World Use**: When building multi-artboard systems (like a game with separate UI and game artboards), you use artboard inputs to communicate between them. The engine binds these connections, so they ALWAYS use `late()`.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a Rive file with multiple artboards
+2. Set up a ViewModel on one artboard
+3. Create a Node Script that references another artboard
+4. The artboard input will be connected in the Rive editor
+
+</details>
+
+```lua
+--!strict
+
+-- Assume Data.EnemyVM is a ViewModel type from your .riv file
+-- with properties like: health: number, name: string, isAlive: boolean
+
+export type ArtboardInputDemo = {
+    -- Artboard inputs: these are bound by the Rive engine
+    -- They MUST use late() because they're set up after factory
+    enemyArtboard: Input<Artboard<Data.EnemyVM>?>,
+
+    -- Regular inputs: direct defaults
+    spawnDelay: Input<number>,
+
+    -- Instance references
+    enemyInstance: Artboard<Data.EnemyVM>?,
+}
+
+function init(self: ArtboardInputDemo): boolean
+    -- Check if artboard input was connected
+    if self.enemyArtboard then
+        self.enemyInstance = self.enemyArtboard
+
+        -- Access ViewModel properties
+        print(`Enemy: {self.enemyInstance.name}`)
+        print(`Health: {self.enemyInstance.health}`)
+        print(`Alive: {self.enemyInstance.isAlive}`)
+    else
+        print("No enemy artboard connected")
+        self.enemyInstance = nil
+    end
+
+    print(`Spawn delay: {self.spawnDelay}`)
+
+    return true
+end
+
+function advance(self: ArtboardInputDemo, elapsed: number): boolean
+    -- Update enemy if connected
+    if self.enemyInstance then
+        -- ViewModel properties can be modified
+        if self.enemyInstance.isAlive then
+            self.enemyInstance.health -= elapsed * 10
+            if self.enemyInstance.health <= 0 then
+                self.enemyInstance.isAlive = false
+                print(`{self.enemyInstance.name} defeated!`)
+            end
+        end
+    end
+    return true
+end
+
+function draw(self: ArtboardInputDemo, renderer: Renderer)
+end
+
+return function(): Node<ArtboardInputDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        -- Artboard inputs use late() - bound by engine
+        enemyArtboard = late(),
+        -- Regular inputs get defaults
+        spawnDelay = 2.0,
+        -- Instance reference set in init()
+        enemyInstance = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+
+// Imagine a React component receiving props
+interface Props {
+    enemyArtboard?: EnemyArtboard;  // Passed in from parent
+    spawnDelay: number;
+}
+
+class ArtboardInputDemo {
+    // enemyArtboard comes from OUTSIDE (like props)
+    // You don't create it - it's passed to you
+    // That's why it uses late() - the engine provides it
+
+    private enemyInstance?: EnemyArtboard;
+
+    constructor(props: Props) {
+        if (props.enemyArtboard) {
+            this.enemyInstance = props.enemyArtboard;
+        }
+    }
+}
+```
+
+**Key points for Artboard inputs**:
+- `Input<Artboard<T>?>` is nullable because the connection might not exist
+- Always check the input for nil before using (for optional inputs)
+- Artboard inputs are bound by the Rive engine, so they use `late()`
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Why does late() exist in Rive's type system?"
+  id="late-q1"
+  options={[
+    { text: "To make code run faster" },
+    { text: "To provide a type-safe placeholder for values set after factory creation", correct: true },
+    { text: "To declare optional values" },
+    { text: "To create nullable types" },
+  ]}
+  explanation="late() tells the type system that a value will be provided later (in init() or by the engine), not during the factory phase. It's a type-safe way to handle deferred initialization."
+/>
+
+<Quiz
+  question="When should you use late() vs a direct value?"
+  id="late-q2"
+  options={[
+    { text: "late() for Input types, direct values for everything else" },
+    { text: "Direct values for Input defaults, late() for values set in init()", correct: true },
+    { text: "Always use late() to be safe" },
+    { text: "Never use late() - it's deprecated" },
+  ]}
+  explanation="Input<T> properties should have direct default values. Use late() for Rive objects (Path, Paint) and any values computed or created in init()."
+/>
+
+<Quiz
+  question="What happens if you try to call Path.new() in the factory function?"
+  id="late-q3"
+  options={[
+    { text: "It works normally" },
+    { text: "It creates the path but with a warning" },
+    { text: "Error - Rive objects cannot be created in factory context", correct: true },
+    { text: "It creates a nil path" },
+  ]}
+  explanation="The factory function runs in a limited context where Rive API calls like Path.new() are not available. These must be called in init() instead."
+/>
+
+<Quiz
+  question="Which property declaration is correct for an Input<number>?"
+  id="late-q4"
+  options={[
+    { text: "speed = late()" },
+    { text: "speed = 100", correct: true },
+    { text: "speed = nil" },
+    { text: "speed = Input.new(100)" },
+  ]}
+  explanation="Input<T> properties receive direct default values in the factory. The Rive engine wraps these in the Input wrapper automatically."
+/>
+
+---
+
+## Common Mistakes
+
+### 1. Using late() for Inputs
+
+```lua
+-- WRONG: Input needs a real default value
+return function(): Node<MyScript>
+    return {
+        speed = late(),  -- ERROR!
+    }
+end
+
+-- CORRECT: Provide a default
+return function(): Node<MyScript>
+    return {
+        speed = 100,  -- This becomes the editor default
+    }
+end
+```
+
+### 2. Not Using late() for Rive Objects
+
+```lua
+-- WRONG: Can't create Path in factory
+return function(): Node<MyScript>
+    return {
+        path = Path.new(),  -- ERROR: Not in factory context!
+    }
+end
+
+-- CORRECT: Use late() and create in init()
+return function(): Node<MyScript>
+    return {
+        path = late(),
+    }
+end
+
+function init(self: MyScript): boolean
+    self.path = Path.new()  -- Works here!
+    return true
+end
+```
+
+### 3. Forgetting to Initialize late() Values
+
+```lua
+-- WRONG: Declared late() but never set
+function init(self: MyScript): boolean
+    -- Forgot to set self.path!
+    return true
+end
+
+-- CORRECT: Always set every late() property
+function init(self: MyScript): boolean
+    self.path = Path.new()  -- Must set this!
+    return true
+end
+```
+
+### 4. Using late() for Constants
+
+```lua
+-- UNNECESSARY: This value is known at compile time
+return function(): Node<MyScript>
+    return {
+        maxHealth = late(),  -- Why late()?
+    }
+end
+
+function init(self: MyScript): boolean
+    self.maxHealth = 100  -- Static value
+    return true
+end
+
+-- BETTER: Just use a direct value or local constant
+local MAX_HEALTH = 100
+
+return function(): Node<MyScript>
+    return {
+        -- Don't need a property for a constant!
+    }
+end
+```
+
+### 5. Confusing Artboard Inputs with Regular Inputs
+
+```lua
+-- Regular Input: direct default
+playerSpeed = 100,
+
+-- Artboard Input: ALWAYS late() (engine binds it)
+enemyArtboard = late(),
+```
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand the two-phase model (factory then init)
+- [ ] I know when to use `late()` vs direct values
+- [ ] I correctly use `late()` for Path, Paint, and other Rive objects
+- [ ] I use direct defaults for `Input<T>` properties
+- [ ] I understand that `Input<Artboard<T>?>` uses `late()`
+- [ ] I always initialize every `late()` property in `init()`
+
+---
+
+## Summary
+
+| Property Type | Factory Value | Set In |
+|--------------|---------------|--------|
+| `Input<number>` | `100` | Factory (default) |
+| `Input<string>` | `"Hello"` | Factory (default) |
+| `Input<Color>` | `Color.rgba(...)` | Factory (default) |
+| `Input<Artboard<T>?>` | `late()` | Engine-bound |
+| `Path` | `late()` | `init()` |
+| `Paint` | `late()` | `init()` |
+| `Font` | `late()` | `init()` |
+| Computed values | `late()` | `init()` |
+| Collections | `late()` | `init()` |
+
+---
+
+## Next Up
+
+Congratulations! You've completed the Types module. Continue to:
+
+**[Module 3: Object-Oriented Programming ->](../oop/metatables)**

@@ -8,6 +8,57 @@ import Quiz from '@site/src/components/Quiz';
 
 # Protocols Overview
 
+## Learning Objectives
+- Understand when each lifecycle callback runs
+- Know where to put different types of logic
+- Optimize performance by using the right callback
+- Handle pointer events for user interaction
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Initialization | Class `constructor()` | `init(self)` |
+| Property change handler | React's `componentDidUpdate` | `update(self)` |
+| Frame loop | `requestAnimationFrame(callback)` | `advance(self, seconds)` |
+| Render function | Canvas `draw()` or React's `render()` | `draw(self, renderer)` |
+| Delta time | `performance.now()` difference | `seconds` parameter in `advance` |
+| Click handler | `element.onclick = fn` | `pointerDown(self, position)` |
+| This reference | `this` keyword | `self` parameter |
+
+:::danger Critical Difference: Frame Loop Architecture
+**After Effects**: Expressions are evaluated when the playhead moves. You don't control the frame loop—AE handles it and just asks "what value at this time?"
+
+**JavaScript (Canvas/WebGL)**: You call `requestAnimationFrame()` and manage your own frame loop. The browser tells you "it's time to draw" and you do everything.
+
+**Rive Scripts**: Rive manages the frame loop automatically. You implement callbacks (`init`, `update`, `advance`, `draw`) and Rive calls them at the right time. You DON'T call `requestAnimationFrame`—Rive does that for you.
+
+```lua
+-- Rive handles the loop, you just implement callbacks:
+function advance(self: MyNode, seconds: number): boolean
+    -- Called every frame automatically
+    self.time += seconds
+    return true
+end
+```
+
+```javascript
+// JavaScript - you manage the loop yourself:
+function loop(timestamp) {
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+    advance(deltaTime / 1000);
+    draw();
+    requestAnimationFrame(loop);  // You call this!
+}
+requestAnimationFrame(loop);
+```
+:::
+
+---
+
 ## Rive Context: When Your Code Runs
 
 Rive calls your script functions in a specific order. Understanding this lets you put logic in the right place and avoid unnecessary work every frame.
@@ -24,12 +75,12 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 
 ## What Goes Where
 
-| Callback | Purpose | Frequency |
-|----------|---------|-----------|
-| **init** | Create paths, paints, listeners, long-lived objects | Once |
-| **update** | Respond to input changes; rebuild paths or cached values | On input change |
-| **advance** | Update time-based state (movement, physics, timers) | Every frame |
-| **draw** | Issue renderer commands only | Every frame |
+| Callback | Purpose | Frequency | AE/JS Equivalent |
+|----------|---------|-----------|------------------|
+| **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
+| **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
+| **advance** | Update time-based state (movement, physics, timers) | Every frame | `requestAnimationFrame` logic |
+| **draw** | Issue renderer commands only | Every frame | Canvas `ctx.draw()` calls |
 
 :::tip Performance Rule
 Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry every frame wastes resources if inputs haven't changed.
@@ -69,11 +120,31 @@ Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding
 
 ---
 
-## Exercises
+## Practice Exercises
 
 ### Exercise 1: Lifecycle Probe
 
-**Goal**: See when each callback runs. This helps you understand the lifecycle.
+:::info Goal
+See when each callback runs by logging to the Console.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you don't control when expressions evaluate—the composition playhead triggers them. In Rive, you have explicit lifecycle hooks and need to understand when each runs to organize your code correctly.
+
+**Real-World Use**: Debugging lifecycle issues is one of the most common tasks. "Why isn't my value updating?" often comes down to putting code in the wrong callback.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "LifecycleProbe"
+2. Copy the code below
+3. Attach to any node
+4. Open the Console (View → Console)
+5. Press Play—watch `init` run once, then `advance` every frame
+6. Change the `speed` input—watch `update` fire
+
+</details>
 
 ```lua
 --!strict
@@ -90,7 +161,7 @@ function init(self: LifecycleProbe, context: Context): boolean
 end
 
 function update(self: LifecycleProbe, context: Context)
-    print(`update -> speed is now {self.speed.value}`)
+    print(`update -> speed is now {self.speed}`)
 end
 
 function advance(self: LifecycleProbe, seconds: number, context: Context): boolean
@@ -117,13 +188,65 @@ return function(): Node<LifecycleProbe>
 end
 ```
 
+```typescript
+// JavaScript equivalent mental model:
+
+class LifecycleProbe {
+    speed = 1;
+    elapsed = 0;
+
+    constructor() {
+        console.log("init");
+    }
+
+    // Called when props change (React pattern)
+    componentDidUpdate(prevProps: Props) {
+        if (prevProps.speed !== this.speed) {
+            console.log(`update -> speed is now ${this.speed}`);
+        }
+    }
+
+    // Called every frame via requestAnimationFrame
+    advance(deltaTime: number) {
+        this.elapsed += deltaTime;
+        if (this.elapsed > 1) {
+            console.log("advance tick");
+            this.elapsed = 0;
+        }
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        // Render commands only
+    }
+}
+```
+
 **Try:** Change the `speed` input in the sidebar and watch `update` fire. Notice that `advance` runs continuously while `update` only fires on changes.
 
 ---
 
 ### Exercise 2: Rebuild Only on Updates
 
-**Goal**: Recompute geometry only when inputs change, not every frame.
+:::info Goal
+Recompute geometry only when inputs change, not every frame.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE expressions are recalculated every frame by default. If you want to cache a value, you have to use `valueAtTime()` tricks. In Rive, the `update` callback is purpose-built for "recalculate only when inputs change."
+
+**Real-World Use**: Performance is critical for interactive animations. If your shape has 1000 vertices and you rebuild them every frame (60 times per second), you waste CPU. Rebuild only when the size actually changes!
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "OnDemandShape"
+2. Copy the code below
+3. Attach to a node
+4. Change `width` or `height` inputs—geometry rebuilds
+5. Notice during playback (advance), geometry is NOT rebuilt
+
+</details>
 
 ```lua
 --!strict
@@ -136,8 +259,8 @@ export type OnDemandShape = {
 }
 
 local function rebuild(self: OnDemandShape)
-    local halfW = self.width.value / 2
-    local halfH = self.height.value / 2
+    local halfW = self.width / 2
+    local halfH = self.height / 2
 
     self.path:reset()
     self.path:moveTo(Vector.xy(-halfW, -halfH))
@@ -145,9 +268,13 @@ local function rebuild(self: OnDemandShape)
     self.path:lineTo(Vector.xy(halfW, halfH))
     self.path:lineTo(Vector.xy(-halfW, halfH))
     self.path:close()
+
+    print(`Rebuilt: {self.width} x {self.height}`)
 end
 
 function init(self: OnDemandShape): boolean
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(120, 220, 140) })
     rebuild(self)
     return true
 end
@@ -167,10 +294,41 @@ return function(): Node<OnDemandShape>
         draw = draw,
         width = 120,
         height = 80,
-        path = Path.new(),
-        paint = Paint.with({ style = "fill", color = Color.rgb(120, 220, 140) }),
+        path = late(),
+        paint = late(),
     }
 end
+```
+
+```typescript
+// JavaScript equivalent - optimized rebuild pattern:
+
+class OnDemandShape {
+    width = 120;
+    height = 80;
+    path: Path2D;
+
+    constructor() {
+        this.rebuild();
+    }
+
+    // Only called when width or height actually changes
+    onPropertyChange() {
+        this.rebuild();
+    }
+
+    rebuild() {
+        const halfW = this.width / 2;
+        const halfH = this.height / 2;
+        this.path = new Path2D();
+        this.path.rect(-halfW, -halfH, this.width, this.height);
+        console.log(`Rebuilt: ${this.width} x ${this.height}`);
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.fill(this.path);  // Draw only - no rebuild!
+    }
+}
 ```
 
 **Key insight:** The `rebuild` function is called in both `init` and `update`, but NOT in `draw`. This means geometry is only rebuilt when needed.
@@ -179,7 +337,26 @@ end
 
 ### Exercise 3: Combining Lifecycle Callbacks
 
-**Goal**: Create a shape that responds to inputs AND animates over time.
+:::info Goal
+Create a shape that responds to inputs AND animates over time.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might animate a property with keyframes AND also make it respond to an expression control. It's tricky to combine the two. In Rive, the separation is clear: `update` handles input changes, `advance` handles time-based animation.
+
+**Real-World Use**: Interactive games and UI elements often need both: user-adjustable properties AND continuous animation. A health bar might pulse (animation) and change color based on health percentage (input).
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "AnimatedShape"
+2. Copy the code below
+3. Attach and run
+4. Watch the shape pulse automatically
+5. Change `baseSize` or `color` inputs—immediate response
+
+</details>
 
 ```lua
 --!strict
@@ -205,22 +382,24 @@ end
 
 function init(self: AnimatedShape): boolean
     self.time = 0
-    rebuildPath(self, self.baseSize.value)
-    self.paint.color = self.color.value
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = self.color })
+    rebuildPath(self, self.baseSize)
     return true
 end
 
 function update(self: AnimatedShape)
     -- Only update color here; size is handled in advance
-    self.paint.color = self.color.value
+    self.paint.color = self.color
+    print(`Color updated`)
 end
 
 function advance(self: AnimatedShape, seconds: number): boolean
     self.time += seconds
 
     -- Pulse the size based on time
-    local pulse = math.sin(self.time * self.pulseSpeed.value) * 0.2 + 1
-    local currentSize = self.baseSize.value * pulse
+    local pulse = math.sin(self.time * self.pulseSpeed) * 0.2 + 1
+    local currentSize = self.baseSize * pulse
     rebuildPath(self, currentSize)
 
     return true
@@ -240,10 +419,41 @@ return function(): Node<AnimatedShape>
         pulseSpeed = 2,
         color = Color.rgb(255, 120, 80),
         time = 0,
-        path = Path.new(),
-        paint = Paint.with({ style = "fill", color = Color.rgb(255, 120, 80) }),
+        path = late(),
+        paint = late(),
     }
 end
+```
+
+```typescript
+// JavaScript equivalent with animation loop:
+
+class AnimatedShape {
+    baseSize = 60;
+    pulseSpeed = 2;
+    color = "#FF7850";
+    time = 0;
+
+    // Called when inputs change (like React)
+    onInputChange(changes: {baseSize?, pulseSpeed?, color?}) {
+        if (changes.color) {
+            this.paint.color = changes.color;
+            console.log("Color updated");
+        }
+    }
+
+    // Called every frame
+    advance(deltaTime: number) {
+        this.time += deltaTime;
+        const pulse = Math.sin(this.time * this.pulseSpeed) * 0.2 + 1;
+        const currentSize = this.baseSize * pulse;
+        this.rebuildPath(currentSize);
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.fill(this.path);
+    }
+}
 ```
 
 **Notice:** In this example, we rebuild the path in `advance` because the size changes every frame due to animation. Color only changes when the input changes, so we handle it in `update`.
@@ -252,7 +462,7 @@ end
 
 ## Pointer Events
 
-Node scripts can also respond to pointer interactions:
+Node scripts can also respond to pointer interactions. These are like DOM event handlers in JavaScript.
 
 ```lua
 function pointerDown(self: MyNode, position: Vector): boolean
@@ -269,6 +479,18 @@ function pointerUp(self: MyNode, position: Vector): boolean
 end
 ```
 
+```javascript
+// JavaScript equivalent - DOM event handlers:
+element.addEventListener('mousedown', (e) => {
+    console.log(`Clicked at ${e.clientX}, ${e.clientY}`);
+    e.stopPropagation();  // Like returning true
+});
+
+element.addEventListener('mousemove', (e) => {
+    // Not calling stopPropagation = like returning false
+});
+```
+
 Include these in your factory return table to enable them:
 
 ```lua
@@ -281,6 +503,134 @@ return function(): Node<MyNode>
         pointerUp = pointerUp,
     }
 end
+```
+
+---
+
+### Exercise 4: Click Counter
+
+:::info Goal
+Track clicks and provide visual feedback using pointer events.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE doesn't have click handling—it's not interactive. The closest thing is Expressions that read markers or layer properties. Rive is fundamentally different: it's designed for INTERACTIVE content where users click, drag, and interact.
+
+**Real-World Use**: Buttons, toggles, draggable elements, games—almost every interactive Rive animation uses pointer events. This is the foundation of interactivity.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "ClickCounter"
+2. Copy the code below
+3. Attach to a node
+4. Click on the shape—it pops and logs the count
+5. The scale animates back to normal smoothly
+
+</details>
+
+```lua
+--!strict
+
+export type ClickCounter = {
+    clickCount: number,
+    displayScale: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: ClickCounter): boolean
+    self.clickCount = 0
+    self.displayScale = 1
+
+    -- Create a clickable area
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-60, -30))
+    self.path:lineTo(Vector.xy(60, -30))
+    self.path:lineTo(Vector.xy(60, 30))
+    self.path:lineTo(Vector.xy(-60, 30))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(80, 160, 255),
+    })
+
+    return true
+end
+
+function pointerDown(self: ClickCounter, position: Vector): boolean
+    self.clickCount += 1
+    self.displayScale = 1.2  -- Pop effect
+    print(`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})`)
+    return true  -- Consume the event
+end
+
+function advance(self: ClickCounter, seconds: number): boolean
+    -- Animate scale back to normal
+    if self.displayScale > 1 then
+        self.displayScale = math.max(1, self.displayScale - seconds * 2)
+    end
+    return true
+end
+
+function draw(self: ClickCounter, renderer: Renderer)
+    renderer:save()
+    renderer:scale(Vector.xy(self.displayScale, self.displayScale))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<ClickCounter>
+    return {
+        init = init,
+        pointerDown = pointerDown,
+        advance = advance,
+        draw = draw,
+        clickCount = 0,
+        displayScale = 1,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+```javascript
+// JavaScript equivalent with DOM events:
+
+class ClickCounter {
+    clickCount = 0;
+    displayScale = 1;
+
+    constructor(element) {
+        element.addEventListener('mousedown', (e) => this.handleClick(e));
+        requestAnimationFrame(() => this.loop());
+    }
+
+    handleClick(e: MouseEvent) {
+        this.clickCount++;
+        this.displayScale = 1.2;
+        console.log(`Click #${this.clickCount} at (${e.clientX}, ${e.clientY})`);
+        e.stopPropagation();  // Consume the event
+    }
+
+    loop() {
+        // Animate scale back to normal
+        if (this.displayScale > 1) {
+            this.displayScale = Math.max(1, this.displayScale - 0.033);  // ~2/s at 60fps
+        }
+        this.draw();
+        requestAnimationFrame(() => this.loop());
+    }
+
+    draw() {
+        ctx.save();
+        ctx.scale(this.displayScale, this.displayScale);
+        ctx.fill(this.path);
+        ctx.restore();
+    }
+}
 ```
 
 ---
@@ -334,6 +684,63 @@ end
   ]}
   explanation="Returning false from a pointer event handler allows the event to propagate to other nodes. Returning true consumes the event."
 />
+
+---
+
+## Common Mistakes
+
+### 1. Creating Objects in draw()
+
+```lua
+-- WRONG: Creating objects every frame wastes resources
+function draw(self: MyNode, renderer: Renderer)
+    local path = Path.new()  -- DON'T do this!
+    path:circle(Vector.xy(0, 0), 50)
+    renderer:drawPath(path, self.paint)
+end
+
+-- CORRECT: Create in init, draw only issues commands
+function init(self: MyNode): boolean
+    self.path = Path.new()
+    self.path:circle(Vector.xy(0, 0), 50)
+    return true
+end
+
+function draw(self: MyNode, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+```
+
+### 2. Rebuilding Geometry in advance() When Not Animated
+
+```lua
+-- WRONG: Rebuilding every frame when size is static
+function advance(self: MyNode, seconds: number): boolean
+    rebuildPath(self, self.size)  -- Wasteful!
+    return true
+end
+
+-- CORRECT: Rebuild only when size input changes
+function update(self: MyNode)
+    rebuildPath(self, self.size)
+end
+```
+
+### 3. Forgetting to Return from Pointer Handlers
+
+```lua
+-- WRONG: Missing return value
+function pointerDown(self: MyNode, position: Vector)
+    print("Clicked!")
+    -- No return - behavior undefined
+end
+
+-- CORRECT: Always return a boolean
+function pointerDown(self: MyNode, position: Vector): boolean
+    print("Clicked!")
+    return true  -- Consume the event
+end
+```
 
 ---
 

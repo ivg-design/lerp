@@ -8,6 +8,53 @@ import Quiz from '@site/src/components/Quiz';
 
 # Util Protocol
 
+## Learning Objectives
+- Create reusable Util scripts
+- Share functions and types across Node scripts
+- Use `require()` to import utilities
+- Avoid common Util script pitfalls
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Module file | `.js` file with `export` | Util script asset |
+| Export functions | `export function fn()` or `module.exports` | `return ModuleTable` |
+| Import module | `import { fn } from './utils'` or `require()` | `require("UtilName")` |
+| Namespace | Module object | Returned table (`MyUtil.fn()`) |
+| Shared types | `export type` (TypeScript) | `export type` |
+| Module caching | Node.js caches `require()` | Rive caches `require()` |
+
+:::danger Critical Difference: No Lifecycle in Util Scripts
+**JavaScript Modules**: Can have initialization code that runs when imported, side effects, and even maintain state.
+
+**Rive Util Scripts**: Are PURE modules. They:
+- ❌ Have no `init`, `draw`, `advance`, or `update`
+- ❌ Cannot attach to nodes
+- ❌ Should not have global mutable state
+- ✅ Export functions and types only
+- ✅ Are shared across ALL scripts that import them
+
+```lua
+-- Util script structure
+local MyUtil = {}
+function MyUtil.helper() end
+return MyUtil  -- Just return a table!
+```
+
+```javascript
+// JavaScript module equivalent
+const MyUtil = {
+    helper: () => {}
+};
+export default MyUtil;
+```
+:::
+
+---
+
 ## Rive Context: Where Reusable Logic Lives
 
 Util scripts are Rive's way to share code across Node scripts. They have **no lifecycle** and simply return a table of functions and types.
@@ -43,6 +90,24 @@ end
 return MyUtil
 ```
 
+```typescript
+// JavaScript/TypeScript equivalent:
+
+interface Range {
+    min: number;
+    max: number;
+}
+
+const MyUtil = {
+    clamp: (value: number, range: Range): number => {
+        return Math.max(range.min, Math.min(range.max, value));
+    }
+};
+
+export default MyUtil;
+export type { Range };
+```
+
 **Usage in a Node script:**
 ```lua
 local MyUtil = require("MyUtil")
@@ -60,11 +125,30 @@ local value = MyUtil.clamp(120, { min = 0, max = 100 })
 
 ---
 
-## Exercises
+## Practice Exercises
 
 ### Exercise 1: MathUtils Module
 
-**Goal**: Create a utility module with common math functions.
+:::info Goal
+Create a utility module with common math functions.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd copy-paste math functions between expressions or use global function libraries. Rive's Util scripts let you define functions ONCE and import them anywhere—proper code reuse.
+
+**Real-World Use**: Every project needs math utilities: lerp for animations, clamp for constraints, smoothstep for easing. Writing them once in a Util script saves time and reduces bugs.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Assets panel → **+** → Script → **Util**
+2. Name it "MathUtils"
+3. Copy the Util code below
+4. Create a Node script with the usage code
+5. The Node script uses functions from MathUtils
+
+</details>
 
 **File: `MathUtils` (Util Script)**
 
@@ -87,7 +171,39 @@ function MathUtils.smoothstep(a: number, b: number, t: number): number
     return MathUtils.lerp(a, b, t)
 end
 
+function MathUtils.remap(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number
+    local t = (value - inMin) / (inMax - inMin)
+    return outMin + (outMax - outMin) * t
+end
+
 return MathUtils
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+const MathUtils = {
+    clamp: (value: number, min: number, max: number): number => {
+        return Math.max(min, Math.min(max, value));
+    },
+
+    lerp: (a: number, b: number, t: number): number => {
+        return a + (b - a) * t;
+    },
+
+    smoothstep: (a: number, b: number, t: number): number => {
+        t = MathUtils.clamp(t, 0, 1);
+        t = t * t * (3 - 2 * t);
+        return MathUtils.lerp(a, b, t);
+    },
+
+    remap: (value: number, inMin: number, inMax: number, outMin: number, outMax: number): number => {
+        const t = (value - inMin) / (inMax - inMin);
+        return outMin + (outMax - outMin) * t;
+    }
+};
+
+export default MathUtils;
 ```
 
 **Node Script using MathUtils:**
@@ -114,7 +230,7 @@ end
 
 function advance(self: EaseDemo, seconds: number): boolean
     self.time += seconds
-    local t = (math.sin(self.time) + 1) / 2
+    local t = (math.sin(self.time) + 1) / 2  -- 0 to 1
     self.x = MathUtils.smoothstep(-120, 120, t)
 
     self.path:reset()
@@ -137,8 +253,8 @@ return function(): Node<EaseDemo>
         draw = draw,
         time = 0,
         x = 0,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
 end
 ```
@@ -152,7 +268,25 @@ end
 
 ### Exercise 2: Exported Types from Util Scripts
 
-**Goal**: Share type definitions across multiple Node scripts.
+:::info Goal
+Share type definitions across multiple Node scripts.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE expressions have no type system. In Rive, you can define types in a Util script and use them across your entire project—ensuring consistent data structures everywhere.
+
+**Real-World Use**: Color palettes, game entity structures, animation configs—any data shape used in multiple places should be defined once in a Util script. This prevents bugs from mismatched structures.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a Util script named "Palette"
+2. Define the `Swatch` type and factory functions
+3. Create a Node script that imports and uses the palette
+4. Multiple Node scripts can share the same palette definitions
+
+</details>
 
 **File: `Palette` (Util Script)**
 
@@ -194,6 +328,38 @@ end
 return Palette
 ```
 
+```typescript
+// JavaScript/TypeScript equivalent:
+
+export interface Swatch {
+    primary: Color;
+    accent: Color;
+    neutral: Color;
+}
+
+const Palette = {
+    warm: (): Swatch => ({
+        primary: { r: 255, g: 120, b: 80 },
+        accent: { r: 255, g: 210, b: 120 },
+        neutral: { r: 60, g: 60, b: 60 },
+    }),
+
+    cool: (): Swatch => ({
+        primary: { r: 80, g: 160, b: 255 },
+        accent: { r: 120, g: 220, b: 200 },
+        neutral: { r: 50, g: 50, b: 60 },
+    }),
+
+    dark: (): Swatch => ({
+        primary: { r: 40, g: 40, b: 50 },
+        accent: { r: 200, g: 80, b: 120 },
+        neutral: { r: 30, g: 30, b: 35 },
+    }),
+};
+
+export default Palette;
+```
+
 **Node Script using Palette:**
 
 ```lua
@@ -202,12 +368,13 @@ return Palette
 local Palette = require("Palette")
 
 export type PaletteDemo = {
+    swatch: Palette.Swatch,  -- Use the exported type!
     path: Path,
     paint: Paint,
 }
 
 function init(self: PaletteDemo): boolean
-    local swatch = Palette.warm()
+    self.swatch = Palette.warm()
 
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-60, -30))
@@ -216,8 +383,9 @@ function init(self: PaletteDemo): boolean
     self.path:lineTo(Vector.xy(-60, 30))
     self.path:close()
 
-    self.paint = Paint.with({ style = "fill", color = swatch.primary })
+    self.paint = Paint.with({ style = "fill", color = self.swatch.primary })
 
+    print("Using warm palette")
     return true
 end
 
@@ -229,14 +397,16 @@ return function(): Node<PaletteDemo>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        swatch = late(),
+        path = late(),
+        paint = late(),
     }
 end
 ```
 
 **Key points:**
 - `export type` makes types available to other scripts
+- Access exported types with `ModuleName.TypeName` (e.g., `Palette.Swatch`)
 - Factory functions like `Palette.warm()` return configured objects
 - Multiple Node scripts can share the same palette definitions
 
@@ -244,7 +414,25 @@ end
 
 ### Exercise 3: Spring Animation Util
 
-**Goal**: Create a reusable spring physics utility.
+:::info Goal
+Create a reusable spring physics utility.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd use the springy slider or custom expressions for spring physics. Rive's Util scripts let you encapsulate complex physics in a reusable module that any script can use.
+
+**Real-World Use**: Springs create natural-feeling animations: buttons bouncing back, elements settling into position, menus sliding with momentum. A Spring util is reusable across your entire project.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a Util script named "Spring"
+2. Copy the Spring code below
+3. Create a Node script that uses the spring
+4. Adjust the input to see spring animation
+
+</details>
 
 **File: `Spring` (Util Script)**
 
@@ -287,7 +475,60 @@ function Spring.update(spring: SpringState, dt: number): number
     return spring.position
 end
 
+function Spring.isSettled(spring: SpringState, threshold: number?): boolean
+    local thresh = threshold or 0.01
+    local atTarget = math.abs(spring.target - spring.position) < thresh
+    local stopped = math.abs(spring.velocity) < thresh
+    return atTarget and stopped
+end
+
 return Spring
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+export interface SpringState {
+    position: number;
+    velocity: number;
+    target: number;
+    stiffness: number;
+    damping: number;
+}
+
+const Spring = {
+    new: (initial: number, stiffness = 150, damping = 10): SpringState => ({
+        position: initial,
+        velocity: 0,
+        target: initial,
+        stiffness,
+        damping,
+    }),
+
+    setTarget: (spring: SpringState, target: number) => {
+        spring.target = target;
+    },
+
+    update: (spring: SpringState, dt: number): number => {
+        const displacement = spring.target - spring.position;
+        const springForce = displacement * spring.stiffness;
+        const dampingForce = spring.velocity * spring.damping;
+        const acceleration = springForce - dampingForce;
+
+        spring.velocity += acceleration * dt;
+        spring.position += spring.velocity * dt;
+
+        return spring.position;
+    },
+
+    isSettled: (spring: SpringState, threshold = 0.01): boolean => {
+        const atTarget = Math.abs(spring.target - spring.position) < threshold;
+        const stopped = Math.abs(spring.velocity) < threshold;
+        return atTarget && stopped;
+    },
+};
+
+export default Spring;
 ```
 
 **Node Script using Spring:**
@@ -308,11 +549,13 @@ function init(self: SpringDemo): boolean
     self.spring = Spring.new(0, 200, 15)
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(120, 200, 255) })
+    print("Spring demo initialized")
     return true
 end
 
 function update(self: SpringDemo)
     Spring.setTarget(self.spring, self.targetX.value)
+    print(`Target set to {self.targetX.value}`)
 end
 
 function advance(self: SpringDemo, seconds: number): boolean
@@ -339,9 +582,9 @@ return function(): Node<SpringDemo>
         advance = advance,
         draw = draw,
         targetX = 0,
-        spring = Spring.new(0),
-        path = Path.new(),
-        paint = Paint.new(),
+        spring = late(),
+        path = late(),
+        paint = late(),
     }
 end
 ```
@@ -376,6 +619,17 @@ function MyUtil.increment(counter: number): number
 end
 ```
 
+```typescript
+// JavaScript equivalent of the problem:
+
+// BAD: Module-level state shared everywhere
+let counter = 0;
+export const increment = () => ++counter;
+
+// GOOD: Pure function
+export const increment = (counter: number) => counter + 1;
+```
+
 ### Export Types for Type Safety
 
 ```lua
@@ -395,7 +649,7 @@ end
   question="What is the main difference between a Util script and a Node script?"
   id="util-q1"
   options={[
-    { text: "Util scripts run faster" },
+    { text: "Util scripts are faster" },
     { text: "Util scripts have no lifecycle functions", correct: true },
     { text: "Util scripts can only contain types" },
     { text: "Util scripts are optional" },
@@ -438,6 +692,58 @@ end
   ]}
   explanation="export type makes a type definition available to other scripts that require() the Util module, enabling type-safe code sharing."
 />
+
+---
+
+## Common Mistakes
+
+### 1. Adding Lifecycle Functions to Util Scripts
+
+```lua
+-- WRONG: Util scripts don't have lifecycle functions
+local MyUtil = {}
+function init(self) end  -- This does nothing!
+function MyUtil.helper() end
+return MyUtil
+
+-- CORRECT: Just return a table of functions
+local MyUtil = {}
+function MyUtil.helper() end
+return MyUtil
+```
+
+### 2. Not Returning the Module Table
+
+```lua
+-- WRONG: Forgot to return
+local MyUtil = {}
+function MyUtil.helper() end
+-- Missing return!
+
+-- CORRECT: Always return the module table
+local MyUtil = {}
+function MyUtil.helper() end
+return MyUtil
+```
+
+### 3. Mutable Global State
+
+```lua
+-- WRONG: Shared mutable state
+local cache = {}
+function MyUtil.getOrCreate(key)
+    -- This cache is shared by ALL scripts!
+end
+
+-- CORRECT: Let each script manage its own cache
+function MyUtil.createCache()
+    return {}
+end
+
+function MyUtil.getOrCreate(cache, key)
+    -- Cache is owned by the calling script
+end
+```
 
 ---
 

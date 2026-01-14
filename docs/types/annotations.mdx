@@ -16,9 +16,31 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
+## AE/JS Syntax Comparison
+
+If you're coming from After Effects expressions or JavaScript, here's how Rive's annotation patterns compare:
+
+| Concept | JavaScript/AE | Luau (Rive) | Notes |
+|---------|--------------|-------------|-------|
+| Object type | `{ name: string }` (TS) | `{ name: string }` | Same syntax! |
+| Export type | `export type X = ...` (TS) | `export type X = ...` | Same syntax! |
+| Self reference | `this.health` | `self.health` | Luau uses `self`, not `this` |
+| Class properties | Declared in constructor | Declared in `export type` | Different pattern entirely |
+| Input binding | N/A | `Input<number>` | Rive-specific wrapper |
+| Deferred init | N/A | `late()` | Rive-specific placeholder |
+| Factory function | `new Class()` | `return function(): Node<T>` | Rive's script pattern |
+
+:::tip Key Insight
+In JavaScript, you typically use classes with constructors. In Rive, you use an **export type** to define your data shape, then a **factory function** that returns the initial state. This is a functional pattern, not an object-oriented one.
+:::
+
+---
+
 ## Rive Context
 
 Rive scripts run in `--!strict` mode by default. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
+
+**Why does this matter?** The Rive editor uses your `export type` to understand what properties your script has. This enables autocomplete, error checking, and proper input binding.
 
 Key rules in Rive:
 - Use `export type` to describe your script instance (`self`)
@@ -57,11 +79,41 @@ end
 3. `function init(self: MyScript)` - The `self` parameter is annotated
 4. `Node<MyScript>` - The factory return type uses your script type
 
+**JavaScript/TypeScript Equivalent (conceptually):**
+```typescript
+// In TypeScript, you'd use a class:
+class MyScript {
+    init(): boolean {
+        return true;
+    }
+    draw(renderer: Renderer): void {
+    }
+}
+
+// In Rive, you use:
+// 1. A type definition (export type MyScript = {...})
+// 2. Standalone functions that take self
+// 3. A factory function that returns the initial state
+```
+
 ---
 
 ## Practice Exercises
 
 ### Exercise 1: Annotate Script State
+
+**Goal:** Learn how to define persistent state in your script using `export type`.
+
+**Why This Matters:** The `export type` tells Rive what data your script needs to track. Without it, you can't have persistent state that survives between frames.
+
+**Real-World Use:** Every game character, particle system, and animation controller needs to track state (health, position, velocity, etc.). The `export type` is where you declare all of it.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add `--!strict` at the top
+3. Define your `export type` with the properties you need
+4. Set those properties in `init()`
+5. Use `late()` in the factory for properties set in `init()`
 
 **Task**: Create a character stats script with properly typed state.
 
@@ -99,9 +151,36 @@ end
 
 **Why `late()`?** These values are set in `init()`, not when the Node is created. The `late()` placeholder tells the type system "this will be provided later."
 
+**JavaScript Equivalent (conceptually):**
+```javascript
+// In JavaScript, you'd set properties in the constructor:
+class CharacterStats {
+    constructor() {
+        this.health = 100;  // Set immediately
+        this.stamina = 50;
+        this.name = "Astra";
+    }
+}
+
+// In Rive, the factory runs BEFORE init(),
+// so properties set in init() need late()
+```
+
 ---
 
 ### Exercise 2: Function Annotations in Rive Scripts
+
+**Goal:** Learn how to properly annotate helper functions with parameter and return types.
+
+**Why This Matters:** When you write utility functions, clear types prevent bugs. A function that returns a number won't accidentally return a string.
+
+**Real-World Use:** Damage calculation, clamping values, interpolation—all common helpers that need correct types.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add `--!strict` at the top
+3. Write helper functions ABOVE your main functions
+4. Annotate both parameters AND return types
 
 **Task**: Add complete type annotations to helper functions.
 
@@ -150,9 +229,44 @@ return function(): Node<FunctionTypes>
 end
 ```
 
+**JavaScript Equivalent:**
+```javascript
+// JavaScript (no type safety)
+function clamp(value, minVal, maxVal) {
+    if (value < minVal) return minVal;
+    if (value > maxVal) return maxVal;
+    return value;
+}
+
+// TypeScript (with types)
+function clamp(value: number, minVal: number, maxVal: number): number {
+    if (value < minVal) return minVal;
+    if (value > maxVal) return maxVal;
+    return value;
+}
+
+// Multiple return values don't exist in JS/TS the same way
+// You'd use an object or tuple:
+function getStats(): [number, number, string] {
+    return [100, 50, "Warrior"];
+}
+```
+
 ---
 
 ### Exercise 3: Inputs Are Typed (Rive-Specific)
+
+**Goal:** Understand how `Input<T>` works—a Rive-specific concept with no direct JavaScript equivalent.
+
+**Why This Matters:** `Input<T>` connects your script to the Rive editor. When a designer changes a value in the editor, your script sees the new value directly.
+
+**Real-World Use:** Every configurable property in your animation (speed, color, size, enabled state) should be an Input so designers can tweak it without editing code.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Define your `export type` with `Input<T>` properties
+3. Read input values directly in your code (e.g., `self.speed`)
+4. Set DEFAULT values (not `late()`) for Inputs in the factory
 
 **Context**: `Input<T>` is Rive's way of exposing values to the editor. The `T` determines what type of value the input holds.
 
@@ -167,13 +281,13 @@ export type InputDemo = {
 }
 
 function init(self: InputDemo): boolean
-    -- Access the value with .value
-    print(`Speed: {self.speed.value}`)
-    print(`Label: {self.label.value}`)
-    print(`Enabled: {self.enabled.value}`)
+    -- Read inputs directly
+    print(`Speed: {self.speed}`)
+    print(`Label: {self.label}`)
+    print(`Enabled: {self.enabled}`)
 
     -- Color inputs work the same way
-    local r = Color.red(self.tint.value)
+    local r = Color.red(self.tint)
     print(`Tint red channel: {r}`)
 
     return true
@@ -186,7 +300,7 @@ return function(): Node<InputDemo>
     return {
         init = init,
         draw = draw,
-        -- Default values for inputs
+        -- Default values for inputs (NOT late()!)
         speed = 10,
         label = "Runner",
         enabled = true,
@@ -195,11 +309,34 @@ return function(): Node<InputDemo>
 end
 ```
 
-**Key insight**: `Input<number>` is not the same as `number`. You must access `.value` to get the actual number.
+:::danger Critical Rule: Input vs Non-Input
+```lua
+-- Input<number> properties get DIRECT default values
+speed = 10,
+
+-- Non-Input properties set in init() use late()
+computedSpeed = late(),
+```
+
+`Input<T>` is provided by Rive automatically. You provide the default value, and Rive treats it as an editor-exposed input with change tracking and editor integration.
+:::
+
+**Key insight**: `Input<number>` is not the same as `number`. It is editor-controlled and read-only in scripts, even though you read it directly (e.g., `self.speed`).
 
 ---
 
 ### Exercise 4: Type Inference vs. Explicit Types
+
+**Goal:** Learn when to explicitly annotate types vs. when to let Luau infer them.
+
+**Why This Matters:** Over-annotating clutters code. Under-annotating causes errors. This exercise teaches the right balance.
+
+**Real-World Use:** Professional code annotates `export type`, function signatures, and ambiguous cases—but lets Luau infer obvious local variables.
+
+**Step-by-Step Setup:**
+1. Create a new Node Script
+2. Notice which variables need explicit types
+3. Notice which can be inferred
 
 **Guideline**: Use explicit types for `self` and function signatures. Let locals infer unless unclear.
 
@@ -244,9 +381,31 @@ return function(): Node<InferenceDemo>
 end
 ```
 
+**When to Annotate (DO):**
+- `export type` definitions (always)
+- Function parameters and return types (always)
+- Empty tables (`local x: {string} = {}`)
+- Ambiguous cases where inference might fail
+
+**When to Infer (DON'T annotate):**
+- Simple assignments (`local x = 5`)
+- Tables with initial values (`local items = {"a", "b"}`)
+- Return values from well-typed functions
+
 ---
 
 ### Exercise 5: Annotating Complex State
+
+**Goal:** Build more sophisticated scripts with nested types.
+
+**Why This Matters:** Real animations need complex state—a character has position, velocity, stats, inventory. Nested types keep this organized.
+
+**Real-World Use:** Physics simulations, game characters, particle systems—all need nested state structures.
+
+**Step-by-Step Setup:**
+1. Define smaller types first (`Position`, `Velocity`)
+2. Compose them into a larger type (`PhysicsObject`)
+3. Use those types in your `export type`
 
 **Task**: Build a more complex script with nested types.
 
@@ -308,9 +467,44 @@ return function(): Node<PhysicsObject>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript approach
+interface Position {
+    x: number;
+    y: number;
+}
+
+interface Velocity {
+    dx: number;
+    dy: number;
+}
+
+interface PhysicsObject {
+    position: Position;
+    velocity: Velocity;
+    mass: number;
+    friction: number;
+}
+
+// The nested types work the same way conceptually
+```
+
 ---
 
 ### Exercise 6: Working with Rive Types
+
+**Goal:** Use Rive's built-in types correctly with their constructors.
+
+**Why This Matters:** Rive provides `Vector`, `Color`, `Path`, and `Paint` types. These are NOT plain tables—they're engine objects with special methods. Using them correctly is essential.
+
+**Real-World Use:** Every Rive script that draws anything uses these types. Every script that positions elements uses `Vector`.
+
+**Step-by-Step Setup:**
+1. Declare Rive types in your `export type`
+2. Create them in `init()` using constructors
+3. Use `late()` in the factory
+4. Access properties and methods in `draw()`
 
 **Task**: Use Rive's built-in types correctly.
 
@@ -361,6 +555,15 @@ return function(): Node<RiveTypesDemo>
 end
 ```
 
+**Rive Type Constructors:**
+
+| Type | Constructor | Example |
+|------|------------|---------|
+| `Vector` | `Vector.xy(x, y)` | `Vector.xy(100, 50)` |
+| `Color` | `Color.rgba(r, g, b, a)` | `Color.rgba(255, 0, 0, 255)` |
+| `Path` | `Path.new()` | `Path.new()` |
+| `Paint` | `Paint.new()` | `Paint.new()` |
+
 ---
 
 ## Knowledge Check
@@ -382,11 +585,11 @@ end
   id="anno-q2"
   options={[
     { text: "They're the same thing" },
-    { text: "Input<number> is a wrapper with .value property and editor integration", correct: true },
+    { text: "Input<number> is an editor-exposed, read-only input value", correct: true },
     { text: "Input<number> is faster" },
     { text: "number can't be used in strict mode" },
   ]}
-  explanation="Input<T> is a Rive wrapper that provides editor-exposed values. Access the actual number with .value property."
+  explanation="Input<T> values are controlled by the editor and are read-only in scripts, even though you read them directly."
 />
 
 <Quiz
@@ -413,11 +616,48 @@ end
 
 ## Common Mistakes
 
+:::danger Avoid These Errors
+
 1. **Forgetting `--!strict`**: Always add it as the first line
-2. **Using plain tables for Rive types**: Use `Vector.xy()` not `{x = 100, y = 50}`
+
+2. **Using plain tables for Rive types**:
+   ```lua
+   -- WRONG
+   self.position = {x = 100, y = 50}
+
+   -- CORRECT
+   self.position = Vector.xy(100, 50)
+   ```
+
 3. **Missing `late()`**: Properties set in `init()` need `late()` in the factory
-4. **Accessing Input without `.value`**: `self.speed.value` not `self.speed`
-5. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
+   ```lua
+   -- Factory for properties set in init()
+   return {
+       path = late(),      -- CORRECT: set in init()
+       paint = late(),     -- CORRECT: set in init()
+       speed = 100,        -- CORRECT: Input default
+   }
+   ```
+
+4. **Using `.value` on Inputs**:
+   ```lua
+   -- WRONG: .value does not exist on inputs here
+   local x = self.speed.value * 2
+
+   -- CORRECT: Read the input directly
+   local x = self.speed * 2
+   ```
+
+5. **Empty tables without types**:
+   ```lua
+   -- WRONG
+   local t = {}
+
+   -- CORRECT
+   local t: {string} = {}
+   ```
+
+:::
 
 ---
 

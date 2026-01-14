@@ -16,7 +16,43 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
-## Rive Context
+## AE/JS Syntax Comparison
+
+| Concept | After Effects | JavaScript/TypeScript | Luau (Rive) |
+|---------|--------------|----------------------|-------------|
+| Class inheritance | N/A | `class Child extends Parent` | `setmetatable(Child, { __index = Parent })` |
+| Super call | N/A | `super.method()` | `Parent.method(self)` |
+| Type extension | N/A | `interface Child extends Parent` | `type Child = Parent & { ... }` |
+| Constructor chain | N/A | `super(args)` | Call `Parent.new()` then `setmetatable()` |
+| Method override | N/A | Just define same method | Just define same method |
+| instanceof check | N/A | `obj instanceof Class` | `getmetatable(obj) == Class` |
+
+:::danger Critical Difference from JavaScript
+**JavaScript**: Uses `extends` keyword and `super` for inheritance
+```javascript
+class Dog extends Animal {
+    speak() {
+        super.speak();  // Call parent method
+        console.log("Woof!");
+    }
+}
+```
+
+**Luau**: Links prototypes via `setmetatable` and calls parent with dot notation
+```lua
+setmetatable(Dog, { __index = Animal })
+
+function Dog:speak()
+    Animal.speak(self)  -- Call parent method with DOT and explicit self!
+    print("Woof!")
+end
+```
+The **dot notation with explicit `self`** is how you call parent methods in Luau. Using colon would pass the wrong `self`.
+:::
+
+---
+
+## Why Inheritance Matters in Rive
 
 In Rive, inheritance is most useful when multiple drawable objects share common behavior (`draw`, `move`, `update`) but differ in geometry or styling. This helps keep Node scripts clean while still producing complex procedural visuals.
 
@@ -25,7 +61,7 @@ In Rive, inheritance is most useful when multiple drawable objects share common 
 - You want different rendering styles for the same geometry
 - You need to override behavior without duplicating setup logic
 
-For anything simpler, prefer composition with plain tables.
+**For anything simpler, prefer composition with plain tables.**
 
 ---
 
@@ -39,6 +75,38 @@ Child instance -> Child prototype -> Parent prototype
 
 If a method isn't found on the child, Luau looks it up on the parent via `__index`.
 
+**JavaScript/TypeScript equivalent:**
+```typescript
+// TypeScript has built-in class inheritance
+class Animal {
+    name: string;
+    speak(): void { console.log("..."); }
+}
+
+class Dog extends Animal {
+    breed: string;
+    speak(): void { console.log("Woof!"); }
+}
+```
+
+**Luau equivalent:**
+```lua
+local Animal = {}
+Animal.__index = Animal
+
+function Animal:speak()
+    print("...")
+end
+
+local Dog = {}
+Dog.__index = Dog
+setmetatable(Dog, { __index = Animal })  -- Dog inherits from Animal
+
+function Dog:speak()
+    print("Woof!")
+end
+```
+
 ---
 
 ## Practice Exercises
@@ -47,9 +115,56 @@ If a method isn't found on the child, Luau looks it up on the parent via `__inde
 
 **Goal**: Create a base `Shape` class and derive `Rect` and `Triangle` from it.
 
+**Why This Matters**: In Rive, you'll often have multiple drawable objects that share common behavior (like `draw`) but have different geometry. Inheritance lets you define shared behavior once and specialize as needed.
+
+**Real-World Use**: A Rive animation with multiple UI elements (buttons, panels, icons) that all need to be drawn but have different shapes.
+
+**After Effects Comparison**: In AE, you'd create separate shape layers with similar expressions. Each would have duplicated code for shared behavior. In Luau, inheritance eliminates this duplication.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// TypeScript version of this inheritance pattern
+abstract class Shape {
+    position: { x: number; y: number };
+    abstract rebuild(): void;
+
+    draw(renderer: Renderer): void {
+        renderer.drawPath(this.path, this.paint);
+    }
+}
+
+class Rect extends Shape {
+    width: number;
+    height: number;
+
+    rebuild(): void {
+        // Build rectangle path
+    }
+}
+
+class Triangle extends Shape {
+    size: number;
+
+    rebuild(): void {
+        // Build triangle path
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "ShapeDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A red rectangle on the left and a blue triangle on the right
+
 ```lua
 --!strict
 
+-- ============================================
+-- BASE CLASS: Shape
+-- All shapes inherit from this
+-- ============================================
 local Shape = {}
 Shape.__index = Shape
 
@@ -60,13 +175,17 @@ export type Shape = {
     draw: (Shape, Renderer) -> (),
 }
 
+-- Base draw method - all shapes use this
 function Shape:draw(renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
+-- ============================================
+-- CHILD CLASS: Rect (inherits from Shape)
+-- ============================================
 local Rect = {}
 Rect.__index = Rect
-setmetatable(Rect, { __index = Shape })
+setmetatable(Rect, { __index = Shape })  -- Rect inherits from Shape!
 
 type Rect = Shape & {
     width: number,
@@ -81,7 +200,7 @@ function Rect.new(position: Vector, width: number, height: number, color: Color)
     self.height = height
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = color })
-    Rect.rebuild(self)
+    Rect.rebuild(self)  -- Note: using Rect.rebuild, not self:rebuild
     return (self :: any) :: Rect
 end
 
@@ -97,9 +216,12 @@ function Rect:rebuild()
     self.path:close()
 end
 
+-- ============================================
+-- CHILD CLASS: Triangle (inherits from Shape)
+-- ============================================
 local Triangle = {}
 Triangle.__index = Triangle
-setmetatable(Triangle, { __index = Shape })
+setmetatable(Triangle, { __index = Shape })  -- Triangle inherits from Shape!
 
 type Triangle = Shape & {
     size: number,
@@ -126,11 +248,15 @@ function Triangle:rebuild()
     self.path:close()
 end
 
+-- ============================================
+-- NODE SCRIPT
+-- ============================================
 export type ShapeDemo = {
     shapes: {Shape},
 }
 
 function init(self: ShapeDemo): boolean
+    -- Both Rect and Triangle can be stored as Shape!
     self.shapes = {
         Rect.new(Vector.xy(-90, 0), 120, 70, Color.rgb(255, 120, 90)),
         Triangle.new(Vector.xy(110, 0), 90, Color.rgb(80, 180, 255)),
@@ -139,6 +265,7 @@ function init(self: ShapeDemo): boolean
 end
 
 function draw(self: ShapeDemo, renderer: Renderer)
+    -- Polymorphism: each shape draws itself correctly
     for _, shape in self.shapes do
         shape:draw(renderer)
     end
@@ -153,7 +280,7 @@ return function(): Node<ShapeDemo>
 end
 ```
 
-**Key Pattern**: Both `Rect` and `Triangle` inherit the `draw` method from `Shape`, but each defines its own `rebuild` for geometry.
+**Key Pattern**: Both `Rect` and `Triangle` inherit the `draw` method from `Shape`, but each defines its own `rebuild` for geometry. This is **polymorphism** - different objects responding to the same method call in different ways.
 
 ---
 
@@ -161,12 +288,42 @@ end
 
 **Goal**: Add a stroke outline by overriding `draw` on a child class.
 
-This example extends Exercise 1 by adding an `OutlineRect` that draws both fill and stroke.
+**Why This Matters**: Sometimes you need to extend parent behavior rather than replace it. Overriding lets you add functionality while reusing existing code.
+
+**Real-World Use**: A Rive button that needs both fill and stroke, or a selected state that adds a highlight effect on top of the base rendering.
+
+**After Effects Comparison**: In AE, you might use multiple shape layers or effects to achieve fill + stroke. In Luau, you override the draw method to render both in sequence.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class OutlineRect extends Rect {
+    strokePaint: Paint;
+
+    constructor(/* params */) {
+        super(/* params */);  // Call parent constructor
+        this.strokePaint = new Paint({ style: "stroke", thickness: 5 });
+    }
+
+    draw(renderer: Renderer): void {
+        super.draw(renderer);  // Call parent's draw first
+        renderer.drawPath(this.path, this.strokePaint);  // Then add stroke
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "OutlineDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: A plain red rectangle on the left, and a blue rectangle with a dark blue outline on the right
 
 ```lua
 --!strict
 
--- Base Shape class (same as Exercise 1)
+-- ============================================
+-- BASE CLASS: Shape
+-- ============================================
 local Shape = {}
 Shape.__index = Shape
 
@@ -181,7 +338,9 @@ function Shape:draw(renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
--- Rect class (same as Exercise 1)
+-- ============================================
+-- CHILD CLASS: Rect
+-- ============================================
 local Rect = {}
 Rect.__index = Rect
 setmetatable(Rect, { __index = Shape })
@@ -215,28 +374,40 @@ function Rect:rebuild()
     self.path:close()
 end
 
--- OutlineRect extends Rect with an additional stroke
+-- ============================================
+-- GRANDCHILD CLASS: OutlineRect (extends Rect)
+-- Demonstrates method overriding
+-- ============================================
 local OutlineRect = {}
 OutlineRect.__index = OutlineRect
-setmetatable(OutlineRect, { __index = Rect })
+setmetatable(OutlineRect, { __index = Rect })  -- Inherits from Rect!
 
 type OutlineRect = Rect & {
     stroke: Paint,
-    draw: (OutlineRect, Renderer) -> (),
+    draw: (OutlineRect, Renderer) -> (),  -- Override signature
 }
 
 function OutlineRect.new(position: Vector, width: number, height: number, fill: Color, stroke: Color): OutlineRect
+    -- Reuse parent constructor
     local base = Rect.new(position, width, height, fill)
+    -- Change metatable to OutlineRect
     local self = setmetatable(base, OutlineRect) :: any
+    -- Add stroke paint
     self.stroke = Paint.with({ style = "stroke", thickness = 5, color = stroke })
     return self
 end
 
+-- OVERRIDE: Draw both fill and stroke
 function OutlineRect:draw(renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
-    renderer:drawPath(self.path, self.stroke)
+    -- We could call Rect.draw(self, renderer) here, but we'll just
+    -- render both paints directly for clarity
+    renderer:drawPath(self.path, self.paint)   -- Fill (inherited)
+    renderer:drawPath(self.path, self.stroke)  -- Stroke (new)
 end
 
+-- ============================================
+-- NODE SCRIPT
+-- ============================================
 export type OutlineDemo = {
     shapes: {Shape},
 }
@@ -272,9 +443,63 @@ end
 
 **Goal**: Extend parent methods rather than completely replacing them.
 
+**Why This Matters**: Often you want to ADD behavior to a parent method, not replace it entirely. This requires calling the parent's version inside your override.
+
+**Real-World Use**: A boss enemy in a game that does normal attack damage PLUS a special attack. Or a premium button that does normal click handling PLUS analytics tracking.
+
+**After Effects Comparison**: In AE, you might use expression controls that reference other layers. In Luau, you explicitly call the parent method using **dot notation** with **explicit self**.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+class Boss extends Enemy {
+    phase: number = 1;
+    specialAttack: string;
+
+    attack(): void {
+        super.attack();  // Call parent's attack
+        if (this.phase >= 2) {
+            console.log(`${this.name} uses ${this.specialAttack}!`);
+        }
+    }
+
+    describe(): void {
+        super.describe();  // Call parent's describe
+        console.log(`  Phase: ${this.phase}`);
+    }
+}
+```
+
+:::danger Critical: Calling Parent Methods
+**WRONG** (passes wrong self):
+```lua
+function Boss:attack()
+    Enemy:attack()  -- WRONG! This passes Enemy as self, not self
+end
+```
+
+**CORRECT** (passes correct self):
+```lua
+function Boss:attack()
+    Enemy.attack(self)  -- CORRECT! Use DOT and pass self explicitly
+end
+```
+
+Always use **dot notation** and **pass `self` explicitly** when calling parent methods.
+:::
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "BossDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Console output showing the boss attacking (check Rive's output panel)
+
 ```lua
 --!strict
 
+-- ============================================
+-- BASE CLASS: Enemy
+-- ============================================
 local Enemy = {}
 Enemy.__index = Enemy
 
@@ -300,7 +525,10 @@ function Enemy:describe()
     print(`{self.name}: {self.health} HP, {self.damage} DMG`)
 end
 
--- Boss extends Enemy
+-- ============================================
+-- CHILD CLASS: Boss (extends Enemy)
+-- Demonstrates calling parent methods
+-- ============================================
 local Boss = {}
 Boss.__index = Boss
 setmetatable(Boss, { __index = Enemy })
@@ -311,31 +539,39 @@ type BossType = EnemyBase & {
 }
 
 function Boss.new(name: string, health: number, damage: number, specialAttackName: string): BossType
+    -- Start with a base Enemy
     local base = Enemy.new(name, health, damage)
+    -- Add Boss-specific properties
     base.phase = 1
     base.specialAttackName = specialAttackName
+    -- Change metatable to Boss
     return setmetatable(base, Boss) :: any :: BossType
 end
 
--- Override attack but also call parent's attack
+-- OVERRIDE: attack() but ALSO call parent's attack
 function Boss:attack()
-    Enemy.attack(self)  -- Call parent method with dot notation!
+    Enemy.attack(self)  -- Call parent method with DOT notation!
     if self.phase >= 2 then
         print(`{self.name} also uses {self.specialAttackName}!`)
     end
 end
 
+-- OVERRIDE: describe() but ALSO call parent's describe
 function Boss:describe()
-    Enemy.describe(self)  -- Call parent
+    Enemy.describe(self)  -- Call parent first
     print(`  Phase: {self.phase}, Special: {self.specialAttackName}`)
 end
 
+-- Boss-only method
 function Boss:nextPhase()
     self.phase += 1
     self.damage += 10
     print(`{self.name} enters phase {self.phase}!`)
 end
 
+-- ============================================
+-- NODE SCRIPT
+-- ============================================
 export type BossDemo = {
     boss: BossType,
 }
@@ -343,6 +579,7 @@ export type BossDemo = {
 function init(self: BossDemo): boolean
     self.boss = Boss.new("Dragon", 500, 25, "Fire Breath")
 
+    -- Test the methods
     self.boss:describe()
 
     print("\n--- Phase 1 Attack ---")
@@ -357,6 +594,7 @@ function init(self: BossDemo): boolean
 end
 
 function draw(self: BossDemo, renderer: Renderer)
+    -- Nothing to draw in this example
 end
 
 return function(): Node<BossDemo>
@@ -368,7 +606,7 @@ return function(): Node<BossDemo>
 end
 ```
 
-**Key Pattern**: To call a parent method, use `ParentClass.methodName(self)` with dot notation.
+**Key Pattern**: To call a parent method, use `ParentClass.methodName(self)` with dot notation. This ensures the correct `self` is passed.
 
 ---
 
@@ -376,10 +614,64 @@ end
 
 **Goal**: Build a full game object hierarchy with drawing support.
 
+**Why This Matters**: Real applications often have multi-level hierarchies. Understanding how to chain inheritance through multiple levels is essential for complex Rive projects.
+
+**Real-World Use**: A game with various entities - some are just data (positions), some are drawable (sprites), and some are specific shapes (boxes, circles). Each level adds functionality.
+
+**After Effects Comparison**: In AE, you'd manage this complexity with precomps and expression links. In Luau, inheritance creates a clean hierarchy where each level adds its own responsibilities.
+
+**JavaScript/TypeScript Equivalent**:
+```typescript
+// Three-level hierarchy
+class GameObject {
+    id: number;
+    x: number;
+    y: number;
+    active: boolean = true;
+
+    update(dt: number): void {}
+    draw(renderer: Renderer): void {}
+    destroy(): void { this.active = false; }
+}
+
+class DrawableObject extends GameObject {
+    path: Path;
+    paint: Paint;
+
+    draw(renderer: Renderer): void {
+        renderer.save();
+        renderer.translate(this.x, this.y);
+        renderer.drawPath(this.path, this.paint);
+        renderer.restore();
+    }
+}
+
+class Circle extends DrawableObject {
+    radius: number;
+    // Builds circular path in constructor
+}
+
+class Box extends DrawableObject {
+    width: number;
+    height: number;
+    // Builds rectangular path in constructor
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Rive file** with a single artboard (400x400)
+2. **Add a Node** named "HierarchyDemo"
+3. **Create the Node Script** with the code below
+4. **What to expect**: Two rectangles and a circle that bob up and down with a sine wave animation
+
 ```lua
 --!strict
 
--- Base GameObject
+-- ============================================
+-- LEVEL 1: Base GameObject
+-- Just position and active state
+-- ============================================
 local GameObject = {}
 GameObject.__index = GameObject
 
@@ -409,7 +701,10 @@ function GameObject:destroy()
     self.active = false
 end
 
--- DrawableObject extends GameObject with path and paint
+-- ============================================
+-- LEVEL 2: DrawableObject (extends GameObject)
+-- Adds path and paint for rendering
+-- ============================================
 local DrawableObject = {}
 DrawableObject.__index = DrawableObject
 setmetatable(DrawableObject, { __index = GameObject })
@@ -420,12 +715,16 @@ type DrawableType = GameObjectBase & {
 }
 
 function DrawableObject.new(x: number, y: number, color: Color): DrawableType
+    -- Start with base GameObject
     local base = GameObject.new(x, y)
+    -- Add drawing properties
     base.path = Path.new()
     base.paint = Paint.with({ style = "fill", color = color })
+    -- Change metatable
     return setmetatable(base, DrawableObject) :: any :: DrawableType
 end
 
+-- Override draw to actually render
 function DrawableObject:draw(renderer: Renderer)
     renderer:save()
     renderer:transform(Mat2D.withTranslation(self.x, self.y))
@@ -433,7 +732,10 @@ function DrawableObject:draw(renderer: Renderer)
     renderer:restore()
 end
 
--- Box extends DrawableObject
+-- ============================================
+-- LEVEL 3: Box (extends DrawableObject)
+-- Specific rectangle geometry
+-- ============================================
 local Box = {}
 Box.__index = Box
 setmetatable(Box, { __index = DrawableObject })
@@ -444,10 +746,13 @@ type BoxType = DrawableType & {
 }
 
 function Box.new(x: number, y: number, width: number, height: number, color: Color): BoxType
+    -- Start with DrawableObject
     local base = DrawableObject.new(x, y, color)
+    -- Add box-specific properties
     base.width = width
     base.height = height
 
+    -- Build the path (geometry centered at origin)
     local hw = width / 2
     local hh = height / 2
     base.path:moveTo(Vector.xy(-hw, -hh))
@@ -459,7 +764,10 @@ function Box.new(x: number, y: number, width: number, height: number, color: Col
     return setmetatable(base, Box) :: any :: BoxType
 end
 
--- Circle extends DrawableObject
+-- ============================================
+-- LEVEL 3: Circle (extends DrawableObject)
+-- Specific circular geometry
+-- ============================================
 local Circle = {}
 Circle.__index = Circle
 setmetatable(Circle, { __index = DrawableObject })
@@ -469,9 +777,12 @@ type CircleType = DrawableType & {
 }
 
 function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
+    -- Start with DrawableObject
     local base = DrawableObject.new(x, y, color)
+    -- Add circle-specific properties
     base.radius = radius
 
+    -- Build the path (circle centered at origin)
     local segments = 32
     for i = 0, segments - 1 do
         local angle = (i / segments) * math.pi * 2
@@ -488,12 +799,16 @@ function Circle.new(x: number, y: number, radius: number, color: Color): CircleT
     return setmetatable(base, Circle) :: any :: CircleType
 end
 
+-- ============================================
+-- NODE SCRIPT
+-- ============================================
 export type HierarchyDemo = {
     objects: {DrawableType},
     elapsed: number,
 }
 
 function init(self: HierarchyDemo): boolean
+    -- Create a mix of shapes - all stored as DrawableType!
     self.objects = {
         Box.new(-80, -30, 60, 40, Color.rgb(255, 100, 100)),
         Box.new(80, 30, 40, 60, Color.rgb(100, 255, 100)),
@@ -505,6 +820,7 @@ end
 
 function advance(self: HierarchyDemo, seconds: number): boolean
     self.elapsed += seconds
+    -- Animate each object with a different phase
     for i, obj in self.objects do
         obj.y = math.sin(self.elapsed * 2 + i) * 20
     end
@@ -556,6 +872,67 @@ Each level adds functionality:
 
 ---
 
+## Common Mistakes
+
+### Mistake 1: Forgetting to Link Prototypes
+
+```lua
+-- WRONG: Only instance has metatable
+local Dog = {}
+Dog.__index = Dog
+
+function Dog.new()
+    return setmetatable({}, Dog)
+end
+-- Dog doesn't inherit from Animal!
+
+-- CORRECT: Link class to parent
+local Dog = {}
+Dog.__index = Dog
+setmetatable(Dog, { __index = Animal })  -- THIS IS REQUIRED!
+```
+
+### Mistake 2: Wrong Syntax for Parent Calls
+
+```lua
+-- WRONG: Passes Animal as self
+function Dog:speak()
+    Animal:speak()  -- Animal becomes self!
+end
+
+-- CORRECT: Pass self explicitly
+function Dog:speak()
+    Animal.speak(self)  -- Use dot, pass self
+end
+```
+
+### Mistake 3: Not Using Intersection Types
+
+```lua
+-- WRONG: Loses parent type information
+type Dog = {
+    breed: string,
+}
+
+-- CORRECT: Extends parent type
+type Dog = Animal & {
+    breed: string,
+}
+```
+
+### Mistake 4: Deep Hierarchies
+
+Keep inheritance shallow - Rive scripts work best with 2-3 levels max:
+```
+-- TOO DEEP (hard to maintain):
+Entity -> GameObject -> DrawableObject -> AnimatedObject -> Character -> Player
+
+-- BETTER (manageable):
+GameObject -> DrawableObject -> Player
+```
+
+---
+
 ## Knowledge Check
 
 <Quiz
@@ -596,32 +973,21 @@ Each level adds functionality:
 
 ---
 
-## Common Mistakes
-
-1. **Forgetting to link prototypes**: Both the instance AND class need metatable setup
-2. **Wrong syntax for parent calls**: Use `Parent.method(self)` not `Parent:method()`
-3. **Not using intersection types**: Use `type Child = Parent & { ... }` for proper typing
-4. **Deep hierarchies**: Keep inheritance shallow - Rive scripts work best with 2-3 levels max
-
----
-
 ## Self-Assessment Checklist
 
 - [ ] I can implement class inheritance with setmetatable
-- [ ] I can use intersection types for typed inheritance
-- [ ] I can call parent methods from child classes
+- [ ] I can use intersection types (`Parent & { ... }`) for typed inheritance
+- [ ] I can call parent methods using `Parent.method(self)` (dot notation)
 - [ ] I can override methods while extending parent behavior
-- [ ] I can build complete drawable hierarchies
+- [ ] I can build complete drawable hierarchies (2-3 levels)
 - [ ] I know when to use inheritance vs composition
 
 ---
 
-## Module 3 Complete!
+## Next Steps
 
-You've finished the OOP module. You now understand how to build reusable classes and inheritance hierarchies for Rive Node scripts.
+Now that you understand inheritance, the next lessons cover:
+- **Encapsulation**: Protecting internal state with closures and conventions
+- **Design Patterns**: Factory, Singleton, Observer, and other reusable patterns
 
-**Key takeaways:**
-- Use metatables and `__index` for prototype-based OOP
-- The double-cast pattern `(self :: any) :: Type` satisfies strict mode
-- Intersection types (`Parent & { ... }`) enable typed inheritance
-- Keep hierarchies shallow and focused on shared drawing behavior
+These complete your OOP toolkit for building sophisticated Rive Node scripts.

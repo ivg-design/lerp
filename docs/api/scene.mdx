@@ -1,0 +1,250 @@
+---
+sidebar_position: 3
+title: Scene
+description: Artboard, Node, and Animation objects
+---
+
+# Scene
+
+Scene graph objects for artboards, nodes, and animations.
+
+---
+
+## Artboard
+
+Represents a Rive artboard instance.
+
+### Attributes
+
+| Attribute | Type | Access | Description |
+|-----------|------|--------|-------------|
+| `width` | number | read/write | Artboard width |
+| `height` | number | read/write | Artboard height |
+| `frameOrigin` | boolean | read/write | Origin is frame origin |
+| `data` | typed | read-only | Associated ViewModel data |
+
+### Methods
+
+#### `artboard:draw(renderer)`
+
+Renders the artboard.
+
+```lua
+artboard:draw(renderer: Renderer)
+```
+
+#### `artboard:advance(deltaTime)`
+
+Advances animations. Returns false when done (non-looping).
+
+```lua
+artboard:advance(deltaTime: number): boolean
+```
+
+#### `artboard:instance()`
+
+Creates an independent copy.
+
+```lua
+artboard:instance(): Artboard
+```
+
+#### `artboard:animation(name)`
+
+Gets an animation by name.
+
+```lua
+artboard:animation(name: string): Animation?
+```
+
+#### `artboard:bounds()`
+
+Gets the bounding box.
+
+```lua
+artboard:bounds(): Vector, Vector  -- min, max
+```
+
+#### `artboard:node(name)`
+
+Gets a node by name.
+
+```lua
+artboard:node(name: string): Node?
+```
+
+#### `artboard:addToPath(path, transform?)`
+
+Adds the artboard's geometry to a path, optionally transformed.
+
+```lua
+artboard:addToPath(path: Path, transform?: Mat2D)
+```
+
+#### Pointer Methods (Event Forwarding)
+
+Used to forward pointer events to nested/instantiated artboards. Returns hit-test result (0 = miss, non-zero = hit).
+
+```lua
+artboard:pointerDown(x: number, y: number): number
+artboard:pointerUp(x: number, y: number): number
+artboard:pointerMove(x: number, y: number): number
+artboard:pointerExit(x: number, y: number): number
+```
+
+> **Note:** These methods take raw coordinates for event forwarding. Node script handlers receive `PointerEvent` objects instead. See [PointerEvent](./events#pointerevent).
+
+**See Also:** [Animation](#animation), [PointerEvent](./events#pointerevent)
+
+---
+
+## Node {#node-object}
+
+A scripted node that can be attached to any Node in Rive. Renders in the local transform space of the hosting Node.
+
+### Protocol Methods
+
+#### `init(self): boolean`
+
+Called once when the node is created. Return `true` to keep the script active.
+
+```lua
+function init(self: MyNode): boolean
+    self.counter = 0
+    print("Node initialized")
+    return true
+end
+```
+
+#### `advance(self, seconds): boolean`
+
+Optional per-frame update. Return `true` to continue receiving calls.
+
+```lua
+function advance(self: MyNode, seconds: number): boolean
+    self.counter += seconds
+    return true  -- Keep running
+end
+```
+
+#### `update(self)`
+
+Called when an input value changes.
+
+```lua
+function update(self: MyNode)
+    print("Input changed!")
+end
+```
+
+#### `draw(self, renderer)`
+
+Called to render the node.
+
+```lua
+function draw(self: MyNode, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+```
+
+### Pointer Event Handlers
+
+#### `pointerDown(self, event)`
+
+Triggered when pointer presses down.
+
+```lua
+function pointerDown(self: MyNode, event: PointerEvent)
+    print(`Pressed at ({event.position.x}, {event.position.y})`)
+    event:hit()  -- Consume the event
+end
+```
+
+#### `pointerMove(self, event)`
+
+Triggered when pointer moves.
+
+#### `pointerUp(self, event)`
+
+Triggered when pointer releases.
+
+#### `pointerExit(self, event)`
+
+Triggered when pointer leaves the node area.
+
+### Factory Pattern
+
+Node scripts return a factory function:
+
+```lua
+function draw(self: MyNode, renderer: Renderer)
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        pointerDown = pointerDown,
+        myProperty = late(),  -- Deferred initialization
+    }
+end
+```
+
+**See Also:** [PointerEvent](./events#pointerevent), [Renderer](./drawing#renderer), [NodeData](./hierarchy#nodedata)
+
+---
+
+## Animation
+
+Controls animation playback.
+
+### Attributes
+
+#### `animation.duration`
+
+Total animation length in seconds. **Type:** `number` (read-only)
+
+### Methods
+
+#### `animation:advance(deltaTime)`
+
+Advances the animation. Returns false when complete (non-looping).
+
+```lua
+animation:advance(deltaTime: number): boolean
+```
+
+#### `animation:setTime(seconds)`
+
+Jumps to a specific time.
+
+```lua
+animation:setTime(seconds: number)
+```
+
+#### `animation:setTimeFrames(frames)`
+
+Jumps to a specific frame.
+
+```lua
+animation:setTimeFrames(frames: number)
+```
+
+#### `animation:setTimePercentage(percent)`
+
+Jumps to a percentage (0.0-1.0) of duration.
+
+```lua
+animation:setTimePercentage(percent: number)
+```
+
+**Example: Animation Scrubber**
+```lua
+function update(self)
+    local anim = self.artboard:animation("Idle")
+    anim:setTimePercentage(self.progress.value)
+end
+```
+
+**See Also:** [Artboard.animation](#artboardanimationname)

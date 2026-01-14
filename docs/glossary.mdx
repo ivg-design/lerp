@@ -1,84 +1,755 @@
 ---
 sidebar_position: 102
 title: Glossary
-description: Key terms and definitions
+description: Key terms and definitions for Rive scripting with Luau
 ---
 
 # Glossary
 
-Key terms used throughout the course.
+A comprehensive reference of key terms used throughout the LERP course. Click any term to jump to its definition, and follow the "Learn more" links to dive deeper.
+
+---
 
 ## A
 
 ### Artboard {#artboard}
-The canvas in Rive where animations are created. Each artboard can contain its own animations, state machines, and scripts.
+
+The canvas in Rive where animations are created. Each artboard can contain its own animations, state machines, and scripts. In Node scripts, you work with artboard instances via the `Artboard<T>` type.
+
+```lua
+-- Referencing another artboard as an input
+export type MyScript = {
+    component: Input<Artboard<Data.ComponentVM>?>,
+}
+```
+
+**Learn more:** [Dynamic Instantiation](/advanced/instantiation)
+
+---
+
+### advance() {#advance}
+
+A lifecycle function that runs every frame. Use it for animation updates, physics, timers, and any per-frame logic. Receives `seconds` (delta time since last frame).
+
+```lua
+function advance(self: MyScript, seconds: number): boolean
+    self.timer += seconds
+    return true  -- Return true to keep animating
+end
+```
+
+**Learn more:** [The Lifecycle](/rive/protocols)
+
+---
 
 ## C
 
 ### Closure {#closure}
-A function that captures variables from its surrounding scope (upvalues), allowing it to maintain state.
+
+A function that captures variables from its surrounding scope (called upvalues). This allows the inner function to "remember" state even after the outer function returns.
+
+```lua
+local function makeCounter()
+    local count = 0  -- Captured by the closure
+    return function()
+        count += 1
+        return count
+    end
+end
+
+local counter = makeCounter()
+print(counter())  -- 1
+print(counter())  -- 2
+```
+
+**Learn more:** [Functions & Closures](/fundamentals/functions)
+
+---
 
 ### Color {#color}
-Rive's RGBA color type. Created with `Color.rgba(r, g, b, a)` or `Color.hex("#RRGGBB")`.
+
+Rive's RGBA color type for styling fills and strokes.
+
+```lua
+-- Create colors
+local red = Color.rgba(255, 0, 0, 255)
+local blue = Color.hex("#0000FF")
+local transparent = Color.rgba(255, 255, 255, 128)
+
+-- Access components
+print(red.r, red.g, red.b, red.a)
+```
+
+**Learn more:** [Core Types](/advanced/core-types)
+
+---
+
+### Compound Assignment {#compound-assignment}
+
+Shorthand operators that combine assignment with an operation: `+=`, `-=`, `*=`, `/=`, `//=`, `%=`, `^=`, `..=`
+
+```lua
+local score = 100
+score += 50   -- Same as: score = score + 50
+score *= 2    -- Same as: score = score * 2
+```
+
+**Learn more:** [Variables & Operators](/fundamentals/variables)
+
+---
+
+### Context {#context}
+
+The runtime context object passed to Node scripts, providing access to the ViewModel and other runtime features.
+
+```lua
+function init(self: MyScript, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        self.scoreProp = vm:property("score")
+    end
+    return true
+end
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
+## D
+
+### Delta Time {#delta-time}
+
+The time elapsed since the last frame, passed as `seconds` to `advance()`. Essential for frame-rate-independent animations.
+
+```lua
+function advance(self: MyScript, seconds: number): boolean
+    -- Move at constant speed regardless of frame rate
+    self.position += self.speed * seconds
+    return true
+end
+```
+
+**Learn more:** [The Lifecycle](/rive/protocols)
+
+---
+
+### draw() {#draw}
+
+A lifecycle function for rendering. Called every frame after `advance()`. Must not modify state or rebuild paths—keep it lightweight.
+
+```lua
+function draw(self: MyScript, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+```
+
+**Learn more:** [Drawing API](/advanced/drawing-api)
+
+---
+
+## E
+
+### export type {#export-type}
+
+Declares the type of your script instance (`self`). Required for all Rive scripts in strict mode.
+
+```lua
+export type MyScript = {
+    count: number,
+    name: string,
+    active: boolean,
+}
+```
+
+**Learn more:** [Type System Introduction](/types/intro)
+
+---
+
+## F
+
+### Factory Function {#factory-function}
+
+The function returned at the end of every Node script that creates new instances. Returns `Node<YourType>`.
+
+```lua
+return function(): Node<MyScript>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        count = 0,           -- Default value
+        name = "Player",     -- Default value
+        active = late(),     -- Set in init
+    }
+end
+```
+
+**Learn more:** [Node Protocol](/rive/node-protocol)
+
+---
 
 ## G
 
 ### Generic {#generic}
-A type parameter that allows functions and types to work with multiple data types while maintaining type safety.
+
+A type parameter that allows types and functions to work with multiple data types while maintaining type safety. Written with angle brackets: `<T>`.
+
+```lua
+-- Node<T> is a generic - T is your script type
+-- Input<T> is a generic - T is the input value type
+
+export type MyScript = {
+    speed: Input<number>,      -- Input generic
+    label: Input<string>,      -- Input generic
+}
+```
+
+**Learn more:** [Generics](/types/generics)
+
+---
+
+### Gradient {#gradient}
+
+A color gradient for Paint objects. Supports linear and radial gradients.
+
+```lua
+local gradient = Gradient.linear(
+    Vector.xy(0, 0),      -- Start point
+    Vector.xy(100, 0),    -- End point
+    {
+        { offset = 0, color = Color.hex("#FF0000") },
+        { offset = 1, color = Color.hex("#0000FF") },
+    }
+)
+```
+
+**Learn more:** [Paint & Styling](/advanced/core-types#paint)
+
+---
 
 ## I
 
+### init() {#init}
+
+A lifecycle function that runs once when the script starts. Use it for setup, creating paths/paints, and initializing state. Must return `true` to indicate success.
+
+```lua
+function init(self: MyScript): boolean
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.hex("#FF0000") })
+    return true
+end
+```
+
+**Learn more:** [The Lifecycle](/rive/protocols)
+
+---
+
 ### Input {#input}
-A wrapper type `Input<T>` that makes a script property bindable to Rive's data binding system.
+
+An editor-exposed value declared as `Input<T>`. In this course, you read it directly (e.g., `self.speed`).
+
+```lua
+export type MyScript = {
+    speed: Input<number>,
+    label: Input<string>,
+    enabled: Input<boolean>,
+}
+
+function init(self: MyScript): boolean
+    print(self.speed)  -- Read the input value
+    return true
+end
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+        speed = 10,       -- Default value
+        label = "Hello",  -- Default value
+        enabled = true,   -- Default value
+    }
+end
+```
+
+**Learn more:** [Inputs & Data Binding](/rive/inputs)
+
+---
+
+### Intersection Type {#intersection-type}
+
+Combines multiple types with `&`. The result has all properties from both types.
+
+```lua
+type Drawable = { draw: (Drawable, Renderer) -> () }
+type Movable = { move: (Movable, number, number) -> () }
+type Sprite = Drawable & Movable  -- Has both draw AND move
+```
+
+**Learn more:** [Advanced Types](/types/advanced-types)
+
+---
+
+### ipairs {#ipairs}
+
+An iterator for arrays that yields index-value pairs in order (1, 2, 3...).
+
+```lua
+local items = {"sword", "shield", "potion"}
+for i, item in ipairs(items) do
+    print(`{i}: {item}`)
+end
+```
+
+**Learn more:** [Tables](/fundamentals/tables)
+
+---
 
 ## L
 
 ### late() {#late}
-A special Rive initializer used for properties that will be bound at runtime rather than initialized immediately.
+
+A special Rive initializer for properties that will be set in `init()` rather than in the factory function. Required for Rive types like Path, Paint, and computed values.
+
+```lua
+export type MyScript = {
+    path: Path,
+    paint: Paint,
+    computed: number,
+}
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),      -- Will be created in init()
+        paint = late(),     -- Will be created in init()
+        computed = late(),  -- Will be calculated in init()
+    }
+end
+```
+
+**Learn more:** [The late() Initializer](/types/late-initializer)
+
+---
+
+### Lifecycle {#lifecycle}
+
+The sequence of functions Rive calls on your script: `init` → `update` → `advance` → `draw`.
+
+| Function | When Called | Purpose |
+|----------|-------------|---------|
+| `init` | Once at start | Setup, create objects |
+| `update` | When inputs change | React to input changes |
+| `advance` | Every frame | Animation, physics |
+| `draw` | Every frame | Rendering |
+
+**Learn more:** [The Lifecycle](/rive/protocols)
+
+---
 
 ## M
 
+### Mat2D {#mat2d}
+
+A 2D transformation matrix for translation, rotation, scale, and skew.
+
+```lua
+-- Create transforms
+local translate = Mat2D.withTranslation(100, 50)
+local rotate = Mat2D.withRotation(math.pi / 4)  -- 45 degrees
+local scale = Mat2D.withScale(2, 2)
+
+-- Combine transforms
+local combined = translate * rotate
+
+-- Apply to renderer
+renderer:transform(combined)
+```
+
+**Learn more:** [Transforms & Renderer](/advanced/drawing-api)
+
+---
+
 ### Metatable {#metatable}
-A table that defines special behavior for another table, such as how it responds to operators or index access.
+
+A table that defines special behavior for another table, such as how it responds to operators or property access. Set with `setmetatable()`.
+
+```lua
+local mt = {
+    __index = function(tbl, key)
+        return "default"
+    end
+}
+local t = setmetatable({}, mt)
+print(t.anything)  -- "default"
+```
+
+**Learn more:** [Metatables](/oop/metatables)
+
+---
 
 ### Metamethod {#metamethod}
-A function in a metatable that defines special behavior (e.g., `__index`, `__add`, `__tostring`).
+
+A function in a metatable that defines special behavior. Common metamethods:
+
+| Metamethod | Triggered By |
+|------------|--------------|
+| `__index` | Reading missing keys |
+| `__newindex` | Writing missing keys |
+| `__add` | The `+` operator |
+| `__tostring` | Converting to string |
+| `__call` | Calling as a function |
+
+**Learn more:** [The __index Metamethod](/oop/index-metamethod)
+
+---
 
 ## N
 
 ### Node Protocol {#node-protocol}
-The primary Rive script type that attaches to scene nodes and can implement logic and custom drawing.
+
+The primary Rive script type that attaches to scene nodes. Implements lifecycle functions (`init`, `advance`, `draw`) and can perform custom rendering.
+
+```lua
+--!strict
+export type MyScript = {}
+
+function init(self: MyScript): boolean
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+end
+
+return function(): Node<MyScript>
+    return { init = init, draw = draw }
+end
+```
+
+**Learn more:** [Node Protocol](/rive/node-protocol)
+
+---
+
+## O
+
+### Optional Type {#optional-type}
+
+A type that can be `nil`, denoted with `?`. Use for values that might not exist.
+
+```lua
+export type MyScript = {
+    target: Node?,        -- Might be nil
+    backup: string?,      -- Might be nil
+}
+
+-- Must check before using
+if self.target then
+    -- Safe to use self.target here
+end
+```
+
+**Learn more:** [Custom Types](/types/custom-types)
+
+---
 
 ## P
 
 ### Paint {#paint}
-Rive's styling object for fills and strokes. Controls color, stroke width, and style.
+
+Rive's styling object for fills and strokes. Controls color, stroke width, cap style, and more.
+
+```lua
+-- Fill paint
+local fill = Paint.with({
+    style = "fill",
+    color = Color.hex("#FF0000"),
+})
+
+-- Stroke paint
+local stroke = Paint.with({
+    style = "stroke",
+    thickness = 3,
+    color = Color.hex("#0000FF"),
+    cap = "round",
+    join = "round",
+})
+```
+
+**Learn more:** [Core Types](/advanced/core-types)
+
+---
 
 ### Path {#path}
-Rive's vector path type for creating custom shapes through commands like `moveTo`, `lineTo`, `close`.
+
+Rive's vector path type for creating custom shapes.
+
+```lua
+local path = Path.new()
+path:moveTo(Vector.xy(0, 0))
+path:lineTo(Vector.xy(100, 0))
+path:lineTo(Vector.xy(100, 100))
+path:lineTo(Vector.xy(0, 100))
+path:close()
+```
+
+**Learn more:** [Core Types](/advanced/core-types)
+
+---
+
+### PointerEvent {#pointerevent}
+
+Event data for pointer interactions (mouse, touch).
+
+```lua
+function pointerDown(self: MyScript, event: PointerEvent)
+    print(`Pointer at: {event.position.x}, {event.position.y}`)
+    event:hit()  -- Consume the event
+end
+```
+
+**Learn more:** [Game Logic & Pointer Events](/advanced/game-logic)
+
+---
+
+### Property {#property}
+
+A mutable ViewModel property. Can be read, written, and listened to.
+
+```lua
+-- Get property from ViewModel
+local scoreProp = vm:property("score")
+
+-- Read value
+local score = scoreProp:get()
+
+-- Write value
+scoreProp:set(score + 10)
+
+-- Listen for changes
+scoreProp:addListener(function(newValue)
+    print(`Score changed to: {newValue}`)
+end)
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
 
 ## R
 
 ### Renderer {#renderer}
-The drawing context provided to `onDraw` callbacks for custom rendering.
+
+The drawing context provided to `draw()` for custom rendering. Works like a state machine with save/restore.
+
+```lua
+function draw(self: MyScript, renderer: Renderer)
+    renderer:save()                           -- Save state
+    renderer:transform(Mat2D.withTranslation(50, 50))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()                        -- Restore state
+end
+```
+
+**Learn more:** [Drawing API](/advanced/drawing-api)
+
+---
 
 ## S
 
+### self {#self}
+
+The script instance. Contains your persistent state and is passed to all lifecycle functions.
+
+```lua
+function init(self: MyScript): boolean
+    self.count = 0            -- Store state on self
+    return true
+end
+
+function advance(self: MyScript, seconds: number): boolean
+    self.count += 1           -- Access state from self
+    return true
+end
+```
+
+**Learn more:** [Self & Methods](/oop/self-and-methods)
+
+---
+
 ### Strict Mode {#strict-mode}
-Enabled with `--!strict`, this mode activates Luau's type checker for compile-time error detection.
+
+Enabled with `--!strict`, this mode activates Luau's type checker. Required for all Rive scripts.
+
+```lua
+--!strict  -- Must be first line
+
+export type MyScript = {
+    count: number,  -- Type required
+}
+```
+
+**Learn more:** [Strict Mode](/types/strict-mode)
+
+---
+
+## T
+
+### Trigger {#trigger}
+
+A ViewModel trigger that fires events without storing a value.
+
+```lua
+-- Get trigger from ViewModel
+local clickTrigger = vm:trigger("onClick")
+
+-- Fire the trigger
+clickTrigger:fire()
+
+-- Listen for trigger fires
+clickTrigger:addListener(function()
+    print("Trigger fired!")
+end)
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
+### Type Alias {#type-alias}
+
+A name for a type, created with the `type` keyword.
+
+```lua
+type Position = { x: number, y: number }
+type State = "idle" | "walking" | "running"
+type Callback = (number) -> ()
+```
+
+**Learn more:** [Custom Types](/types/custom-types)
+
+---
 
 ## U
 
+### Union Type {#union-type}
+
+A type that can be one of several types, using `|`.
+
+```lua
+type State = "idle" | "walking" | "running"
+type Result = number | string | nil
+```
+
+**Learn more:** [Custom Types](/types/custom-types)
+
+---
+
+### update() {#update}
+
+A lifecycle function that runs when input values change. Use it to react to editor changes or runtime data binding updates.
+
+```lua
+function update(self: MyScript)
+    -- Called when any Input<T> value changes
+    self.path:reset()
+    self.rebuildPath()
+end
+```
+
+**Learn more:** [The Lifecycle](/rive/protocols)
+
+---
+
 ### Upvalue {#upvalue}
+
 A variable from an outer scope that is captured by a closure.
 
+```lua
+local multiplier = 2  -- This becomes an upvalue
+
+local function double(x)
+    return x * multiplier  -- Captures 'multiplier'
+end
+```
+
+**Learn more:** [Functions & Closures](/fundamentals/functions)
+
+---
+
 ### Util Protocol {#util-protocol}
-A Rive script type for creating reusable modules that can be imported by other scripts.
+
+A Rive script type for creating reusable modules. Cannot draw or have lifecycle functions—just exports values and functions.
+
+```lua
+--!strict
+
+local MathUtils = {}
+
+function MathUtils.clamp(value: number, min: number, max: number): number
+    return math.max(min, math.min(max, value))
+end
+
+function MathUtils.lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
+end
+
+return MathUtils
+```
+
+**Learn more:** [Util Scripts](/rive/util-protocol)
+
+---
 
 ## V
 
 ### Vector {#vector}
-Rive's 2D vector type (alias: `Vec2D`). Created with `Vector.xy(x, y)`.
+
+Rive's 2D vector type (alias: `Vec2D`). Used for positions, directions, and sizes.
+
+```lua
+-- Create vectors
+local pos = Vector.xy(100, 50)
+local zero = Vector.zero
+
+-- Operations
+local sum = pos + Vector.xy(10, 20)
+local scaled = pos * 2
+local length = pos:length()
+local normalized = pos:normalize()
+```
+
+**Learn more:** [Core Types](/advanced/core-types)
+
+---
 
 ### ViewModel {#viewmodel}
-Rive's data binding container that allows properties to be shared between scripts and external code.
+
+Rive's data binding container that allows properties to be shared between scripts, state machines, and external code.
+
+```lua
+function init(self: MyScript, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        self.scoreProp = vm:property("score")
+        self.nameProp = vm:property("playerName")
+    end
+    return true
+end
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
+## Quick Reference Index
+
+| Category | Terms |
+|----------|-------|
+| **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [draw](#draw), [Lifecycle](#lifecycle) |
+| **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type) |
+| **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [late()](#late) |
+| **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector) |
+| **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue) |
+| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [Factory Function](#factory-function) |

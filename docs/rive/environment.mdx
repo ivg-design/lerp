@@ -1,8 +1,715 @@
 ---
 sidebar_position: 1
 title: Rive Environment
+description: Understand the Rive scripting environment, Console panel, script types, and sandbox limitations
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Rive Environment
 
-*Content being migrated...*
+## Learning Objectives
+- Understand how Rive scripts run inside the editor
+- Use the Console panel for debugging
+- Know the difference between Node and Util scripts
+- Work within sandbox limitations
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Debug output | `console.log()` or `alert()` | `print()` to Console panel |
+| Script execution | Runs in browser JS engine | Runs in sandboxed Luau VM |
+| File access | `File.read()` (ExtendScript) | Not available (sandboxed) |
+| Network requests | `fetch()` or `XMLHttpRequest` | Not available (sandboxed) |
+| Module import | `import` or `require()` (Node.js) | `require("ScriptName")` |
+| Type checking | TypeScript (optional) | `--!strict` (required) |
+| Runtime | JavaScript (dynamic) | Luau (statically typed variant of Lua) |
+
+:::danger Critical Difference: Where Your Code Runs
+**After Effects**: Expressions run in the AE JavaScript engine. ExtendScript runs as a separate process that can access files, network, etc.
+
+**JavaScript (Web)**: Code runs in the browser's V8/SpiderMonkey engine with full DOM access.
+
+**Rive Scripts**: Code runs in a **sandboxed Luau virtual machine** inside the Rive editor. There is:
+- ❌ No file system access
+- ❌ No network requests
+- ❌ No system commands
+- ❌ No dynamic code loading
+- ✅ Full access to Rive's graphics APIs (Path, Paint, Vector, etc.)
+- ✅ Standard math, string, and table libraries
+:::
+
+---
+
+## Rive Context: Scripts Run Inside the Editor
+
+Rive scripts execute in a sandboxed Luau environment inside the Rive editor. This is not a standard Lua runtime - it has specific APIs, restrictions, and behaviors designed for animation development.
+
+**Key points to understand:**
+- Scripts run in the Rive editor, not in your browser's JavaScript environment
+- Output goes to Rive's Console panel, not the browser developer console
+- The runtime provides specific APIs (Path, Paint, Vector, etc.)
+- Certain Lua capabilities are restricted for security and performance
+
+---
+
+## The Console Panel
+
+The Console panel is your primary debugging tool in Rive. All `print()` statements from your scripts appear here.
+
+**Opening the Console:**
+1. View menu > Console (or use the keyboard shortcut)
+2. The panel appears at the bottom of the editor
+
+**Console features:**
+- Shows `print()` output from all scripts
+- Displays error messages with line numbers
+- Clears when you restart the animation
+
+:::tip Debug Strategy
+Use `print()` liberally during development. Unlike browser console logs, these don't affect your exported animation - they only appear in the editor.
+:::
+
+```lua
+-- Rive debugging
+print("Debug message")
+print(`Value is {myValue}`)  -- String interpolation
+
+-- JavaScript equivalent:
+-- console.log("Debug message")
+-- console.log(`Value is ${myValue}`)
+```
+
+---
+
+## Script Types
+
+Rive has two types of scripts with different purposes:
+
+### Node Scripts
+
+Node scripts attach to artboard nodes and have a lifecycle:
+
+```lua
+--!strict
+
+export type MyNode = {}
+
+function init(self: MyNode): boolean
+    print("I am a Node script")
+    return true
+end
+
+function draw(self: MyNode, renderer: Renderer)
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+// A Node script is like a class with lifecycle methods
+
+class MyNode {
+    constructor() {
+        console.log("I am a Node script");  // Like init()
+    }
+
+    draw(renderer: Renderer) {
+        // Called every frame
+    }
+}
+```
+
+**Characteristics:**
+- Must have `init` and `draw` functions
+- Can have `update`, `advance`, and pointer handlers
+- Attach to nodes in the artboard hierarchy
+- Have access to a `Renderer` for drawing
+
+### Util Scripts
+
+Util scripts are reusable modules with no lifecycle:
+
+```lua
+--!strict
+
+local MyUtil = {}
+
+function MyUtil.helper(x: number): number
+    return x * 2
+end
+
+return MyUtil
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+// A Util script is like an ES6 module
+
+export function helper(x: number): number {
+    return x * 2;
+}
+
+// Or as a module object:
+const MyUtil = {
+    helper: (x: number) => x * 2
+};
+export default MyUtil;
+```
+
+**Characteristics:**
+- No lifecycle functions
+- Return a table of functions and types
+- Imported with `require("ScriptName")`
+- Shared across all scripts that import them
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Console Exploration
+
+:::info Goal
+Use the Console to understand script execution order and debug output.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you debug with `alert()` or by checking the value of expression controls. Rive's Console is more like browser DevTools—it shows a continuous stream of output from all your scripts.
+
+**Real-World Use**: Every script you write will use `print()` for debugging. Understanding the Console is essential for troubleshooting any script issue.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Open Rive and create a new file or use an existing one
+2. Assets panel → **+** → Script → **Node**
+3. Name it "ConsoleExplorer"
+4. Copy the code below
+5. Drag it onto any node in your artboard
+6. Open View → Console
+7. Press Play to run the animation
+
+</details>
+
+```lua
+--!strict
+
+export type ConsoleExplorer = {
+    frameCount: number,
+}
+
+function init(self: ConsoleExplorer): boolean
+    print("=== Script Started ===")
+    print("init() called")
+    self.frameCount = 0
+    return true
+end
+
+function advance(self: ConsoleExplorer, seconds: number): boolean
+    self.frameCount += 1
+
+    if self.frameCount <= 3 then
+        print(`advance() frame {self.frameCount}, dt = {seconds:.4f}s`)
+    elseif self.frameCount == 4 then
+        print("(advance continues every frame...)")
+    end
+
+    return true
+end
+
+function draw(self: ConsoleExplorer, renderer: Renderer)
+    if self.frameCount <= 3 then
+        print(`draw() frame {self.frameCount}`)
+    end
+end
+
+return function(): Node<ConsoleExplorer>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        frameCount = 0,
+    }
+end
+```
+
+```typescript
+// JavaScript equivalent concept:
+class ConsoleExplorer {
+    frameCount = 0;
+
+    constructor() {
+        console.log("=== Script Started ===");
+        console.log("init() called");
+    }
+
+    // Called every animation frame (like requestAnimationFrame)
+    advance(deltaTime: number) {
+        this.frameCount++;
+        if (this.frameCount <= 3) {
+            console.log(`advance() frame ${this.frameCount}, dt = ${deltaTime.toFixed(4)}s`);
+        }
+    }
+
+    draw(renderer: Renderer) {
+        if (this.frameCount <= 3) {
+            console.log(`draw() frame ${this.frameCount}`);
+        }
+    }
+}
+```
+
+**Expected Console Output:**
+```
+=== Script Started ===
+init() called
+advance() frame 1, dt = 0.0167s
+draw() frame 1
+advance() frame 2, dt = 0.0167s
+draw() frame 2
+advance() frame 3, dt = 0.0167s
+draw() frame 3
+(advance continues every frame...)
+```
+
+---
+
+### Exercise 2: Understanding the Sandbox
+
+:::info Goal
+Discover what is available in the Rive environment vs. what's restricted.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE expressions have access to composition data, layers, effects—but not the file system or network. Rive is similar but provides different APIs tailored for interactive graphics.
+
+**Real-World Use**: Knowing what APIs are available helps you design your scripts correctly. You can't fetch external data, but you CAN create complex procedural graphics.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "EnvironmentProbe"
+2. Copy the code below
+3. Attach to any node and run
+4. Check the Console to see available APIs
+
+</details>
+
+```lua
+--!strict
+
+export type EnvironmentProbe = {}
+
+function init(self: EnvironmentProbe): boolean
+    print("=== Environment Probe ===")
+
+    -- Standard Lua/Luau globals
+    print(`math.pi = {math.pi}`)
+    print(`math.random() = {math.random()}`)
+
+    -- Rive-specific globals
+    print(`Vector exists: {Vector ~= nil}`)
+    print(`Path exists: {Path ~= nil}`)
+    print(`Paint exists: {Paint ~= nil}`)
+    print(`Color exists: {Color ~= nil}`)
+
+    -- Create some Rive objects
+    local v = Vector.xy(10, 20)
+    print(`Vector.xy(10, 20) = ({v.x}, {v.y})`)
+
+    local c = Color.rgb(255, 128, 0)
+    print(`Color.rgb created successfully`)
+
+    return true
+end
+
+function draw(self: EnvironmentProbe, renderer: Renderer)
+end
+
+return function(): Node<EnvironmentProbe>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+```typescript
+// JavaScript mental model - Rive globals are like browser globals:
+
+// In a browser, you have:
+// window, document, console, fetch, localStorage, etc.
+
+// In Rive, you have:
+// Vector, Path, Paint, Color, Font, math, string, table, etc.
+
+// Both environments provide domain-specific APIs:
+// Browser → DOM manipulation, network, storage
+// Rive → Graphics primitives, animation, rendering
+```
+
+**Key insight:** Rive provides Vector, Path, Paint, Color, and other graphics primitives as global APIs, along with standard Luau math functions.
+
+---
+
+### Exercise 3: Type Safety with --!strict
+
+:::info Goal
+Understand how strict mode helps catch errors at compile time rather than runtime.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE expressions are untyped—you discover errors when the expression fails at runtime. Rive's `--!strict` mode catches many errors BEFORE you even run the animation, just like TypeScript catches JavaScript errors.
+
+**Real-World Use**: Strict mode is REQUIRED for Node scripts to be recognized by Rive. It's not optional—it's how Rive knows your script follows the correct protocol.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script
+2. Copy the code below
+3. Try uncommenting the type error lines to see the editor catch them
+4. Notice how the editor shows errors inline
+
+</details>
+
+```lua
+--!strict
+
+export type TypeDemo = {
+    count: number,
+    name: string,
+    position: Vector,
+}
+
+function init(self: TypeDemo): boolean
+    -- These are all type-safe
+    self.count = 0
+    self.name = "TypeDemo"
+    self.position = Vector.xy(0, 0)
+
+    -- Type errors would be caught by the editor:
+    -- self.count = "hello"  -- ERROR: string cannot be assigned to number
+    -- self.name = 42        -- ERROR: number cannot be assigned to string
+
+    print(`Initialized {self.name} with count={self.count}`)
+    print(`Position: ({self.position.x}, {self.position.y})`)
+
+    return true
+end
+
+function draw(self: TypeDemo, renderer: Renderer)
+end
+
+return function(): Node<TypeDemo>
+    return {
+        init = init,
+        draw = draw,
+        count = 0,
+        name = "",
+        position = Vector.xy(0, 0),
+    }
+end
+```
+
+```typescript
+// TypeScript equivalent - same concept:
+
+interface TypeDemo {
+    count: number;
+    name: string;
+    position: { x: number; y: number };
+}
+
+function init(self: TypeDemo): boolean {
+    self.count = 0;
+    self.name = "TypeDemo";
+    self.position = { x: 0, y: 0 };
+
+    // TypeScript catches these errors too:
+    // self.count = "hello";  // ERROR
+    // self.name = 42;        // ERROR
+
+    return true;
+}
+```
+
+**Why `--!strict` matters:**
+- Catches type mismatches before runtime
+- Enables better autocomplete in the editor
+- Documents your code's expectations
+- Required for Node scripts to be recognized
+
+---
+
+### Exercise 4: Working Within the Sandbox
+
+:::info Goal
+Use available APIs effectively while respecting sandbox constraints.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you're limited to composition data and can't access files or network either. The difference is WHAT you can do within those limits—Rive gives you powerful procedural graphics APIs.
+
+**Real-World Use**: Understanding sandbox limits helps you design better. Instead of trying to load external data (impossible), you store data in ViewModels or compute it procedurally.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "SandboxDemo"
+2. Copy the code below
+3. Run and observe what works within the sandbox
+
+</details>
+
+```lua
+--!strict
+
+export type SandboxDemo = {
+    data: { [string]: number },
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: SandboxDemo): boolean
+    -- String manipulation works
+    local greeting = "Hello, Rive!"
+    print(`String length: {string.len(greeting)}`)
+    print(`Uppercase: {string.upper(greeting)}`)
+
+    -- Table operations work
+    self.data = {
+        x = 100,
+        y = 200,
+        scale = 1.5,
+    }
+
+    for key, value in pairs(self.data) do
+        print(`{key} = {value}`)
+    end
+
+    -- Math operations work
+    local angle = math.rad(45)
+    local cos = math.cos(angle)
+    local sin = math.sin(angle)
+    print(`45 degrees: cos={cos:.3f}, sin={sin:.3f}`)
+
+    -- Rive graphics APIs work
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-30, -30))
+    self.path:lineTo(Vector.xy(30, -30))
+    self.path:lineTo(Vector.xy(30, 30))
+    self.path:lineTo(Vector.xy(-30, 30))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(100, 200, 150),
+    })
+
+    return true
+end
+
+function draw(self: SandboxDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<SandboxDemo>
+    return {
+        init = init,
+        draw = draw,
+        data = {},
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+```javascript
+// JavaScript equivalent - same capabilities, different syntax:
+
+const greeting = "Hello, Rive!";
+console.log(`String length: ${greeting.length}`);
+console.log(`Uppercase: ${greeting.toUpperCase()}`);
+
+const data = { x: 100, y: 200, scale: 1.5 };
+for (const [key, value] of Object.entries(data)) {
+    console.log(`${key} = ${value}`);
+}
+
+const angle = Math.PI / 4;  // 45 degrees
+console.log(`cos=${Math.cos(angle).toFixed(3)}, sin=${Math.sin(angle).toFixed(3)}`);
+```
+
+---
+
+## Sandbox Limitations
+
+The Rive scripting environment has intentional restrictions:
+
+### Not Available
+
+| Feature | Reason | Alternative |
+|---------|--------|-------------|
+| File I/O | Security - scripts cannot access filesystem | Use ViewModel to store data |
+| Network requests | Security - no HTTP or socket access | Pre-load data into ViewModel |
+| `os.execute` | Security - cannot run system commands | N/A |
+| `loadstring` | Security - cannot dynamically load code | Use require() for Util scripts |
+| `require` for external files | Only Util scripts in your project | Create all code in Rive |
+
+### Available
+
+| Feature | Notes | JavaScript Equivalent |
+|---------|-------|----------------------|
+| `math` library | Full math functions | `Math.sin()`, `Math.cos()`, etc. |
+| `string` library | String manipulation | String methods |
+| `table` library | Table utilities | Array/Object methods |
+| `print` | Output to Console | `console.log()` |
+| Rive APIs | Vector, Path, Paint, Color, etc. | Canvas 2D API |
+
+:::note Luau, Not Lua
+Rive uses Luau (Roblox's Lua variant) which includes features like type annotations, string interpolation (`{variable}`), and compound assignment (`+=`). These features don't exist in standard Lua.
+:::
+
+---
+
+## Editor Integration
+
+### Script Creation Workflow
+
+1. **Assets panel** > **+** button > **Script**
+2. Choose **Node** or **Util**
+3. Name your script
+4. Write your code in the built-in editor
+
+### Attaching Node Scripts
+
+1. Select a node in the artboard
+2. In the properties panel, find the Script section
+3. Select your Node script from the dropdown
+
+### Script Errors
+
+When your script has errors:
+- Red underlines appear in the code editor
+- Error messages show in the Console
+- The script won't appear in the add-to-scene menu until fixed
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Where does print() output appear in Rive?"
+  id="env-q1"
+  options={[
+    { text: "Browser developer console" },
+    { text: "A popup dialog" },
+    { text: "Rive's Console panel", correct: true },
+    { text: "The artboard itself" },
+  ]}
+  explanation="print() output goes to Rive's Console panel, which is a dedicated panel in the editor for script debugging."
+/>
+
+<Quiz
+  question="What is the difference between a Node script and a Util script?"
+  id="env-q2"
+  options={[
+    { text: "Node scripts are faster" },
+    { text: "Util scripts have no lifecycle functions", correct: true },
+    { text: "Node scripts cannot use print()" },
+    { text: "Util scripts can access the filesystem" },
+  ]}
+  explanation="Util scripts are pure modules that return a table of functions. They have no init, draw, or advance callbacks - those are only for Node scripts."
+/>
+
+<Quiz
+  question="Why is --!strict required at the top of Rive scripts?"
+  id="env-q3"
+  options={[
+    { text: "It makes the script run faster" },
+    { text: "It enables type checking and is required for recognition", correct: true },
+    { text: "It allows network access" },
+    { text: "It is not actually required" },
+  ]}
+  explanation="--!strict enables Luau's type checking, which catches errors early and is required for Node scripts to be recognized by the Rive editor."
+/>
+
+<Quiz
+  question="Which of the following is NOT available in Rive scripts?"
+  id="env-q4"
+  options={[
+    { text: "math.sin()" },
+    { text: "string.format()" },
+    { text: "os.execute()", correct: true },
+    { text: "table.insert()" },
+  ]}
+  explanation="os.execute() is not available because Rive scripts run in a sandbox that cannot execute system commands. Standard math, string, and table libraries are available."
+/>
+
+---
+
+## Common Mistakes
+
+### 1. Expecting Browser Console Output
+
+```lua
+-- WRONG expectation: Looking in browser DevTools
+print("Where is this?")
+
+-- CORRECT: Check Rive's Console panel (View > Console)
+print("I appear in Rive's Console!")
+```
+
+### 2. Trying to Access External Resources
+
+```lua
+-- WRONG: These don't exist in Rive
+-- local file = io.open("data.txt")  -- NO file access
+-- local response = http.get(url)    -- NO network
+
+-- CORRECT: Use ViewModel for external data
+-- Data is passed into Rive through runtime API
+```
+
+### 3. Forgetting --!strict
+
+```lua
+-- WRONG: Missing strict directive
+export type MyNode = {}
+-- Script won't be recognized!
+
+-- CORRECT: Always include --!strict
+--!strict
+export type MyNode = {}
+```
+
+---
+
+## Summary
+
+- Rive scripts run in a sandboxed Luau environment inside the editor
+- The Console panel shows all `print()` output and errors
+- Node scripts have a lifecycle (init, update, advance, draw)
+- Util scripts are reusable modules with no lifecycle
+- `--!strict` enables type safety and is required for recognition
+- The sandbox restricts file I/O, network access, and dynamic code loading
+
+---
+
+## Next Up
+
+**[Protocols Overview ->](./protocols)**

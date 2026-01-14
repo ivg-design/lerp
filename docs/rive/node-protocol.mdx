@@ -8,15 +8,61 @@ import Quiz from '@site/src/components/Quiz';
 
 # Node Protocol
 
+## Learning Objectives
+- Understand the complete Node script structure
+- Know which functions are required vs optional
+- Master the factory function pattern
+- Attach scripts to artboard nodes
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Script file | `.jsx` or `.js` file | Script asset in Rive |
+| Class definition | `class MyClass { }` | `export type MyNode = { }` |
+| Constructor | `constructor() { }` | `init(self)` |
+| Instance method | `this.method()` | `function method(self)` |
+| Factory pattern | `new MyClass()` or `createInstance()` | `return function(): Node<T>` |
+| Required interface | `implements Interface` | Must have `init` and `draw` |
+| Export | `export default` or `module.exports` | `return function(): Node<T>` |
+
+:::danger Critical Difference: The Factory Function Pattern
+**JavaScript/TypeScript**: You define a class and instantiate it with `new`:
+```javascript
+class MyComponent { }
+const instance = new MyComponent();
+```
+
+**Rive Scripts**: The script RETURNS a factory function. Rive calls this factory to create instances:
+```lua
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        -- properties with defaults or late()
+    }
+end
+```
+
+Why? This pattern lets Rive:
+1. Create multiple instances of your script (one per attached node)
+2. Control when initialization happens (factory first, then `init()`)
+3. Validate your script structure before running
+:::
+
+---
+
 ## Rive Context: A Node Script Is Not a Normal Luau File
 
 Node scripts run **inside Rive** and must follow a protocol. The editor only lists scripts that return a factory function with at least `init` and `draw`.
 
 **Minimum requirements:**
 1. `--!strict` at the top
-2. Exported type for script state
+2. Exported type for script state (`export type`)
 3. `init(self)` and `draw(self, renderer)` functions
-4. `return function(): Node<YourType>`
+4. `return function(): Node<YourType>` factory function
 
 :::warning Important
 If `draw` is missing, the script will not appear in the add-to-scene menu. This is a common source of confusion for beginners.
@@ -48,7 +94,44 @@ return function(): Node<MyNode>
 end
 ```
 
+```typescript
+// JavaScript/TypeScript mental model:
+
+interface MyNode {
+    // Persistent fields
+}
+
+class MyNodeScript implements NodeProtocol {
+    init(): boolean {
+        return true;
+    }
+
+    draw(renderer: Renderer): void {
+        // Render commands
+    }
+}
+
+// Factory function
+export default function createMyNode(): MyNode {
+    return new MyNodeScript();
+}
+```
+
 Every Node script you write will follow this structure. The exported type defines what data your script instance holds, the lifecycle functions define behavior, and the factory function creates new instances.
+
+---
+
+## Protocol Functions Reference
+
+| Function | Required | Parameters | Return | Called When |
+|----------|----------|------------|--------|-------------|
+| `init` | ✅ Yes | `self`, `context?` | `boolean` | Once at startup |
+| `draw` | ✅ Yes | `self`, `renderer` | none | Every frame |
+| `update` | Optional | `self`, `context?` | none | Input changes |
+| `advance` | Optional | `self`, `seconds`, `context?` | `boolean` | Every frame (before draw) |
+| `pointerDown` | Optional | `self`, `position` | `boolean` | Mouse/touch down |
+| `pointerMove` | Optional | `self`, `position` | `boolean` | Mouse/touch move |
+| `pointerUp` | Optional | `self`, `position` | `boolean` | Mouse/touch up |
 
 ---
 
@@ -66,11 +149,32 @@ Every Node script you write will follow this structure. The exported type define
 
 ---
 
-## Exercises
+## Practice Exercises
 
 ### Exercise 1: Hello Rive
 
-**Goal**: Create a minimal Node script that prints to the console.
+:::info Goal
+Create a minimal Node script that prints to the console.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd write `alert("Hello")` or check the error log. Rive's Console panel is purpose-built for script debugging—all your `print()` statements appear there.
+
+**Real-World Use**: This is the "Hello World" of Rive scripting. Every developer starts here to verify their environment works before building complex scripts.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Rive file or open an existing one
+2. Assets panel → **+** → Script → **Node**
+3. Name it "HelloRive"
+4. Copy the code below
+5. Drag the script onto any node in your artboard
+6. Open View → Console
+7. Press Play
+
+</details>
 
 ```lua
 --!strict
@@ -94,6 +198,21 @@ return function(): Node<HelloRive>
 end
 ```
 
+```typescript
+// JavaScript/TypeScript equivalent:
+
+class HelloRive {
+    constructor() {
+        console.log("Hello from a Node Script!");
+        console.log("This runs once at startup.");
+    }
+
+    draw(renderer: Renderer) {
+        // Required but empty
+    }
+}
+```
+
 **Expected Console Output:**
 ```
 Hello from a Node Script!
@@ -104,7 +223,25 @@ This runs once at startup.
 
 ### Exercise 2: Frame Timer
 
-**Goal**: Use `advance` for per-frame updates. This demonstrates how to track time across frames.
+:::info Goal
+Use `advance` for per-frame updates. This demonstrates how to track time across frames.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd use `time` to get the current time in seconds. In Rive, you get `seconds` (delta time) passed to `advance()` and must track total time yourself. This gives you more control over time-based logic.
+
+**Real-World Use**: Games track elapsed time for animations, timers, and gameplay logic. Frame timers are fundamental to any animated or interactive content.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "FrameTimer"
+2. Copy the code below
+3. Attach to any node
+4. Run and watch the Console—it logs every ~60 frames (approximately once per second at 60fps)
+
+</details>
 
 ```lua
 --!strict
@@ -117,6 +254,7 @@ export type FrameTimer = {
 function init(self: FrameTimer): boolean
     self.elapsed = 0
     self.tick = 0
+    print("Timer started!")
     return true
 end
 
@@ -125,7 +263,7 @@ function advance(self: FrameTimer, seconds: number): boolean
     self.tick += 1
 
     if self.tick % 60 == 0 then
-        print(`Time: {self.elapsed:.2f}s`)  -- ~once per second at 60fps
+        print(`Time: {self.elapsed:.2f}s (frame {self.tick})`)
     end
 
     return true
@@ -145,16 +283,65 @@ return function(): Node<FrameTimer>
 end
 ```
 
+```typescript
+// JavaScript/TypeScript equivalent with requestAnimationFrame:
+
+class FrameTimer {
+    elapsed: number = 0;
+    tick: number = 0;
+    lastTime: number;
+
+    constructor() {
+        console.log("Timer started!");
+        this.lastTime = performance.now();
+        this.loop();
+    }
+
+    loop() {
+        const now = performance.now();
+        const deltaTime = (now - this.lastTime) / 1000;  // Convert to seconds
+        this.lastTime = now;
+
+        this.elapsed += deltaTime;
+        this.tick++;
+
+        if (this.tick % 60 === 0) {
+            console.log(`Time: ${this.elapsed.toFixed(2)}s (frame ${this.tick})`);
+        }
+
+        requestAnimationFrame(() => this.loop());
+    }
+}
+```
+
 **Key points:**
 - `advance` runs every frame and receives the delta time in seconds
 - Store persistent state in `self` fields
-- The return value controls whether the node continues advancing
+- The return value controls whether the node continues advancing (`true` = continue)
 
 ---
 
 ### Exercise 3: Draw a Simple Shape
 
-**Goal**: Build a path in `init` and draw it each frame. This is the foundation for procedural graphics.
+:::info Goal
+Build a path in `init` and draw it each frame. This is the foundation for procedural graphics.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd use shape layers or masks to create shapes. Rive's Path API is more like HTML Canvas or SVG—you programmatically build paths with `moveTo`, `lineTo`, etc.
+
+**Real-World Use**: Procedural graphics let you create shapes that respond to data: progress bars, charts, dynamic backgrounds, custom UI elements. This is impossible with static design tools alone.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "DrawSquare"
+2. Copy the code below
+3. Attach to a node
+4. Run—you'll see a blue square centered on the node
+
+</details>
 
 ```lua
 --!strict
@@ -165,6 +352,7 @@ export type DrawSquare = {
 }
 
 function init(self: DrawSquare): boolean
+    -- Create the path (square centered at origin)
     self.path = Path.new()
     self.path:moveTo(Vector.xy(-40, -40))
     self.path:lineTo(Vector.xy(40, -40))
@@ -172,11 +360,13 @@ function init(self: DrawSquare): boolean
     self.path:lineTo(Vector.xy(-40, 40))
     self.path:close()
 
+    -- Create the paint (fill style with color)
     self.paint = Paint.with({
         style = "fill",
         color = Color.rgb(80, 180, 255),
     })
 
+    print("Square created!")
     return true
 end
 
@@ -188,16 +378,207 @@ return function(): Node<DrawSquare>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
 end
+```
+
+```typescript
+// JavaScript/TypeScript with Canvas 2D API:
+
+class DrawSquare {
+    path: Path2D;
+    fillColor: string = "rgb(80, 180, 255)";
+
+    constructor() {
+        this.path = new Path2D();
+        this.path.moveTo(-40, -40);
+        this.path.lineTo(40, -40);
+        this.path.lineTo(40, 40);
+        this.path.lineTo(-40, 40);
+        this.path.closePath();
+
+        console.log("Square created!");
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = this.fillColor;
+        ctx.fill(this.path);
+    }
+}
 ```
 
 **Key points:**
 - Create paths and paints in `init`, not in `draw`
 - `draw` should only issue renderer commands
-- The factory return table provides default values for typed fields
+- The factory return table uses `late()` for objects created in `init()`
+
+---
+
+### Exercise 4: Complete Protocol Example
+
+:::info Goal
+Build a script that uses ALL major protocol functions together.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, different logic is spread across expressions on different properties. In Rive, one script handles initialization, input changes, animation, rendering, and interaction—all in organized callback functions.
+
+**Real-World Use**: Production scripts often need all these callbacks: initialize state, respond to designer inputs, animate over time, render visuals, and handle clicks. This exercise shows how they work together.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "CompleteDemo"
+2. Copy the code below
+3. Add a `size` input slider in the Rive inputs panel
+4. Attach to a node and run
+5. Click on the shape—it changes color
+6. Adjust the `size` input—the shape resizes
+
+</details>
+
+```lua
+--!strict
+
+export type CompleteDemo = {
+    -- Inputs
+    size: Input<number>,
+    baseColor: Input<Color>,
+
+    -- State
+    isClicked: boolean,
+    time: number,
+
+    -- Graphics
+    path: Path,
+    paint: Paint,
+}
+
+local function rebuildPath(self: CompleteDemo)
+    local half = self.size / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-half, -half))
+    self.path:lineTo(Vector.xy(half, -half))
+    self.path:lineTo(Vector.xy(half, half))
+    self.path:lineTo(Vector.xy(-half, half))
+    self.path:close()
+end
+
+function init(self: CompleteDemo): boolean
+    print("init: Creating graphics objects")
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = self.baseColor })
+    self.isClicked = false
+    self.time = 0
+    rebuildPath(self)
+    return true
+end
+
+function update(self: CompleteDemo)
+    print(`update: Size changed to {self.size}`)
+    rebuildPath(self)
+    self.paint.color = self.baseColor
+end
+
+function advance(self: CompleteDemo, seconds: number): boolean
+    self.time += seconds
+
+    -- Pulse opacity based on time
+    local pulse = math.sin(self.time * 3) * 0.2 + 0.8
+    local r = Color.red(self.paint.color)
+    local g = Color.green(self.paint.color)
+    local b = Color.blue(self.paint.color)
+    self.paint.color = Color.rgba(r, g, b, math.floor(pulse * 255))
+
+    return true
+end
+
+function pointerDown(self: CompleteDemo, position: Vector): boolean
+    self.isClicked = not self.isClicked
+    print(`pointerDown: Clicked at ({position.x:.1f}, {position.y:.1f})`)
+
+    if self.isClicked then
+        self.paint.color = Color.rgb(255, 100, 100)  -- Red when clicked
+    else
+        self.paint.color = self.baseColor  -- Reset to input color
+    end
+
+    return true
+end
+
+function draw(self: CompleteDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<CompleteDemo>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        pointerDown = pointerDown,
+        draw = draw,
+        size = 80,
+        baseColor = Color.rgb(80, 180, 255),
+        isClicked = false,
+        time = 0,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent showing all lifecycle methods:
+
+class CompleteDemo {
+    // Inputs (props)
+    size: number = 80;
+    baseColor: Color = { r: 80, g: 180, b: 255 };
+
+    // State
+    isClicked: boolean = false;
+    time: number = 0;
+
+    // Graphics
+    path: Path2D;
+    fillColor: Color;
+
+    constructor() {
+        console.log("init: Creating graphics objects");
+        this.fillColor = { ...this.baseColor };
+        this.rebuildPath();
+        this.setupEvents();
+    }
+
+    // Like update()
+    onPropsChange() {
+        console.log(`update: Size changed to ${this.size}`);
+        this.rebuildPath();
+        this.fillColor = { ...this.baseColor };
+    }
+
+    // Like advance()
+    onFrame(deltaTime: number) {
+        this.time += deltaTime;
+        const pulse = Math.sin(this.time * 3) * 0.2 + 0.8;
+        // Apply pulse to alpha
+    }
+
+    // Like pointerDown()
+    onClick(position: { x: number, y: number }) {
+        this.isClicked = !this.isClicked;
+        console.log(`pointerDown: Clicked at (${position.x}, ${position.y})`);
+        // Toggle color
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.fill(this.path);
+    }
+}
+```
 
 ---
 
@@ -253,6 +634,70 @@ end
 
 ---
 
+## Common Mistakes
+
+### 1. Missing the Factory Function
+
+```lua
+-- WRONG: Not returning a factory function
+--!strict
+export type MyNode = {}
+function init(self: MyNode): boolean return true end
+function draw(self: MyNode, renderer: Renderer) end
+-- Script won't be recognized!
+
+-- CORRECT: Return a factory function
+return function(): Node<MyNode>
+    return { init = init, draw = draw }
+end
+```
+
+### 2. Forgetting draw (Even If Empty)
+
+```lua
+-- WRONG: No draw function
+return function(): Node<MyNode>
+    return { init = init }  -- Script won't appear in menu!
+end
+
+-- CORRECT: Include draw even if empty
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,  -- Required!
+    }
+end
+```
+
+### 3. Using self Before init
+
+```lua
+-- WRONG: Trying to use self in factory
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),  -- ERROR: Can't call in factory
+    }
+end
+
+-- CORRECT: Use late() and initialize in init()
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),
+    }
+end
+
+function init(self: MyNode): boolean
+    self.path = Path.new()  -- Create here
+    return true
+end
+```
+
+---
+
 ## Key Takeaway
 
 Every Node script follows the same protocol. Once that structure is correct, you can focus on logic, inputs, and rendering. The protocol ensures Rive knows how to instantiate and run your script.
@@ -261,4 +706,4 @@ Every Node script follows the same protocol. Once that structure is correct, you
 
 ## Next Up
 
-**[Inputs and Data Binding →](./inputs)**
+**[Util Protocol →](./util-protocol)**

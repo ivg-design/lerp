@@ -1,0 +1,187 @@
+---
+sidebar_position: 9
+title: Styling
+description: PaintDefinition, PaintStyle, BlendMode, StrokeCap, StrokeJoin, GradientStop
+---
+
+# Styling
+
+Configuration types for paint styles, blend modes, and gradients.
+
+---
+
+## PaintDefinition
+
+Partial set of paint properties for initializing or updating a Paint. All fields are optional.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `style` | PaintStyle | Fill or stroke mode |
+| `color` | Color | Paint color |
+| `thickness` | number | Stroke width |
+| `cap` | StrokeCap | Line ending style |
+| `join` | StrokeJoin | Corner style |
+| `blendMode` | BlendMode | Compositing mode |
+| `feather` | number | Feathering amount |
+| `gradient` | Gradient? | Gradient fill (false to remove) |
+
+### Example
+
+```lua
+local paint = Paint.with({
+    style = "fill",
+    color = Color.rgb(255, 0, 0),
+    blendMode = BlendMode.multiply,
+})
+
+-- Update with copy
+local highlight = paint:copy({
+    color = Color.rgb(255, 255, 0)
+})
+```
+
+**See Also:** [Paint](./drawing#paint), [PaintStyle](#paintstyle)
+
+---
+
+## PaintStyle
+
+Specifies how shapes are painted.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `fill` | Paints the interior of the shape |
+| `stroke` | Paints the outline of the shape |
+
+### Example
+
+```lua
+local fillPaint = Paint.with({ style = "fill" })
+local strokePaint = Paint.with({ style = "stroke", thickness = 2 })
+```
+
+**See Also:** [Paint](./drawing#paint), [PaintDefinition](#paintdefinition)
+
+---
+
+## BlendMode
+
+Defines how paint color is composited with content behind it.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `srcOver` | Normal blending (default) |
+| `multiply` | Darkens by multiplying colors |
+| `screen` | Lightens by screening colors |
+| `overlay` | Combines multiply and screen |
+| `darken` | Keeps darker color |
+| `lighten` | Keeps lighter color |
+| `colorDodge` | Brightens to reflect source |
+| `colorBurn` | Darkens to reflect source |
+| `hardLight` | Hard spotlight effect |
+| `softLight` | Soft spotlight effect |
+| `difference` | Subtracts colors |
+| `exclusion` | Similar to difference, lower contrast |
+| `hue` | Applies source hue |
+| `saturation` | Applies source saturation |
+| `color` | Applies source hue and saturation |
+| `luminosity` | Applies source luminosity |
+
+### Example
+
+```lua
+local paint = Paint.with({
+    style = "fill",
+    color = Color.rgba(255, 0, 0, 128),
+    blendMode = BlendMode.multiply,
+})
+```
+
+**See Also:** [Paint](./drawing#paint), [PaintDefinition](#paintdefinition)
+
+---
+
+## StrokeCap
+
+Defines the shape at the ends of open stroke segments.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `butt` | Squared end, no extension |
+| `round` | Semicircular cap |
+| `square` | Squared end, extends past endpoint |
+
+### Example
+
+```lua
+local paint = Paint.with({
+    style = "stroke",
+    thickness = 4,
+    cap = "round",
+})
+```
+
+**See Also:** [StrokeJoin](#strokejoin), [Paint](./drawing#paint)
+
+---
+
+## StrokeJoin
+
+Defines how two stroke segments connect at a corner.
+
+### Values
+
+| Value | Description |
+|-------|-------------|
+| `miter` | Sharp corner |
+| `round` | Rounded corner |
+| `bevel` | Flattened corner |
+
+### Example
+
+```lua
+local paint = Paint.with({
+    style = "stroke",
+    thickness = 4,
+    join = "round",
+})
+```
+
+**See Also:** [StrokeCap](#strokecap), [Paint](./drawing#paint)
+
+---
+
+## GradientStop
+
+A color stop in a Gradient, defined by position and color.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `position` | number | Position along gradient (0.0 - 1.0) |
+| `color` | Color | Color at this position |
+
+### Example
+
+```lua
+local gradient = Gradient.linear(
+    Vector.xy(0, 0),
+    Vector.xy(100, 0),
+    {
+        { position = 0, color = Color.rgb(255, 0, 0) },
+        { position = 0.5, color = Color.rgb(255, 255, 0) },
+        { position = 1, color = Color.rgb(0, 255, 0) },
+    }
+)
+```
+
+**See Also:** [Gradient](./drawing#gradient), [Color](./core-types#color)

@@ -1,8 +1,1254 @@
 ---
 sidebar_position: 6
-title: Advanced Types
+title: "Advanced Types"
+description: Master intersection types, union types, optional types, and function types in Luau
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Advanced Types
 
-*Content being migrated...*
+## Learning Objectives
+- Combine types with intersection (`&`)
+- Create flexible values with union (`|`)
+- Handle nullable values with optional (`?`)
+- Define and use function types
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Union type | `string \| number` (TS only) | `string \| number` |
+| Intersection type | `A & B` (TS only) | `A & B` |
+| Optional property | `name?: string` | `name: string?` |
+| Optional type | `string \| null \| undefined` | `string?` (same as `string \| nil`) |
+| Nullable value | `null` or `undefined` | `nil` |
+| Function type | `(x: number) => number` (TS) | `(number) -> number` |
+| Arrow function | `(x) => x * 2` | `function(x) return x * 2 end` |
+| Multiple returns | Return array/object | `(number, number) -> (number, number)` |
+
+:::tip TypeScript Users
+If you know TypeScript, Luau's advanced types work very similarly! The main differences are:
+- **Arrow syntax**: `->` instead of `=>`
+- **Optional position**: `T?` (type-trailing) instead of `T \| undefined`
+- **No undefined**: Luau only has `nil`, not both `null` and `undefined`
+:::
+
+:::danger Critical Difference: Optional Property Syntax
+```typescript
+// TypeScript - question mark BEFORE the colon
+type User = { email?: string }
+
+// Luau - question mark AFTER the type
+type User = { email: string? }
+```
+This catches many TypeScript users off guard!
+:::
+
+---
+
+## Rive Context
+
+Rive scripts often need sophisticated type patterns:
+
+1. **Intersection types (`&`)**: Combine component behaviors (e.g., an object that is both `Drawable` and `Clickable`)
+2. **Union types (`|`)**: Handle multiple possible states (e.g., animation states, response types)
+3. **Optional types (`?`)**: Safely handle values that might not exist (e.g., optional inputs, late-bound references)
+4. **Function types**: Pass callbacks for event handling, custom renderers, and behavior injection
+
+Understanding these patterns enables you to write more expressive and type-safe Rive scripts.
+
+---
+
+## Intersection Types (`&`)
+
+Intersection types combine multiple types into one. A value of type `A & B` must have all properties from both `A` and `B`.
+
+```lua
+type Named = { name: string }
+type Positioned = { x: number, y: number }
+
+-- Must have name AND x AND y
+type NamedPosition = Named & Positioned
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+type Named = { name: string }
+type Positioned = { x: number, y: number }
+
+// TypeScript intersection - identical syntax!
+type NamedPosition = Named & Positioned
+```
+
+---
+
+## Union Types (`|`)
+
+Union types represent "either/or" possibilities. A value of type `A | B` is either an `A` or a `B`.
+
+```lua
+-- Can be a number OR a string
+type ID = number | string
+
+-- Literal union for specific values
+type Direction = "up" | "down" | "left" | "right"
+```
+
+```typescript
+// JavaScript/TypeScript equivalent - identical syntax:
+type ID = number | string
+type Direction = "up" | "down" | "left" | "right"
+```
+
+---
+
+## Optional Types (`?`)
+
+Optional types are shorthand for "this type or nil". `T?` is equivalent to `T | nil`.
+
+```lua
+-- These are equivalent:
+type MaybeString = string?
+type MaybeString = string | nil
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+type MaybeString = string | null | undefined
+// or with strictNullChecks:
+type MaybeString = string | null
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Intersection Types for Component Composition
+
+:::info Goal
+Build a component system where objects can have multiple behaviors using intersection types.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might create different composition properties and manually check which apply to each layer. In Rive with Luau's intersection types, the type system tracks this automatically—if something is `Drawable & Interactive`, you KNOW it has both sets of properties.
+
+**Real-World Use**: Game entities often combine multiple behaviors. A "Button" is both drawable AND clickable. A "Player" is positioned AND animated AND interactive. Intersection types let you compose these cleanly and have the compiler verify correct usage.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Rive file or open an existing one
+2. Add a Node Script to any artboard
+3. Copy the code below
+4. The script demonstrates how intersection types compose behavior
+
+</details>
+
+```lua
+--!strict
+
+-- Base component types
+type Drawable = {
+    visible: boolean,
+    opacity: number,
+}
+
+type Transformable = {
+    x: number,
+    y: number,
+    rotation: number,
+    scale: number,
+}
+
+type Interactive = {
+    enabled: boolean,
+    hovered: boolean,
+    onClick: () -> (),
+}
+
+type Named = {
+    name: string,
+    id: number,
+}
+
+-- Intersection types for different object kinds
+type Sprite = Named & Drawable & Transformable
+type Button = Named & Drawable & Transformable & Interactive
+type Label = Named & Drawable & Transformable  -- Not interactive
+
+-- Functions that work with specific capabilities
+local function renderDrawable(obj: Drawable)
+    if obj.visible and obj.opacity > 0 then
+        print(`Rendering with opacity {obj.opacity}`)
+    end
+end
+
+local function moveTransformable(obj: Transformable, dx: number, dy: number)
+    obj.x += dx
+    obj.y += dy
+    print(`Moved to ({obj.x}, {obj.y})`)
+end
+
+local function handleClick(obj: Interactive)
+    if obj.enabled and obj.hovered then
+        obj.onClick()
+    end
+end
+
+export type IntersectionDemo = {
+    sprite: Sprite,
+    button: Button,
+}
+
+function init(self: IntersectionDemo): boolean
+    -- Create objects that satisfy intersection types
+    self.sprite = {
+        name = "Player",
+        id = 1,
+        visible = true,
+        opacity = 1.0,
+        x = 100,
+        y = 200,
+        rotation = 0,
+        scale = 1.0,
+    }
+
+    self.button = {
+        name = "StartButton",
+        id = 2,
+        visible = true,
+        opacity = 1.0,
+        x = 300,
+        y = 400,
+        rotation = 0,
+        scale = 1.0,
+        enabled = true,
+        hovered = false,
+        onClick = function()
+            print("Button clicked!")
+        end,
+    }
+
+    -- Both work with Drawable functions
+    renderDrawable(self.sprite)
+    renderDrawable(self.button)
+
+    -- Both work with Transformable functions
+    moveTransformable(self.sprite, 10, 5)
+    moveTransformable(self.button, -5, 10)
+
+    -- Only button works with Interactive functions
+    self.button.hovered = true
+    handleClick(self.button)
+    -- handleClick(self.sprite)  -- ERROR: Sprite is not Interactive
+
+    return true
+end
+
+function draw(self: IntersectionDemo, renderer: Renderer)
+end
+
+return function(): Node<IntersectionDemo>
+    return {
+        init = init,
+        draw = draw,
+        sprite = late(),
+        button = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+type Drawable = {
+    visible: boolean;
+    opacity: number;
+}
+
+type Transformable = {
+    x: number;
+    y: number;
+    rotation: number;
+    scale: number;
+}
+
+type Interactive = {
+    enabled: boolean;
+    hovered: boolean;
+    onClick: () => void;
+}
+
+type Named = {
+    name: string;
+    id: number;
+}
+
+// Intersection types - identical to TypeScript!
+type Sprite = Named & Drawable & Transformable;
+type Button = Named & Drawable & Transformable & Interactive;
+
+// TypeScript functions
+function renderDrawable(obj: Drawable) {
+    if (obj.visible && obj.opacity > 0) {
+        console.log(`Rendering with opacity ${obj.opacity}`);
+    }
+}
+
+function handleClick(obj: Interactive) {
+    if (obj.enabled && obj.hovered) {
+        obj.onClick();
+    }
+}
+```
+
+---
+
+### Exercise 2: Union Types for Multiple States
+
+:::info Goal
+Model different animation states using discriminated union types.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE expressions, you might use string comparisons like `if (effect("State").value == "walking")`. This is error-prone—typos compile fine but fail at runtime. In Luau, the type system ensures you only use valid state names.
+
+**Real-World Use**: Game characters have states (idle, walking, attacking, dead). Each state has different data. Union types with a `kind` discriminator let you safely handle each case while Luau automatically narrows the type when you check the `kind`.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script in Rive
+2. Copy the code below
+3. Watch the console output to see state transitions
+4. Try adding a new state type (like "jumping") and handle it
+
+</details>
+
+```lua
+--!strict
+
+-- Different animation states with their specific data
+type IdleState = {
+    kind: "idle",
+    duration: number,
+}
+
+type WalkingState = {
+    kind: "walking",
+    speed: number,
+    direction: number,
+}
+
+type AttackingState = {
+    kind: "attacking",
+    damage: number,
+    target: string,
+    combo: number,
+}
+
+type DeadState = {
+    kind: "dead",
+    respawnTime: number,
+}
+
+-- Union of all possible states
+type CharacterState = IdleState | WalkingState | AttackingState | DeadState
+
+-- State transition functions
+local function toIdle(): IdleState
+    return { kind = "idle", duration = 0 }
+end
+
+local function toWalking(speed: number, direction: number): WalkingState
+    return { kind = "walking", speed = speed, direction = direction }
+end
+
+local function toAttacking(damage: number, target: string): AttackingState
+    return { kind = "attacking", damage = damage, target = target, combo = 1 }
+end
+
+local function toDead(respawnTime: number): DeadState
+    return { kind = "dead", respawnTime = respawnTime }
+end
+
+-- Process state - Luau narrows the type based on 'kind'
+local function processState(state: CharacterState): string
+    if state.kind == "idle" then
+        -- Luau KNOWS state is IdleState here
+        return `Idle for {state.duration}s`
+    elseif state.kind == "walking" then
+        -- Luau KNOWS state is WalkingState here
+        return `Walking at speed {state.speed} in direction {state.direction}`
+    elseif state.kind == "attacking" then
+        -- Luau KNOWS state is AttackingState here
+        return `Attacking {state.target} for {state.damage} damage (combo {state.combo})`
+    elseif state.kind == "dead" then
+        -- Luau KNOWS state is DeadState here
+        return `Dead, respawning in {state.respawnTime}s`
+    end
+    return "Unknown state"  -- Unreachable but satisfies return type
+end
+
+-- Check if state allows movement
+local function canMove(state: CharacterState): boolean
+    return state.kind == "idle" or state.kind == "walking"
+end
+
+export type UnionStateDemo = {
+    currentState: CharacterState,
+}
+
+function init(self: UnionStateDemo): boolean
+    -- Start idle
+    self.currentState = toIdle()
+    print(processState(self.currentState))
+
+    -- Start walking
+    self.currentState = toWalking(5, 90)
+    print(processState(self.currentState))
+    print(`Can move: {canMove(self.currentState)}`)
+
+    -- Attack!
+    self.currentState = toAttacking(25, "Goblin")
+    print(processState(self.currentState))
+    print(`Can move: {canMove(self.currentState)}`)
+
+    -- Combo attack
+    if self.currentState.kind == "attacking" then
+        self.currentState.combo = 2
+        print(processState(self.currentState))
+    end
+
+    -- Die
+    self.currentState = toDead(5)
+    print(processState(self.currentState))
+
+    return true
+end
+
+function draw(self: UnionStateDemo, renderer: Renderer)
+end
+
+return function(): Node<UnionStateDemo>
+    return {
+        init = init,
+        draw = draw,
+        currentState = { kind = "idle", duration = 0 },
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+type IdleState = {
+    kind: "idle";
+    duration: number;
+}
+
+type WalkingState = {
+    kind: "walking";
+    speed: number;
+    direction: number;
+}
+
+type AttackingState = {
+    kind: "attacking";
+    damage: number;
+    target: string;
+    combo: number;
+}
+
+type DeadState = {
+    kind: "dead";
+    respawnTime: number;
+}
+
+// Discriminated union - identical pattern!
+type CharacterState = IdleState | WalkingState | AttackingState | DeadState;
+
+// TypeScript also narrows based on discriminator
+function processState(state: CharacterState): string {
+    switch (state.kind) {
+        case "idle":
+            return `Idle for ${state.duration}s`;
+        case "walking":
+            return `Walking at speed ${state.speed}`;
+        case "attacking":
+            return `Attacking ${state.target}`;
+        case "dead":
+            return `Dead, respawning in ${state.respawnTime}s`;
+    }
+}
+```
+
+---
+
+### Exercise 3: Literal Union Types
+
+:::info Goal
+Use literal unions to constrain string and number values to specific allowed values.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, if you want a "direction" value, you might use a dropdown that returns 1, 2, 3, 4 and then write `if (dir == 1) // north`. Typos and wrong numbers cause silent bugs. In Luau, `type Direction = "north" | "south" | "east" | "west"` means only those exact strings are allowed.
+
+**Real-World Use**: Game rarity systems ("common" | "rare" | "legendary"), direction enums, log levels—anywhere you want to constrain values to a specific set. The compiler catches typos immediately.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below
+3. Try changing `"north"` to `"up"` and see the type error
+4. Add a new rarity tier and see what functions need updating
+
+</details>
+
+```lua
+--!strict
+
+-- Literal string unions - only these exact values allowed
+type Direction = "north" | "south" | "east" | "west"
+type LogLevel = "debug" | "info" | "warn" | "error"
+type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary"
+
+-- Literal number unions
+type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6
+
+-- Functions using literal unions
+local function getOppositeDirection(dir: Direction): Direction
+    if dir == "north" then return "south"
+    elseif dir == "south" then return "north"
+    elseif dir == "east" then return "west"
+    else return "east"
+    end
+end
+
+local function getLogColor(level: LogLevel): Color
+    if level == "debug" then
+        return Color.rgba(128, 128, 128, 255)  -- Gray
+    elseif level == "info" then
+        return Color.rgba(0, 128, 255, 255)    -- Blue
+    elseif level == "warn" then
+        return Color.rgba(255, 200, 0, 255)    -- Yellow
+    else
+        return Color.rgba(255, 0, 0, 255)      -- Red
+    end
+end
+
+local function getRarityMultiplier(rarity: RarityTier): number
+    if rarity == "common" then return 1
+    elseif rarity == "uncommon" then return 1.5
+    elseif rarity == "rare" then return 2
+    elseif rarity == "epic" then return 3
+    else return 5  -- legendary
+    end
+end
+
+type Item = {
+    name: string,
+    rarity: RarityTier,
+    baseValue: number,
+}
+
+local function getItemValue(item: Item): number
+    return item.baseValue * getRarityMultiplier(item.rarity)
+end
+
+export type LiteralUnionDemo = {}
+
+function init(self: LiteralUnionDemo): boolean
+    -- Direction examples
+    local facing: Direction = "north"
+    print(`Facing {facing}, opposite is {getOppositeDirection(facing)}`)
+
+    -- This would be an error:
+    -- local bad: Direction = "up"  -- ERROR: "up" is not a valid Direction
+
+    -- Log level examples
+    local levels: {LogLevel} = {"debug", "info", "warn", "error"}
+    for _, level in levels do
+        local color = getLogColor(level)
+        print(`{level}: R={Color.red(color)}`)
+    end
+
+    -- Rarity examples
+    local items: {Item} = {
+        {name = "Rusty Sword", rarity = "common", baseValue = 10},
+        {name = "Silver Dagger", rarity = "rare", baseValue = 50},
+        {name = "Dragon Slayer", rarity = "legendary", baseValue = 100},
+    }
+
+    for _, item in items do
+        print(`{item.name} ({item.rarity}): {getItemValue(item)} gold`)
+    end
+
+    return true
+end
+
+function draw(self: LiteralUnionDemo, renderer: Renderer)
+end
+
+return function(): Node<LiteralUnionDemo>
+    return { init = init, draw = draw }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+type Direction = "north" | "south" | "east" | "west";
+type LogLevel = "debug" | "info" | "warn" | "error";
+type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
+
+// TypeScript also supports literal number unions
+type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6;
+
+function getOppositeDirection(dir: Direction): Direction {
+    const opposites: Record<Direction, Direction> = {
+        north: "south",
+        south: "north",
+        east: "west",
+        west: "east"
+    };
+    return opposites[dir];
+}
+
+// Works identically - typos caught at compile time!
+const facing: Direction = "north";
+// const bad: Direction = "up";  // TypeScript Error!
+```
+
+---
+
+### Exercise 4: Optional Types for Nullable Values
+
+:::info Goal
+Handle optional values safely using `T?` syntax.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE expressions, checking for missing values is manual: `if (typeof myValue !== "undefined")`. You can easily forget and crash. In Luau, the type system FORCES you to handle nil cases—code won't compile if you access a `string?` without checking first.
+
+**Real-World Use**: User profiles have optional fields (display name, email, guild). API responses may be missing data. Search functions return nil if not found. Optional types make these patterns explicit and safe.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below
+3. Try removing a nil check and see the type error
+4. Add a new optional field to PlayerProfile
+
+</details>
+
+```lua
+--!strict
+
+type PlayerProfile = {
+    username: string,
+    displayName: string?,     -- Optional: might not be set
+    email: string?,           -- Optional
+    score: number,
+    guild: string?,           -- Optional: not everyone is in a guild
+    lastLogin: number?,       -- Optional: new players haven't logged in yet
+}
+
+-- Safe access patterns
+local function getDisplayName(player: PlayerProfile): string
+    -- Pattern 1: Nil check with fallback
+    if player.displayName then
+        return player.displayName
+    end
+    return player.username
+end
+
+local function getGuildTag(player: PlayerProfile): string
+    -- Pattern 2: Ternary-style with 'or'
+    -- Note: This only works if the value can't be 'false'
+    return player.guild or "No Guild"
+end
+
+local function formatLastLogin(player: PlayerProfile): string
+    -- Pattern 3: Early return for nil
+    if not player.lastLogin then
+        return "Never logged in"
+    end
+    local seconds = os.clock() - player.lastLogin
+    return `{math.floor(seconds)}s ago`
+end
+
+-- Function with optional parameter
+local function greetPlayer(player: PlayerProfile, customGreeting: string?)
+    local greeting = customGreeting or "Welcome"
+    local name = getDisplayName(player)
+    print(`{greeting}, {name}!`)
+end
+
+-- Function returning optional value
+local function findPlayerByEmail(players: {PlayerProfile}, email: string): PlayerProfile?
+    for _, player in players do
+        if player.email == email then
+            return player
+        end
+    end
+    return nil  -- Not found
+end
+
+export type OptionalDemo = {}
+
+function init(self: OptionalDemo): boolean
+    -- Players with varying levels of profile completion
+    local players: {PlayerProfile} = {
+        {
+            username = "veteran42",
+            displayName = "The Veteran",
+            email = "vet@example.com",
+            score = 9500,
+            guild = "Elite Squad",
+            lastLogin = os.clock() - 3600,
+        },
+        {
+            username = "newbie",
+            score = 0,
+            -- Missing: displayName, email, guild, lastLogin
+        },
+        {
+            username = "casual_player",
+            email = "casual@example.com",
+            score = 250,
+            -- Missing: displayName, guild, lastLogin
+        },
+    }
+
+    -- Process all players
+    for _, player in players do
+        print(`\n=== {player.username} ===`)
+        print(`Display: {getDisplayName(player)}`)
+        print(`Guild: {getGuildTag(player)}`)
+        print(`Last Login: {formatLastLogin(player)}`)
+        greetPlayer(player)
+        greetPlayer(player, "Good to see you")
+    end
+
+    -- Search for a player
+    print("\n--- Searching ---")
+    local found = findPlayerByEmail(players, "vet@example.com")
+    if found then
+        print(`Found: {found.username} with score {found.score}`)
+    else
+        print("Player not found")
+    end
+
+    local notFound = findPlayerByEmail(players, "nobody@example.com")
+    if notFound then
+        print(`Found: {notFound.username}`)
+    else
+        print("Player not found")
+    end
+
+    return true
+end
+
+function draw(self: OptionalDemo, renderer: Renderer)
+end
+
+return function(): Node<OptionalDemo>
+    return { init = init, draw = draw }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+type PlayerProfile = {
+    username: string;
+    displayName?: string;     // TypeScript optional syntax
+    email?: string;
+    score: number;
+    guild?: string;
+    lastLogin?: number;
+}
+
+// Same patterns in TypeScript:
+function getDisplayName(player: PlayerProfile): string {
+    return player.displayName ?? player.username;  // Nullish coalescing
+}
+
+function getGuildTag(player: PlayerProfile): string {
+    return player.guild || "No Guild";
+}
+
+// Optional parameter
+function greetPlayer(player: PlayerProfile, customGreeting?: string) {
+    const greeting = customGreeting ?? "Welcome";
+    console.log(`${greeting}, ${getDisplayName(player)}!`);
+}
+
+// Return type with | null (or undefined)
+function findPlayerByEmail(
+    players: PlayerProfile[],
+    email: string
+): PlayerProfile | undefined {
+    return players.find(p => p.email === email);
+}
+```
+
+---
+
+### Exercise 5: Function Types
+
+:::info Goal
+Define and use function types for callbacks and higher-order functions.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE expressions don't really have function types—you call built-in functions or define simple helpers. In Luau, you can pass functions as arguments and return them from other functions, enabling powerful patterns like `map`, `filter`, and event handlers.
+
+**Real-World Use**: Event systems need callback types. Data processing uses `map`/`filter`/`reduce`. Animation systems pass easing functions. Function types let you define clear contracts for these callbacks.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below
+3. Try creating your own higher-order function (like `forEach`)
+4. Modify a function type and see where errors appear
+
+</details>
+
+```lua
+--!strict
+
+-- Basic function type syntax: (params) -> returnType
+type NumberToNumber = (number) -> number
+type StringToString = (string) -> string
+type NoArgs = () -> ()
+type Predicate<T> = (T) -> boolean
+
+-- Multiple parameters
+type BinaryOp = (number, number) -> number
+type Formatter = (string, ...any) -> string
+
+-- Multiple return values (Luau specialty!)
+type DivMod = (number, number) -> (number, number)
+
+-- Function taking a callback
+local function applyTwice(value: number, fn: NumberToNumber): number
+    return fn(fn(value))
+end
+
+-- Function returning a function (closure)
+local function makeMultiplier(factor: number): NumberToNumber
+    return function(x: number): number
+        return x * factor
+    end
+end
+
+-- Higher-order function: filter
+local function filter<T>(items: {T}, predicate: Predicate<T>): {T}
+    local result: {T} = {}
+    for _, item in items do
+        if predicate(item) then
+            table.insert(result, item)
+        end
+    end
+    return result
+end
+
+-- Higher-order function: map
+local function map<T, U>(items: {T}, transform: (T) -> U): {U}
+    local result: {U} = {}
+    for _, item in items do
+        table.insert(result, transform(item))
+    end
+    return result
+end
+
+-- Higher-order function: reduce
+local function reduce<T, U>(items: {T}, initial: U, folder: (U, T) -> U): U
+    local acc = initial
+    for _, item in items do
+        acc = folder(acc, item)
+    end
+    return acc
+end
+
+export type FunctionTypesDemo = {}
+
+function init(self: FunctionTypesDemo): boolean
+    -- Using applyTwice
+    local double: NumberToNumber = function(x) return x * 2 end
+    print(`5 doubled twice: {applyTwice(5, double)}`)  -- 20
+
+    local square: NumberToNumber = function(x) return x * x end
+    print(`2 squared twice: {applyTwice(2, square)}`)  -- 16
+
+    -- Using makeMultiplier (returns a function)
+    local triple = makeMultiplier(3)
+    local quadruple = makeMultiplier(4)
+    print(`Triple 7: {triple(7)}`)      -- 21
+    print(`Quadruple 7: {quadruple(7)}`) -- 28
+
+    -- Using filter
+    local numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+    local evens = filter(numbers, function(n) return n % 2 == 0 end)
+    print(`Evens: {table.concat(evens, ", ")}`)  -- 2, 4, 6, 8, 10
+
+    local bigNumbers = filter(numbers, function(n) return n > 5 end)
+    print(`Big numbers: {table.concat(bigNumbers, ", ")}`)  -- 6, 7, 8, 9, 10
+
+    -- Using map
+    local doubled = map(numbers, function(n) return n * 2 end)
+    print(`Doubled: {table.concat(doubled, ", ")}`)
+
+    local strings = map(numbers, function(n) return `#{n}` end)
+    print(`As strings: {table.concat(strings, ", ")}`)
+
+    -- Using reduce
+    local sum = reduce(numbers, 0, function(acc, n) return acc + n end)
+    print(`Sum: {sum}`)  -- 55
+
+    local product = reduce(numbers, 1, function(acc, n) return acc * n end)
+    print(`Product: {product}`)  -- 3628800
+
+    return true
+end
+
+function draw(self: FunctionTypesDemo, renderer: Renderer)
+end
+
+return function(): Node<FunctionTypesDemo>
+    return { init = init, draw = draw }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+// Function type syntax - note the arrow direction
+type NumberToNumber = (x: number) => number;
+type Predicate<T> = (item: T) => boolean;
+
+// TypeScript can't express multiple return values directly
+// You'd return a tuple:
+type DivMod = (a: number, b: number) => [number, number];
+
+// Higher-order functions - same concepts
+function applyTwice(value: number, fn: NumberToNumber): number {
+    return fn(fn(value));
+}
+
+function makeMultiplier(factor: number): NumberToNumber {
+    return (x) => x * factor;
+}
+
+// JavaScript has built-in filter/map/reduce!
+const numbers = [1, 2, 3, 4, 5];
+const evens = numbers.filter(n => n % 2 === 0);
+const doubled = numbers.map(n => n * 2);
+const sum = numbers.reduce((acc, n) => acc + n, 0);
+```
+
+---
+
+### Exercise 6: Rive Event Callbacks
+
+:::info Goal
+Use function types for Rive-style event handling with a generic event emitter.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE doesn't have a built-in event system—you poll values or use expression controls. In Rive, you can build proper event-driven architectures where subscribers are notified when things happen.
+
+**Real-World Use**: Click handlers, animation events, input changes—all use callback patterns. This exercise shows how to build a type-safe event emitter that ensures handlers receive the correct event data type.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node Script
+2. Copy the code below
+3. The event emitter pattern is reusable in your own projects
+4. Try adding a new event type (like keyboard events)
+
+</details>
+
+```lua
+--!strict
+
+-- Event handler types
+type EventHandler<T> = (T) -> ()
+type ClickHandler = EventHandler<Vector>
+type ChangeHandler<T> = (oldValue: T, newValue: T) -> ()
+
+-- Event data types
+type AnimationEvent = {
+    name: string,
+    time: number,
+    data: {[string]: any}?,
+}
+
+type InputChangeEvent<T> = {
+    inputName: string,
+    oldValue: T,
+    newValue: T,
+}
+
+-- Event emitter pattern
+type EventEmitter<T> = {
+    listeners: {EventHandler<T>},
+}
+
+local function createEmitter<T>(): EventEmitter<T>
+    return { listeners = {} }
+end
+
+local function subscribe<T>(emitter: EventEmitter<T>, handler: EventHandler<T>)
+    table.insert(emitter.listeners, handler)
+end
+
+local function emit<T>(emitter: EventEmitter<T>, event: T)
+    for _, handler in emitter.listeners do
+        handler(event)
+    end
+end
+
+export type EventDemo = {
+    clickEmitter: EventEmitter<Vector>,
+    animEventEmitter: EventEmitter<AnimationEvent>,
+    clickCount: number,
+}
+
+function init(self: EventDemo): boolean
+    self.clickCount = 0
+
+    -- Create emitters
+    self.clickEmitter = createEmitter()
+    self.animEventEmitter = createEmitter()
+
+    -- Subscribe to click events
+    subscribe(self.clickEmitter, function(pos: Vector)
+        self.clickCount += 1
+        print(`Click #{self.clickCount} at ({pos.x}, {pos.y})`)
+    end)
+
+    subscribe(self.clickEmitter, function(pos: Vector)
+        -- Another handler: log to console
+        print(`[LOG] Click position: {pos.x}, {pos.y}`)
+    end)
+
+    -- Subscribe to animation events
+    subscribe(self.animEventEmitter, function(event: AnimationEvent)
+        print(`Animation event: {event.name} at time {event.time}`)
+    end)
+
+    -- Simulate some events
+    print("--- Simulating clicks ---")
+    emit(self.clickEmitter, Vector.xy(100, 200))
+    emit(self.clickEmitter, Vector.xy(150, 250))
+
+    print("\n--- Simulating animation events ---")
+    emit(self.animEventEmitter, {
+        name = "footstep",
+        time = 0.5,
+        data = nil,
+    })
+
+    emit(self.animEventEmitter, {
+        name = "attack_hit",
+        time = 1.2,
+        data = {damage = 25, target = "enemy1"},
+    })
+
+    return true
+end
+
+function draw(self: EventDemo, renderer: Renderer)
+end
+
+return function(): Node<EventDemo>
+    return {
+        init = init,
+        draw = draw,
+        clickEmitter = late(),
+        animEventEmitter = late(),
+        clickCount = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript equivalent:
+
+type EventHandler<T> = (event: T) => void;
+
+type AnimationEvent = {
+    name: string;
+    time: number;
+    data?: Record<string, any>;
+}
+
+// Generic event emitter class
+class EventEmitter<T> {
+    private listeners: EventHandler<T>[] = [];
+
+    subscribe(handler: EventHandler<T>) {
+        this.listeners.push(handler);
+    }
+
+    emit(event: T) {
+        for (const handler of this.listeners) {
+            handler(event);
+        }
+    }
+}
+
+// Usage
+const clickEmitter = new EventEmitter<{x: number, y: number}>();
+clickEmitter.subscribe((pos) => {
+    console.log(`Clicked at ${pos.x}, ${pos.y}`);
+});
+clickEmitter.emit({x: 100, y: 200});
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What does the & operator do in type definitions?"
+  id="adv-q1"
+  options={[
+    { text: "Creates a union type (either A or B)" },
+    { text: "Creates an intersection type (both A and B)", correct: true },
+    { text: "Performs a bitwise AND operation" },
+    { text: "Checks if two types are equal" },
+  ]}
+  explanation="The & operator creates an intersection type. A value of type A & B must have all properties from both A and B."
+/>
+
+<Quiz
+  question="What is the difference between string? and string | nil?"
+  id="adv-q2"
+  options={[
+    { text: "string? is faster" },
+    { text: "They are exactly the same thing", correct: true },
+    { text: "string | nil allows empty strings, string? doesn't" },
+    { text: "string? is deprecated" },
+  ]}
+  explanation="string? is just syntactic sugar (shorthand) for string | nil. They are completely equivalent."
+/>
+
+<Quiz
+  question="What is the correct function type syntax for a function that takes two numbers and returns a string?"
+  id="adv-q3"
+  type="code"
+  answer="(number, number) -> string"
+  explanation="Function types use the syntax (paramTypes) -> returnType. Multiple parameters are separated by commas."
+/>
+
+<Quiz
+  question="When should you use a union type vs. an intersection type?"
+  id="adv-q4"
+  options={[
+    { text: "Union for 'this AND that', intersection for 'this OR that'" },
+    { text: "Union for 'this OR that', intersection for 'this AND that'", correct: true },
+    { text: "They can be used interchangeably" },
+    { text: "Unions are for primitives, intersections are for tables" },
+  ]}
+  explanation="Union types (A | B) mean 'either A or B'. Intersection types (A & B) mean 'both A and B'. Use unions for alternatives and intersections for composition."
+/>
+
+---
+
+## Common Mistakes
+
+### 1. Accessing Union Properties Without Narrowing
+
+```lua
+-- WRONG: Can't access .speed without narrowing
+local function process(state: IdleState | WalkingState)
+    print(state.speed)  -- ERROR: IdleState has no 'speed'
+end
+
+-- CORRECT: Check kind first
+local function process(state: IdleState | WalkingState)
+    if state.kind == "walking" then
+        print(state.speed)  -- OK: Luau knows it's WalkingState
+    end
+end
+```
+
+### 2. Forgetting to Handle nil
+
+```lua
+-- WRONG: Accessing optional without check
+local function getName(profile: {name: string?}): string
+    return profile.name  -- ERROR: might be nil
+end
+
+-- CORRECT: Handle nil case
+local function getName(profile: {name: string?}): string
+    return profile.name or "Anonymous"
+end
+```
+
+### 3. Confusing `|` and `&`
+
+```lua
+-- Union (|): Can be A OR B - use for alternatives
+type Result = Success | Failure  -- One or the other
+
+-- Intersection (&): Must be A AND B - use for composition
+type Character = Named & Positioned  -- Has both
+```
+
+### 4. Missing Return Type on Function Types
+
+```lua
+-- WRONG: Incomplete function type
+type BadFunc = (number)  -- What does it return?
+
+-- CORRECT: Include return type
+type GoodFunc = (number) -> number
+type VoidFunc = (number) -> ()  -- Returns nothing
+```
+
+### 5. Using Intersection When Union Is Needed
+
+```lua
+-- WRONG: Object can't be BOTH string AND number
+type ID = string & number  -- Impossible!
+
+-- CORRECT: Object is string OR number
+type ID = string | number  -- Either one
+```
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can combine types with intersection (`&`)
+- [ ] I can create flexible values with union (`|`)
+- [ ] I know when to use literal unions for constrained values
+- [ ] I can safely handle optional (`?`) values
+- [ ] I can define function types and use callbacks
+- [ ] I understand the difference between `|` and `&`
+
+---
+
+## Next Up
+
+**[The late() Initializer ->](./late-initializer)**

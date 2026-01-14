@@ -1,8 +1,690 @@
 ---
 sidebar_position: 5
-title: Strict Mode
+title: "Strict Mode Deep Dive"
+description: Master the --!strict directive and understand the type errors it catches
 ---
 
-# Strict Mode
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Strict Mode Deep Dive
+
+## Learning Objectives
+- Understand the three type checking modes in Luau
+- Know why `--!strict` is required for Rive scripts
+- Recognize and fix common type errors caught by strict mode
+- Use strict mode effectively in your development workflow
+
+---
+
+## AE/JS Syntax Comparison
+
+If you're coming from After Effects expressions or JavaScript, understanding type checking modes is crucial:
+
+| Concept | JavaScript/AE | Luau (Rive) | Notes |
+|---------|--------------|-------------|-------|
+| Type checking | None (runtime only) | `--!strict` (compile time) | Luau catches errors BEFORE running |
+| Untyped mode | Default | `--!nocheck` | Both skip type checking |
+| Strict mode | N/A | `--!strict` | Required for Rive |
+| TypeScript | `tsc --strict` | `--!strict` | Similar concept |
+| Empty array | `[]` works | `{}` needs type | `local t: {string} = {}` |
+| Missing property | Runtime error | Compile error | Strict catches early |
+
+:::danger Critical Difference
+**JavaScript:** Bugs crash at runtime, sometimes only in edge cases
+```javascript
+// JavaScript - crashes when health is undefined
+let result = player.health - damage;  // No error until runtime!
+```
+
+**Luau Strict:** Bugs caught immediately during development
+```lua
+-- Luau --!strict - error shown in editor BEFORE running
+local result = player.health - damage  -- Error: health might be nil
+```
+
+This is WHY Rive requires strict mode—your animations must work reliably everywhere, and there's no debugger when they run on users' devices.
+:::
+
+---
+
+## Rive Context
+
+Rive scripts run with `--!strict` mode enabled by default. This is not optional—it is a deliberate design choice that ensures:
+
+1. **Type safety at compile time**: Errors are caught before your animation runs
+2. **Better editor integration**: Autocomplete knows exact types
+3. **Reliable runtime behavior**: No surprise `nil` values or type mismatches
+4. **Cleaner code**: Forces you to think about data flow
+
+**Why does this matter?** When your animation ships to users, there's no debugger. Strict mode ensures your animation works correctly because all type errors were caught during development.
+
+When you write a Node Script, the Rive compiler expects proper type annotations for your `export type`, function parameters, and return values. Missing or incorrect types will prevent your script from compiling.
+
+---
+
+## The Three Type Checking Modes
+
+Luau supports three modes, controlled by a directive at the top of your file:
+
+```lua
+--!strict    -- Full type checking (REQUIRED for Rive)
+--!nonstrict -- Partial checking, allows 'any' inference
+--!nocheck   -- No type checking (default if no directive)
+```
+
+### Mode Comparison
+
+| Feature | `--!nocheck` | `--!nonstrict` | `--!strict` |
+|---------|-------------|----------------|-------------|
+| Type inference | No | Partial | Full |
+| Errors on type mismatch | No | Some | Yes |
+| Requires annotations | No | Sometimes | Yes (for functions) |
+| Used in Rive | **No** | **No** | **Yes** |
+
+---
+
+## Practice Exercises
+
+### Exercise 1: What Strict Mode Catches
+
+**Goal:** See firsthand how strict mode catches bugs that would otherwise slip through.
+
+**Why This Matters:** Without strict mode, you might write code that "works" during testing but crashes in production. Strict mode is your safety net—it catches these hidden bugs during development.
+
+**Real-World Use:** Every professional Rive animation uses strict mode. It's the difference between an animation that sometimes breaks and one that works reliably everywhere.
+
+**Step-by-Step Setup:**
+1. Create a Node Script WITHOUT `--!strict` (to see what happens)
+2. Add `--!strict` to see the errors appear
+3. Fix the errors one by one
+
+**Part A - Without strict mode (DON'T DO THIS IN RIVE):**
+
+```lua
+-- No directive = --!nocheck by default
+
+export type BuggyScript = {}
+
+function init(self: BuggyScript): boolean
+    -- Bug 1: String where number expected
+    local damage = "50"
+    local health = 100
+    local result = health - damage  -- No error without strict!
+
+    -- Bug 2: Missing property access
+    local player = {name = "Hero"}
+    local score = player.score  -- No error, just nil!
+
+    -- Bug 3: Wrong argument types
+    local function double(n: number): number
+        return n * 2
+    end
+    local bad = double("five")  -- No error without strict!
+
+    print(`Result: {result}`)
+    return true
+end
+
+function draw(self: BuggyScript, renderer: Renderer)
+end
+
+return function(): Node<BuggyScript>
+    return { init = init, draw = draw }
+end
+```
+
+**Part B - WITH strict mode (DO THIS):**
+
+```lua
+--!strict
+
+export type BuggyScript = {}
+
+function init(self: BuggyScript): boolean
+    -- Bug 1: CAUGHT! Type 'string' could not be converted into 'number'
+    local damage: number = 50  -- Fixed: use number, not string
+    local health = 100
+    local result = health - damage  -- Now works correctly
+
+    -- Bug 2: CAUGHT! Key 'score' not found in table
+    type Player = {name: string, score: number}
+    local player: Player = {name = "Hero", score = 0}  -- Must include score
+    local score = player.score  -- Now safe!
+
+    -- Bug 3: CAUGHT! Type 'string' could not be converted into 'number'
+    local function double(n: number): number
+        return n * 2
+    end
+    local good = double(5)  -- Fixed: pass number, not string
+
+    print(`Result: {result}, Score: {score}, Doubled: {good}`)
+    return true
+end
+
+function draw(self: BuggyScript, renderer: Renderer)
+end
+
+return function(): Node<BuggyScript>
+    return { init = init, draw = draw }
+end
+```
+
+**JavaScript/TypeScript Equivalent:**
+```javascript
+// JavaScript - these bugs slip through silently
+let damage = "50";
+let health = 100;
+let result = health - damage;  // Works (coercion), but hides bug!
+
+// TypeScript with strict - catches the error
+// let damage: number = "50";  // Error: Type 'string' is not assignable to type 'number'
+```
+
+---
+
+### Exercise 2: Common Type Errors
+
+**Goal:** Learn to recognize and fix the most common type errors in strict mode.
+
+**Why This Matters:** These errors will become second nature. Knowing how to fix them quickly makes you a more productive developer.
+
+**Real-World Use:** Every Rive developer encounters these errors daily. This exercise teaches you the patterns.
+
+**Step-by-Step Setup:**
+1. Read through each error type
+2. Understand why it happens
+3. See how to fix it
+
+**Task**: Fix each type error. The comments show what strict mode catches.
+
+```lua
+--!strict
+
+export type TypeErrors = {}
+
+function init(self: TypeErrors): boolean
+    -- ERROR 1: Type 'string' could not be converted into 'number'
+    -- local age: number = "25"
+    local age: number = 25  -- FIXED
+
+    -- ERROR 2: Type 'nil' could not be converted into 'string'
+    -- local name: string = nil
+    local name: string? = nil  -- FIXED: make it optional
+    -- OR
+    local name2: string = ""   -- FIXED: provide a default
+
+    -- ERROR 3: Type '{number}' could not be converted into '{string}'
+    -- local items: {string} = {1, 2, 3}
+    local items: {number} = {1, 2, 3}  -- FIXED: correct type
+
+    -- ERROR 4: Unknown type 'foo' (typo in type name)
+    -- local x: numbr = 5
+    local x: number = 5  -- FIXED: correct spelling
+
+    -- ERROR 5: Cannot call a non-function
+    local value = 42
+    -- local result = value()  -- ERROR: 42 is not a function
+    local result = value * 2   -- FIXED: use it correctly
+
+    -- ERROR 6: Argument count mismatch
+    local function add(a: number, b: number): number
+        return a + b
+    end
+    -- local sum = add(1)  -- ERROR: expects 2 arguments
+    local sum = add(1, 2)  -- FIXED: provide both arguments
+
+    print(`Age: {age}, Items: {#items}, Sum: {sum}`)
+    return true
+end
+
+function draw(self: TypeErrors, renderer: Renderer)
+end
+
+return function(): Node<TypeErrors>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 3: Empty Tables Require Types
+
+**Goal:** Understand why empty tables need explicit type annotations in strict mode.
+
+**Why This Matters:** `local items = {}` is one of the most common errors for beginners. Understanding WHY Luau can't infer the type helps you remember to annotate.
+
+**Real-World Use:** Every time you create an empty array or dictionary, you'll need this pattern.
+
+**Context**: One of the most common strict mode errors involves empty tables.
+
+```lua
+--!strict
+
+export type EmptyTableDemo = {}
+
+function init(self: EmptyTableDemo): boolean
+    -- ERROR: Cannot infer type of empty table
+    -- local items = {}
+
+    -- FIXED: Specify the element type
+    local numbers: {number} = {}
+    local strings: {string} = {}
+    local mixed: {number | string} = {}
+
+    -- Also works for dictionary-style tables
+    local scores: {[string]: number} = {}
+
+    -- Complex table types also need annotations
+    type Item = {name: string, value: number}
+    local inventory: {Item} = {}
+
+    -- Now we can safely add items
+    table.insert(numbers, 1)
+    table.insert(numbers, 2)
+    table.insert(strings, "hello")
+    scores["player1"] = 100
+    table.insert(inventory, {name = "Sword", value = 50})
+
+    print(`Numbers: {#numbers}, Strings: {#strings}`)
+    print(`Player1 score: {scores["player1"]}`)
+    print(`Inventory items: {#inventory}`)
+
+    return true
+end
+
+function draw(self: EmptyTableDemo, renderer: Renderer)
+end
+
+return function(): Node<EmptyTableDemo>
+    return { init = init, draw = draw }
+end
+```
+
+:::danger Empty Table Rule
+```lua
+-- WRONG - Luau can't infer what type goes in the table
+local items = {}
+
+-- CORRECT - Explicit type annotation
+local items: {string} = {}
+local scores: {[string]: number} = {}
+local enemies: {Enemy} = {}
+```
+
+**Why?** When you write `{}`, Luau has no way to know if you'll add strings, numbers, or complex objects. You must tell it.
+:::
+
+---
+
+### Exercise 4: Function Signature Requirements
+
+**Goal:** Learn when and how to annotate function parameters and return types.
+
+**Why This Matters:** Functions are the building blocks of your code. Proper signatures ensure they're used correctly and document their behavior.
+
+**Real-World Use:** Every helper function, utility, and callback should have proper type annotations.
+
+**Context**: Strict mode requires explicit types for function parameters and return values in certain contexts.
+
+```lua
+--!strict
+
+export type FunctionSignatures = {}
+
+-- Top-level functions need explicit return types
+local function calculateDamage(base: number, armor: number): number
+    return math.max(0, base - armor)
+end
+
+-- Multiple return values need full annotation
+local function divmod(a: number, b: number): (number, number)
+    return math.floor(a / b), a % b
+end
+
+-- Functions with optional parameters
+local function greet(name: string, title: string?): string
+    if title then
+        return `Hello, {title} {name}!`
+    end
+    return `Hello, {name}!`
+end
+
+-- Function types as parameters
+type Callback = (number) -> number
+local function applyTwice(value: number, fn: Callback): number
+    return fn(fn(value))
+end
+
+-- Variadic functions
+local function sum(...: number): number
+    local total = 0
+    for _, n in {...} do
+        total += n
+    end
+    return total
+end
+
+function init(self: FunctionSignatures): boolean
+    print(`Damage: {calculateDamage(50, 20)}`)  -- 30
+
+    local quotient, remainder = divmod(17, 5)
+    print(`17 / 5 = {quotient} remainder {remainder}`)  -- 3 remainder 2
+
+    print(greet("Alice"))           -- Hello, Alice!
+    print(greet("Alice", "Dr."))    -- Hello, Dr. Alice!
+
+    local doubled = applyTwice(5, function(n) return n * 2 end)
+    print(`5 doubled twice: {doubled}`)  -- 20
+
+    print(`Sum: {sum(1, 2, 3, 4, 5)}`)  -- 15
+
+    return true
+end
+
+function draw(self: FunctionSignatures, renderer: Renderer)
+end
+
+return function(): Node<FunctionSignatures>
+    return { init = init, draw = draw }
+end
+```
+
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript function signatures
+function calculateDamage(base: number, armor: number): number {
+    return Math.max(0, base - armor);
+}
+
+// Multiple returns use tuples
+function divmod(a: number, b: number): [number, number] {
+    return [Math.floor(a / b), a % b];
+}
+
+// Optional parameter
+function greet(name: string, title?: string): string {
+    return title ? `Hello, ${title} ${name}!` : `Hello, ${name}!`;
+}
+```
+
+---
+
+### Exercise 5: Working with Rive Types in Strict Mode
+
+**Goal:** Use Rive's built-in types correctly with proper constructors and annotations.
+
+**Why This Matters:** Rive's types (`Vector`, `Color`, `Path`, `Paint`) have specific constructors. Using them incorrectly causes type errors.
+
+**Real-World Use:** Every Rive script that draws or positions elements uses these types.
+
+**Task**: Properly type Rive-specific values.
+
+```lua
+--!strict
+
+export type RiveStrictDemo = {
+    -- Inputs must specify their inner type
+    speed: Input<number>,
+    label: Input<string>,
+    tint: Input<Color>,
+
+    -- Rive objects need proper types
+    position: Vector,
+    myPath: Path,
+    myPaint: Paint,
+}
+
+function init(self: RiveStrictDemo): boolean
+    -- Accessing Input values - strict mode ensures correct types
+    local speedVal: number = self.speed   -- number
+    local labelVal: string = self.label   -- string
+
+    -- Creating Rive types correctly
+    -- ERROR: Type 'table' could not be converted into 'Vector'
+    -- self.position = {x = 100, y = 50}
+    self.position = Vector.xy(100, 50)  -- CORRECT: use Vector constructor
+
+    -- ERROR: Type 'string' could not be converted into 'Color'
+    -- self.myPaint.color = "#FF0000"
+    self.myPaint.color = Color.rgba(255, 0, 0, 255)  -- CORRECT: use Color constructor
+
+    -- Path methods are type-checked
+    self.myPath:reset()
+    self.myPath:moveTo(Vector.xy(0, 0))
+    self.myPath:lineTo(Vector.xy(100, 100))
+
+    -- Paint properties are type-checked
+    self.myPaint.thickness = 2          -- number
+    self.myPaint.style = PaintStyle.stroke  -- enum value
+
+    print(`Speed: {speedVal}, Label: {labelVal}`)
+    print(`Position: ({self.position.x}, {self.position.y})`)
+
+    return true
+end
+
+function draw(self: RiveStrictDemo, renderer: Renderer)
+    renderer:drawPath(self.myPath, self.myPaint)
+end
+
+return function(): Node<RiveStrictDemo>
+    return {
+        init = init,
+        draw = draw,
+        -- Inputs with defaults
+        speed = 100,
+        label = "Player",
+        tint = Color.rgba(255, 255, 255, 255),
+        -- late() for engine-provided or init-created values
+        position = late(),
+        myPath = late(),
+        myPaint = late(),
+    }
+end
+```
+
+---
+
+### Exercise 6: Type Narrowing in Strict Mode
+
+**Goal:** Understand how strict mode tracks type narrowing through control flow.
+
+**Why This Matters:** When you check `if value then`, Luau knows `value` isn't `nil` inside that block. This lets you handle optional values safely.
+
+**Real-World Use:** Every time you handle optional data or union types, you use type narrowing.
+
+**Context**: Strict mode tracks type narrowing through control flow.
+
+```lua
+--!strict
+
+export type NarrowingDemo = {}
+
+-- Union type that needs narrowing
+type Response =
+    | {success: true, data: string}
+    | {success: false, error: string}
+
+local function handleResponse(response: Response)
+    -- Strict mode tracks narrowing
+    if response.success then
+        -- Here, Luau knows response is {success: true, data: string}
+        print(`Got data: {response.data}`)
+        -- print(response.error)  -- ERROR: 'error' doesn't exist here
+    else
+        -- Here, Luau knows response is {success: false, error: string}
+        print(`Got error: {response.error}`)
+        -- print(response.data)  -- ERROR: 'data' doesn't exist here
+    end
+end
+
+-- Optional value narrowing
+local function processValue(value: number?): number
+    if value then
+        -- After the check, value is number (not number?)
+        return value * 2
+    end
+    return 0
+end
+
+-- Type guard with typeof
+local function stringify(value: number | string | boolean): string
+    if type(value) == "number" then
+        return `Number: {value}`
+    elseif type(value) == "string" then
+        return `String: {value}`
+    else
+        return `Boolean: {value}`
+    end
+end
+
+function init(self: NarrowingDemo): boolean
+    local success: Response = {success = true, data = "Hello!"}
+    local failure: Response = {success = false, error = "Not found"}
+
+    handleResponse(success)
+    handleResponse(failure)
+
+    print(`Processed: {processValue(10)}`)   -- 20
+    print(`Processed: {processValue(nil)}`)  -- 0
+
+    print(stringify(42))        -- Number: 42
+    print(stringify("hello"))   -- String: hello
+    print(stringify(true))      -- Boolean: true
+
+    return true
+end
+
+function draw(self: NarrowingDemo, renderer: Renderer)
+end
+
+return function(): Node<NarrowingDemo>
+    return { init = init, draw = draw }
+end
+```
+
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript has identical type narrowing
+type Response =
+    | { success: true; data: string }
+    | { success: false; error: string };
+
+function handleResponse(response: Response) {
+    if (response.success) {
+        // TypeScript knows response.data exists here
+        console.log(response.data);
+    } else {
+        // TypeScript knows response.error exists here
+        console.log(response.error);
+    }
+}
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What directive enables full type checking in Rive scripts?"
+  id="strict-q1"
+  type="code"
+  answer="--!strict"
+  explanation="The --!strict directive must be the first line of your script. It enables full type checking which is required for Rive scripts."
+/>
+
+<Quiz
+  question="What happens with 'local items = {}' in strict mode?"
+  id="strict-q2"
+  options={[
+    { text: "It works fine" },
+    { text: "Type error - Luau cannot infer the element type", correct: true },
+    { text: "Runtime error" },
+    { text: "It becomes type 'any'" },
+  ]}
+  explanation="In strict mode, empty tables need explicit type annotations because Luau cannot know what type of elements you will add. Use 'local items: {string} = {}' instead."
+/>
+
+<Quiz
+  question="Which of these is NOT caught by strict mode?"
+  id="strict-q3"
+  options={[
+    { text: "Passing a string where a number is expected" },
+    { text: "Accessing a property that doesn't exist" },
+    { text: "Dividing by zero", correct: true },
+    { text: "Calling a function with wrong number of arguments" },
+  ]}
+  explanation="Strict mode catches type errors at compile time. Division by zero is a runtime behavior, not a type error - Lua returns 'inf' or 'nan' rather than erroring."
+/>
+
+<Quiz
+  question="Why does Rive require --!strict mode?"
+  id="strict-q4"
+  options={[
+    { text: "It makes the code run faster" },
+    { text: "It catches bugs before runtime and enables better editor integration", correct: true },
+    { text: "It is a Luau requirement" },
+    { text: "It allows more flexible coding" },
+  ]}
+  explanation="Strict mode catches type errors before your animation runs, provides better autocomplete in the editor, and ensures more reliable runtime behavior."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Avoid These Errors
+
+1. **Forgetting `--!strict`**: Always add it as the first line—Rive requires it
+   ```lua
+   --!strict  -- MUST be first line
+
+   export type MyScript = {}
+   ```
+
+2. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
+
+3. **Plain tables for Rive types**: Use `Vector.xy()` not `{x = 100, y = 50}`
+
+4. **Not handling optionals**: Always check `string?` before using as `string`
+   ```lua
+   -- WRONG
+   print(user.email:upper())
+
+   -- CORRECT
+   if user.email then
+       print(user.email:upper())
+   end
+   ```
+
+5. **Missing function return types**: Top-level functions need explicit return type annotations
+   ```lua
+   -- WRONG
+   local function add(a: number, b: number)
+       return a + b
+   end
+
+   -- CORRECT
+   local function add(a: number, b: number): number
+       return a + b
+   end
+   ```
+
+:::
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand why `--!strict` is required for Rive scripts
+- [ ] I can fix "cannot infer type of empty table" errors
+- [ ] I know the difference between strict, nonstrict, and nocheck modes
+- [ ] I can properly annotate function signatures
+- [ ] I understand how strict mode narrows types through control flow
+- [ ] I use Rive's constructors (Vector.xy, Color.rgba) correctly
+
+---
+
+## Next Up
+
+**[Advanced Types ->](./advanced-types)**

@@ -1,0 +1,70 @@
+---
+sidebar_position: 5
+title: Events
+description: PointerEvent and Trigger for interactions
+---
+
+# Events
+
+APIs for pointer interactions and action triggers.
+
+---
+
+## PointerEvent
+
+Pointer interaction event data.
+
+### Constructor
+
+#### `PointerEvent.new(id, position)`
+
+Creates a new PointerEvent. Used for forwarding events to nested artboards.
+
+```lua
+PointerEvent.new(id: number, position: Vector): PointerEvent
+```
+
+**Example:**
+```lua
+-- Forward event to nested artboard
+local childPos = transformToChildSpace(event.position)
+local childEvent = PointerEvent.new(event.id, childPos)
+```
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `position` | Vector | Local coordinates |
+| `id` | number | Pointer ID (for multitouch) |
+
+### Methods
+
+#### `event:hit(isTranslucent?)`
+
+Marks the event as handled. If `isTranslucent` is true, the event may continue to propagate through translucent hit targets.
+
+```lua
+event:hit()              -- Standard: stops propagation
+event:hit(true)          -- Translucent: may continue through
+```
+
+**Example:**
+```lua
+function pointerDown(self, event: PointerEvent)
+    if isInBounds(event.position) then
+        self.pressed = true
+        event:hit()
+    end
+end
+```
+
+---
+
+## Trigger
+
+Fires actions in the runtime.
+
+**Note:** The official scripting docs do not list methods on `Trigger` directly. In practice, triggers are usually accessed via `viewModel:getTrigger(...)`, which returns a `PropertyTrigger` with `fire()` and listener methods.
+
+**See Also:** [PropertyTrigger](./data-values#propertytrigger)

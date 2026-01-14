@@ -1,0 +1,227 @@
+---
+sidebar_position: 4
+title: Data & Input
+description: Input, Property, Context, and ViewModel for data binding
+---
+
+# Data & Input
+
+APIs for script inputs, properties, runtime context, and data binding.
+
+---
+
+## Input
+
+Generic script input exposed to the editor. `Input<T>` wraps a value of type `T`.
+
+### Supported Types
+
+```lua
+Input<number>
+Input<boolean>
+Input<string>
+Input<Color>
+Input<Data.ViewModelName>
+Input<Artboard<Data.ViewModelName|}|}
+```
+
+### Attributes
+
+#### `input.value`
+
+The wrapped value. **Type:** `T` (read-only from script)
+
+### Methods
+
+#### `input:addListener(callback)`
+
+Registers a callback for value changes.
+
+```lua
+input:addListener(callback: () -> ())
+```
+
+#### `input:addListener(current, callback)`
+
+Registers a callback that receives the updated value.
+
+```lua
+input:addListener(current: T, callback: (T) -> ())
+```
+
+**Note:** Scripts cannot modify input values directly. Use ViewModel properties for two-way binding.
+
+**See Also:** [Property](#property), [ViewModel](#viewmodel)
+
+---
+
+## Property
+
+Mutable property with change notification.
+
+### Attributes
+
+#### `property.value`
+
+The property value. **Type:** `T` (read/write)
+
+### Methods
+
+#### `property:addListener(callback)`
+
+Registers a change callback.
+
+```lua
+property:addListener(callback: () -> ())
+```
+
+#### `property:removeListener(callback)`
+
+Removes a callback.
+
+```lua
+property:removeListener(callback: () -> ())
+```
+
+**See Also:** [Input](#input), [ViewModel](#viewmodel)
+
+---
+
+## Context
+
+Runtime context available in lifecycle functions.
+
+### Methods
+
+#### `context:viewModel()`
+
+Gets the main artboard's ViewModel.
+
+```lua
+context:viewModel(): ViewModel?
+```
+
+#### `context:markNeedsUpdate()`
+
+Requests an update on the next frame.
+
+```lua
+context:markNeedsUpdate()
+```
+
+**See Also:** [ViewModel](#viewmodel)
+
+---
+
+## ViewModel
+
+Connects editor elements to data and code. Provides access to bound properties by type.
+
+### Attributes
+
+#### `viewModel.name`
+
+The name of the ViewModel. **Type:** `string` (read-only)
+
+### Methods
+
+#### `viewModel:getNumber(name)`
+
+Gets a numeric property by name.
+
+```lua
+viewModel:getNumber(name: string): Property<number>?
+```
+
+#### `viewModel:getString(name)`
+
+Gets a string property by name.
+
+```lua
+viewModel:getString(name: string): Property<string>?
+```
+
+#### `viewModel:getBoolean(name)`
+
+Gets a boolean property by name.
+
+```lua
+viewModel:getBoolean(name: string): Property<boolean>?
+```
+
+#### `viewModel:getColor(name)`
+
+Gets a color property by name.
+
+```lua
+viewModel:getColor(name: string): Property<Color>?
+```
+
+#### `viewModel:getTrigger(name)`
+
+Gets a trigger property by name.
+
+```lua
+viewModel:getTrigger(name: string): PropertyTrigger?
+```
+
+#### `viewModel:getList(name)`
+
+Gets a list property by name.
+
+```lua
+viewModel:getList(name: string): PropertyList?
+```
+
+#### `viewModel:getViewModel(name)`
+
+Gets a nested ViewModel by name.
+
+```lua
+viewModel:getViewModel(name: string): ViewModel?
+```
+
+#### `viewModel:getEnum(name)`
+
+Gets an enum property by name.
+
+```lua
+viewModel:getEnum(name: string): PropertyEnum?
+```
+
+#### `viewModel:instance()`
+
+Creates an independent instance of the ViewModel.
+
+```lua
+viewModel:instance(): ViewModel
+```
+
+### Example
+
+```lua
+function init(self: MyScript): boolean
+    local vm = context:viewModel()
+
+    -- Get typed properties
+    local score = vm:getNumber("score")
+    local playerName = vm:getString("playerName")
+    local isActive = vm:getBoolean("isActive")
+
+    -- Read values
+    if score then
+        print(`Score: {score.value}`)
+    end
+
+    -- Listen for changes
+    if playerName then
+        playerName:addListener(function()
+            print(`Name changed to: {playerName.value}`)
+        end)
+    end
+
+    return true
+end
+```
+
+**See Also:** [Property](#property), [Context](#context), [PropertyTrigger](./data-values#propertytrigger)

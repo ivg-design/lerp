@@ -1,0 +1,458 @@
+---
+sidebar_position: 1
+title: Core Types
+description: Vector, Color, and Mat2D types
+---
+
+# Core Types
+
+Essential data types for positions, colors, and transformations.
+
+---
+
+## Vector
+
+2D vector type for positions, directions, and sizes. Vector components are **read-only** and operations return new vectors.
+
+> **Note:** Some examples may show `Vec2D` which is an alias for `Vector`.
+
+### Constructors
+
+#### `Vector.xy(x, y)`
+
+Creates a new 2D vector.
+
+```lua
+Vector.xy(x: number, y: number): Vector
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| x | number | X component |
+| y | number | Y component |
+
+**Returns:** `Vector`
+
+**Example:**
+```lua
+local position = Vector.xy(100, 50)
+local direction = Vector.xy(1, 0)  -- Unit vector pointing right
+```
+
+#### `Vector.origin()`
+
+Returns the zero vector (0, 0).
+
+```lua
+Vector.origin(): Vector
+```
+
+### Attributes
+
+#### `vec.x`
+The X component. **Type:** `number` (read-only)
+
+#### `vec.y`
+The Y component. **Type:** `number` (read-only)
+
+### Indexing
+
+Vectors support indexed access:
+
+```lua
+local v = Vector.xy(10, 20)
+print(v[1])  -- 10 (x component)
+print(v[2])  -- 20 (y component)
+```
+
+### Methods
+
+#### `vec:length()`
+
+Returns the magnitude (length) of the vector.
+
+```lua
+vec:length(): number
+```
+
+**Returns:** The length as a number.
+
+**Example:**
+```lua
+local v = Vector.xy(3, 4)
+print(v:length())  -- 5 (3-4-5 triangle)
+```
+
+#### `vec:lengthSquared()`
+
+Returns the squared length. Faster than `length()` when you only need to compare magnitudes.
+
+```lua
+vec:lengthSquared(): number
+```
+
+#### `vec:normalized()`
+
+Returns a unit vector (length 1) pointing in the same direction. Returns zero vector if length is zero.
+
+```lua
+vec:normalized(): Vector
+```
+
+**Example:**
+```lua
+local velocity = Vector.xy(10, 0)
+local direction = velocity:normalized()  -- Vector(1, 0)
+```
+
+#### `vec:distance(other)`
+
+Returns the distance to another vector.
+
+```lua
+vec:distance(other: Vector): number
+```
+
+#### `vec:distanceSquared(other)`
+
+Returns the squared distance. Faster for comparisons.
+
+```lua
+vec:distanceSquared(other: Vector): number
+```
+
+#### `vec:dot(other)`
+
+Returns the dot product. Useful for angle calculations and projections.
+
+```lua
+vec:dot(other: Vector): number
+```
+
+**Example:**
+```lua
+local a = Vector.xy(1, 0)
+local b = Vector.xy(0, 1)
+print(a:dot(b))  -- 0 (perpendicular vectors)
+```
+
+#### `vec:lerp(other, t)`
+
+Linear interpolation between this vector and another.
+
+```lua
+vec:lerp(other: Vector, t: number): Vector
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| other | Vector | Target vector |
+| t | number | Interpolation factor (0 = self, 1 = other) |
+
+**Example:**
+```lua
+local start = Vector.xy(0, 0)
+local target = Vector.xy(100, 100)
+local midpoint = start:lerp(target, 0.5)  -- Vector(50, 50)
+```
+
+### Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `+` | Addition | `vec1 + vec2` |
+| `-` | Subtraction | `vec1 - vec2` |
+| `*` | Scalar multiplication | `vec * 2` |
+| `/` | Scalar division | `vec / 2` |
+| `-` (unary) | Negation | `-vec` |
+| `==` | Equality | `vec1 == vec2` |
+
+**Example:**
+```lua
+local a = Vector.xy(10, 20)
+local b = Vector.xy(5, 10)
+
+local sum = a + b        -- Vector(15, 30)
+local diff = a - b       -- Vector(5, 10)
+local scaled = a * 2     -- Vector(20, 40)
+local divided = a / 2    -- Vector(5, 10)
+local negated = -a       -- Vector(-10, -20)
+```
+
+**See Also:** [Mat2D](#mat2d), [Color](#color)
+
+---
+
+## Color
+
+RGBA color with 0-255 channel values. Colors are accessed and modified via **static functions**, not properties.
+
+### Constructors
+
+#### `Color.rgba(r, g, b, a)`
+
+Creates a color with alpha.
+
+```lua
+Color.rgba(r: number, g: number, b: number, a: number): Color
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| r | number | Red (0-255) |
+| g | number | Green (0-255) |
+| b | number | Blue (0-255) |
+| a | number | Alpha (0-255, 255 = opaque) |
+
+**Example:**
+```lua
+local red = Color.rgba(255, 0, 0, 255)
+local semiTransparent = Color.rgba(0, 0, 255, 128)
+```
+
+#### `Color.rgb(r, g, b)`
+
+Creates an opaque color (alpha = 255).
+
+```lua
+Color.rgb(r: number, g: number, b: number): Color
+```
+
+### Static Channel Accessors
+
+> **Important:** Color channels are accessed via static functions, not properties. Use `Color.red(c)` not `c.r`.
+
+#### `Color.red(color [, value])`
+
+Gets the red channel, or returns a new color with the red channel updated.
+
+```lua
+Color.red(color: Color): number                    -- Get red
+Color.red(color: Color, value: number): Color      -- Set red (returns new color)
+```
+
+#### `Color.green(color [, value])`
+
+Gets the green channel, or returns a new color with the green channel updated.
+
+```lua
+Color.green(color: Color): number
+Color.green(color: Color, value: number): Color
+```
+
+#### `Color.blue(color [, value])`
+
+Gets the blue channel, or returns a new color with the blue channel updated.
+
+```lua
+Color.blue(color: Color): number
+Color.blue(color: Color, value: number): Color
+```
+
+#### `Color.alpha(color [, value])`
+
+Gets the alpha channel (0-255), or returns a new color with the alpha channel updated.
+
+```lua
+Color.alpha(color: Color): number
+Color.alpha(color: Color, value: number): Color
+```
+
+#### `Color.opacity(color [, value])`
+
+Gets the opacity as normalized value (0.0-1.0), or returns a new color with opacity set.
+
+```lua
+Color.opacity(color: Color): number
+Color.opacity(color: Color, value: number): Color
+```
+
+**Example:**
+```lua
+local c = Color.rgb(255, 128, 0)
+
+-- Get channels
+local r = Color.red(c)      -- 255
+local g = Color.green(c)    -- 128
+local op = Color.opacity(c) -- 1.0
+
+-- Create modified copies (colors are immutable)
+local darker = Color.red(c, 128)           -- Returns new color with red=128
+local faded = Color.opacity(c, 0.5)        -- Returns new color with 50% opacity
+```
+
+### Static Methods
+
+#### `Color.lerp(from, to, t)`
+
+Interpolates between two colors.
+
+```lua
+Color.lerp(from: Color, to: Color, t: number): Color
+```
+
+**Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| from | Color | Start color (t=0) |
+| to | Color | End color (t=1) |
+| t | number | Interpolation factor (0-1) |
+
+**Example:**
+```lua
+local startColor = Color.rgb(255, 0, 0)  -- Red
+local endColor = Color.rgb(0, 0, 255)    -- Blue
+local purple = Color.lerp(startColor, endColor, 0.5)
+```
+
+**See Also:** [Paint](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
+
+---
+
+## Mat2D
+
+2D affine transformation matrix for translation, rotation, and scale.
+
+### Fields
+
+#### `mat.xx`
+X scale component. **Type:** `number`
+
+#### `mat.xy`
+X shear component. **Type:** `number`
+
+#### `mat.yx`
+Y shear component. **Type:** `number`
+
+#### `mat.yy`
+Y scale component. **Type:** `number`
+
+#### `mat.tx`
+X translation component. **Type:** `number`
+
+#### `mat.ty`
+Y translation component. **Type:** `number`
+
+### Constructors
+
+#### `Mat2D.values(xx, xy, yx, yy, tx, ty)`
+
+Creates a matrix with explicit components.
+
+```lua
+Mat2D.values(xx: number, xy: number, yx: number, yy: number, tx: number, ty: number): Mat2D
+```
+
+#### `Mat2D.identity()`
+
+Creates an identity matrix (no transformation).
+
+```lua
+Mat2D.identity(): Mat2D
+```
+
+#### `Mat2D.withTranslation(x, y)`
+
+Creates a translation matrix.
+
+```lua
+Mat2D.withTranslation(pos: Vector): Mat2D
+Mat2D.withTranslation(x: number, y: number): Mat2D
+```
+
+**Example:**
+```lua
+local moveRight = Mat2D.withTranslation(100, 0)
+```
+
+#### `Mat2D.withRotation(radians)`
+
+Creates a rotation matrix.
+
+```lua
+Mat2D.withRotation(radians: number): Mat2D
+```
+
+**Example:**
+```lua
+local rotate90 = Mat2D.withRotation(math.rad(90))
+local rotate45 = Mat2D.withRotation(math.pi / 4)
+```
+
+#### `Mat2D.withScale(sx, sy)`
+
+Creates a scale matrix.
+
+```lua
+Mat2D.withScale(scale: Vector): Mat2D
+Mat2D.withScale(sx: number, sy: number): Mat2D
+```
+
+#### `Mat2D.withScaleAndTranslation(scale, translation)`
+
+Creates a scale+translation matrix from numeric values or vectors.
+
+```lua
+Mat2D.withScaleAndTranslation(scale: Vector, translation: Vector): Mat2D
+Mat2D.withScaleAndTranslation(sx: number, sy: number, tx: number, ty: number): Mat2D
+```
+
+### Methods
+
+#### `mat:invert()`
+
+Returns the inverse matrix, or nil if the matrix is not invertible. Useful for converting between coordinate spaces.
+
+```lua
+mat:invert(): Mat2D?
+```
+
+#### `mat:isIdentity()`
+
+Returns true if the matrix is the identity transform.
+
+```lua
+mat:isIdentity(): boolean
+```
+
+### Operators
+
+#### Matrix / Vector Multiplication (`*`)
+
+Transforms a vector by the matrix.
+
+```lua
+local p = Mat2D.withTranslation(10, 5) * Vector.xy(1, 2)
+```
+
+#### Matrix Multiplication (`*`)
+
+Combines transformations. **Order matters!**
+
+```lua
+local combined = mat1 * mat2  -- Apply mat2 first, then mat1
+```
+
+#### Equality (`==`)
+
+Returns true if all components are equal.
+
+```lua
+if mat1 == mat2 then
+    print("Same transform")
+end
+```
+
+**Example:**
+```lua
+-- Rotate around a point (translate to origin, rotate, translate back)
+local toOrigin = Mat2D.withTranslation(-50, -50)
+local rotate = Mat2D.withRotation(math.rad(45))
+local fromOrigin = Mat2D.withTranslation(50, 50)
+local combined = fromOrigin * rotate * toOrigin
+```
+
+**See Also:** [Renderer.transform](./drawing#renderertransformmat)

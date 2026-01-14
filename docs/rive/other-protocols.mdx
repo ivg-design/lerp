@@ -1,8 +1,1227 @@
 ---
 sidebar_position: 6
 title: Other Protocols
+description: Learn about Listener scripts, Event scripts, and other script types beyond Node and Util in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Other Protocols
 
-*Content being migrated...*
+## AE/JS Syntax Comparison
+
+| Concept | After Effects | JavaScript | Luau (Rive) |
+|---------|---------------|------------|-------------|
+| Event listener | Layer markers + time | `element.addEventListener('click', fn)` | `function pointerDown(self, pos): boolean` |
+| Event callback | Expression on marker | `(event) => { ... }` | `function onEvent(self, name, props)` |
+| Mouse position | `thisComp.layer("Null").position` | `event.clientX, event.clientY` | `position: Vector` parameter |
+| Drag state | Manual with sliders | `isDragging` variable | `self.isDragging: boolean` |
+| Event bubbling | N/A | `event.stopPropagation()` | `return true` (consumes event) |
+| Custom events | N/A | `new CustomEvent('name')` | EventBus pattern via Util |
+| Animation state | `marker.key(1).time` | State variables | State machine inputs |
+
+:::danger Critical Difference: Event-Driven Architecture
+**After Effects**: Events don't exist. Expressions react to time and layer properties. You check `time >= marker.key(1).time` to "respond" to moments.
+
+**JavaScript DOM**: Event-driven with bubbling and capturing phases. Events propagate through the DOM tree.
+
+**Luau (Rive)**: Hybrid approach - pointer events (`pointerDown`, `pointerMove`, `pointerUp`) return `boolean` to consume or propagate. Listener scripts receive Rive events via `onEvent`. No DOM tree, but events can be consumed.
+
+```lua
+-- Returning true = "I handled this, stop propagating"
+-- Returning false = "I didn't handle this, let others try"
+function pointerDown(self: MyScript, position: Vector): boolean
+    if self:isHit(position) then
+        return true   -- Consume the event
+    end
+    return false      -- Let other handlers try
+end
+```
+:::
+
+---
+
+## Rive Context: Beyond Node and Util Scripts
+
+While Node and Util scripts handle most use cases, Rive provides additional script types for specific interaction patterns. These protocols let you respond to events, listen for state changes, and create more dynamic animations.
+
+**Script types covered:**
+- **Listener scripts** - respond to Rive events from state machines
+- **Pointer events** - handle mouse/touch interaction in Node scripts
+- **State machine integration** - scripts that communicate with state machines
+- **Event patterns** - custom pub/sub and event bus architectures
+
+---
+
+## Listener Scripts
+
+Listener scripts respond to events fired from the Rive runtime or state machines. They follow a different pattern than Node scripts.
+
+### Listener Script Structure
+
+```lua
+--!strict
+
+export type MyListener = {
+    eventCount: number,
+}
+
+function onEvent(self: MyListener, eventName: string, properties: { [string]: any })
+    print(`Event received: {eventName}`)
+    self.eventCount += 1
+end
+
+return function(): Listener<MyListener>
+    return {
+        onEvent = onEvent,
+        eventCount = 0,
+    }
+end
+```
+
+**JavaScript/TypeScript Equivalent:**
+
+```typescript
+// In JavaScript, you'd add event listeners to elements
+class MyListener {
+    eventCount: number = 0;
+
+    constructor() {
+        // Subscribe to custom events
+        document.addEventListener('riveEvent', (e: CustomEvent) => {
+            this.onEvent(e.detail.name, e.detail.properties);
+        });
+    }
+
+    onEvent(eventName: string, properties: Record<string, any>) {
+        console.log(`Event received: ${eventName}`);
+        this.eventCount++;
+    }
+}
+```
+
+**Key differences from Node scripts:**
+
+| Node Script | Listener Script |
+|-------------|-----------------|
+| Returns `Node<T>` | Returns `Listener<T>` |
+| Has `init`, `draw`, `advance` | Has `onEvent` only |
+| Can render graphics | Cannot render anything |
+| Processes every frame | Only activates on events |
+
+---
+
+## Exercises
+
+### Exercise 1: Basic Event Logger
+
+**Goal**: Create a Listener script that logs all events from the state machine.
+
+**Why This Matters**: Understanding how events flow from state machines to scripts is fundamental for creating interactive animations. In After Effects, you'd check marker times; in JavaScript, you'd use `addEventListener`. In Rive, Listener scripts receive events automatically when attached to an artboard.
+
+**Real-World Use**:
+- Analytics tracking (count button clicks, track user paths)
+- Debugging state machine behavior
+- Triggering sound effects or haptic feedback on mobile
+- Syncing external systems with animation events
+
+**After Effects Equivalent**: There's no direct equivalent. You might use markers and check `if (time >= marker.key(1).time && time < marker.key(1).time + 0.1)` to detect when you "pass" a marker.
+
+**JavaScript Equivalent**:
+
+```typescript
+// JavaScript: Generic event logger
+class EventLogger {
+    events: string[] = [];
+
+    constructor(element: HTMLElement) {
+        // Listen to multiple event types
+        ['click', 'mouseenter', 'mouseleave'].forEach(type => {
+            element.addEventListener(type, (e) => this.logEvent(type, e));
+        });
+    }
+
+    logEvent(eventName: string, event: Event) {
+        this.events.push(eventName);
+        console.log(`=== Event: ${eventName} ===`);
+        console.log(`  Target: ${(event.target as HTMLElement).tagName}`);
+        console.log(`Total events: ${this.events.length}`);
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create the Listener script** in Rive's Assets panel → Scripts → New Listener Script
+
+2. **Type this code**:
+
+```lua
+--!strict
+
+export type EventLogger = {
+    events: { string },
+}
+
+function onEvent(self: EventLogger, eventName: string, properties: { [string]: any })
+    -- Store event name for history
+    table.insert(self.events, eventName)
+
+    print(`=== Event: {eventName} ===`)
+
+    -- Log all properties that came with the event
+    for key, value in pairs(properties) do
+        print(`  {key} = {tostring(value)}`)
+    end
+
+    print(`Total events received: {#self.events}`)
+end
+
+return function(): Listener<EventLogger>
+    return {
+        onEvent = onEvent,
+        events = {},  -- Empty table to store event history
+    }
+end
+```
+
+3. **Attach to artboard**: Drag the Listener script onto your artboard in the hierarchy
+
+4. **Set up state machine events**: In your state machine, add Event nodes that fire events (e.g., "ButtonClicked", "LevelComplete")
+
+5. **Test**: Play the animation and trigger state machine events. Watch the Console for output.
+
+---
+
+### Exercise 2: Filtered Event Handler
+
+**Goal**: Create a Listener that only responds to specific events by name.
+
+**Why This Matters**: In real applications, you don't want every script responding to every event. Filtering lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern.
+
+**Real-World Use**:
+- Only respond to "Purchase" events to update inventory
+- Filter for "Error" events to show error UI
+- Handle "Achievement" events to trigger celebrations
+- Process only "Save" events to update storage
+
+**JavaScript Equivalent**:
+
+```typescript
+// JavaScript: Filtered event handler
+class FilteredListener {
+    targetEvent: string;
+    triggerCount: number = 0;
+
+    constructor(element: HTMLElement, targetEvent: string) {
+        this.targetEvent = targetEvent;
+
+        // Generic listener that filters
+        element.addEventListener('customEvent', (e: CustomEvent) => {
+            if (e.detail.name !== this.targetEvent) {
+                return; // Ignore non-matching events
+            }
+
+            this.triggerCount++;
+            console.log(`Target "${this.targetEvent}" triggered!`);
+            console.log(`Count: ${this.triggerCount}`);
+        });
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Listener script** named "FilteredListener"
+
+2. **Type this code**:
+
+```lua
+--!strict
+
+export type FilteredListener = {
+    targetEvent: string,
+    triggerCount: number,
+}
+
+function onEvent(self: FilteredListener, eventName: string, properties: { [string]: any })
+    -- FILTER: Only handle our target event
+    if eventName ~= self.targetEvent then
+        return  -- Silently ignore other events
+    end
+
+    self.triggerCount += 1
+    print(`Target event "{self.targetEvent}" triggered!`)
+    print(`Trigger count: {self.triggerCount}`)
+
+    -- Access specific properties if they exist
+    if properties.value then
+        print(`Event value: {properties.value}`)
+    end
+
+    if properties.source then
+        print(`Event source: {properties.source}`)
+    end
+end
+
+return function(): Listener<FilteredListener>
+    return {
+        onEvent = onEvent,
+        targetEvent = "ButtonClicked",  -- Change this to match your event name
+        triggerCount = 0,
+    }
+end
+```
+
+3. **Configure the target**: Change `"ButtonClicked"` to match the event name from your state machine
+
+4. **Test with multiple events**: Fire different events from your state machine. Only matching ones should log.
+
+---
+
+## Pointer Events in Node Scripts
+
+Node scripts can respond to mouse/touch input through pointer handlers. This is how you create interactive elements.
+
+### Pointer Event Reference
+
+| Function | When It's Called | Parameters | Return |
+|----------|-----------------|------------|--------|
+| `pointerDown` | Mouse button pressed / touch start | `position: Vector` | `boolean` |
+| `pointerMove` | Mouse/touch moved | `position: Vector` | `boolean` |
+| `pointerUp` | Mouse button released / touch end | `position: Vector` | `boolean` |
+
+**Return Value Meaning:**
+- `return true` = "I handled this event, consume it"
+- `return false` = "I didn't handle it, let others try"
+
+:::danger Critical Difference: Return Boolean for Event Consumption
+
+**JavaScript DOM**: Uses `event.stopPropagation()` and `event.preventDefault()` as methods.
+
+```javascript
+element.addEventListener('click', (event) => {
+    event.stopPropagation();  // Stop bubbling
+    event.preventDefault();   // Prevent default action
+});
+```
+
+**Luau (Rive)**: Uses boolean return value.
+
+```lua
+function pointerDown(self: MyScript, position: Vector): boolean
+    if self:wasClicked(position) then
+        return true   -- Equivalent to stopPropagation()
+    end
+    return false      -- Let event continue
+end
+```
+
+Forgetting to return `true` when you handle an event lets it "fall through" to elements behind yours!
+:::
+
+---
+
+### Exercise 3: Click Counter with Visual Feedback
+
+**Goal**: Track clicks and show visual feedback (scale pop) when clicked.
+
+**Why This Matters**: This pattern is the foundation for all interactive buttons, toggles, and clickable elements. Understanding `pointerDown` and how to combine it with `advance` for animation is essential.
+
+**Real-World Use**:
+- Interactive buttons with press feedback
+- Click-to-collect game mechanics
+- Tap counters and scoring systems
+- Any clickable UI element
+
+**After Effects Equivalent**:
+
+```javascript
+// AE: Simulating click feedback with a slider
+// You'd need external control - AE expressions can't detect clicks
+clickCount = effect("Click Count")("Slider");
+baseScale = 100;
+clickScale = 120;
+// After "click", animate back
+t = time - effect("Last Click Time")("Slider");
+scale = linear(t, 0, 0.2, clickScale, baseScale);
+[scale, scale]
+```
+
+**JavaScript Equivalent**:
+
+```typescript
+class ClickCounter {
+    clickCount: number = 0;
+    displayScale: number = 1;
+    element: HTMLElement;
+
+    constructor(element: HTMLElement) {
+        this.element = element;
+
+        element.addEventListener('mousedown', (e) => {
+            this.clickCount++;
+            this.displayScale = 1.2;
+            console.log(`Click #${this.clickCount} at (${e.clientX}, ${e.clientY})`);
+
+            // Animate back to normal
+            this.animateScale();
+        });
+    }
+
+    animateScale() {
+        const animate = () => {
+            if (this.displayScale > 1) {
+                this.displayScale = Math.max(1, this.displayScale - 0.02);
+                this.element.style.transform = `scale(${this.displayScale})`;
+                requestAnimationFrame(animate);
+            }
+        };
+        animate();
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Node script** named "ClickCounter"
+
+2. **Type this code**:
+
+```lua
+--!strict
+
+export type ClickCounter = {
+    clickCount: number,
+    displayScale: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: ClickCounter): boolean
+    self.clickCount = 0
+    self.displayScale = 1
+
+    -- Create a clickable button shape
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-60, -30))
+    self.path:lineTo(Vector.xy(60, -30))
+    self.path:lineTo(Vector.xy(60, 30))
+    self.path:lineTo(Vector.xy(-60, 30))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(80, 160, 255),
+    })
+
+    return true
+end
+
+function pointerDown(self: ClickCounter, position: Vector): boolean
+    -- Check if click is within our button bounds
+    if math.abs(position.x) <= 60 and math.abs(position.y) <= 30 then
+        self.clickCount += 1
+        self.displayScale = 1.2  -- Pop effect!
+        print(`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})`)
+        return true  -- IMPORTANT: Consume the event
+    end
+    return false  -- Click was outside, don't consume
+end
+
+function advance(self: ClickCounter, seconds: number): boolean
+    -- Animate scale back to normal over time
+    if self.displayScale > 1 then
+        self.displayScale = math.max(1, self.displayScale - seconds * 4)
+    end
+    return true
+end
+
+function draw(self: ClickCounter, renderer: Renderer)
+    renderer:save()
+    renderer:scale(Vector.xy(self.displayScale, self.displayScale))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<ClickCounter>
+    return {
+        init = init,
+        pointerDown = pointerDown,
+        advance = advance,
+        draw = draw,
+        clickCount = 0,
+        displayScale = 1,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+3. **Attach to a shape** in your artboard hierarchy
+
+4. **Test**: Click the button area. Watch the Console for click counts and see the scale animation.
+
+---
+
+### Exercise 4: Drag and Drop
+
+**Goal**: Implement full drag behavior using all three pointer events.
+
+**Why This Matters**: Dragging is one of the most common interactions in modern UI. Understanding how `pointerDown`, `pointerMove`, and `pointerUp` work together is essential for sliders, drag-to-reorder, drawing tools, and more.
+
+**Real-World Use**:
+- Slider controls
+- Drag-to-reorder lists
+- Drawing and annotation tools
+- Character positioning in games
+- Puzzle piece placement
+
+**JavaScript Equivalent**:
+
+```typescript
+class Draggable {
+    isDragging: boolean = false;
+    offsetX: number = 0;
+    offsetY: number = 0;
+    posX: number = 0;
+    posY: number = 0;
+    element: HTMLElement;
+
+    constructor(element: HTMLElement) {
+        this.element = element;
+
+        element.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        document.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        document.addEventListener('mouseup', (e) => this.onMouseUp(e));
+    }
+
+    onMouseDown(e: MouseEvent) {
+        this.isDragging = true;
+        this.offsetX = e.clientX - this.posX;
+        this.offsetY = e.clientY - this.posY;
+        this.element.style.backgroundColor = 'orange'; // Highlight
+    }
+
+    onMouseMove(e: MouseEvent) {
+        if (!this.isDragging) return;
+
+        this.posX = e.clientX - this.offsetX;
+        this.posY = e.clientY - this.offsetY;
+        this.element.style.transform = `translate(${this.posX}px, ${this.posY}px)`;
+    }
+
+    onMouseUp(e: MouseEvent) {
+        if (!this.isDragging) return;
+
+        this.isDragging = false;
+        this.element.style.backgroundColor = ''; // Normal
+        console.log(`Dropped at (${this.posX}, ${this.posY})`);
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Node script** named "Draggable"
+
+2. **Type this code** (note the helper function pattern):
+
+```lua
+--!strict
+
+export type Draggable = {
+    isDragging: boolean,
+    offsetX: number,
+    offsetY: number,
+    posX: number,
+    posY: number,
+    size: number,
+    path: Path,
+    paint: Paint,
+}
+
+-- Helper function to rebuild path at current position
+-- Note: Defined BEFORE it's used (Luau requires this)
+local function rebuildPath(self: Draggable)
+    local half = self.size / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.posX - half, self.posY - half))
+    self.path:lineTo(Vector.xy(self.posX + half, self.posY - half))
+    self.path:lineTo(Vector.xy(self.posX + half, self.posY + half))
+    self.path:lineTo(Vector.xy(self.posX - half, self.posY + half))
+    self.path:close()
+end
+
+function init(self: Draggable): boolean
+    self.isDragging = false
+    self.offsetX = 0
+    self.offsetY = 0
+    self.posX = 0
+    self.posY = 0
+    self.size = 80
+
+    self.path = Path.new()
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(255, 120, 80),
+    })
+
+    rebuildPath(self)
+    return true
+end
+
+function pointerDown(self: Draggable, position: Vector): boolean
+    -- Hit test: Is click within the shape?
+    local half = self.size / 2
+    local dx = math.abs(position.x - self.posX)
+    local dy = math.abs(position.y - self.posY)
+
+    if dx <= half and dy <= half then
+        -- Start dragging
+        self.isDragging = true
+        self.offsetX = position.x - self.posX
+        self.offsetY = position.y - self.posY
+        self.paint.color = Color.rgb(255, 180, 120)  -- Highlight color
+        print("Drag started")
+        return true  -- Consume event
+    end
+
+    return false  -- Click was outside
+end
+
+function pointerMove(self: Draggable, position: Vector): boolean
+    if not self.isDragging then
+        return false  -- Not dragging, ignore
+    end
+
+    -- Update position while dragging
+    self.posX = position.x - self.offsetX
+    self.posY = position.y - self.offsetY
+    rebuildPath(self)
+    return true  -- Consume event while dragging
+end
+
+function pointerUp(self: Draggable, position: Vector): boolean
+    if not self.isDragging then
+        return false
+    end
+
+    -- Stop dragging
+    self.isDragging = false
+    self.paint.color = Color.rgb(255, 120, 80)  -- Normal color
+    print(`Dropped at ({self.posX:.1f}, {self.posY:.1f})`)
+    return true
+end
+
+function draw(self: Draggable, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<Draggable>
+    return {
+        init = init,
+        pointerDown = pointerDown,
+        pointerMove = pointerMove,
+        pointerUp = pointerUp,
+        draw = draw,
+        isDragging = false,
+        offsetX = 0,
+        offsetY = 0,
+        posX = 0,
+        posY = 0,
+        size = 80,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+3. **Key pattern to understand**: The offset calculation (`offsetX = position.x - self.posX`) ensures smooth dragging from wherever you grab the object, not snapping to center.
+
+4. **Test**: Click and drag the shape. It should follow your mouse smoothly and change color while dragging.
+
+---
+
+## State Machine Integration
+
+Scripts can communicate with Rive's state machine through Inputs. This creates powerful bidirectional data flow.
+
+### Exercise 5: Input-Driven State Visualization
+
+**Goal**: Create a visual that responds to state machine inputs.
+
+**Why This Matters**: State machines handle high-level animation logic. Scripts handle procedural details. Combining them lets you build complex interactions where state machines control "what" happens and scripts control "how" it looks.
+
+**Real-World Use**:
+- Progress bars driven by state machine progress
+- Dynamic color changes based on game state
+- Procedural animations triggered by state changes
+- UI elements that respond to multiple state inputs
+
+**After Effects Comparison**: In AE, you might use expressions that read from control layers or sliders. The state machine is like having an automatic system that sets those sliders based on conditions.
+
+**JavaScript Equivalent**:
+
+```typescript
+class StateBridge {
+    isActive: boolean = false;
+    progress: number = 0;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+
+    constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d')!;
+
+        // Listen for state changes
+        document.addEventListener('stateChange', (e: CustomEvent) => {
+            this.isActive = e.detail.isActive;
+            this.progress = e.detail.progress;
+            this.render();
+        });
+    }
+
+    render() {
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, 300, 50);
+
+        // Color based on active state
+        ctx.fillStyle = this.isActive ? '#50c878' : '#c85050';
+
+        // Width based on progress
+        const width = 200 * this.progress;
+        ctx.fillRect(50, 5, width, 40);
+    }
+}
+```
+
+**Step-by-Step Setup**:
+
+1. **Create a new Node script** named "StateBridge"
+
+2. **Type this code**:
+
+```lua
+--!strict
+
+export type StateBridge = {
+    -- Inputs that can be bound to state machine outputs
+    isActive: Input<boolean>,
+    progress: Input<number>,
+
+    -- Internal state
+    path: Path,
+    paint: Paint,
+}
+
+-- Helper to rebuild visual based on current input values
+local function rebuildVisual(self: StateBridge)
+    -- Calculate width from progress (0-1 maps to 0-200)
+    local width = 200 * self.progress
+
+    -- Choose color based on active state
+    local color = if self.isActive
+        then Color.rgb(80, 200, 120)   -- Green when active
+        else Color.rgb(200, 80, 80)    -- Red when inactive
+
+    -- Rebuild the progress bar path
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-100, -20))
+    self.path:lineTo(Vector.xy(-100 + width, -20))
+    self.path:lineTo(Vector.xy(-100 + width, 20))
+    self.path:lineTo(Vector.xy(-100, 20))
+    self.path:close()
+
+    self.paint.color = color
+end
+
+function init(self: StateBridge): boolean
+    self.path = Path.new()
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(100, 100, 100),
+    })
+
+    rebuildVisual(self)
+    return true
+end
+
+function update(self: StateBridge)
+    -- Called when ANY input changes
+    print(`State changed: active={self.isActive}, progress={self.progress}`)
+    rebuildVisual(self)
+end
+
+function draw(self: StateBridge, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<StateBridge>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        -- Inputs with default values (shown in editor)
+        isActive = false,
+        progress = 0.5,
+        -- Rive objects use late()
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+3. **In the Rive editor**:
+   - Select the script in the hierarchy
+   - In Properties, you'll see `isActive` and `progress` inputs
+   - Bind these to state machine outputs or set them manually
+
+4. **Test**: Toggle `isActive` to see color change. Adjust `progress` to see bar length change.
+
+---
+
+## Custom Event Patterns
+
+When you need scripts to communicate with each other, create an EventBus using a Util script.
+
+### Exercise 6: Publisher-Subscriber Pattern
+
+**Goal**: Create a communication system where Node scripts can publish and subscribe to events.
+
+**Why This Matters**: As your animations grow complex, you need ways for components to communicate without tight coupling. The pub/sub pattern is a fundamental software architecture pattern used in everything from game engines to web frameworks.
+
+**Real-World Use**:
+- Particle effects responding to gameplay events
+- Sound system triggered by animation events
+- Score displays updating when points are earned
+- Multiple UI elements responding to single actions
+
+**JavaScript Equivalent**:
+
+```typescript
+// EventBus.ts - Shared event system
+class EventBus {
+    private static subscriptions: Map<string, Function[]> = new Map();
+
+    static subscribe(eventName: string, callback: Function) {
+        if (!this.subscriptions.has(eventName)) {
+            this.subscriptions.set(eventName, []);
+        }
+        this.subscriptions.get(eventName)!.push(callback);
+    }
+
+    static publish(eventName: string, data: any) {
+        const callbacks = this.subscriptions.get(eventName) || [];
+        callbacks.forEach(cb => cb(data));
+    }
+}
+
+// Usage in different components:
+// Publisher:
+element.addEventListener('click', () => {
+    EventBus.publish('buttonClicked', { count: ++clickCount });
+});
+
+// Subscriber:
+EventBus.subscribe('buttonClicked', (data) => {
+    console.log(`Received click #${data.count}`);
+});
+```
+
+**Step-by-Step Setup**:
+
+**Step 1: Create the EventBus Util Script**
+
+```lua
+--!strict
+
+local EventBus = {}
+
+export type Subscription = {
+    eventName: string,
+    callback: (data: any) -> (),
+}
+
+-- Module-level state (shared across all scripts that require this)
+local subscriptions: { Subscription } = {}
+
+function EventBus.subscribe(eventName: string, callback: (data: any) -> ())
+    table.insert(subscriptions, {
+        eventName = eventName,
+        callback = callback,
+    })
+    print(`EventBus: Subscribed to "{eventName}"`)
+end
+
+function EventBus.publish(eventName: string, data: any)
+    print(`EventBus: Publishing "{eventName}"`)
+    for _, sub in ipairs(subscriptions) do
+        if sub.eventName == eventName then
+            sub.callback(data)
+        end
+    end
+end
+
+function EventBus.clear()
+    subscriptions = {}
+    print("EventBus: Cleared all subscriptions")
+end
+
+return EventBus
+```
+
+**Step 2: Create a Publisher Node Script**
+
+```lua
+--!strict
+
+local EventBus = require("EventBus")
+
+export type Publisher = {
+    clickCount: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: Publisher): boolean
+    self.clickCount = 0
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-40, -40))
+    self.path:lineTo(Vector.xy(40, -40))
+    self.path:lineTo(Vector.xy(40, 40))
+    self.path:lineTo(Vector.xy(-40, 40))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(255, 100, 100),  -- Red
+    })
+
+    return true
+end
+
+function pointerDown(self: Publisher, position: Vector): boolean
+    self.clickCount += 1
+
+    -- Publish through the event bus
+    EventBus.publish("click", {
+        count = self.clickCount,
+        x = position.x,
+        y = position.y,
+    })
+
+    return true
+end
+
+function draw(self: Publisher, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<Publisher>
+    return {
+        init = init,
+        pointerDown = pointerDown,
+        draw = draw,
+        clickCount = 0,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+**Step 3: Create a Subscriber Node Script**
+
+```lua
+--!strict
+
+local EventBus = require("EventBus")
+
+export type Subscriber = {
+    receivedClicks: number,
+    scale: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: Subscriber): boolean
+    self.receivedClicks = 0
+    self.scale = 1
+
+    -- Subscribe to click events from ANYWHERE
+    EventBus.subscribe("click", function(data)
+        self.receivedClicks = data.count
+        self.scale = 1.5  -- Pop effect when event received
+        print(`Subscriber received click #{data.count} at ({data.x:.1f}, {data.y:.1f})`)
+    end)
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-30, -30))
+    self.path:lineTo(Vector.xy(30, -30))
+    self.path:lineTo(Vector.xy(30, 30))
+    self.path:lineTo(Vector.xy(-30, 30))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(100, 200, 100),  -- Green
+    })
+
+    return true
+end
+
+function advance(self: Subscriber, seconds: number): boolean
+    -- Animate scale back to normal
+    if self.scale > 1 then
+        self.scale = math.max(1, self.scale - seconds * 3)
+    end
+    return true
+end
+
+function draw(self: Subscriber, renderer: Renderer)
+    renderer:save()
+    renderer:translate(Vector.xy(100, 0))  -- Offset from publisher
+    renderer:scale(Vector.xy(self.scale, self.scale))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<Subscriber>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        receivedClicks = 0,
+        scale = 1,
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+4. **Test**: Click the red publisher square. The green subscriber square should pop (scale up) in response, even though they don't know about each other directly.
+
+---
+
+## Best Practices
+
+### Choose the Right Protocol
+
+| Use Case | Protocol | Why |
+|----------|----------|-----|
+| Drawing and animation | Node script | Has `draw`, `advance` for rendering |
+| Reusable logic | Util script | No lifecycle, shared via `require()` |
+| Responding to Rive events | Listener script | Has `onEvent` callback |
+| User interaction | Node script with pointer handlers | Has `pointerDown/Move/Up` |
+| Cross-script communication | Util script as EventBus | Shared state across scripts |
+
+### Event Handling Patterns
+
+```lua
+-- GOOD: Check bounds before consuming
+function pointerDown(self: MyScript, position: Vector): boolean
+    if self:isWithinBounds(position) then
+        self:handleClick()
+        return true  -- Consume only when actually handled
+    end
+    return false  -- Let others handle it
+end
+
+-- BAD: Always consuming (blocks everything below)
+function pointerDown(self: MyScript, position: Vector): boolean
+    self:handleClick()
+    return true  -- This blocks ALL clicks!
+end
+```
+
+### Event Naming Conventions
+
+```lua
+-- GOOD: Clear, descriptive event names
+EventBus.publish("PlayerScored", { points = 100 })
+EventBus.publish("LevelCompleted", { level = 3, time = 45.2 })
+EventBus.publish("ItemPurchased", { itemId = "sword_01", price = 500 })
+
+-- BAD: Vague or generic names
+EventBus.publish("event1", data)
+EventBus.publish("thing", stuff)
+EventBus.publish("e", {})
+```
+
+---
+
+## Common Mistakes
+
+### Mistake 1: Forgetting to Return Boolean from Pointer Events
+
+```lua
+-- WRONG: Missing return value
+function pointerDown(self: MyScript, position: Vector)  -- Missing : boolean!
+    print("Clicked!")
+    -- No return statement!
+end
+
+-- RIGHT: Always return boolean
+function pointerDown(self: MyScript, position: Vector): boolean
+    print("Clicked!")
+    return true  -- or false
+end
+```
+
+### Mistake 2: Not Checking Bounds Before Consuming
+
+```lua
+-- WRONG: Consumes ALL clicks everywhere
+function pointerDown(self: MyScript, position: Vector): boolean
+    self.clicked = true
+    return true  -- Blocks everything!
+end
+
+-- RIGHT: Only consume clicks on your element
+function pointerDown(self: MyScript, position: Vector): boolean
+    if self:isHit(position) then
+        self.clicked = true
+        return true
+    end
+    return false  -- Let others handle
+end
+```
+
+### Mistake 3: Forgetting to Unsubscribe (Memory Leak)
+
+```lua
+-- PROBLEM: Subscriptions accumulate if script is reloaded
+function init(self: MyScript): boolean
+    EventBus.subscribe("click", function(data)
+        -- This callback persists even after script reload!
+    end)
+    return true
+end
+
+-- SOLUTION: Clear subscriptions appropriately
+-- Option 1: Call EventBus.clear() when appropriate
+-- Option 2: Track subscriptions and remove them
+-- Option 3: Design your EventBus with weak references
+```
+
+### Mistake 4: Using Node Lifecycle in Util Scripts
+
+```lua
+-- WRONG: Util scripts don't have lifecycle functions!
+-- This init function will NEVER be called
+function init(self): boolean
+    print("This never runs!")
+    return true
+end
+
+return { init = init }
+
+-- RIGHT: Util scripts just export functions/data
+local MyUtil = {}
+
+function MyUtil.doSomething()
+    print("This works!")
+end
+
+return MyUtil
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What is the main difference between a Listener script and a Node script?"
+  id="other-q1"
+  options={[
+    { text: "Listener scripts are faster" },
+    { text: "Listener scripts respond to events and don't render", correct: true },
+    { text: "Listener scripts can only be used with state machines" },
+    { text: "Listener scripts have more lifecycle functions" },
+  ]}
+  explanation="Listener scripts have an onEvent callback instead of init/draw/advance. They respond to Rive events from state machines but don't render anything to the artboard. Use them for analytics, triggering sounds, or coordinating external systems."
+/>
+
+<Quiz
+  question="Which pointer events would you use together to implement drag behavior?"
+  id="other-q2"
+  options={[
+    { text: "pointerDown only" },
+    { text: "pointerMove only" },
+    { text: "pointerDown, pointerMove, and pointerUp together", correct: true },
+    { text: "pointerHover" },
+  ]}
+  explanation="Drag behavior requires all three: pointerDown to start dragging and capture the offset, pointerMove to track movement while dragging, and pointerUp to end the drag operation."
+/>
+
+<Quiz
+  question="What should a pointer event handler return to consume the event?"
+  id="other-q3"
+  options={[
+    { text: "nil" },
+    { text: "false" },
+    { text: "true", correct: true },
+    { text: "The event object" },
+  ]}
+  explanation="Returning true from a pointer handler consumes the event, preventing it from propagating to other handlers. Returning false lets it continue to elements behind yours. This is similar to event.stopPropagation() in JavaScript."
+/>
+
+<Quiz
+  question="Why use a Util script as an EventBus instead of putting the code in a Node script?"
+  id="other-q4"
+  options={[
+    { text: "Global variables don't work in Rive" },
+    { text: "Util scripts provide shared state across multiple Node scripts", correct: true },
+    { text: "EventBus is a required Rive feature" },
+    { text: "It's faster" },
+  ]}
+  explanation="Util scripts can hold module-level state that persists and is shared across all scripts that require() them. This makes them perfect for communication patterns like event buses where multiple Node scripts need to publish and subscribe to the same event stream."
+/>
+
+<Quiz
+  question="In the drag implementation, why do we calculate offsetX = position.x - self.posX?"
+  id="other-q5"
+  options={[
+    { text: "It's required by the Rive API" },
+    { text: "So the object follows from where you grabbed it, not snapping to center", correct: true },
+    { text: "To convert screen coordinates to local coordinates" },
+    { text: "To normalize the position values" },
+  ]}
+  explanation="Without the offset calculation, the object would snap its center to your cursor when you click. By storing where you clicked relative to the object's position, you can maintain that offset during dragging for natural-feeling drag behavior."
+/>
+
+---
+
+## Summary
+
+| Protocol | Purpose | Key Feature |
+|----------|---------|-------------|
+| **Node Script** | Rendering, animation, interaction | `init`, `draw`, `advance`, pointer events |
+| **Listener Script** | Respond to Rive events | `onEvent(name, properties)` |
+| **Util Script** | Shared code, EventBus patterns | `require()`, module-level state |
+
+### Key Patterns Learned
+
+1. **Pointer events** return `boolean` to consume or propagate
+2. **Hit testing** before consuming events prevents blocking
+3. **EventBus pattern** enables decoupled component communication
+4. **State machine inputs** create bidirectional data flow
+5. **Drag requires** all three pointer events working together
+
+---
+
+## What You've Learned
+
+You now understand the complete Rive scripting system:
+
+1. **Environment** - How scripts run in the Rive sandbox
+2. **Protocols** - The lifecycle and callback structure
+3. **Inputs** - Editor-exposed values with `Input<T>`
+4. **Node Scripts** - Rendering, animation, and interaction
+5. **Util Scripts** - Reusable code modules
+6. **Other Protocols** - Events, listeners, pointer handling, and communication patterns
+
+With this foundation, you can create sophisticated interactive animations that respond to user input, communicate between components, and integrate with Rive's state machines.
+
+**Next**: Learn about Object-Oriented Programming patterns in Luau with metatables and classes.

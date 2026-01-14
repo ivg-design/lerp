@@ -8,13 +8,39 @@ import Quiz from '@site/src/components/Quiz';
 
 # Inputs and Data Binding
 
+## Learning Objectives
+- Define and use script inputs with `Input<T>`
+- Read input values directly (e.g., `self.size`)
+- Respond to input changes with `update()`
+- Connect to ViewModels for complex data binding
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | After Effects / JavaScript | Luau (Rive Scripts) |
+|---------|---------------------------|---------------------|
+| Editor control | Effect Control (Slider, Checkbox) | `Input<number>`, `Input<boolean>` |
+| Read control value | `effect("Slider Control")(1)` | `self.slider` |
+| Watch for changes | `posterizeTime()` or manual check | `update(self)` callback |
+| Default value | Set in Effect Controls Panel | Set in factory return table |
+| Property binding | Link expression to property | `context:viewModel()` |
+| Read-only input | N/A (AE controls are always editable) | `Input<T>` (read-only by design) |
+| Two-way binding | Not native (requires workarounds) | ViewModel `.value` setter |
+
+:::info Input Access in This Course
+In this version of Rive scripting, inputs are read directly (e.g., `self.size`). The editor still treats them as inputs, but you do not access a `.value` field.
+:::
+
+---
+
 ## Rive Context: Inputs Are Your Editor Controls
 
 Script inputs are how designers control your script from the Rive UI. You define them in the script type and provide defaults in the factory return table.
 
 **Key rules:**
-- Inputs are **read-only** in scripts (use `.value` to read)
-- Use `update(self)` or `input:addListener(...)` to respond to changes
+- Inputs are **read-only** in scripts (read them directly)
+- Use `update(self)` to respond to changes
 - Use `late()` for inputs that are assigned in the editor (ViewModel or Artboard inputs)
 
 ---
@@ -24,7 +50,7 @@ Script inputs are how designers control your script from the Rive UI. You define
 ```lua
 --!strict
 
-type MyNode = {
+export type MyNode = {
     size: Input<number>,
     tint: Input<Color>,
 }
@@ -33,10 +59,27 @@ return function(): Node<MyNode>
     return {
         init = init,
         draw = draw,
-        size = 80,
-        tint = Color.rgb(255, 80, 120),
+        size = 80,              -- Default for size input
+        tint = Color.rgb(255, 80, 120),  -- Default for color input
     }
 end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+// Inputs are like React props with default values
+
+interface Props {
+    size: number;       // Default: 80
+    tint: Color;        // Default: rgb(255, 80, 120)
+}
+
+class MyComponent {
+    props: Props = {
+        size: 80,
+        tint: { r: 255, g: 80, b: 120 }
+    };
+}
 ```
 
 When you define an `Input<T>` type in your script, Rive automatically creates a control in the inspector panel. The factory return value provides the default.
@@ -45,21 +88,40 @@ When you define an `Input<T>` type in your script, Rive automatically creates a 
 
 ## Supported Input Types
 
-| Type | Example Default | Description |
-|------|-----------------|-------------|
-| `Input<number>` | `42` | Numeric slider/field |
-| `Input<boolean>` | `true` | Checkbox |
-| `Input<string>` | `"hello"` | Text field |
-| `Input<Color>` | `Color.rgb(255, 0, 0)` | Color picker |
-| `Input<Data.X>` | `late()` | ViewModel reference |
+| Type | Example Default | Description | AE Equivalent |
+|------|-----------------|-------------|---------------|
+| `Input<number>` | `42` | Numeric slider/field | Slider Control |
+| `Input<boolean>` | `true` | Checkbox | Checkbox Control |
+| `Input<string>` | `"hello"` | Text field | N/A |
+| `Input<Color>` | `Color.rgb(255, 0, 0)` | Color picker | Color Control |
+| `Input<Data.X>` | `late()` | ViewModel reference | N/A |
 
 ---
 
-## Exercises
+## Practice Exercises
 
 ### Exercise 1: Size + Color Inputs
 
-**Goal**: Use inputs to drive a shape. The shape rebuilds when inputs change.
+:::info Goal
+Use inputs to drive a shape. The shape rebuilds when inputs change.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you'd create Slider and Color controls, then write expressions to read them. But AE expressions don't have a built-in "on change" trigger—you'd check the value every frame. Rive's `update()` is specifically called ONLY when inputs change.
+
+**Real-World Use**: Every interactive animation has adjustable parameters: size, color, speed, position. Inputs let designers tune your script without editing code. The `update()` pattern ensures efficient rebuilding only when needed.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a new Node script named "InputSquare"
+2. Copy the code below
+3. Attach to a node
+4. Look at the Inputs panel in Rive—you'll see `size` and `tint` controls
+5. Adjust them and watch the shape update in real-time
+
+</details>
 
 ```lua
 --!strict
@@ -72,17 +134,21 @@ export type InputSquare = {
 }
 
 local function rebuild(self: InputSquare)
-    local half = self.size.value / 2
+    local half = self.size / 2
     self.path:reset()
     self.path:moveTo(Vector.xy(-half, -half))
     self.path:lineTo(Vector.xy(half, -half))
     self.path:lineTo(Vector.xy(half, half))
     self.path:lineTo(Vector.xy(-half, half))
     self.path:close()
-    self.paint.color = self.tint.value
+    self.paint.color = self.tint
+
+    print(`Rebuilt: size={self.size}, color=updated`)
 end
 
 function init(self: InputSquare): boolean
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = self.tint })
     rebuild(self)
     return true
 end
@@ -102,13 +168,49 @@ return function(): Node<InputSquare>
         draw = draw,
         size = 80,
         tint = Color.rgb(90, 180, 255),
-        path = Path.new(),
-        paint = Paint.with({ style = "fill", color = Color.rgb(90, 180, 255) }),
+        path = late(),
+        paint = late(),
     }
 end
 ```
 
-**Try:** Change `size` and `tint` in the inputs panel and watch the shape update in real-time.
+```typescript
+// JavaScript/TypeScript equivalent with change detection:
+
+class InputSquare {
+    // Properties that can be changed externally
+    size: number = 80;
+    tint: Color = { r: 90, g: 180, b: 255 };
+
+    // Internal state
+    path: Path2D;
+    paint: { color: Color };
+
+    constructor() {
+        this.rebuild();
+    }
+
+    // Called when any property changes (like Rive's update)
+    onPropertyChange() {
+        this.rebuild();
+        console.log(`Rebuilt: size=${this.size}, color=updated`);
+    }
+
+    rebuild() {
+        const half = this.size / 2;
+        this.path = new Path2D();
+        this.path.rect(-half, -half, this.size, this.size);
+        this.paint.color = this.tint;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = colorToCSS(this.paint.color);
+        ctx.fill(this.path);
+    }
+}
+```
+
+**Try:** Change `size` and `tint` in the inputs panel and watch the shape update in real-time. Check the Console to see "Rebuilt" messages—they only appear when inputs change.
 
 :::tip The update Function
 The `update` function is called whenever any input changes. This is where you should rebuild geometry or recalculate values that depend on inputs.
@@ -118,26 +220,52 @@ The `update` function is called whenever any input changes. This is where you sh
 
 ### Exercise 2: ViewModel Inputs
 
-**Goal**: Bind a script to a nested ViewModel. This is how scripts drive animated properties.
+:::info Goal
+Bind a script to a nested ViewModel. This is how scripts drive animated properties.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: AE doesn't have ViewModels. The closest thing is linking expressions to composition markers or master properties. Rive ViewModels are structured data containers that can be modified from scripts AND from the runtime API—enabling true two-way data binding.
+
+**Real-World Use**: Game characters have position, health, state. UI components have text, progress values. ViewModels store this data centrally, and scripts read/write to it. The runtime (JavaScript on web, Swift on iOS, etc.) can also read/write the same data.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. First, create a ViewModel in Rive:
+   - Assets panel → **+** → ViewModel
+   - Name it "Character"
+   - Add `x` (number) and `y` (number) properties
+2. Create a Node script with the code below
+3. Attach the script to a node
+4. In the script inputs, connect `character` to your Character ViewModel
+5. Run—the character will oscillate based on the sine wave
+
+</details>
 
 ```lua
 --!strict
 
 export type CharacterDriver = {
-    character: Input<Data.Character>,
+    character: Input<Data.Character>,  -- Your ViewModel type
     speed: Input<number>,
     time: number,
 }
 
 function init(self: CharacterDriver): boolean
     self.time = 0
+    print("CharacterDriver initialized")
     return true
 end
 
 function advance(self: CharacterDriver, seconds: number): boolean
     self.time += seconds
 
-    local offset = math.sin(self.time * self.speed.value) * 60
+    -- Calculate position based on time
+    local offset = math.sin(self.time * self.speed) * 60
+
+    -- Write to ViewModel (two-way binding!)
     self.character.x.value = offset
     self.character.y.value = 0
 
@@ -152,11 +280,40 @@ return function(): Node<CharacterDriver>
         init = init,
         advance = advance,
         draw = draw,
-        character = late(),
+        character = late(),  -- ViewModel assigned in editor
         speed = 1.5,
         time = 0,
     }
 end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+// ViewModel is like a shared state object (Redux store, React Context)
+
+interface Character {
+    x: number;
+    y: number;
+}
+
+class CharacterDriver {
+    character: Character;  // Shared reference
+    speed: number = 1.5;
+    time: number = 0;
+
+    constructor(characterRef: Character) {
+        this.character = characterRef;  // Bind to external state
+    }
+
+    advance(deltaTime: number) {
+        this.time += deltaTime;
+        const offset = Math.sin(this.time * this.speed) * 60;
+
+        // Write to shared state - other components see this!
+        this.character.x = offset;
+        this.character.y = 0;
+    }
+}
 ```
 
 **Editor setup:**
@@ -172,7 +329,26 @@ Use `late()` for inputs that will be assigned in the editor. This tells the type
 
 ### Exercise 3: Access the Main ViewModel via Context
 
-**Goal**: Read and listen to the artboard's main ViewModel directly.
+:::info Goal
+Read and listen to the artboard's main ViewModel directly using `context`.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might read from a master composition's properties. Rive's Context gives you access to the artboard's bound ViewModel—the "root" data for the entire animation. This is how you access global state that's set from the runtime.
+
+**Real-World Use**: The runtime (your app) sets ViewModel values, and all scripts can read them. A "score" property in the main ViewModel can be displayed by a text script, trigger animations, and update UI—all from one source of truth.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a ViewModel with a `score` number property
+2. Bind it to your artboard (select artboard → ViewModel dropdown)
+3. Create a Node script with the code below
+4. Run—it reads the score and logs when it changes
+5. Use the runtime API to change score and watch the listener fire
+
+</details>
 
 ```lua
 --!strict
@@ -180,18 +356,24 @@ Use `late()` for inputs that will be assigned in the editor. This tells the type
 export type MainVMReader = {}
 
 function init(self: MainVMReader, context: Context): boolean
+    -- Get the ViewModel bound to this artboard
     local vm = context:viewModel()
     if not vm then
         print("No ViewModel bound to the main artboard.")
         return true
     end
 
+    -- Get a specific property
     local score = vm:getNumber("score")
     if score then
-        print(`Score: {score.value}`)
+        print(`Initial Score: {score.value}`)
+
+        -- Add a listener for changes (reactive programming!)
         score:addListener(function()
-            print(`Score changed: {score.value}`)
+            print(`Score changed to: {score.value}`)
         end)
+    else
+        print("No 'score' property found in ViewModel")
     end
 
     return true
@@ -208,20 +390,204 @@ return function(): Node<MainVMReader>
 end
 ```
 
+```typescript
+// JavaScript/TypeScript equivalent with observable pattern:
+
+class MainVMReader {
+    constructor(viewModel: ViewModel) {
+        if (!viewModel) {
+            console.log("No ViewModel bound");
+            return;
+        }
+
+        const score = viewModel.getProperty<number>("score");
+        if (score) {
+            console.log(`Initial Score: ${score.value}`);
+
+            // Subscribe to changes (like RxJS or MobX)
+            score.subscribe((newValue) => {
+                console.log(`Score changed to: ${newValue}`);
+            });
+        }
+    }
+}
+```
+
 **Key points:**
 - `context:viewModel()` returns the ViewModel bound to the artboard
 - Use `getNumber()`, `getString()`, `getBoolean()`, etc. to access properties
-- `addListener()` lets you react to external changes
+- `addListener()` lets you react to external changes (from runtime or other scripts)
 
 ---
 
 ## When to Use Each Approach
 
-| Approach | Use When |
-|----------|----------|
-| Script Inputs | Per-instance configuration (each script instance can have different values) |
-| `context:viewModel()` | Global data shared across all scripts |
-| `late()` | Editor-assigned references (ViewModels, other nodes) |
+| Approach | Use When | AE/JS Mental Model |
+|----------|----------|-------------------|
+| Script Inputs (`Input<T>`) | Per-instance configuration (each script instance can have different values) | Component props |
+| `context:viewModel()` | Global data shared across all scripts | Redux store / React Context |
+| `late()` | Editor-assigned references (ViewModels, other nodes) | Dependency injection |
+| `addListener()` | Reactive updates to external changes | Event subscription / Observable |
+
+---
+
+### Exercise 4: Combined Input Pattern
+
+:::info Goal
+Build a script that uses both regular inputs AND ViewModel data.
+:::
+
+:::tip Why This Matters
+**After Effects comparison**: In AE, you might have a slider control (per-instance) and also read from a master composition (global). This exercise shows the same pattern in Rive: some data is per-instance (inputs), some is global (ViewModel).
+
+**Real-World Use**: A health bar might have per-instance styling inputs (color, size) but read the actual health value from a shared ViewModel that multiple systems update.
+:::
+
+<details>
+<summary>Step-by-Step Setup</summary>
+
+1. Create a ViewModel with `health` (number, default 100)
+2. Bind it to your artboard
+3. Create a Node script with the code below
+4. The `width` and `healthyColor`/`damagedColor` are per-instance inputs
+5. The `health` value comes from the shared ViewModel
+
+</details>
+
+```lua
+--!strict
+
+export type HealthBar = {
+    width: Input<number>,
+    height: Input<number>,
+    healthyColor: Input<Color>,
+    damagedColor: Input<Color>,
+    currentHealth: number,
+    maxHealth: number,
+    path: Path,
+    bgPath: Path,
+    paint: Paint,
+    bgPaint: Paint,
+}
+
+local function rebuildPaths(self: HealthBar)
+    local w = self.width
+    local h = self.height
+    local healthPercent = self.currentHealth / self.maxHealth
+    local filledWidth = w * healthPercent
+
+    -- Background (full width)
+    self.bgPath:reset()
+    self.bgPath:moveTo(Vector.xy(0, 0))
+    self.bgPath:lineTo(Vector.xy(w, 0))
+    self.bgPath:lineTo(Vector.xy(w, h))
+    self.bgPath:lineTo(Vector.xy(0, h))
+    self.bgPath:close()
+
+    -- Foreground (health amount)
+    self.path:reset()
+    self.path:moveTo(Vector.xy(0, 0))
+    self.path:lineTo(Vector.xy(filledWidth, 0))
+    self.path:lineTo(Vector.xy(filledWidth, h))
+    self.path:lineTo(Vector.xy(0, h))
+    self.path:close()
+
+    -- Color based on health
+    if healthPercent > 0.5 then
+        self.paint.color = self.healthyColor
+    else
+        self.paint.color = self.damagedColor
+    end
+end
+
+function init(self: HealthBar, context: Context): boolean
+    self.maxHealth = 100
+    self.currentHealth = 100
+    self.path = Path.new()
+    self.bgPath = Path.new()
+    self.paint = Paint.with({ style = "fill", color = self.healthyColor })
+    self.bgPaint = Paint.with({ style = "fill", color = Color.rgb(50, 50, 50) })
+
+    -- Connect to ViewModel for health data
+    local vm = context:viewModel()
+    if vm then
+        local health = vm:getNumber("health")
+        if health then
+            self.currentHealth = health.value
+
+            health:addListener(function()
+                self.currentHealth = health.value
+                rebuildPaths(self)
+                print(`Health updated: {self.currentHealth}`)
+            end)
+        end
+    end
+
+    rebuildPaths(self)
+    return true
+end
+
+function update(self: HealthBar)
+    -- Rebuild when per-instance inputs change
+    rebuildPaths(self)
+end
+
+function draw(self: HealthBar, renderer: Renderer)
+    renderer:drawPath(self.bgPath, self.bgPaint)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<HealthBar>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        width = 200,
+        height = 20,
+        healthyColor = Color.rgb(80, 200, 80),
+        damagedColor = Color.rgb(200, 80, 80),
+        currentHealth = 100,
+        maxHealth = 100,
+        path = late(),
+        bgPath = late(),
+        paint = late(),
+        bgPaint = late(),
+    }
+end
+```
+
+```typescript
+// JavaScript/TypeScript mental model:
+// Combines props (per-instance) with global state
+
+interface HealthBarProps {
+    width: number;
+    height: number;
+    healthyColor: Color;
+    damagedColor: Color;
+}
+
+class HealthBar {
+    // Per-instance props (like Rive inputs)
+    props: HealthBarProps;
+
+    // Subscribed to global state (like ViewModel)
+    currentHealth: number;
+    maxHealth: number;
+
+    constructor(props: HealthBarProps, healthStore: HealthStore) {
+        this.props = props;
+        this.maxHealth = 100;
+        this.currentHealth = healthStore.health;
+
+        // Subscribe to global state changes
+        healthStore.subscribe((newHealth) => {
+            this.currentHealth = newHealth;
+            this.rebuild();
+        });
+    }
+}
+```
 
 ---
 
@@ -231,12 +597,12 @@ end
   question="How do you read the value of an Input in a Node script?"
   id="inputs-q1"
   options={[
-    { text: "self.size" },
-    { text: "self.size.value", correct: true },
+    { text: "self.size", correct: true },
+    { text: "self.size.value" },
     { text: "self.size()" },
     { text: "self.size:get()" },
   ]}
-  explanation="Inputs wrap their value in a container. Access the actual value using the .value property."
+  explanation="Inputs are read directly in this version of Rive scripting (e.g., self.size)."
 />
 
 <Quiz
@@ -277,6 +643,70 @@ end
 
 ---
 
+## Common Mistakes
+
+### 1. Using `.value` on Inputs
+
+```lua
+-- WRONG: .value does not exist on inputs here
+local half = self.size.value / 2
+
+-- CORRECT: Read the input directly
+local half = self.size / 2
+```
+
+### 2. Using Regular Values Instead of late() for ViewModel Inputs
+
+```lua
+-- WRONG: ViewModel reference needs late()
+return function(): Node<MyNode>
+    return {
+        character = nil,  -- Won't work!
+    }
+end
+
+-- CORRECT: Use late() for editor-assigned inputs
+return function(): Node<MyNode>
+    return {
+        character = late(),
+    }
+end
+```
+
+### 3. Trying to Set Input Values in Scripts
+
+```lua
+-- WRONG: Inputs are read-only
+function advance(self: MyNode, seconds: number): boolean
+    self.size = 100  -- ERROR: Cannot set Input value
+    return true
+end
+
+-- CORRECT: Read Input values, write to regular properties or ViewModel
+function advance(self: MyNode, seconds: number): boolean
+    local currentSize = self.size  -- Read
+    self.computedSize = currentSize * 2   -- Write to regular property
+    return true
+end
+```
+
+### 4. Rebuilding in advance() Instead of update()
+
+```lua
+-- WRONG: Rebuilding every frame even when inputs haven't changed
+function advance(self: MyNode, seconds: number): boolean
+    rebuild(self)  -- Wasteful!
+    return true
+end
+
+-- CORRECT: Rebuild only when inputs change
+function update(self: MyNode)
+    rebuild(self)  -- Called only when inputs change
+end
+```
+
+---
+
 ## Rive Takeaway
 
 Use **inputs** for per-instance tuning (each script instance can have different values) and use **`context:viewModel()`** for global data shared across all scripts in the artboard.
@@ -285,4 +715,4 @@ Use **inputs** for per-instance tuning (each script instance can have different 
 
 ## Next Up
 
-**[Protocols Overview (Lifecycle) →](./protocols)**
+**[Node Protocol →](./node-protocol)**

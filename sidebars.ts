@@ -14,6 +14,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/welcome',
         'getting-started/why-luau',
+        'getting-started/how-rive-scripts-work',
       ],
     },
     {
@@ -100,9 +101,26 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
-      type: 'doc',
-      id: 'api-reference',
+      type: 'category',
       label: '📚 API Reference',
+      link: {
+        type: 'generated-index',
+        title: 'API Reference',
+        description: 'Complete Rive Luau API documentation.',
+      },
+      items: [
+        'api/core-types',
+        'api/drawing',
+        'api/scene',
+        'api/data-input',
+        'api/events',
+        'api/assets',
+        'api/path-effects',
+        'api/data-values',
+        'api/styling',
+        'api/hierarchy',
+        'api/system',
+      ],
     },
     {
       type: 'doc',

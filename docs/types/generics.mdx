@@ -17,6 +17,28 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
+## AE/JS Syntax Comparison
+
+If you're coming from TypeScript, Luau generics will feel very familiar:
+
+| Concept | TypeScript | Luau (Rive) | Notes |
+|---------|-----------|-------------|-------|
+| Generic function | `function foo<T>(x: T): T` | `function foo<T>(x: T): T` | Same syntax! |
+| Generic type | `type Box<T> = { value: T }` | `type Box<T> = { value: T }` | Same syntax! |
+| Multiple type params | `<A, B>` | `<A, B>` | Same syntax! |
+| Constraint | `<T extends Foo>` | Not supported | Luau lacks constraints |
+| Default type | `<T = string>` | Not supported | Luau lacks defaults |
+| Intersection | `A & B` | `A & B` | Same syntax! |
+
+:::tip If You Know TypeScript
+Luau generics work almost identically to TypeScript generics. The main differences:
+- No generic constraints (`<T extends Foo>`)
+- No default type parameters (`<T = string>`)
+- The `<T>` must appear before the parameter list: `function foo<T>(...)` not `const foo = <T>(...)`
+:::
+
+---
+
 ## Rive Context
 
 Rive uses generics heavily throughout its API:
@@ -24,7 +46,10 @@ Rive uses generics heavily throughout its API:
 - `Input<T>` exposes values to the editor
 - `Artboard<Data.X>` and `Input<Artboard<Data.X>>` are used for dynamic instantiation
 
-Understanding generics is essential for working with Rive's type system effectively.
+**Why does this matter?** Understanding generics lets you:
+1. Read Rive's API signatures correctly
+2. Create reusable utility functions
+3. Build type-safe data structures
 
 ---
 
@@ -43,7 +68,19 @@ You write one generic function:
 function getFirst<T>(arr: {T}): T? ... end
 ```
 
-The `<T>` is a **type parameter** - a placeholder that gets filled in when you use the function.
+The `<T>` is a **type parameter**—a placeholder that gets filled in when you use the function.
+
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript - identical concept
+function getFirst<T>(arr: T[]): T | undefined {
+    return arr[0];
+}
+
+// When called, T is inferred from the argument:
+getFirst(["a", "b"]);  // T = string
+getFirst([1, 2, 3]);   // T = number
+```
 
 ---
 
@@ -75,6 +112,18 @@ Artboard<Data.MyViewModel>
 ## Practice Exercises
 
 ### Exercise 1: Generic Functions Basics
+
+**Goal:** Write functions that work with any type while maintaining type safety.
+
+**Why This Matters:** Without generics, you'd write `getFirstString`, `getFirstNumber`, `getFirstEnemy`... With generics, you write ONE function that works for ALL types.
+
+**Real-World Use:** Utility functions (get first, get last, wrap value), data structure operations (push, pop, peek), safe access patterns (default if nil).
+
+**Step-by-Step Setup:**
+1. Create a new Node Script in Rive
+2. Add `--!strict` at the top
+3. Define generic functions using `<T>` syntax
+4. Call them with different types to see type inference in action
 
 **Task**: Implement these generic functions:
 
@@ -163,9 +212,31 @@ Default result: default
 Actual result: actual
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+function getFirst<T>(arr: T[]): T | undefined {
+    return arr.length > 0 ? arr[0] : undefined;
+}
+
+function defaultIfNil<T>(value: T | null, defaultVal: T): T {
+    return value !== null ? value : defaultVal;
+}
+```
+
 ---
 
 ### Exercise 2: Generic Type Aliases
+
+**Goal:** Create reusable type structures that work with any inner type.
+
+**Why This Matters:** A `Box<string>` and `Box<number>` share the same structure but hold different types. Generic types let you define the structure once.
+
+**Real-World Use:** Result types (success/error), container types (stack, queue), wrapper types (observable, cached).
+
+**Step-by-Step Setup:**
+1. Define generic types with `<T>` or `<T, E>` syntax
+2. Create instances by specifying the concrete type
+3. Write functions that operate on generic types
 
 **Task**: Create and use generic type aliases:
 
@@ -265,9 +336,44 @@ return function(): Node<GenericTypes>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript generic types
+type Box<T> = {
+    value: T;
+    label: string;
+};
+
+type Result<T, E> = {
+    success: boolean;
+    value?: T;
+    error?: E;
+};
+
+type Pair<A, B> = {
+    first: A;
+    second: B;
+};
+
+// Usage
+const numberBox: Box<number> = { value: 42, label: "Answer" };
+const stringBox: Box<string> = { value: "Hello", label: "Greeting" };
+```
+
 ---
 
 ### Exercise 3: Understanding Rive's Generic Types
+
+**Goal:** Understand how Rive uses generics in its API, especially `Input<T>` and `Node<T>`.
+
+**Why This Matters:** Every Rive script uses `Node<T>` and most use `Input<T>`. Understanding these generics helps you read and write Rive code correctly.
+
+**Real-World Use:** Every single Rive Node Script uses these patterns. This is fundamental knowledge.
+
+**Step-by-Step Setup:**
+1. Look at the `export type` with `Input<T>` properties
+2. Understand that inputs are read directly (you get the `T`)
+3. See how `Node<T>` wraps your script type in the factory
 
 **Context**: Rive uses generics extensively. Understanding them helps you use the API correctly.
 
@@ -290,13 +396,11 @@ export type RiveGenerics = {
 }
 
 function init(self: RiveGenerics): boolean
-    -- Accessing generic Input values
-    -- All use .value, but the TYPE of .value differs
-
-    local speedValue: number = self.speed.value       -- number
-    local nameValue: string = self.playerName.value   -- string
-    local activeValue: boolean = self.isActive.value  -- boolean
-    local colorValue: Color = self.tint.value         -- Color
+    -- Accessing generic Input values directly
+    local speedValue: number = self.speed       -- number
+    local nameValue: string = self.playerName   -- string
+    local activeValue: boolean = self.isActive  -- boolean
+    local colorValue: Color = self.tint         -- Color
 
     print(`Speed (number): {speedValue}`)
     print(`Name (string): {nameValue}`)
@@ -306,7 +410,7 @@ function init(self: RiveGenerics): boolean
     -- Initialize non-generic types
     self.myPath = Path.new()
     self.myPaint = Paint.new()
-    self.myPaint.color = self.tint.value  -- Use the Input value
+    self.myPaint.color = self.tint  -- Use the Input value
 
     return true
 end
@@ -333,21 +437,24 @@ return function(): Node<RiveGenerics>
 end
 ```
 
-**Key Questions:**
-1. What is the type of `self.speed` vs `self.speed.value`?
-   - `self.speed` is `Input<number>`
-   - `self.speed.value` is `number`
+**Key Questions Answered:**
 
-2. Why do some properties use `late()` and others have direct values?
-   - Direct values: For inputs that have a known default
-   - `late()`: For objects that must be created in `init()`
-
-3. What does `Node<RiveGenerics>` mean?
-   - It tells Rive that this Node script has the properties defined in `RiveGenerics`
+| Question | Answer |
+|----------|--------|
+| What is `self.speed`? | An editor-exposed input value (read as a `number`) |
+| What is `self.speed.value`? | Not used in this course (inputs are read directly) |
+| Why `late()` for some properties? | They're created in `init()`, not the factory |
+| What does `Node<RiveGenerics>` mean? | The Node script has `RiveGenerics` properties |
 
 ---
 
 ### Exercise 4: Generic Cache System
+
+**Goal:** Build a practical, type-safe generic data structure.
+
+**Why This Matters:** Caches, pools, and registries are common in game development. Generic types let you build one cache that works for any value type.
+
+**Real-World Use:** Animation caches, asset pools, memoization, computed value storage.
 
 **Task**: Build a type-safe generic cache:
 
@@ -431,6 +538,18 @@ end
 ---
 
 ### Exercise 5: Intersection Types
+
+**Goal:** Combine multiple types into one using the `&` operator.
+
+**Why This Matters:** Intersection types let you compose behaviors. An object can be `Named & Positioned & Drawable`—having all properties from all three types.
+
+**Real-World Use:** Game entity systems, component composition, mixin patterns.
+
+**Step-by-Step Setup:**
+1. Define small, focused types
+2. Combine them with `&`
+3. Create objects that satisfy the combined type
+4. Write functions that accept specific combinations
 
 **Context**: Intersection types (`&`) combine multiple types into one. The result must satisfy ALL combined types.
 
@@ -526,9 +645,30 @@ return function(): Node<IntersectionDemo>
 end
 ```
 
+**JavaScript/TypeScript Equivalent:**
+```typescript
+// TypeScript intersection types - identical concept
+type Named = { name: string };
+type Positioned = { x: number; y: number };
+
+type NamedPosition = Named & Positioned;
+
+const obj: NamedPosition = {
+    name: "Point",
+    x: 10,
+    y: 20,
+};
+```
+
 ---
 
 ### Exercise 6: Entity System
+
+**Goal:** Build a complete entity system using generics and composition.
+
+**Why This Matters:** This exercise combines everything: generic types, intersection types, and factory functions. It's a realistic example of how professional game code is structured.
+
+**Real-World Use:** Every game with multiple entity types (players, enemies, items, projectiles) benefits from this pattern.
 
 **Task**: Build a mini entity system using all type features:
 
@@ -681,11 +821,11 @@ end
   id="gen-q2"
   options={[
     { text: "They're the same" },
-    { text: "Input<number> is a wrapper that provides .value property and change tracking", correct: true },
+    { text: "Input<number> is an editor-exposed, read-only input value", correct: true },
     { text: "Input<number> is faster" },
     { text: "number can't be used in Rive" },
   ]}
-  explanation="Input<T> is a Rive wrapper type that provides the actual value via .value property, plus change listeners and editor integration."
+  explanation="Input<T> values are controlled by the editor and are read-only in scripts, even though you read them directly."
 />
 
 <Quiz
@@ -716,10 +856,44 @@ end
 
 ## Common Mistakes
 
-1. **Forgetting the `<T>` in function definition**: `function foo<T>(x: T)` not `function foo(x: T)`
-2. **Confusing union and intersection**: `A | B` means "A or B", `A & B` means "A and B"
-3. **Not specifying type parameters when needed**: `local cache: Cache<string>` not `local cache: Cache`
-4. **Trying to access properties without narrowing**: Check the type before accessing union-specific properties
+:::danger Avoid These Errors
+
+1. **Forgetting the `<T>` in function definition**:
+   ```lua
+   -- WRONG: T is undefined
+   function foo(x: T): T
+
+   -- CORRECT: Declare T as a type parameter
+   function foo<T>(x: T): T
+   ```
+
+2. **Confusing union and intersection**:
+   ```lua
+   -- Union: A OR B (either type)
+   type StringOrNumber = string | number
+
+   -- Intersection: A AND B (all properties from both)
+   type NamedPosition = Named & Positioned
+   ```
+
+3. **Not specifying type parameters when needed**:
+   ```lua
+   -- WRONG: What type of elements?
+   local cache: Cache = createCache()
+
+   -- CORRECT: Specify the type parameter
+   local cache: Cache<string> = createCache()
+   ```
+
+4. **Trying to access properties without narrowing**:
+   ```lua
+   -- If you have a union, check first!
+   if type(value) == "number" then
+       -- Now you can use value as number
+   end
+   ```
+
+:::
 
 ---
 

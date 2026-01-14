@@ -1,0 +1,77 @@
+---
+sidebar_position: 11
+title: System
+description: Listener, Output, EnumValues, and Sandbox Limitations
+---
+
+# System
+
+System-level APIs and environment constraints.
+
+---
+
+## Listener
+
+Callback that observes changes on an object.
+
+### Usage
+
+Listeners are registered via `addListener` methods on various objects:
+
+```lua
+property:addListener(function()
+    print("Value changed to", property.value)
+end)
+```
+
+**See Also:** [Property](./data-input#property), [Input](./data-input#input)
+
+---
+
+## Output
+
+Represents a typed output value from a script.
+
+### Usage
+
+Outputs allow scripts to expose values to other parts of the system:
+
+```lua
+export type MyScript = {
+    result: Output<number>,
+}
+```
+
+---
+
+## EnumValues
+
+Collection of enum values.
+
+### Methods
+
+#### Length (`#`)
+
+Returns the number of enum values.
+
+```lua
+local count = #enumValues
+```
+
+**See Also:** [PropertyEnum](./data-values#propertyenum)
+
+---
+
+## Sandbox Limitations
+
+**Not available in Rive's Luau environment:**
+
+| Library | Status |
+|---------|--------|
+| `io` | Not available |
+| `os` | Partial (`os.clock()`, `os.time()`, `os.difftime()` only) |
+| `debug` | Not available |
+| `package` | Not available |
+| `loadfile`, `dofile`, `loadstring` | Not available |
+
+The `__gc` metamethod is also disabled.
