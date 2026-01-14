@@ -6,6 +6,7 @@ description: Declare variables, understand data types, and use operators in Rive
 
 import Quiz from '@site/src/components/Quiz';
 import Term from '@site/src/components/Term';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 1.1: Variables, Types & Operators
 
@@ -316,24 +317,50 @@ local msg = `{name} scored {score}!`  -- "Player scored 100!"
 
 ## Exercises
 
-### Exercise 1: Variable Declaration ⭐
+### Exercise 1: Character Stats ⭐
 
-**Goal:** Declare local variables and print them from `init`.
+### Premise
 
-**Why this matters:** Every script starts by setting up variables. This exercise ensures you understand the basics before moving on.
+Every Rive script starts by storing state. Variables are where you keep that state so you can show it in the UI, drive logic, or feed animations. If your types are wrong at the start, every later calculation or binding breaks.
 
-**Real-world use:** In a game, you'd declare character stats, position, speed, etc. In an interactive graphic, you'd declare animation progress, colors, sizes.
+:::info Goal
+By the end of this exercise, you will declare typed local variables and print a verification line from `init`.
+:::
+
+### Use Case
+
+You are building a character selection card in Rive. The card needs a name label, a level badge, experience for a progress bar, and a boolean that controls whether an ultimate icon is visible. Those values are set once on init and then drive your UI. If you mix up a type (string vs number), you cannot bind it cleanly to the artboard.
+
+**Example scenarios:**
+- Character cards with stats and unlocks
+- HUD widgets with score + status flags
 
 ---
 
-#### Step-by-Step Setup
+### Setup
 
-1. **Create a new Node Script in Rive:**
-   - Open the Rive Editor
-   - In the Assets panel, click `+` → `Script` → `Node Script`
-   - Name it "Exercise1_Variables"
+#### In Rive Editor:
 
-2. **Copy and paste this code:**
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_CharacterStats`
+
+2. **Create required elements:**
+   - Draw any shape on the artboard (this is just a node to attach to)
+
+3. **Attach the script:**
+   - Drag the script onto the shape
+
+4. **Prepare the Console:**
+   - View → Console
+   - Clear previous output
+
+5. **Run:**
+   - Press Play in the State Machine
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -341,23 +368,22 @@ local msg = `{name} scored {score}!`  -- "Player scored 100!"
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
-    -- Declare variables of different types
-    local characterName = "Warrior"   -- string
-    local level = 5                   -- number (integer)
-    local experience = 1250.5         -- number (decimal)
-    local hasShield = true            -- boolean
+    -- TODO 1: Declare a string variable 'characterName' set to "Warrior"
+    local characterName = "TODO"
+    -- TODO 2: Declare a number variable 'level' set to 5
+    local level = 0
+    -- TODO 3: Declare a number variable 'experience' set to 1250.5
+    local experience = 0
+    -- TODO 4: Declare a boolean variable 'hasUltimate' set to true
+    local hasUltimate = false
 
-    -- Print each variable to the Console
-    print(characterName)
-    print(level)
-    print(experience)
-    print(hasShield)
+    -- Validation (do not change):
+    print(`ANSWER: {characterName}, Lv.{level}, {experience}xp, ult={hasUltimate}`)
 
-    return true  -- Keep the script running
+    return true
 end
 
 function draw(self: Exercise1, renderer: Renderer)
-    -- Empty - we're not drawing anything yet
 end
 
 return function(): Node<Exercise1>
@@ -368,69 +394,100 @@ return function(): Node<Exercise1>
 end
 ```
 
-3. **Attach the script to a node:**
-   - Draw a simple rectangle on the artboard
-   - Drag the script onto the rectangle (or select the rectangle and assign the script)
+---
 
-4. **View the output:**
-   - Open the Console panel (View → Console)
-   - Press Play in the State Machine
-   - You should see the printed values
+### Assignment
 
-**Expected Console Output:**
-```
-Warrior
-5
-1250.5
-true
-```
+Complete these tasks:
+
+1. **Declare `characterName`**
+   - Type: string
+   - Value: `"Warrior"`
+
+2. **Declare `level`**
+   - Type: number
+   - Value: `5`
+
+3. **Declare `experience`**
+   - Type: number
+   - Value: `1250.5`
+
+4. **Declare `hasUltimate`**
+   - Type: boolean
+   - Value: `true`
+
+5. **Keep the validation print unchanged**
 
 ---
 
-#### Understanding the Code
+### Expected Output
 
-```lua
-local characterName = "Warrior"
-```
+Your console output should display:
+- The character name (a string)
+- The level prefixed with "Lv."
+- The experience with "xp" suffix
+- The ultimate status as "ult=true" or "ult=false"
 
-| Part | Meaning |
-|------|---------|
-| `local` | This variable only exists inside this function |
-| `characterName` | The name we chose for this variable |
-| `=` | Assignment operator (puts the value into the variable) |
-| `"Warrior"` | A string value (text in quotes) |
+All values separated by commas in the format shown in the print statement.
 
-:::note JavaScript Equivalent
-```javascript
-let characterName = "Warrior";
-let level = 5;
-let experience = 1250.5;
-let hasShield = true;
+---
 
-console.log(characterName);
-console.log(level);
-console.log(experience);
-console.log(hasShield);
-```
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-variables-1"
+    expectedAnswer="ANSWER: Warrior, Lv.5, 1250.5xp, ult=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] All four variables are declared with `local`
+- [ ] Variable names match exactly (case-sensitive)
+- [ ] `--!strict` is the first line
+- [ ] Console shows the expected `ANSWER:` line
+
+---
+
+### Exercise 2: Damage Breakdown ⭐
+
+### Premise
+
+Most Rive interactions rely on math: positions, percentages, multipliers, and progress calculations. This exercise makes you compute a small damage breakdown that mirrors the calculations you will do for UI bars or hit effects.
+
+:::info Goal
+By the end of this exercise, you will compute derived values and print a single deterministic result line.
 :::
 
----
+### Use Case
 
-### Exercise 2: Arithmetic Operations ⭐
+You are animating a combat HUD where the UI needs to display base damage, critical damage, and how much was blocked by armor. The UI labels update when a hit lands, and the damage numbers must be correct for the animation timing and visual effects to feel right. If you compute the percent wrong, your bar fill and text will disagree, which is a common bug in HUD scripts.
 
-**Goal:** Do math inside `init` and print results.
-
-**Why this matters:** Animation and games are built on math. You'll constantly calculate positions, speeds, damage, progress, etc.
-
-**Real-world use:** Calculate damage in a game, compute animation progress, convert units, determine percentages.
+**Example scenarios:**
+- Combat hit popups
+- Health bar reduction with armor
 
 ---
 
-#### Step-by-Step Setup
+### Setup
 
-1. **Create a new Node Script** named "Exercise2_Arithmetic"
+#### In Rive Editor:
 
-2. **Copy and paste:**
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_DamageBreakdown`
+
+2. **Create required elements:**
+   - Draw any shape on the artboard
+
+3. **Attach the script and run:**
+   - Drag the script onto the shape
+   - Press Play and check the Console
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -442,21 +499,15 @@ function init(self: Exercise2): boolean
     local critMultiplier = 2.5
     local armorReduction = 15
 
-    -- Calculate final damage
-    local critDamage = baseDamage * critMultiplier
-    local finalDamage = critDamage - armorReduction
+    -- TODO 1: Compute critDamage = baseDamage * critMultiplier
+    local critDamage = 0
+    -- TODO 2: Compute finalDamage = critDamage - armorReduction
+    local finalDamage = 0
+    -- TODO 3: Compute percentBlocked as an integer percent
+    --         Use math.floor(...) so the output is stable.
+    local percentBlocked = 0
 
-    -- Calculate what percentage was blocked
-    local percentBlocked = armorReduction / critDamage * 100
-
-    -- Print results using string interpolation
-    print(`Base damage: {baseDamage}`)
-    print(`Crit multiplier: {critMultiplier}x`)
-    print(`Crit damage: {critDamage}`)
-    print(`Armor reduction: {armorReduction}`)
-    print(`Final damage: {finalDamage}`)
-    print(`Percent blocked: {percentBlocked}%`)
-
+    print(`ANSWER: crit={critDamage},final={finalDamage},blocked={percentBlocked}%`)
     return true
 end
 
@@ -471,62 +522,85 @@ return function(): Node<Exercise2>
 end
 ```
 
-3. **Attach to a node and run**
+---
 
-**Expected Console Output:**
-```
-Base damage: 50
-Crit multiplier: 2.5x
-Crit damage: 125
-Armor reduction: 15
-Final damage: 110
-Percent blocked: 12%
-```
+### Assignment
+
+Complete these tasks:
+
+1. **Calculate critical damage**
+   - `critDamage = baseDamage * critMultiplier`
+
+2. **Calculate final damage**
+   - `finalDamage = critDamage - armorReduction`
+
+3. **Calculate blocked percent**
+   - `percentBlocked = math.floor(armorReduction / critDamage * 100)`
+
+4. **Keep the validation print unchanged**
 
 ---
 
-#### Understanding the Code
+### Expected Output
 
-```lua
-local critDamage = baseDamage * critMultiplier
-```
+Your console output should show three computed values:
+- Critical damage (base damage × crit multiplier)
+- Final damage (critical damage − armor)
+- Percentage blocked (armor as % of critical damage, floored to integer)
 
-This multiplies `baseDamage` (50) by `critMultiplier` (2.5) to get 125.
+---
 
-```lua
-print(`Percent blocked: {percentBlocked}%`)
-```
+### Verify Your Answer
 
-The backticks (`` ` ``) create an **interpolated string**. Anything inside `{}` is evaluated and inserted into the string.
+<ExerciseValidator
+    exerciseId="fundamentals-variables-2"
+    expectedAnswer="ANSWER: crit=125,final=110,blocked=12%"
+/>
 
-:::note JavaScript Equivalent
-```javascript
-const baseDamage = 50;
-const critMultiplier = 2.5;
-const armorReduction = 15;
+---
 
-const critDamage = baseDamage * critMultiplier;
-const finalDamage = critDamage - armorReduction;
-const percentBlocked = (armorReduction / critDamage) * 100;
+### Checklist
 
-console.log(`Final damage: ${finalDamage}`);
-console.log(`Percent blocked: ${percentBlocked}%`);
-```
+- [ ] `critDamage` uses multiplication, not hard-coded values
+- [ ] `percentBlocked` uses math.floor to avoid decimals
+- [ ] Console shows the exact `ANSWER:` line
+
+---
+
+### Exercise 3: Score Updates ⭐
+
+### Premise
+
+Live UI elements update values constantly. Compound assignment operators make those updates readable and less error-prone, which matters when you are adjusting values every frame.
+
+:::info Goal
+By the end of this exercise, you will update a value using `+=`, `*=`, `-=`, and `//=` and confirm the result.
 :::
 
----
+### Use Case
 
-### Exercise 3: Compound Assignments ⭐
+Imagine a score counter that increments on pickups, doubles during a combo, loses points on a penalty, and then snaps to a tiered value for ranking. Each of those updates is a small step that should be expressed clearly. Compound operators let you express those steps without repeating the variable name.
 
-**Goal:** Practice `+=`, `-=`, `*=`, and `//=` for numeric updates.
-
-**Why this matters:** In animation and games, you constantly update values incrementally. Compound operators make this clean and readable.
-
-**Real-world use:** Increment score, decrease health, scale size, update position.
+**Example scenarios:**
+- Score counters with multipliers
+- Resource totals that tick up and down
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_ScoreUpdates`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -536,22 +610,12 @@ export type Exercise3 = {}
 function init(self: Exercise3): boolean
     local score = 100
 
-    -- Add 50 to score
-    score += 50
-    print(`After +50: {score}`)  -- 150
+    -- TODO 1: Add 50 using +=
+    -- TODO 2: Multiply by 2 using *=
+    -- TODO 3: Subtract 75 using -=
+    -- TODO 4: Floor-divide by 3 using //=
 
-    -- Multiply by 2
-    score *= 2
-    print(`After *2: {score}`)   -- 300
-
-    -- Subtract 75
-    score -= 75
-    print(`After -75: {score}`)  -- 225
-
-    -- Floor divide by 3 (rounds down)
-    score //= 3
-    print(`After //3: {score}`)  -- 75
-
+    print(`ANSWER: {score}`)
     return true
 end
 
@@ -566,46 +630,82 @@ return function(): Node<Exercise3>
 end
 ```
 
-**Expected Console Output:**
-```
-After +50: 150
-After *2: 300
-After -75: 225
-After //3: 75
-```
+---
+
+### Assignment
+
+Complete these tasks in order:
+
+1. Use `score += 50`
+2. Use `score *= 2`
+3. Use `score -= 75`
+4. Use `score //= 3`
 
 ---
 
-#### Understanding Compound Assignment
+### Expected Output
 
-| Expression | Equivalent To | Result |
-|------------|---------------|--------|
-| `score += 50` | `score = score + 50` | 100 → 150 |
-| `score *= 2` | `score = score * 2` | 150 → 300 |
-| `score -= 75` | `score = score - 75` | 300 → 225 |
-| `score //= 3` | `score = score // 3` | 225 → 75 |
+Your console output should display the final score after applying all four compound operations in sequence. The operations should be:
+- Addition of 50
+- Multiplication by 2
+- Subtraction of 75
+- Floor division by 3
 
-:::note Floor Division
-`//` is **floor division** — it divides and rounds DOWN to the nearest integer.
+The result will be an integer.
 
-- `225 / 3 = 75.0` (regular division)
-- `225 // 3 = 75` (floor division)
-- `226 // 3 = 75` (not 75.33, rounds down!)
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-variables-3"
+    expectedAnswer="ANSWER: 75"
+/>
+
+---
+
+### Checklist
+
+- [ ] All four compound operators are used
+- [ ] The order of operations matches the assignment
+- [ ] Console shows `ANSWER: 75`
+
+---
+
+### Exercise 4: Status Line Formatting ⭐⭐
+
+### Premise
+
+You will constantly format text for labels, debug output, and status banners in Rive. String interpolation keeps those lines readable and avoids messy concatenation.
+
+:::info Goal
+By the end of this exercise, you will build a formatted status line using interpolation and simple calculations.
 :::
 
----
+### Use Case
 
-### Exercise 4: String Interpolation ⭐⭐
+You are building a player status readout that appears in a corner HUD. It shows the character name, gold, active quests, and total play time in hours. This text is updated by the script and drives a Text Run or debug log.
 
-**Goal:** Use Luau string interpolation to format output.
-
-**Why this matters:** Clear, formatted output helps you debug and verify your code is working correctly.
-
-**Real-world use:** Create dynamic text displays, debug output, formatted logs.
+**Example scenarios:**
+- Debug overlays for UI state
+- HUD labels built from multiple fields
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_StatusLine`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -614,26 +714,17 @@ export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
     local playerName = "Shadowblade"
-    local goldCollected = 250
-    local enemiesDefeated = 12
-    local timePlayed = 45.7
+    local gold = 250
+    local quests = 3
+    local minutesPlayed = 90
 
-    -- Simple interpolation
-    print(`Player: {playerName}`)
+    -- TODO 1: Compute hoursPlayed from minutesPlayed
+    local hoursPlayed = 0
+    -- TODO 2: Build the status line using interpolation
+    --         Format: "<name> | gold=<gold> | quests=<quests> | hours=<hours>"
+    local statusLine = ""
 
-    -- Multiple values in one string
-    print(`Gold: {goldCollected} | Enemies: {enemiesDefeated}`)
-
-    -- Expressions inside braces
-    print(`Time: {timePlayed} minutes ({timePlayed / 60} hours)`)
-
-    -- Building complex output
-    print("---Player Stats---")
-    print(`  Name: {playerName}`)
-    print(`  Gold: {goldCollected}`)
-    print(`  Kills: {enemiesDefeated}`)
-    print(`  Hours: {timePlayed / 60}`)
-
+    print(`ANSWER: {statusLine}`)
     return true
 end
 
@@ -648,51 +739,87 @@ return function(): Node<Exercise4>
 end
 ```
 
-**Expected Console Output:**
-```
-Player: Shadowblade
-Gold: 250 | Enemies: 12
-Time: 45.7 minutes (0.7616666666666667 hours)
----Player Stats---
-  Name: Shadowblade
-  Gold: 250
-  Kills: 12
-  Hours: 0.7616666666666667
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. **Compute hours**
+   - `hoursPlayed = minutesPlayed / 60`
+   - With 90 minutes, hours should be `1.5`
+
+2. **Create `statusLine`**
+   - Use backticks and `{}` interpolation
+   - Match the exact formatting in the comment
+
+3. **Keep the validation print unchanged**
 
 ---
 
-#### String Interpolation Syntax
+### Expected Output
 
-```lua
-`Text {expression} more text`
-```
+Your console output should display a formatted status line with:
+- The player name
+- Gold amount prefixed with "gold="
+- Quest count prefixed with "quests="
+- Hours played (as a decimal) prefixed with "hours="
 
-- Use **backticks** (`` ` ``) not regular quotes
-- Put variables or expressions inside `{}`
-- The expression is evaluated and converted to a string
+All sections separated by " | " (space-pipe-space).
 
-:::note JavaScript Comparison
-| Luau | JavaScript |
-|------|------------|
-| `` `Hello {name}` `` | `` `Hello ${name}` `` |
+---
 
-**Key difference:** Luau uses just `{}`, JavaScript uses `${}`.
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-variables-4"
+    expectedAnswer="ANSWER: Shadowblade | gold=250 | quests=3 | hours=1.5"
+/>
+
+---
+
+### Checklist
+
+- [ ] Interpolation uses backticks, not quotes
+- [ ] `hoursPlayed` equals 1.5
+- [ ] Output formatting matches exactly
+
+---
+
+### Exercise 5: Heal Logic ⭐⭐
+
+### Premise
+
+Boolean logic is what turns state into decisions. In Rive, those decisions often drive which animation state plays or whether a visual change is allowed.
+
+:::info Goal
+By the end of this exercise, you will combine `and`, `or`, and `not` to derive game-style conditions.
 :::
 
----
+### Use Case
 
-### Exercise 5: Logical Operators ⭐⭐
+You are building a healing interaction for a UI-based game animation. The heal button should only light up if the character is low on health, has a potion, and is not stunned. A critical warning should appear if health is extremely low. These two booleans would typically control visibility or opacity in the artboard.
 
-**Goal:** Use boolean logic to compute game conditions.
-
-**Why this matters:** Games and interactive graphics are full of conditions. "Can the player attack?" depends on multiple factors.
-
-**Real-world use:** Check if actions are allowed, determine animation states, trigger events.
+**Example scenarios:**
+- Button enable/disable logic
+- Critical health warning states
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_HealLogic`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -705,26 +832,16 @@ function init(self: Exercise5): boolean
     local hasPotion = true
     local stunned = false
 
-    -- Individual conditions
-    local isLowHealth = health <= 30
-    local healthPercent = health / maxHealth
+    -- TODO 1: isLowHealth should be true when health <= 30
+    local isLowHealth = false
+    -- TODO 2: healthPercent should be health / maxHealth
+    local healthPercent = 0
+    -- TODO 3: canHeal should be true only if low health, has potion, and not stunned
+    local canHeal = false
+    -- TODO 4: isCritical should be true if health <= 10 OR healthPercent <= 0.1
+    local isCritical = false
 
-    -- Combined conditions with AND
-    -- Can heal only if: low health AND has potion AND not stunned
-    local canHeal = isLowHealth and hasPotion and not stunned
-
-    -- Combined conditions with OR
-    -- Critical state if: health <= 10 OR health percent <= 10%
-    local isCritical = health <= 10 or healthPercent <= 0.1
-
-    -- Print all results
-    print(`Health: {health}/{maxHealth} ({healthPercent * 100}%)`)
-    print(`Low health (<=30): {isLowHealth}`)
-    print(`Has potion: {hasPotion}`)
-    print(`Stunned: {stunned}`)
-    print(`Can heal: {canHeal}`)
-    print(`Critical: {isCritical}`)
-
+    print(`ANSWER: low={isLowHealth}, heal={canHeal}, critical={isCritical}`)
     return true
 end
 
@@ -739,42 +856,44 @@ return function(): Node<Exercise5>
 end
 ```
 
-**Expected Console Output:**
-```
-Health: 25/100 (25%)
-Low health (<=30): true
-Has potion: true
-Stunned: false
-Can heal: true
-Critical: false
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Compute `isLowHealth`
+2. Compute `healthPercent`
+3. Compute `canHeal` using `and` + `not`
+4. Compute `isCritical` using `or`
 
 ---
 
-#### Understanding Logical Operators
+### Expected Output
 
-| Operator | Meaning | Example |
-|----------|---------|---------|
-| `and` | Both must be true | `true and true` → `true` |
-| `or` | At least one true | `false or true` → `true` |
-| `not` | Inverts the value | `not true` → `false` |
+Your console output should display three boolean values:
+- `low=` — whether health is at or below the low threshold
+- `heal=` — whether all healing conditions are met (low health AND has potion AND not stunned)
+- `critical=` — whether either critical condition is triggered
 
-```lua
-local canHeal = isLowHealth and hasPotion and not stunned
-```
+Each value will be `true` or `false` based on the given stats.
 
-This is `true` only if ALL of these are true:
-- `isLowHealth` is `true`
-- `hasPotion` is `true`
-- `stunned` is `false` (because `not false` is `true`)
+---
 
-:::note JavaScript Comparison
-```javascript
-// JavaScript equivalent
-const canHeal = isLowHealth && hasPotion && !stunned;
-const isCritical = health <= 10 || healthPercent <= 0.1;
-```
-:::
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-variables-5"
+    expectedAnswer="ANSWER: low=true, heal=true, critical=false"
+/>
+
+---
+
+### Checklist
+
+- [ ] `canHeal` uses all three conditions
+- [ ] `isCritical` uses `or` with the percent check
+- [ ] Console shows the exact `ANSWER:` line
 
 ---
 

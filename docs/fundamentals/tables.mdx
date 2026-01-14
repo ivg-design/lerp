@@ -6,6 +6,7 @@ description: Arrays, dictionaries, and data structures in Rive Node Scripts
 
 import Quiz from '@site/src/components/Quiz';
 import Term from '@site/src/components/Term';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 1.4: Tables
 
@@ -452,25 +453,40 @@ local copy = table.clone(original)
 
 ## Exercises
 
-### Exercise 1: Arrays - Inventory System ⭐
+### Exercise 1: Array Basics ⭐
 
-**Goal:** Practice array operations with a game inventory.
+### Premise
 
-**Why this matters:** Game inventories are arrays. You add items, remove items, check what's there.
+Arrays are the most common way to store ordered data in Rive scripts. They power lists of points, particles, and UI elements.
 
-**Real-world use:** Inventory management, particle systems, enemy lists, waypoints.
+:::info Goal
+By the end of this exercise, you will build an array and compute a sum from it.
+:::
+
+### Use Case
+
+You are storing three keyframe values and need their total. This is a small version of summing a list of positions or values for a chart.
+
+**Example scenarios:**
+- Summing values for a bar chart
+- Computing a total from a list of inputs
 
 ---
 
-#### Step-by-Step Setup
+### Setup
 
-1. **Create a new Node Script** named "Exercise1_Inventory"
+#### In Rive Editor:
 
-2. **Copy and paste:**
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_ArrayBasics`
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Expected result:** The Console logs inventory changes as items are added, removed, and searched.
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -478,49 +494,12 @@ local copy = table.clone(original)
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
-    -- Create inventory array
-    local inventory: {string} = {"Sword", "Shield", "Potion"}
+    -- TODO 1: Create an array with values 10, 20, 30
+    local values = {}
+    -- TODO 2: Sum the three values into total
+    local total = 0
 
-    print("=== Initial Inventory ===")
-    print(`Items: {#inventory}`)
-    for i, item in ipairs(inventory) do
-        print(`  Slot {i}: {item}`)
-    end
-
-    print("\n=== Adding Items ===")
-    -- Add to end
-    table.insert(inventory, "Helmet")
-    print(`Added Helmet at end`)
-
-    -- Add at specific position
-    table.insert(inventory, 2, "Armor")
-    print(`Added Armor at position 2`)
-
-    for i, item in ipairs(inventory) do
-        print(`  Slot {i}: {item}`)
-    end
-
-    print("\n=== Removing Items ===")
-    -- Remove last item
-    local removed = table.remove(inventory)
-    print(`Removed from end: {removed}`)
-
-    -- Remove at position
-    local removedAt2 = table.remove(inventory, 2)
-    print(`Removed from position 2: {removedAt2}`)
-
-    print("\n=== Final Inventory ===")
-    for i, item in ipairs(inventory) do
-        print(`  Slot {i}: {item}`)
-    end
-
-    print("\n=== Finding Items ===")
-    local swordIndex = table.find(inventory, "Sword")
-    print(`Sword is at index: {swordIndex or "not found"}`)
-
-    local bowIndex = table.find(inventory, "Bow")
-    print(`Bow is at index: {bowIndex or "not found"}`)
-
+    print(`ANSWER: total={total},len={#values}`)
     return true
 end
 
@@ -535,50 +514,76 @@ return function(): Node<Exercise1>
 end
 ```
 
-**Expected Output:**
-```
-=== Initial Inventory ===
-Items: 3
-  Slot 1: Sword
-  Slot 2: Shield
-  Slot 3: Potion
-=== Adding Items ===
-Added Helmet at end
-Added Armor at position 2
-  Slot 1: Sword
-  Slot 2: Armor
-  Slot 3: Shield
-  Slot 4: Potion
-  Slot 5: Helmet
-=== Removing Items ===
-Removed from end: Helmet
-Removed from position 2: Armor
-=== Final Inventory ===
-  Slot 1: Sword
-  Slot 2: Shield
-  Slot 3: Potion
-=== Finding Items ===
-Sword is at index: 1
-Bow is at index: not found
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Create the array with three values
+2. Compute the sum of all three values
 
 ---
 
-### Exercise 2: Dictionaries - Player Stats ⭐
+### Expected Output
 
-**Goal:** Practice dictionary operations with player statistics.
-
-**Why this matters:** Game stats, configuration, and state are often stored as dictionaries.
-
-**Real-world use:** Player stats, configuration objects, named properties, settings.
-
-**Rive setup:** Create a Node Script named "Exercise2_PlayerStats", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console logs stat changes, a level-up check, and a final dump of all stats.
+Your console output should display:
+- `total=` — the sum of all values in the array
+- `len=` — the number of elements in the array
 
 ---
 
-#### Code
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-1"
+    expectedAnswer="ANSWER: total=60,len=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Array length is 3
+- [ ] Total equals 60
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Dictionary Lookup ⭐
+
+### Premise
+
+Dictionaries let you store named values. This is how you model structured state in Rive scripts.
+
+:::info Goal
+By the end of this exercise, you will read values from a dictionary and compute a derived flag.
+:::
+
+### Use Case
+
+You are tracking a character profile with name, level, and unlocked status. You need a flag that determines if the character is ready for a higher tier.
+
+**Example scenarios:**
+- Profile data for a UI card
+- Feature unlock flags
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_DictionaryLookup`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -586,56 +591,16 @@ Bow is at index: not found
 export type Exercise2 = {}
 
 function init(self: Exercise2): boolean
-    -- Create player stats dictionary
-    local player = {
-        name = "Hero",
-        health = 100,
-        maxHealth = 100,
-        mana = 50,
-        level = 1,
-        experience = 0,
+    local profile = {
+        name = "Astra",
+        level = 12,
+        unlocked = true,
     }
 
-    print("=== Initial Stats ===")
-    print(`Name: {player.name}`)
-    print(`Health: {player.health}/{player.maxHealth}`)
-    print(`Mana: {player.mana}`)
-    print(`Level: {player.level}`)
-    print(`XP: {player.experience}`)
+    -- TODO: ready should be true when level >= 10 and unlocked
+    local ready = false
 
-    print("\n=== Taking Damage ===")
-    local damage = 25
-    player.health -= damage
-    print(`Took {damage} damage`)
-    print(`Health: {player.health}/{player.maxHealth}`)
-
-    print("\n=== Gaining Experience ===")
-    local xpGain = 150
-    player.experience += xpGain
-    print(`Gained {xpGain} XP`)
-
-    -- Level up check
-    local xpNeeded = player.level * 100
-    if player.experience >= xpNeeded then
-        player.level += 1
-        player.experience -= xpNeeded
-        player.maxHealth += 10
-        player.health = player.maxHealth  -- Full heal on level up
-        print("LEVEL UP!")
-        print(`Now level {player.level}`)
-        print(`Max health increased to {player.maxHealth}`)
-    end
-
-    print("\n=== Adding New Stat ===")
-    -- Add a stat that didn't exist before
-    player.strength = 10
-    print(`Added strength: {player.strength}`)
-
-    print("\n=== All Stats ===")
-    for stat, value in pairs(player) do
-        print(`  {stat}: {value}`)
-    end
-
+    print(`ANSWER: {profile.name},{ready}`)
     return true
 end
 
@@ -652,104 +617,87 @@ end
 
 ---
 
-### Exercise 3: Nested Tables ⭐⭐
+### Assignment
 
-**Goal:** Work with tables inside tables.
+Complete these tasks:
 
-**Why this matters:** Real data is often hierarchical — players have inventories, inventories have items with properties.
-
-**Rive setup:** Create a Node Script named "Exercise3_NestedTables", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console prints player info, inventory totals, and an equipment update.
+1. Use dictionary fields to compute `ready`
+2. Print the profile name and flag
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display:
+- The profile name from the dictionary
+- The `ready` boolean (true when level threshold is met AND unlocked is true)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-2"
+    expectedAnswer="ANSWER: Astra,true"
+/>
+
+---
+
+### Checklist
+
+- [ ] `ready` uses both level and unlocked
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Insert and Remove ⭐
+
+### Premise
+
+The table library provides standard operations for arrays. You will use `table.insert` and `table.remove` constantly.
+
+:::info Goal
+By the end of this exercise, you will insert and remove items from an array.
+:::
+
+### Use Case
+
+You are managing a list of active items in a UI. Items are added when they appear and removed when they disappear.
+
+**Example scenarios:**
+- Active notifications list
+- Particle pools
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_InsertRemove`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise3 = {}
 
--- Type for an item with properties
-type Item = {
-    name: string,
-    value: number,
-    quantity: number,
-}
-
--- Type for a player with nested data
-type Player = {
-    name: string,
-    stats: {
-        health: number,
-        mana: number,
-    },
-    inventory: {Item},
-    equipped: {
-        weapon: string?,
-        armor: string?,
-    },
-}
-
 function init(self: Exercise3): boolean
-    -- Create a player with nested structures
-    local player: Player = {
-        name = "Hero",
-        stats = {
-            health = 100,
-            mana = 50,
-        },
-        inventory = {
-            { name = "Health Potion", value = 25, quantity = 3 },
-            { name = "Mana Potion", value = 30, quantity = 2 },
-            { name = "Iron Sword", value = 100, quantity = 1 },
-        },
-        equipped = {
-            weapon = nil,
-            armor = nil,
-        },
-    }
+    local items = {1, 2, 3}
 
-    print("=== Player Info ===")
-    print(`Name: {player.name}`)
-    print(`Health: {player.stats.health}`)
-    print(`Mana: {player.stats.mana}`)
+    -- TODO 1: Insert 4 at the end
+    -- TODO 2: Remove the last item and store it in removed
+    local removed = 0
 
-    print("\n=== Inventory ===")
-    local totalValue = 0
-    for i, item in ipairs(player.inventory) do
-        local itemTotal = item.value * item.quantity
-        totalValue += itemTotal
-        print(`  {i}. {item.name} x{item.quantity} (value: {itemTotal})`)
-    end
-    print(`Total inventory value: {totalValue}`)
-
-    print("\n=== Equipping Weapon ===")
-    -- Find sword in inventory
-    for i, item in ipairs(player.inventory) do
-        if item.name == "Iron Sword" then
-            player.equipped.weapon = item.name
-            print(`Equipped: {item.name}`)
-            break
-        end
-    end
-
-    print("\n=== Using Health Potion ===")
-    for i, item in ipairs(player.inventory) do
-        if item.name == "Health Potion" and item.quantity > 0 then
-            item.quantity -= 1
-            player.stats.health += 25
-            if player.stats.health > 100 then
-                player.stats.health = 100
-            end
-            print(`Used Health Potion`)
-            print(`Health: {player.stats.health}`)
-            print(`Potions remaining: {item.quantity}`)
-            break
-        end
-    end
-
+    print(`ANSWER: len={#items},removed={removed}`)
     return true
 end
 
@@ -766,84 +714,89 @@ end
 
 ---
 
-### Exercise 4: Persistent Tables on `self` ⭐⭐
+### Assignment
 
-**Goal:** Store tables on `self` for data that persists across frames.
+Complete these tasks:
 
-**Why this matters:** Animation state, game entities, and accumulated data need to persist.
-
-**Rive setup:** Create a Node Script named "Exercise4_PersistentTables", attach it to any node, and let it run for a few seconds.
-
-**Expected result:** The Console logs particle counts and positions every second as the system updates.
+1. Use `table.insert` to add 4
+2. Use `table.remove` to remove the last item
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display:
+- `len=` — the final array length after insert and remove operations
+- `removed=` — the value that was removed from the array
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-3"
+    expectedAnswer="ANSWER: len=3,removed=4"
+/>
+
+---
+
+### Checklist
+
+- [ ] Inserted value is 4
+- [ ] Removed value is 4
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Copy vs Reference ⭐⭐
+
+### Premise
+
+Tables are references in Luau. If you assign one table to another variable, both variables point to the same data.
+
+:::info Goal
+By the end of this exercise, you will create a real copy so edits do not affect the original.
+:::
+
+### Use Case
+
+You need to keep an original set of values while you experiment with temporary changes. If you only copy the reference, you corrupt the original data.
+
+**Example scenarios:**
+- Editing a temporary style without affecting the base style
+- Trying a layout change before committing it
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_CopyReference`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type Exercise4 = {
-    particles: {Vector},
-    velocities: {Vector},
-    frameCount: number,
-}
+export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
-    -- Initialize particle system
-    self.particles = {}
-    self.velocities = {}
-    self.frameCount = 0
+    local original = { x = 1, y = 2 }
+    -- TODO: Create a copy table and copy fields from original
+    local copy = {}
 
-    -- Create 5 particles at random positions
-    for i = 1, 5 do
-        table.insert(self.particles, Vector.xy(
-            math.random(50, 350),
-            math.random(50, 250)
-        ))
-        table.insert(self.velocities, Vector.xy(
-            math.random(-3, 3),
-            math.random(-3, 3)
-        ))
-    end
+    -- Modify the copy
+    -- TODO: Set copy.x to 9
 
-    print(`Created {#self.particles} particles`)
-    return true
-end
-
-function advance(self: Exercise4, elapsed: number): boolean
-    self.frameCount += 1
-
-    -- Update particle positions
-    for i = 1, #self.particles do
-        local pos = self.particles[i]
-        local vel = self.velocities[i]
-
-        -- Move particle
-        local newX = pos.x + vel.x
-        local newY = pos.y + vel.y
-
-        -- Bounce off edges
-        if newX < 0 or newX > 400 then
-            self.velocities[i] = Vector.xy(-vel.x, vel.y)
-            newX = math.max(0, math.min(400, newX))
-        end
-        if newY < 0 or newY > 300 then
-            self.velocities[i] = Vector.xy(vel.x, -vel.y)
-            newY = math.max(0, math.min(300, newY))
-        end
-
-        self.particles[i] = Vector.xy(newX, newY)
-    end
-
-    -- Log every second
-    if self.frameCount % 60 == 0 then
-        print(`Frame {self.frameCount}: {#self.particles} particles active`)
-        for i, p in ipairs(self.particles) do
-            print(`  Particle {i}: ({p.x // 1}, {p.y // 1})`)
-        end
-    end
-
+    print(`ANSWER: original={original.x},copy={copy.x}`)
     return true
 end
 
@@ -853,32 +806,83 @@ end
 return function(): Node<Exercise4>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        particles = late(),
-        velocities = late(),
-        frameCount = late(),
     }
 end
 ```
 
 ---
 
-### Exercise 5: Table Utilities ⭐⭐
+### Assignment
 
-**Goal:** Use common table operations to manipulate data.
+Complete these tasks:
 
-**Why this matters:** Sorting, clearing, and cloning tables are core operations when you manage lists of nodes, scores, or dynamic elements in a Rive script.
-
-**Real-world use:** Leaderboards, ordering draw calls, reusing cached data, resetting arrays safely.
-
-**Rive setup:** Create a Node Script named "Exercise5_TableUtilities", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console prints sorted values, cleared tables, cloned arrays, and a leaderboard order.
+1. Copy fields from original into a new table
+2. Change copy.x to 9
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display:
+- `original=` — the x value from the original table (should remain unchanged)
+- `copy=` — the x value from the copy (should reflect your modification)
+
+The original must not be affected by changes to the copy.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-4"
+    expectedAnswer="ANSWER: original=1,copy=9"
+/>
+
+---
+
+### Checklist
+
+- [ ] original remains unchanged
+- [ ] copy is a separate table
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Nested Tables ⭐⭐
+
+### Premise
+
+Nested tables are how you model structured data like stats, styles, and layouts. You will use this constantly in Rive scripts.
+
+:::info Goal
+By the end of this exercise, you will read nested values and compute a total.
+:::
+
+### Use Case
+
+You are reading a player stats table and need a combined total to drive a UI meter.
+
+**Example scenarios:**
+- Summing HP and MP for a resource meter
+- Combining size values for layout math
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_NestedTables`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -886,58 +890,18 @@ end
 export type Exercise5 = {}
 
 function init(self: Exercise5): boolean
-    print("=== Table Operations ===")
-
-    -- Sorting
-    local scores = {87, 92, 78, 95, 88, 73}
-    print(`Original: {table.concat(scores, ", ")}`)
-
-    table.sort(scores)
-    print(`Sorted (asc): {table.concat(scores, ", ")}`)
-
-    table.sort(scores, function(a, b) return a > b end)
-    print(`Sorted (desc): {table.concat(scores, ", ")}`)
-
-    -- Finding
-    local index = table.find(scores, 92)
-    print(`\n92 is at index: {index or "not found"}`)
-
-    -- Clearing
-    local temp = {1, 2, 3, 4, 5}
-    print(`\nBefore clear: {#temp} items`)
-    table.clear(temp)
-    print(`After clear: {#temp} items`)
-
-    -- Cloning
-    local original = {"a", "b", "c"}
-    local clone = table.clone(original)
-    clone[1] = "X"
-    print(`\nOriginal[1]: {original[1]}`)  -- Still "a"
-    print(`Clone[1]: {clone[1]}`)          -- "X"
-
-    -- Concatenating strings
-    local words = {"Hello", "Luau", "World"}
-    local sentence = table.concat(words, " ")
-    print(`\nConcatenated: {sentence}`)
-
-    -- Custom sorting with comparator
-    print("\n=== Custom Sorting ===")
-    local players = {
-        { name = "Alice", score = 150 },
-        { name = "Bob", score = 200 },
-        { name = "Charlie", score = 175 },
+    local player = {
+        name = "Rin",
+        stats = {
+            hp = 80,
+            mp = 20,
+        }
     }
 
-    -- Sort by score (highest first)
-    table.sort(players, function(a, b)
-        return a.score > b.score
-    end)
+    -- TODO: total = hp + mp
+    local total = 0
 
-    print("Leaderboard:")
-    for i, p in ipairs(players) do
-        print(`  {i}. {p.name}: {p.score}`)
-    end
-
+    print(`ANSWER: {player.name},{total}`)
     return true
 end
 
@@ -954,94 +918,89 @@ end
 
 ---
 
-### Exercise 6: Building a Simple Database ⭐⭐⭐
+### Assignment
 
-**Goal:** Combine arrays and dictionaries for a practical lookup system.
+Complete these tasks:
 
-**Why this matters:** Rive scripts often combine fast lookup tables (by name or ID) with ordered arrays (for waves, lists, or draw order).
-
-**Real-world use:** Mapping node names to data, spawning sequences, config tables keyed by ID.
-
-**Rive setup:** Create a Node Script named "Exercise6_Database", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console prints a lookup, a full list, filtered enemies, and spawn-wave totals.
+1. Read hp and mp from the nested table
+2. Compute total
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display:
+- The player name from the root level
+- The total computed from the nested stats table (hp + mp)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-5"
+    expectedAnswer="ANSWER: Rin,100"
+/>
+
+---
+
+### Checklist
+
+- [ ] Nested access uses player.stats
+- [ ] Total equals 100
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Sorting Tables ⭐⭐
+
+### Premise
+
+The table library provides tools like sorting that are essential for ordered UI or priority-based logic.
+
+:::info Goal
+By the end of this exercise, you will sort an array and read min/max values.
+:::
+
+### Use Case
+
+You have a list of scores and need to display the highest and lowest values for a leaderboard.
+
+**Example scenarios:**
+- Sorting scores
+- Ordering UI elements
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_Sorting`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise6 = {}
 
--- Enemy data type
-type EnemyData = {
-    id: string,
-    name: string,
-    health: number,
-    damage: number,
-    xpReward: number,
-}
-
 function init(self: Exercise6): boolean
-    -- Enemy database (dictionary for fast lookup by ID)
-    local enemyDB: {[string]: EnemyData} = {
-        slime = { id = "slime", name = "Slime", health = 20, damage = 5, xpReward = 10 },
-        goblin = { id = "goblin", name = "Goblin", health = 40, damage = 10, xpReward = 25 },
-        orc = { id = "orc", name = "Orc", health = 80, damage = 20, xpReward = 50 },
-        dragon = { id = "dragon", name = "Dragon", health = 500, damage = 100, xpReward = 500 },
-    }
+    local scores = {5, 2, 9, 4}
 
-    -- Lookup by ID
-    print("=== Lookup by ID ===")
-    local enemy = enemyDB["goblin"]
-    if enemy then
-        print(`Found: {enemy.name}`)
-        print(`  Health: {enemy.health}`)
-        print(`  Damage: {enemy.damage}`)
-        print(`  XP Reward: {enemy.xpReward}`)
-    end
+    -- TODO: Sort scores ascending
+    -- TODO: min should be first, max should be last
+    local minScore = 0
+    local maxScore = 0
 
-    -- List all enemies
-    print("\n=== All Enemies ===")
-    for id, data in pairs(enemyDB) do
-        print(`{id}: {data.name} (HP: {data.health})`)
-    end
-
-    -- Find enemies by criteria
-    print("\n=== Enemies with HP > 50 ===")
-    local strongEnemies: {EnemyData} = {}
-    for _, data in pairs(enemyDB) do
-        if data.health > 50 then
-            table.insert(strongEnemies, data)
-        end
-    end
-
-    for _, enemy in ipairs(strongEnemies) do
-        print(`  {enemy.name}: {enemy.health} HP`)
-    end
-
-    -- Spawn list (array of IDs)
-    print("\n=== Spawn Wave ===")
-    local spawnWave = {"slime", "slime", "goblin", "slime", "orc"}
-    local totalXP = 0
-    local totalHP = 0
-
-    for i, enemyId in ipairs(spawnWave) do
-        local e = enemyDB[enemyId]
-        if e then
-            totalXP += e.xpReward
-            totalHP += e.health
-            print(`  Spawning: {e.name}`)
-        end
-    end
-
-    print(`\nWave totals:`)
-    print(`  Total enemies: {#spawnWave}`)
-    print(`  Total HP to deplete: {totalHP}`)
-    print(`  Total XP reward: {totalXP}`)
-
+    print(`ANSWER: min={minScore},max={maxScore}`)
     return true
 end
 
@@ -1058,6 +1017,39 @@ end
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Sort the scores array
+2. Read the min and max values
+
+---
+
+### Expected Output
+
+Your console output should display:
+- `min=` — the smallest value in the sorted array (first element after sorting)
+- `max=` — the largest value in the sorted array (last element after sorting)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-tables-6"
+    expectedAnswer="ANSWER: min=2,max=9"
+/>
+
+---
+
+### Checklist
+
+- [ ] table.sort is used
+- [ ] Min and max are correct
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

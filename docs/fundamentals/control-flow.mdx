@@ -5,6 +5,7 @@ description: Conditionals, loops, and control structures in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
 # Lesson 1.2: Control Flow & Loops
@@ -436,21 +437,40 @@ for (let i = 1; i <= 5; i++) {
 
 ## Exercises
 
-### Exercise 1: Basic Conditionals ⭐
+### Exercise 1: Health Tier ⭐
 
-**Goal:** Use if-then-else to categorize a health value.
+### Premise
 
-**Why this matters:** Games and interactive graphics constantly check conditions. "Is the player low on health? Should we show a warning?"
+Control flow is how your script makes decisions. In Rive, those decisions drive which animation state or visual response should appear.
 
-**Real-world use:** Health bars, status indicators, difficulty settings, UI states.
+:::info Goal
+By the end of this exercise, you will use an if/elseif chain to categorize a health value.
+:::
+
+### Use Case
+
+A health bar needs a label like Critical, Low, Medium, or Full. That label can drive color changes or trigger warning animations. If your conditions are out of order, the wrong state will show even when the number is correct.
+
+**Example scenarios:**
+- Health warning logic
+- Difficulty gating based on thresholds
 
 ---
 
-#### Step-by-Step Setup
+### Setup
 
-1. **Create a new Node Script** named "Exercise1_Conditionals"
+#### In Rive Editor:
 
-2. **Copy and paste:**
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_HealthTier`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -459,22 +479,16 @@ export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
     local health = 45
+    -- TODO: Set status based on health ranges
+    -- <= 0: "Dead"
+    -- <= 20: "Critical"
+    -- <= 40: "Low"
+    -- <= 70: "Medium"
+    -- <= 90: "High"
+    -- else: "Full"
+    local status = "TODO"
 
-    -- Check health ranges from lowest to highest
-    if health <= 0 then
-        print("DEAD")
-    elseif health <= 20 then
-        print("CRITICAL - Flash red warning!")
-    elseif health <= 40 then
-        print("Low - Show caution indicator")
-    elseif health <= 70 then
-        print("Medium - Normal state")
-    elseif health <= 90 then
-        print("High - Looking good")
-    else
-        print("Full - Maximum health")
-    end
-
+    print(`ANSWER: {status}`)
     return true
 end
 
@@ -489,47 +503,74 @@ return function(): Node<Exercise1>
 end
 ```
 
-3. **Attach to a node and run**
+---
 
-**Expected Output:**
-```
-Low - Show caution indicator
-```
+### Assignment
+
+Complete these tasks:
+
+1. Use an if/elseif chain to compute `status`
+2. Keep the order from lowest to highest ranges
 
 ---
 
-#### Understanding the Logic
+### Expected Output
 
-The conditions are checked **in order**. Once one is true, the rest are skipped.
+Your console output should display the health tier status based on where the health value (45) falls in the ordered range checks. The status will be one of: Dead, Critical, Low, Medium, High, or Full.
 
-| Health Value | First True Condition | Result |
-|-------------|---------------------|--------|
-| -10 | `health <= 0` | "DEAD" |
-| 15 | `health <= 20` | "CRITICAL" |
-| 45 | `health <= 40`? No → `health <= 70`? Yes | "Medium" |
-| 100 | All fail → `else` | "Full" |
+---
 
-:::tip Order Matters!
-Check from most specific to least specific. If you check `health <= 90` first, it would match health=20 too!
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-1"
+    expectedAnswer="ANSWER: Medium"
+/>
+
+---
+
+### Checklist
+
+- [ ] Conditions are ordered from lowest to highest
+- [ ] `status` equals "Medium" for health 45
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Inline Labels ⭐
+
+### Premise
+
+Inline conditionals are compact and make assignments readable when you only need a value, not a full block.
+
+:::info Goal
+By the end of this exercise, you will use inline conditionals to compute three labels.
 :::
 
----
+### Use Case
 
-### Exercise 2: Inline Conditionals ⭐
+You are assigning labels for score grade, premium discount, and rank title. These are values you might bind to a text run in a HUD or debug panel.
 
-**Goal:** Use if-then-else expressions for cleaner assignments.
-
-**Why this matters:** Inline conditionals make code more readable when you just need to assign a value based on a condition.
-
-**Real-world use:** Grade calculations, status labels, default values, configuration.
-
-**Rive setup:** Create a Node Script named "Exercise2_InlineConditionals", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console prints the computed grade, discount, and title values.
+**Example scenarios:**
+- Rank badges and labels
+- Feature gating for premium users
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_InlineLabels`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -541,25 +582,14 @@ function init(self: Exercise2): boolean
     local isPremium = true
     local level = 5
 
-    -- Inline conditional for grade
-    local grade = if score >= 90 then "A"
-        elseif score >= 80 then "B"
-        elseif score >= 70 then "C"
-        elseif score >= 60 then "D"
-        else "F"
+    -- TODO 1: grade should be "A/B/C/D/F" based on score
+    local grade = "?"
+    -- TODO 2: discount should be 20 if premium else 0
+    local discount = 0
+    -- TODO 3: title should be "Master" (>=10), "Expert" (>=5), else "Novice"
+    local title = "?"
 
-    -- Simple inline conditional
-    local discount = if isPremium then 20 else 0
-
-    -- Inline conditional for title
-    local title = if level >= 10 then "Master"
-        elseif level >= 5 then "Expert"
-        else "Novice"
-
-    print(`Score: {score} -> Grade: {grade}`)
-    print(`Premium: {isPremium} -> Discount: {discount}%`)
-    print(`Level: {level} -> Title: {title}`)
-
+    print(`ANSWER: {grade},{discount},{title}`)
     return true
 end
 
@@ -574,63 +604,78 @@ return function(): Node<Exercise2>
 end
 ```
 
-**Expected Output:**
-```
-Score: 75 -> Grade: C
-Premium: true -> Discount: 20%
-Level: 5 -> Title: Expert
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Use inline if/elseif expressions for `grade`
+2. Use inline if for `discount`
+3. Use inline if/elseif for `title`
 
 ---
 
-#### Understanding Inline Conditionals
+### Expected Output
 
-```lua
-local grade = if score >= 90 then "A" else "F"
-```
+Your console output should display three values separated by commas:
+- The letter grade based on score thresholds (90+, 80+, 70+, 60+, else)
+- The discount percentage (premium users get a discount)
+- The title based on level (10+, 5+, else)
 
-This is equivalent to:
+---
 
-```lua
-local grade
-if score >= 90 then
-    grade = "A"
-else
-    grade = "F"
-end
-```
+### Verify Your Answer
 
-:::note JavaScript Comparison
-```javascript
-// JavaScript ternary
-const grade = score >= 90 ? "A" : "F";
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-2"
+    expectedAnswer="ANSWER: C,20,Expert"
+/>
 
-// Chained ternary (gets messy!)
-const grade = score >= 90 ? "A"
-            : score >= 80 ? "B"
-            : score >= 70 ? "C" : "F";
-```
+---
 
-Luau's `if/elseif/else` expressions are more readable for chains.
+### Checklist
+
+- [ ] Inline conditionals use `if ... then ... else ...`
+- [ ] grade is "C" for score 75
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Loop Totals ⭐
+
+### Premise
+
+Loops let you repeat logic without copy-pasting. They are essential for summing values or iterating over ranges.
+
+:::info Goal
+By the end of this exercise, you will use a numeric for loop to compute a sum and an even count.
 :::
 
----
+### Use Case
 
-### Exercise 3: Numeric For Loops ⭐
+You are preparing a debug readout for a chart. You need the total of a range and the count of even markers. These loop patterns show up everywhere in data-driven animations.
 
-**Goal:** Practice counting with for loops.
-
-**Why this matters:** For loops are used constantly — drawing multiple objects, processing arrays, creating patterns.
-
-**Real-world use:** Drawing grid lines, spawning enemies, creating particle effects, iterating through data.
-
-**Rive setup:** Create a Node Script named "Exercise3_ForLoops", attach it to any node, and run the animation.
-
-**Expected result:** The Console prints multiple counting sequences (count up, countdown, evens, sum, and a 5x table).
+**Example scenarios:**
+- Summing data points for a bar chart
+- Counting markers for grid lines
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_LoopTotals`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -638,34 +683,13 @@ Luau's `if/elseif/else` expressions are more readable for chains.
 export type Exercise3 = {}
 
 function init(self: Exercise3): boolean
-    print("=== Part A: Count Up ===")
-    for i = 1, 5 do
-        print(`  {i}`)
-    end
-
-    print("=== Part B: Countdown ===")
-    for i = 5, 1, -1 do
-        print(`  {i}`)
-    end
-    print("  Blast off!")
-
-    print("=== Part C: Even Numbers ===")
-    for i = 2, 10, 2 do
-        print(`  {i}`)
-    end
-
-    print("=== Part D: Sum 1-100 ===")
     local sum = 0
-    for i = 1, 100 do
-        sum += i
-    end
-    print(`  Sum: {sum}`)
+    local evenCount = 0
 
-    print("=== Part E: Multiplication Table (5) ===")
-    for i = 1, 10 do
-        print(`  5 x {i} = {5 * i}`)
-    end
+    -- TODO 1: for i = 1, 10 do sum += i end
+    -- TODO 2: inside the same loop, increment evenCount for even i
 
+    print(`ANSWER: sum={sum},evens={evenCount}`)
     return true
 end
 
@@ -680,52 +704,77 @@ return function(): Node<Exercise3>
 end
 ```
 
-**Expected Output:**
-```
-=== Part A: Count Up ===
-  1
-  2
-  3
-  4
-  5
-=== Part B: Countdown ===
-  5
-  4
-  3
-  2
-  1
-  Blast off!
-=== Part C: Even Numbers ===
-  2
-  4
-  6
-  8
-  10
-=== Part D: Sum 1-100 ===
-  Sum: 5050
-=== Part E: Multiplication Table (5) ===
-  5 x 1 = 5
-  5 x 2 = 10
-  ...
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Add a numeric for loop from 1 to 10
+2. Sum the values into `sum`
+3. Count even numbers into `evenCount`
 
 ---
 
-### Exercise 4: While Loops ⭐
+### Expected Output
 
-**Goal:** Use while loops for condition-based repetition.
-
-**Why this matters:** While loops are perfect when you don't know exactly how many iterations you need.
-
-**Real-world use:** Game loops, waiting for conditions, processing until empty, resource depletion.
-
-**Rive setup:** Create a Node Script named "Exercise4_WhileLoops", attach it to any node, and run the animation.
-
-**Expected result:** The Console prints ammo depletion, a factor search, and a power-of-two sequence.
+Your console output should display:
+- `sum=` — the total of all numbers from 1 to 10
+- `evens=` — the count of even numbers in that range
 
 ---
 
-#### Code
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-3"
+    expectedAnswer="ANSWER: sum=55,evens=5"
+/>
+
+---
+
+### Checklist
+
+- [ ] Sum is 55
+- [ ] Even count is 5
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: While Countdown ⭐
+
+### Premise
+
+While loops are best when you do not know the exact number of iterations ahead of time. You loop until a condition changes.
+
+:::info Goal
+By the end of this exercise, you will use a while loop to count down and track steps.
+:::
+
+### Use Case
+
+A cooldown timer counts down to zero and you want to know how many ticks happened. This mirrors simple timer loops used in scripts.
+
+**Example scenarios:**
+- Cooldowns and timers
+- Resource depletion
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_WhileCountdown`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -733,31 +782,13 @@ end
 export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
-    print("=== Ammo Depletion ===")
-    local ammo = 5
-    while ammo > 0 do
-        print(`Bang! Ammo remaining: {ammo - 1}`)
-        ammo -= 1
-    end
-    print("Click! Out of ammo!")
+    local energy = 3
+    local steps = 0
 
-    print("\n=== Finding Factor ===")
-    local num = 100
-    local factor = 2
-    while num % factor ~= 0 do
-        factor += 1
-    end
-    print(`First factor of {100} greater than 1: {factor}`)
+    -- TODO: Use a while loop to decrement energy to 0
+    --       Increment steps each iteration
 
-    print("\n=== Power of 2 ===")
-    local value = 1
-    local target = 1000
-    while value < target do
-        value *= 2
-        print(`  {value}`)
-    end
-    print(`First power of 2 >= {target}: {value}`)
-
+    print(`ANSWER: steps={steps},energy={energy}`)
     return true
 end
 
@@ -774,21 +805,75 @@ end
 
 ---
 
-### Exercise 5: Repeat Until ⭐⭐
+### Assignment
 
-**Goal:** Use repeat-until for loops that must run at least once.
+Complete these tasks:
 
-**Why this matters:** Sometimes you need to try something at least once before checking if you should continue.
-
-**Real-world use:** Retry mechanisms, input validation, initialization attempts.
-
-**Rive setup:** Create a Node Script named "Exercise5_RepeatUntil", attach it to any node, and run it.
-
-**Expected result:** The Console shows a retry loop that succeeds on the third attempt.
+1. Loop while energy > 0
+2. Decrement energy by 1 each iteration
+3. Increment steps each iteration
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display:
+- `steps=` — how many iterations the while loop executed
+- `energy=` — the final energy value (should be depleted to zero)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-4"
+    expectedAnswer="ANSWER: steps=3,energy=0"
+/>
+
+---
+
+### Checklist
+
+- [ ] While loop runs until energy is 0
+- [ ] steps ends at 3
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Repeat Until ⭐⭐
+
+### Premise
+
+repeat-until always runs at least once. This is useful for retry logic or initialization loops.
+
+:::info Goal
+By the end of this exercise, you will use repeat-until to simulate a retry sequence.
+:::
+
+### Use Case
+
+You are polling for a resource that becomes available on the third attempt. You want to track attempts and stop once it succeeds.
+
+**Example scenarios:**
+- Retrying a load or setup step
+- Validating input until it passes
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_RepeatUntil`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -796,26 +881,14 @@ end
 export type Exercise5 = {}
 
 function init(self: Exercise5): boolean
-    print("=== Retry Until Success ===")
-
     local attempts = 0
     local success = false
 
-    repeat
-        attempts += 1
-        print(`Attempt {attempts}...`)
+    -- TODO: Repeat until success is true
+    -- - Increment attempts
+    -- - Set success to true when attempts >= 3
 
-        -- Simulate: succeed on attempt 3
-        if attempts >= 3 then
-            success = true
-            print("  Success!")
-        else
-            print("  Failed, retrying...")
-        end
-    until success or attempts >= 5  -- Stop if success OR max attempts
-
-    print(`Total attempts: {attempts}`)
-
+    print(`ANSWER: attempts={attempts},success={success}`)
     return true
 end
 
@@ -830,35 +903,77 @@ return function(): Node<Exercise5>
 end
 ```
 
-**Expected Output:**
-```
-=== Retry Until Success ===
-Attempt 1...
-  Failed, retrying...
-Attempt 2...
-  Failed, retrying...
-Attempt 3...
-  Success!
-Total attempts: 3
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Use repeat-until so the loop runs at least once
+2. Increment attempts each loop
+3. Set success to true when attempts >= 3
+
+---
+
+### Expected Output
+
+Your console output should display:
+- `attempts=` — how many times the loop ran before success
+- `success=` — the final boolean state (true when threshold reached)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-5"
+    expectedAnswer="ANSWER: attempts=3,success=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] Loop runs at least once
+- [ ] Attempts stop at 3
+- [ ] Output matches the expected line
 
 ---
 
 ### Exercise 6: Break and Continue ⭐⭐
 
-**Goal:** Control loop flow with break and continue.
+### Premise
 
-**Why this matters:** Break lets you exit early when you've found what you need. Continue lets you skip items you don't care about.
+break and continue let you control loop flow. You can skip unwanted items or stop early when a condition is met.
 
-**Real-world use:** Searching for items, filtering data, early exit optimization.
+:::info Goal
+By the end of this exercise, you will use both break and continue in one loop.
+:::
 
-**Rive setup:** Create a Node Script named "Exercise6_BreakContinue", attach it to any node, and run it.
+### Use Case
 
-**Expected result:** The Console shows three examples: early break, skipping multiples of 3, and a search loop.
+You are scanning items and want to skip every third entry, but stop once you reach a certain point. This pattern is common in search logic or filtering.
+
+**Example scenarios:**
+- Skipping invalid entries
+- Stopping once a target is found
 
 ---
 
-#### Code
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_BreakContinue`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
@@ -866,38 +981,16 @@ Total attempts: 3
 export type Exercise6 = {}
 
 function init(self: Exercise6): boolean
-    print("=== Part A: Break - Find First Even ===")
+    local sum = 0
+    local count = 0
+
     for i = 1, 10 do
-        if i % 2 == 0 then
-            print(`Found first even number: {i}`)
-            break  -- Exit immediately
-        end
-        print(`  {i} is odd`)
+        -- TODO 1: Skip multiples of 3 with continue
+        -- TODO 2: Break when i == 6
+        -- TODO 3: Add i to sum and increment count
     end
 
-    print("\n=== Part B: Continue - Skip Multiples of 3 ===")
-    for i = 1, 10 do
-        if i % 3 == 0 then
-            continue  -- Skip to next iteration
-        end
-        print(`  {i}`)
-    end
-
-    print("\n=== Part C: Search with Break ===")
-    local target = 7
-    local found = false
-    for i = 1, 10 do
-        print(`Checking {i}...`)
-        if i == target then
-            found = true
-            print(`  Found {target}!`)
-            break
-        end
-    end
-    if not found then
-        print(`{target} not found`)
-    end
-
+    print(`ANSWER: sum={sum},count={count}`)
     return true
 end
 
@@ -912,94 +1005,99 @@ return function(): Node<Exercise6>
 end
 ```
 
-**Expected Output:**
-```
-=== Part A: Break - Find First Even ===
-  1 is odd
-Found first even number: 2
-=== Part B: Continue - Skip Multiples of 3 ===
-  1
-  2
-  4
-  5
-  7
-  8
-  10
-=== Part C: Search with Break ===
-Checking 1...
-Checking 2...
-...
-Checking 7...
-  Found 7!
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Use `continue` when i % 3 == 0
+2. Use `break` when i == 6
+3. Sum the processed values and count them
 
 ---
 
-### Exercise 7: Animation State Machine ⭐⭐
+### Expected Output
 
-**Goal:** Combine conditionals and loops in a practical animation scenario.
+Your console output should display:
+- `sum=` — the total of processed values (after skipping and breaking)
+- `count=` — how many numbers were actually added to the sum
 
-**Why this matters:** This is how real game logic works — updating state based on conditions every frame.
-
-**Real-world use:** Character state machines, animation transitions, game mechanics.
-
-**Rive setup:** Create a Node Script named "Exercise7_StateMachine", attach it to any node, and let it run for a few seconds.
-
-**Expected result:** The Console prints the current state every second as stamina regenerates and state rules flip.
+The loop processes values 1-5, skipping multiples of 3 and breaking at 6.
 
 ---
 
-#### Code
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-6"
+    expectedAnswer="ANSWER: sum=12,count=4"
+/>
+
+---
+
+### Checklist
+
+- [ ] continue skips 3 and 6
+- [ ] break stops at 6
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 7: State Switch ⭐⭐
+
+### Premise
+
+Real scripts combine multiple conditions to determine a state. This is the basis of state machines and animation transitions.
+
+:::info Goal
+By the end of this exercise, you will use an ordered if/elseif chain to set a state and update stamina.
+:::
+
+### Use Case
+
+A character can be dead, exhausted, wounded, or normal. That state determines which animation should play. You also regenerate stamina when not dead.
+
+**Example scenarios:**
+- Player state machines
+- UI state transitions
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise7_StateSwitch`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type Exercise7 = {
-    state: string,
-    health: number,
-    stamina: number,
-    frameCount: number,
-}
+export type Exercise7 = {}
 
 function init(self: Exercise7): boolean
-    self.state = "idle"
-    self.health = 100
-    self.stamina = 50
-    self.frameCount = 0
+    local health = 25
+    local stamina = 10
+    local state = "idle"
 
-    print(`Initial state: {self.state}`)
-    print(`Health: {self.health}, Stamina: {self.stamina}`)
+    -- TODO 1: Set state based on health/stamina
+    -- <=0: "dead"
+    -- stamina <=0: "exhausted"
+    -- health <=30: "wounded"
+    -- else: "ok"
 
-    return true
-end
+    -- TODO 2: If not dead and stamina < 20, add 5 stamina
 
-function advance(self: Exercise7, elapsed: number): boolean
-    self.frameCount += 1
-
-    -- Simulate state changes based on conditions
-    if self.health <= 0 then
-        self.state = "dead"
-    elseif self.stamina <= 0 then
-        self.state = "exhausted"
-    elseif self.health <= 30 then
-        self.state = "wounded"
-    elseif self.frameCount % 60 < 30 then
-        self.state = "idle"
-    else
-        self.state = "walking"
-    end
-
-    -- Regenerate stamina over time
-    if self.state ~= "dead" and self.stamina < 100 then
-        self.stamina += 0.5
-        if self.stamina > 100 then self.stamina = 100 end
-    end
-
-    -- Print state every second (60 frames)
-    if self.frameCount % 60 == 0 then
-        print(`Frame {self.frameCount}: State={self.state}, HP={self.health}, Stamina={self.stamina // 1}`)
-    end
-
+    print(`ANSWER: state={state},stamina={stamina}`)
     return true
 end
 
@@ -1009,18 +1107,46 @@ end
 return function(): Node<Exercise7>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        state = late(),
-        health = late(),
-        stamina = late(),
-        frameCount = late(),
     }
 end
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Use ordered if/elseif to set `state`
+2. Regenerate stamina if the state is not dead
+
+---
+
+### Expected Output
+
+Your console output should display:
+- `state=` — the character's state based on health/stamina conditions
+- `stamina=` — the final stamina value after regeneration (if applicable)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-controlflow-7"
+    expectedAnswer="ANSWER: state=wounded,stamina=15"
+/>
+
+---
+
+### Checklist
+
+- [ ] Ordered conditions produce "wounded" for health 25
+- [ ] Stamina increases by 5
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

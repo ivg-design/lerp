@@ -5,6 +5,7 @@ description: Loops, iterators, and collection traversal in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Iteration
 
@@ -421,82 +422,58 @@ end
 
 ## Exercises
 
-### Exercise 1: Basic Numeric For Loops
+### Exercise 1: Range Loop ⭐
 
-**Goal**: Practice different for loop patterns.
+### Premise
 
-**Why This Matters**: For loops are the most common iteration pattern. Understanding inclusive ranges, step values, and the countdown gotcha is essential for correct Rive scripts.
+Iteration lets you repeat logic without copy-paste. Even simple sums are a fast way to practice the pattern.
 
-**Real-World Use**: Frame counting, animation timing, processing arrays, drawing grid elements.
+:::info Goal
+By the end of this exercise, you will use a numeric for loop to sum a range.
+:::
 
-**Step-by-Step Setup**:
-1. Create a new Rive file with a Node Script
-2. Copy the code below into your script
-3. Run and verify each loop's output matches expectations
+### Use Case
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+You need to total a range of values for a UI summary or debug readout. This same pattern is used for tick counters and progress math.
 
-**Expected result:** The Console prints each loop pattern so you can verify counts, steps, and accumulator math.
+**Example scenarios:**
+- Summing data points
+- Generating tick values
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_RangeLoop`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type ForLoops = {}
+export type Exercise1 = {}
 
-function init(self: ForLoops): boolean
-    print("=== Numeric For Loop Patterns ===\n")
-
-    print("Part A: Count Up (1 to 5)")
-    print("-------------------------")
-    print("for i = 1, 5 do")
-    for i = 1, 5 do
-        print(`  i = {i}`)
-    end
-
-    print("\nPart B: Count Down (5 to 1)")
-    print("---------------------------")
-    print("for i = 5, 1, -1 do  -- NOTE: -1 step required!")
-    for i = 5, 1, -1 do
-        print(`  i = {i}`)
-    end
-
-    print("\nPart C: Step by 2 (0 to 10)")
-    print("---------------------------")
-    print("for i = 0, 10, 2 do")
-    for i = 0, 10, 2 do
-        print(`  i = {i}`)
-    end
-
-    print("\nPart D: Accumulator (sum 1 to 100)")
-    print("----------------------------------")
+function init(self: Exercise1): boolean
     local sum = 0
-    for i = 1, 100 do
-        sum += i
-    end
-    print(`Sum of 1 to 100 = {sum}`)
-    print("Formula check: n(n+1)/2 = 100*101/2 = 5050")
+    -- TODO: Sum numbers 1 through 5
 
-    print("\nPart E: Factorial (5!)")
-    print("----------------------")
-    local factorial = 1
-    for i = 1, 5 do
-        factorial *= i
-        print(`  {i}! = {factorial}`)
-    end
-    print(`5! = {factorial}`)
-
-    print("\n=== Key Takeaways ===")
-    print("1. Ranges are INCLUSIVE: for i = 1, 5 runs 5 times")
-    print("2. Countdown needs negative step: for i = 5, 1, -1")
-    print("3. Step value is optional (defaults to 1)")
-
+    print(`ANSWER: {sum}`)
     return true
 end
 
-function draw(self: ForLoops, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<ForLoops>
+return function(): Node<Exercise1>
     return {
         init = init,
         draw = draw,
@@ -504,187 +481,92 @@ return function(): Node<ForLoops>
 end
 ```
 
-**Expected Output**:
-```
-=== Numeric For Loop Patterns ===
+---
 
-Part A: Count Up (1 to 5)
--------------------------
-for i = 1, 5 do
-  i = 1
-  i = 2
-  i = 3
-  i = 4
-  i = 5
+### Assignment
 
-Part B: Count Down (5 to 1)
----------------------------
-for i = 5, 1, -1 do  -- NOTE: -1 step required!
-  i = 5
-  i = 4
-  i = 3
-  i = 2
-  i = 1
+Complete these tasks:
 
-Part C: Step by 2 (0 to 10)
----------------------------
-for i = 0, 10, 2 do
-  i = 0
-  i = 2
-  i = 4
-  i = 6
-  i = 8
-  i = 10
-
-Part D: Accumulator (sum 1 to 100)
-----------------------------------
-Sum of 1 to 100 = 5050
-Formula check: n(n+1)/2 = 100*101/2 = 5050
-
-Part E: Factorial (5!)
-----------------------
-  1! = 1
-  2! = 2
-  3! = 6
-  4! = 24
-  5! = 120
-5! = 120
-
-=== Key Takeaways ===
-1. Ranges are INCLUSIVE: for i = 1, 5 runs 5 times
-2. Countdown needs negative step: for i = 5, 1, -1
-3. Step value is optional (defaults to 1)
-```
-
-**JavaScript Equivalent**:
-```javascript
-// Count up (note: different syntax, exclusive end needs <=)
-for (let i = 1; i <= 5; i++) { }
-
-// Count down (i-- works, Luau needs explicit -1)
-for (let i = 5; i >= 1; i--) { }
-
-// Step by 2
-for (let i = 0; i <= 10; i += 2) { }
-```
+1. Use a for loop from 1 to 5
+2. Add each number to sum
 
 ---
 
-### Exercise 2: While Loops for Game Logic
+### Expected Output
 
-**Goal**: Use while loops for condition-based iteration.
+Your console output should display the sum of all numbers from 1 through 5 (inclusive). This demonstrates the basic numeric for loop pattern.
 
-**Why This Matters**: While loops are perfect when you don't know how many iterations you need - like waiting for a condition, processing until complete, or simulating game events.
+---
 
-**Real-World Use**: Ammunition systems, level progression, health regeneration, retry logic.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Trace through each while loop mentally before running
-4. Verify the loop count matches your expectation
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-1"
+    expectedAnswer="ANSWER: 15"
+/>
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+---
 
-**Expected result:** The Console shows ammo depletion, level-up progression, and health regeneration steps.
+### Checklist
+
+- [ ] Loop runs 5 times
+- [ ] Sum equals 15
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Step Loop ⭐
+
+### Premise
+
+Step values let you skip through ranges. This is useful for even numbers, grid spacing, or sample steps.
+
+:::info Goal
+By the end of this exercise, you will use a step value to build a sum.
+:::
+
+### Use Case
+
+You are placing markers every 2 units. The sum of those markers gives a simple validation that your step loop works.
+
+**Example scenarios:**
+- Even index sampling
+- Grid spacing
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_StepLoop`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type WhileLoops = {}
+export type Exercise2 = {}
 
-function init(self: WhileLoops): boolean
-    print("=== While Loop Patterns ===\n")
+function init(self: Exercise2): boolean
+    local sum = 0
+    -- TODO: Loop from 2 to 10 in steps of 2 and add to sum
 
-    -- Pattern 1: Countdown to zero
-    print("Pattern 1: Ammunition System")
-    print("----------------------------")
-    local ammo = 6
-    local shotsFired = 0
-
-    print(`Starting ammo: {ammo}`)
-    while ammo > 0 do
-        ammo -= 1
-        shotsFired += 1
-        print(`  Shot {shotsFired}! Ammo remaining: {ammo}`)
-    end
-    print("Click! Out of ammo!")
-    print(`Total shots: {shotsFired}\n`)
-
-    -- Pattern 2: Progress toward goal
-    print("Pattern 2: Level Up System")
-    print("--------------------------")
-    local xp = 0
-    local level = 1
-    local xpNeeded = 100
-
-    print(`Starting: Level {level}, XP needed: {xpNeeded}`)
-    while level < 5 do
-        xp += 50  -- Gain 50 XP per iteration
-        print(`  Gained 50 XP. Total: {xp}/{xpNeeded}`)
-
-        if xp >= xpNeeded then
-            level += 1
-            xp -= xpNeeded
-            xpNeeded = math.floor(xpNeeded * 1.5)  -- Scale XP requirement
-            print(`  LEVEL UP! Now level {level}. Next: {xpNeeded} XP`)
-        end
-    end
-    print(`Final: Level {level}\n`)
-
-    -- Pattern 3: Approach target value
-    print("Pattern 3: Health Regeneration")
-    print("------------------------------")
-    local health = 30
-    local maxHealth = 100
-    local regenRate = 15
-    local ticks = 0
-
-    print(`Starting health: {health}/{maxHealth}`)
-    while health < maxHealth do
-        health += regenRate
-        ticks += 1
-
-        -- Clamp to max
-        if health > maxHealth then
-            health = maxHealth
-        end
-
-        print(`  Tick {ticks}: Health = {health}/{maxHealth}`)
-    end
-    print(`Fully healed in {ticks} ticks!\n`)
-
-    -- Pattern 4: Sentinel value (search)
-    print("Pattern 4: Find First Match")
-    print("---------------------------")
-    local values = {3, 7, 2, 9, 5, 8, 1}
-    local target = 9
-    local index = 1
-    local found = false
-
-    print(`Searching for {target} in array...`)
-    while index <= #values and not found do
-        print(`  Checking index {index}: {values[index]}`)
-        if values[index] == target then
-            found = true
-        else
-            index += 1
-        end
-    end
-
-    if found then
-        print(`Found {target} at index {index}!`)
-    else
-        print(`{target} not found`)
-    end
-
+    print(`ANSWER: {sum}`)
     return true
 end
 
-function draw(self: WhileLoops, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<WhileLoops>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
@@ -692,171 +574,94 @@ return function(): Node<WhileLoops>
 end
 ```
 
-**Expected Output**:
-```
-=== While Loop Patterns ===
+---
 
-Pattern 1: Ammunition System
-----------------------------
-Starting ammo: 6
-  Shot 1! Ammo remaining: 5
-  Shot 2! Ammo remaining: 4
-  Shot 3! Ammo remaining: 3
-  Shot 4! Ammo remaining: 2
-  Shot 5! Ammo remaining: 1
-  Shot 6! Ammo remaining: 0
-Click! Out of ammo!
-Total shots: 6
+### Assignment
 
-Pattern 2: Level Up System
---------------------------
-Starting: Level 1, XP needed: 100
-  Gained 50 XP. Total: 50/100
-  Gained 50 XP. Total: 100/100
-  LEVEL UP! Now level 2. Next: 150 XP
-  ...
+Complete these tasks:
 
-Pattern 3: Health Regeneration
-------------------------------
-Starting health: 30/100
-  Tick 1: Health = 45/100
-  Tick 2: Health = 60/100
-  ...
-Fully healed in 5 ticks!
-```
-
-**JavaScript Equivalent**:
-```javascript
-while (ammo > 0) {
-    ammo--;
-    shotsFired++;
-}
-
-while (health < maxHealth) {
-    health += regenRate;
-    health = Math.min(health, maxHealth);
-}
-```
+1. Use `for i = 2, 10, 2 do`
+2. Add each i to sum
 
 ---
 
-### Exercise 3: Repeat Until for Validation
+### Expected Output
 
-**Goal**: Use repeat-until when you need at least one iteration.
+Your console output should display the sum of all even numbers from 2 to 10 (inclusive), demonstrating the step value in a for loop.
 
-**Why This Matters**: Some scenarios require running code at least once before checking the exit condition - like user input validation, retry logic, or initialization sequences.
+---
 
-**Real-World Use**: Connection retries, input validation, game initialization, "roll until success" mechanics.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Notice how repeat-until guarantees at least one execution
-4. Compare the condition logic to JavaScript's do-while
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-2"
+    expectedAnswer="ANSWER: 30"
+/>
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+---
 
-**Expected result:** The Console prints a dice roll loop, a retry sequence, and a validation pass that stops on the first valid value.
+### Checklist
+
+- [ ] Loop uses a step value of 2
+- [ ] Sum equals 30
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: ipairs Total ⭐
+
+### Premise
+
+ipairs is the standard way to iterate arrays in order. It is what you use for lists of points, particles, or items.
+
+:::info Goal
+By the end of this exercise, you will sum values with ipairs.
+:::
+
+### Use Case
+
+You have a list of scores and need their total for a leaderboard summary.
+
+**Example scenarios:**
+- Summing points
+- Iterating UI elements
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_IpairsTotal`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type RepeatUntil = {}
+export type Exercise3 = {}
 
-function init(self: RepeatUntil): boolean
-    print("=== Repeat Until Patterns ===\n")
+function init(self: Exercise3): boolean
+    local scores = {5, 10, 15}
+    local total = 0
 
-    -- Pattern 1: Roll until success
-    print("Pattern 1: Dice Rolling (need 6)")
-    print("--------------------------------")
-    local rolls = 0
-    local result = 0
+    -- TODO: Use ipairs to sum the scores
 
-    repeat
-        rolls += 1
-        -- Pseudo-random: deterministic for demo
-        result = (rolls * 7 + 3) % 6 + 1
-        print(`  Roll {rolls}: {result}`)
-    until result == 6 or rolls >= 10
-
-    if result == 6 then
-        print(`Got a 6 in {rolls} rolls!\n`)
-    else
-        print(`Gave up after {rolls} rolls\n`)
-    end
-
-    -- Pattern 2: Retry with backoff
-    print("Pattern 2: Connection Retry")
-    print("---------------------------")
-    local attempts = 0
-    local connected = false
-    local maxAttempts = 5
-
-    repeat
-        attempts += 1
-        print(`  Attempt {attempts}...`)
-
-        -- Simulate: succeed on attempt 3
-        if attempts >= 3 then
-            connected = true
-            print("  Connected!")
-        else
-            print("  Failed, retrying...")
-        end
-    until connected or attempts >= maxAttempts
-
-    print(`Connection {if connected then "succeeded" else "failed"} after {attempts} attempts\n`)
-
-    -- Pattern 3: Input validation
-    print("Pattern 3: Find Valid Input")
-    print("---------------------------")
-    local validInputs = {5, -1, 0, 42, 100}
-    local inputIndex = 0
-    local validValue = 0
-
-    print("Looking for value > 0 and <= 50...")
-    repeat
-        inputIndex += 1
-        local testValue = validInputs[inputIndex]
-        print(`  Testing: {testValue}`)
-
-        if testValue > 0 and testValue <= 50 then
-            validValue = testValue
-            print(`  Valid! Using {validValue}`)
-        end
-    until validValue > 0 or inputIndex >= #validInputs
-
-    print(`Result: {if validValue > 0 then validValue else "none found"}\n`)
-
-    -- Comparison: while vs repeat
-    print("Comparison: while vs repeat-until")
-    print("----------------------------------")
-
-    local x = 10
-    local whileCount = 0
-    print(`While (x < 5) with x = {x}:`)
-    while x < 5 do  -- Condition false immediately
-        whileCount += 1
-        print("  Inside while")
-    end
-    print(`  Ran {whileCount} times (may be 0)\n`)
-
-    local y = 10
-    local repeatCount = 0
-    print(`Repeat until (y >= 5) with y = {y}:`)
-    repeat
-        repeatCount += 1
-        print("  Inside repeat")
-    until y >= 5  -- Even though y >= 5, runs once
-    print(`  Ran {repeatCount} time (always at least 1)`)
-
+    print(`ANSWER: {total}`)
     return true
 end
 
-function draw(self: RepeatUntil, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<RepeatUntil>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
@@ -864,165 +669,98 @@ return function(): Node<RepeatUntil>
 end
 ```
 
-**Expected Output**:
-```
-=== Repeat Until Patterns ===
+---
 
-Pattern 1: Dice Rolling (need 6)
---------------------------------
-  Roll 1: 4
-  Roll 2: 5
-  Roll 3: 6
-Got a 6 in 3 rolls!
+### Assignment
 
-Pattern 2: Connection Retry
----------------------------
-  Attempt 1...
-  Failed, retrying...
-  Attempt 2...
-  Failed, retrying...
-  Attempt 3...
-  Connected!
-Connection succeeded after 3 attempts
+Complete these tasks:
 
-...
-
-Comparison: while vs repeat-until
-----------------------------------
-While (x < 5) with x = 10:
-  Ran 0 times (may be 0)
-
-Repeat until (y >= 5) with y = 10:
-  Inside repeat
-  Ran 1 time (always at least 1)
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript do-while (condition is INVERTED!)
-let attempts = 0;
-do {
-    attempts++;
-} while (!connected && attempts < maxAttempts);
-//        ↑ Note: while condition continues, until condition stops
-```
+1. Use `ipairs(scores)`
+2. Add each value to total
 
 ---
 
-### Exercise 4: Break and Continue
+### Expected Output
 
-**Goal**: Control loop flow with break and continue.
+Your console output should display the total of all scores in the array, demonstrating iteration with `ipairs`.
 
-**Why This Matters**: Efficient loops often need early exits (break) when found, or to skip certain iterations (continue). These make your code cleaner than complex nested conditions.
+---
 
-**Real-World Use**: Search algorithms, filtering data, early termination, skipping invalid entries.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Trace through each example to understand flow control
-4. Notice how break exits completely while continue just skips
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-3"
+    expectedAnswer="ANSWER: 30"
+/>
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+---
 
-**Expected result:** The Console logs a search loop, a filtered average, and a safe exit from an infinite loop.
+### Checklist
+
+- [ ] ipairs is used
+- [ ] Total equals 30
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: pairs Count ⭐
+
+### Premise
+
+pairs iterates key-value tables. You will use this for dictionaries or config tables.
+
+:::info Goal
+By the end of this exercise, you will count entries in a dictionary.
+:::
+
+### Use Case
+
+You are iterating a settings table and need to count how many options are enabled.
+
+**Example scenarios:**
+- Counting feature flags
+- Iterating config dictionaries
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_PairsCount`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type LoopControl = {}
+export type Exercise4 = {}
 
-function init(self: LoopControl): boolean
-    print("=== Loop Control: break and continue ===\n")
+function init(self: Exercise4): boolean
+    local flags = {
+        glow = true,
+        shadow = false,
+        outline = true,
+    }
 
-    -- Break: Find first match and stop
-    print("Part 1: break - Find First Match")
-    print("---------------------------------")
-    local targets = {10, 25, 50, 75, 100}
-    local searchFor = 50
-    local foundAt = 0
+    local enabled = 0
+    -- TODO: Use pairs to count true values
 
-    print(`Searching for {searchFor}...`)
-    for i, value in ipairs(targets) do
-        print(`  Checking index {i}: {value}`)
-        if value == searchFor then
-            foundAt = i
-            print(`  Found! Breaking out of loop.`)
-            break  -- Exit immediately
-        end
-    end
-    print(`Result: Found {searchFor} at index {foundAt}\n`)
-
-    -- Continue: Skip invalid entries
-    print("Part 2: continue - Skip Invalid Scores")
-    print("--------------------------------------")
-    local scores = {85, -1, 92, 0, 78, -5, 95}
-    local validTotal = 0
-    local validCount = 0
-
-    print("Processing scores (skipping invalid <= 0)...")
-    for i, score in ipairs(scores) do
-        if score <= 0 then
-            print(`  Index {i}: {score} - SKIPPED (invalid)`)
-            continue  -- Skip to next iteration
-        end
-
-        validTotal += score
-        validCount += 1
-        print(`  Index {i}: {score} - Added (total: {validTotal})`)
-    end
-    print(`Average of {validCount} valid scores: {validTotal / validCount}\n`)
-
-    -- Break in while loop
-    print("Part 3: break in while (infinite loop escape)")
-    print("---------------------------------------------")
-    local i = 0
-    print("Running 'infinite' loop with break at 5...")
-    while true do  -- Infinite loop!
-        i += 1
-        print(`  Iteration {i}`)
-        if i >= 5 then
-            print(`  Reached {i}, breaking!`)
-            break  -- Escape the infinite loop
-        end
-    end
-    print(`Escaped after {i} iterations\n`)
-
-    -- Continue with complex condition
-    print("Part 4: continue with condition")
-    print("-------------------------------")
-    print("Printing 1-10, skipping multiples of 3:")
-    local output = ""
-    for n = 1, 10 do
-        if n % 3 == 0 then
-            continue  -- Skip 3, 6, 9
-        end
-        output ..= `{n} `
-    end
-    print(`Result: {output}\n`)
-
-    -- Nested loop with break
-    print("Part 5: break in nested loops")
-    print("-----------------------------")
-    print("Breaking only exits INNER loop:")
-    for outer = 1, 3 do
-        print(`Outer {outer}:`)
-        for inner = 1, 5 do
-            if inner > 2 then
-                print(`  Inner {inner} - breaking inner loop`)
-                break  -- Only breaks inner loop!
-            end
-            print(`  Inner {inner}`)
-        end
-    end
-
+    print(`ANSWER: {enabled}`)
     return true
 end
 
-function draw(self: LoopControl, renderer: Renderer)
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-return function(): Node<LoopControl>
+return function(): Node<Exercise4>
     return {
         init = init,
         draw = draw,
@@ -1030,153 +768,93 @@ return function(): Node<LoopControl>
 end
 ```
 
-**Expected Output**:
-```
-=== Loop Control: break and continue ===
+---
 
-Part 1: break - Find First Match
----------------------------------
-Searching for 50...
-  Checking index 1: 10
-  Checking index 2: 25
-  Checking index 3: 50
-  Found! Breaking out of loop.
-Result: Found 50 at index 3
+### Assignment
 
-Part 2: continue - Skip Invalid Scores
---------------------------------------
-Processing scores (skipping invalid <= 0)...
-  Index 1: 85 - Added (total: 85)
-  Index 2: -1 - SKIPPED (invalid)
-  Index 3: 92 - Added (total: 177)
-  Index 4: 0 - SKIPPED (invalid)
-  Index 5: 78 - Added (total: 255)
-  Index 6: -5 - SKIPPED (invalid)
-  Index 7: 95 - Added (total: 350)
-Average of 4 valid scores: 87.5
-```
+Complete these tasks:
 
-**JavaScript Equivalent**:
-```javascript
-// Break
-for (const value of targets) {
-    if (value === searchFor) {
-        break;
-    }
-}
-
-// Continue
-for (const score of scores) {
-    if (score <= 0) continue;
-    validTotal += score;
-}
-```
+1. Iterate with pairs
+2. Increment enabled when value is true
 
 ---
 
-### Exercise 5: Iterating Over Arrays with ipairs
+### Expected Output
 
-**Goal**: Process collections using ipairs for ordered iteration.
+Your console output should display the count of flags that have a value of `true`, demonstrating dictionary iteration with `pairs`.
 
-**Why This Matters**: Most game data comes in arrays - enemy lists, inventory items, waypoints. ipairs gives you both the index and value while guaranteeing order.
+---
 
-**Real-World Use**: Enemy wave processing, inventory management, particle systems, animation sequences.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Pay attention to the index values (start at 1!)
-4. Notice how ipairs preserves insertion order
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-4"
+    expectedAnswer="ANSWER: 2"
+/>
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+---
 
-**Expected result:** The Console prints enemy wave processing, inventory totals, and ordered array traversal.
+### Checklist
+
+- [ ] pairs is used
+- [ ] Enabled count equals 2
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Nested Loop Grid ⭐⭐
+
+### Premise
+
+Nested loops are how you build grids and repeated patterns. This is common for procedural visuals.
+
+:::info Goal
+By the end of this exercise, you will use nested loops to count grid cells.
+:::
+
+### Use Case
+
+You are building a 3x4 grid of markers. The count validates your loop structure before you start drawing.
+
+**Example scenarios:**
+- Grid layouts
+- Procedural patterns
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_GridCount`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type ArrayIteration = {}
+export type Exercise5 = {}
 
-function init(self: ArrayIteration): boolean
-    print("=== Array Iteration with ipairs ===\n")
+function init(self: Exercise5): boolean
+    local count = 0
+    -- TODO: Use nested loops for rows=1..3 and cols=1..4
+    --       Increment count for each cell
 
-    -- Basic array iteration
-    print("Part 1: Enemy Wave Processing")
-    print("-----------------------------")
-    local enemies = {"Slime", "Goblin", "Orc", "Troll", "Dragon"}
-
-    print("Enemy roster:")
-    for i, enemy in ipairs(enemies) do
-        print(`  {i}. {enemy}`)  -- Note: index starts at 1!
-    end
-
-    print("\nProcessing wave (damage scales with position):")
-    for i, enemy in ipairs(enemies) do
-        local damage = i * 10  -- Later enemies hit harder
-        print(`  {enemy} attacks for {damage} damage!`)
-    end
-
-    -- Nested table iteration
-    print("\nPart 2: Inventory Management")
-    print("----------------------------")
-    local inventory = {
-        {name = "Sword", damage = 50},
-        {name = "Shield", armor = 30},
-        {name = "Potion", healing = 100},
-        {name = "Bow", damage = 35},
-    }
-
-    local totalDamage = 0
-    local totalArmor = 0
-    local totalHealing = 0
-
-    print("Inventory contents:")
-    for i, item in ipairs(inventory) do
-        print(`  Slot {i}: {item.name}`)
-
-        if item.damage then
-            totalDamage += item.damage
-            print(`    → Damage: +{item.damage}`)
-        end
-        if item.armor then
-            totalArmor += item.armor
-            print(`    → Armor: +{item.armor}`)
-        end
-        if item.healing then
-            totalHealing += item.healing
-            print(`    → Healing: +{item.healing}`)
-        end
-    end
-
-    print(`\nInventory totals:`)
-    print(`  Total damage: {totalDamage}`)
-    print(`  Total armor: {totalArmor}`)
-    print(`  Total healing: {totalHealing}`)
-
-    -- Modifying during iteration
-    print("\nPart 3: Position Updates (modifying tables)")
-    print("-------------------------------------------")
-    local positions = {
-        {x = 0, y = 0},
-        {x = 10, y = 5},
-        {x = 20, y = 10},
-    }
-
-    print("Moving all positions by (5, 5):")
-    for i, pos in ipairs(positions) do
-        print(`  Before: Position {i} = ({pos.x}, {pos.y})`)
-        pos.x += 5  -- Safe to modify table contents
-        pos.y += 5
-        print(`  After:  Position {i} = ({pos.x}, {pos.y})`)
-    end
-
+    print(`ANSWER: {count}`)
     return true
 end
 
-function draw(self: ArrayIteration, renderer: Renderer)
+function draw(self: Exercise5, renderer: Renderer)
 end
 
-return function(): Node<ArrayIteration>
+return function(): Node<Exercise5>
     return {
         init = init,
         draw = draw,
@@ -1184,310 +862,95 @@ return function(): Node<ArrayIteration>
 end
 ```
 
-**Expected Output**:
-```
-=== Array Iteration with ipairs ===
+---
 
-Part 1: Enemy Wave Processing
------------------------------
-Enemy roster:
-  1. Slime
-  2. Goblin
-  3. Orc
-  4. Troll
-  5. Dragon
+### Assignment
 
-Processing wave (damage scales with position):
-  Slime attacks for 10 damage!
-  Goblin attacks for 20 damage!
-  Orc attacks for 30 damage!
-  Troll attacks for 40 damage!
-  Dragon attacks for 50 damage!
-```
+Complete these tasks:
 
-**JavaScript Equivalent**:
-```javascript
-// forEach with index
-enemies.forEach((enemy, index) => {
-    console.log(`${index}: ${enemy}`);  // 0-based in JS!
-});
-
-// for...of (no index)
-for (const enemy of enemies) {
-    console.log(enemy);
-}
-
-// entries() for index + value
-for (const [index, enemy] of enemies.entries()) {
-    console.log(`${index}: ${enemy}`);  // Still 0-based
-}
-```
+1. Create an outer loop for rows (1 to 3)
+2. Create an inner loop for columns (1 to 4)
+3. Increment count for each cell
 
 ---
 
-### Exercise 6: Iterating Over Dictionaries
+### Expected Output
 
-**Goal**: Process key-value data using `pairs()`.
+Your console output should display the total number of cells in the grid (rows × columns), demonstrating nested loop iteration.
 
-**Why This Matters**: Game configuration, player stats, and entity properties are often stored as dictionaries. Understanding unordered iteration is crucial.
+---
 
-**Real-World Use**: Stats display, config loading, buff/debuff systems, loot tables.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Note that iteration order is NOT guaranteed for dictionaries
-4. Run multiple times - order may vary!
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-5"
+    expectedAnswer="ANSWER: 12"
+/>
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+---
 
-**Expected result:** The Console logs stats, buffs, and loot table entries, showing unordered dictionary traversal.
+### Checklist
+
+- [ ] Two nested loops are used
+- [ ] Count equals 12
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Break Search ⭐⭐
+
+### Premise
+
+break lets you exit early once you find what you need. This saves time and keeps logic simple.
+
+:::info Goal
+By the end of this exercise, you will use break to stop a search loop.
+:::
+
+### Use Case
+
+You are scanning a list of values to find the first value over a threshold. Once found, you stop.
+
+**Example scenarios:**
+- Searching for a matching item
+- Early exit on a hit test
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_BreakSearch`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type DictIteration = {}
+export type Exercise6 = {}
 
-function init(self: DictIteration): boolean
-    print("=== Dictionary Iteration ===\n")
-
-    -- Basic dictionary iteration
-    print("Part 1: Character Stats")
-    print("-----------------------")
-    local stats = {
-        health = 100,
-        mana = 50,
-        strength = 15,
-        agility = 12,
-        intelligence = 18,
-    }
-
-    print("Current stats (order may vary!):")
-    for stat, value in pairs(stats) do
-        print(`  {stat}: {value}`)
-    end
-
-    -- Applying modifiers
-    print("\nPart 2: Buff Application")
-    print("------------------------")
-    local buffs = {
-        strength = 5,
-        agility = 3,
-        intelligence = 2,
-    }
-
-    print("Applying buffs:")
-    for stat, bonus in pairs(buffs) do
-        if stats[stat] then
-            local oldValue = stats[stat]
-            stats[stat] += bonus
-            print(`  {stat}: {oldValue} → {stats[stat]} (+{bonus})`)
-        end
-    end
-
-    -- Nested dictionary
-    print("\nPart 3: Loot Table")
-    print("------------------")
-    local lootTable = {
-        gold = {min = 10, max = 50},
-        gems = {min = 0, max = 3},
-        keys = {min = 0, max = 1},
-    }
-
-    print("Possible drops:")
-    for item, range in pairs(lootTable) do
-        print(`  {item}: {range.min}-{range.max}`)
-    end
-
-    -- Type checking during iteration
-    print("\nPart 4: Config Validation")
-    print("-------------------------")
-    local config = {
-        volume = 0.8,
-        brightness = 1.2,  -- Invalid: > 1.0
-        difficulty = 0.5,
-        musicEnabled = true,  -- Not a number
-    }
-
-    print("Validating numeric settings (0.0 - 1.0):")
-    for setting, value in pairs(config) do
-        if type(value) == "number" then
-            if value >= 0 and value <= 1.0 then
-                print(`  {setting}: {value} ✓ valid`)
-            else
-                print(`  {setting}: {value} ✗ INVALID (out of range)`)
-            end
-        else
-            print(`  {setting}: skipped (not numeric)`)
-        end
-    end
-
-    return true
-end
-
-function draw(self: DictIteration, renderer: Renderer)
-end
-
-return function(): Node<DictIteration>
-    return {
-        init = init,
-        draw = draw,
-    }
-end
-```
-
-**Expected Output**:
-```
-=== Dictionary Iteration ===
-
-Part 1: Character Stats
------------------------
-Current stats (order may vary!):
-  health: 100
-  mana: 50
-  strength: 15
-  agility: 12
-  intelligence: 18
-
-Part 2: Buff Application
-------------------------
-Applying buffs:
-  strength: 15 → 20 (+5)
-  agility: 12 → 15 (+3)
-  intelligence: 18 → 20 (+2)
-```
-
-**JavaScript Equivalent**:
-```javascript
-// for...in (keys only)
-for (const stat in stats) {
-    console.log(`${stat}: ${stats[stat]}`);
-}
-
-// Object.entries (key + value)
-for (const [stat, value] of Object.entries(stats)) {
-    console.log(`${stat}: ${value}`);
-}
-```
-
----
-
-### Exercise 7: Nested Loops for Grid Operations
-
-**Goal**: Use nested loops for 2D data structures.
-
-**Why This Matters**: Grids are everywhere in games - tile maps, UI layouts, sprite sheets, collision maps. Understanding nested loops is essential for 2D operations.
-
-**Real-World Use**: Grid-based games, tile maps, matrix operations, pattern generation.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Trace through the nested loops to understand row/column relationships
-4. Note how the inner loop completes fully for each outer iteration
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints a 3x3 grid, a 5x5 multiplication table, and a simple triangle pattern.
-
-```lua
---!strict
-
-export type NestedLoops = {}
-
-function init(self: NestedLoops): boolean
-    print("=== Nested Loops for 2D Operations ===\n")
-
-    -- Create and populate a grid
-    print("Part 1: Create 3x3 Grid")
-    print("-----------------------")
-    local grid: {{number}} = {}
-
-    for row = 1, 3 do
-        grid[row] = {}  -- Create row
-        for col = 1, 3 do
-            grid[row][col] = (row - 1) * 3 + col  -- Sequential numbering
-        end
-    end
-
-    print("Grid contents:")
-    for row = 1, 3 do
-        local rowStr = "  "
-        for col = 1, 3 do
-            rowStr ..= `{grid[row][col]} `
-        end
-        print(rowStr)
-    end
-
-    -- Multiplication table
-    print("\nPart 2: 5x5 Multiplication Table")
-    print("--------------------------------")
-    print("      1   2   3   4   5")
-    print("    ---------------------")
-    for i = 1, 5 do
-        local line = `  {i} |`
-        for j = 1, 5 do
-            local product = i * j
-            -- Pad for alignment
-            if product < 10 then
-                line ..= `  {product} `
-            else
-                line ..= ` {product} `
-            end
-        end
-        print(line)
-    end
-
-    -- Pattern drawing
-    print("\nPart 3: Triangle Pattern")
-    print("------------------------")
-    print("Right triangle:")
-    for row = 1, 5 do
-        local stars = "  "
-        for col = 1, row do
-            stars ..= "* "
-        end
-        print(stars)
-    end
-
-    print("\nInverted triangle:")
-    for row = 5, 1, -1 do
-        local stars = "  "
-        for col = 1, row do
-            stars ..= "* "
-        end
-        print(stars)
-    end
-
-    -- Searching in 2D
-    print("\nPart 4: 2D Search")
-    print("-----------------")
-    local map = {
-        {0, 0, 0, 1},
-        {0, 1, 0, 0},
-        {0, 0, 0, 0},
-        {1, 0, 1, 0},
-    }
-
-    print("Finding all 1s in 4x4 map:")
+function init(self: Exercise6): boolean
+    local values = {2, 4, 9, 3}
     local found = 0
-    for row = 1, #map do
-        for col = 1, #map[row] do
-            if map[row][col] == 1 then
-                found += 1
-                print(`  Found 1 at ({row}, {col})`)
-            end
-        end
-    end
-    print(`Total found: {found}`)
 
+    -- TODO: Find the first value > 5 and break
+
+    print(`ANSWER: {found}`)
     return true
 end
 
-function draw(self: NestedLoops, renderer: Renderer)
+function draw(self: Exercise6, renderer: Renderer)
 end
 
-return function(): Node<NestedLoops>
+return function(): Node<Exercise6>
     return {
         init = init,
         draw = draw,
@@ -1495,195 +958,236 @@ return function(): Node<NestedLoops>
 end
 ```
 
-**Expected Output**:
-```
-=== Nested Loops for 2D Operations ===
+---
 
-Part 1: Create 3x3 Grid
------------------------
-Grid contents:
-  1 2 3
-  4 5 6
-  7 8 9
+### Assignment
 
-Part 2: 5x5 Multiplication Table
---------------------------------
-      1   2   3   4   5
-    ---------------------
-  1 |  1   2   3   4   5
-  2 |  2   4   6   8  10
-  3 |  3   6   9  12  15
-  4 |  4   8  12  16  20
-  5 |  5  10  15  20  25
+Complete these tasks:
 
-Part 3: Triangle Pattern
-------------------------
-Right triangle:
-  *
-  * *
-  * * *
-  * * * *
-  * * * * *
-
-Inverted triangle:
-  * * * * *
-  * * * *
-  * * *
-  * *
-  *
-```
-
-**JavaScript Equivalent**:
-```javascript
-// Create 2D grid
-const grid = [];
-for (let row = 0; row < 3; row++) {
-    grid[row] = [];
-    for (let col = 0; col < 3; col++) {
-        grid[row][col] = row * 3 + col + 1;
-    }
-}
-```
+1. Loop through values in order
+2. When value > 5, store it in found and break
 
 ---
 
-### Exercise 8: Per-Frame Iteration with advance
+### Expected Output
 
-**Goal**: Iterate over collections every frame for animation updates.
+Your console output should display the first value in the array that exceeds the threshold. The loop should stop immediately after finding it.
 
-**Why This Matters**: Animation requires updating multiple objects each frame - particles moving, enemies patrolling, effects fading. This exercise shows the pattern for per-frame collection processing.
+---
 
-**Real-World Use**: Particle systems, enemy AI, projectile movement, physics simulation.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. This uses `advance()` which runs every frame
-4. Watch the particles move in the console output
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-6"
+    expectedAnswer="ANSWER: 9"
+/>
 
-**Rive setup:** Attach the script to any node and let the animation run for a few seconds.
+---
 
-**Expected result:** The Console logs particle positions every half-second, showing per-frame updates and bouncing behavior.
+### Checklist
+
+- [ ] Break stops at the first match
+- [ ] Found value equals 9
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 7: Continue Filter ⭐⭐
+
+### Premise
+
+continue lets you skip items you do not want to process. This is common when filtering input.
+
+:::info Goal
+By the end of this exercise, you will skip negative values in a loop.
+:::
+
+### Use Case
+
+You are averaging sensor readings and want to ignore invalid (negative) values.
+
+**Example scenarios:**
+- Filtering invalid data
+- Skipping hidden UI items
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise7_ContinueFilter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type FrameIteration = {
-    particles: {{x: number, y: number, vx: number, vy: number}},
-    frameCount: number,
-}
+export type Exercise7 = {}
 
-function init(self: FrameIteration): boolean
-    -- Create some particles with different velocities
-    self.particles = {}
-    for i = 1, 5 do
-        table.insert(self.particles, {
-            x = i * 20,           -- Spread out horizontally
-            y = 50,               -- Start at same height
-            vx = (i - 3) * 2,     -- Velocities: -4, -2, 0, 2, 4
-            vy = -5,              -- All moving up initially
-        })
-    end
-    self.frameCount = 0
+function init(self: Exercise7): boolean
+    local values = {3, -1, 4, -2, 5}
+    local sum = 0
+    local count = 0
 
-    print("=== Per-Frame Particle System ===")
-    print(`Created {#self.particles} particles`)
-    print("Simulating with gravity and bounce...\n")
+    -- TODO: Skip negative values with continue
 
+    print(`ANSWER: sum={sum},count={count}`)
     return true
 end
 
-function advance(self: FrameIteration, seconds: number): boolean
-    self.frameCount += 1
-
-    -- Update all particles every frame
-    for i, p in ipairs(self.particles) do
-        -- Apply velocity (scaled by delta time)
-        p.x += p.vx * seconds * 60
-        p.y += p.vy * seconds * 60
-
-        -- Apply gravity
-        p.vy += 0.5
-
-        -- Bounce off bottom
-        if p.y > 200 then
-            p.y = 200
-            p.vy *= -0.8  -- Lose energy on bounce
-        end
-
-        -- Wrap horizontally
-        if p.x < 0 then p.x = 200 end
-        if p.x > 200 then p.x = 0 end
-    end
-
-    -- Log every 30 frames (roughly 0.5 seconds at 60fps)
-    if self.frameCount % 30 == 0 then
-        print(`Frame {self.frameCount}:`)
-        for i, p in ipairs(self.particles) do
-            print(`  Particle {i}: pos=({p.x // 1}, {p.y // 1}) vel=({p.vx // 1}, {p.vy // 1})`)
-        end
-    end
-
-    -- Stop logging after a few seconds
-    if self.frameCount > 180 then
-        return false  -- Returning false stops advance calls
-    end
-
-    return true
+function draw(self: Exercise7, renderer: Renderer)
 end
 
-function draw(self: FrameIteration, renderer: Renderer)
-    -- In a real implementation, you'd render particles here
-end
-
-return function(): Node<FrameIteration>
+return function(): Node<Exercise7>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        particles = {},  -- Will be initialized in init()
-        frameCount = 0,
     }
 end
-```
-
-**Expected Output** (varies over time):
-```
-=== Per-Frame Particle System ===
-Created 5 particles
-Simulating with gravity and bounce...
-
-Frame 30:
-  Particle 1: pos=(-51, 170) vel=(-4, 10)
-  Particle 2: pos=(16, 170) vel=(-2, 10)
-  Particle 3: pos=(60, 170) vel=(0, 10)
-  Particle 4: pos=(104, 170) vel=(2, 10)
-  Particle 5: pos=(171, 170) vel=(4, 10)
-
-Frame 60:
-  Particle 1: pos=(97, 200) vel=(-4, -3)
-  ...
-```
-
-**JavaScript Equivalent**:
-```javascript
-// In a requestAnimationFrame loop
-function update(deltaTime) {
-    for (const particle of particles) {
-        particle.x += particle.vx * deltaTime;
-        particle.y += particle.vy * deltaTime;
-        particle.vy += 0.5;  // gravity
-
-        if (particle.y > 200) {
-            particle.y = 200;
-            particle.vy *= -0.8;
-        }
-    }
-}
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Loop through values
+2. Use continue when value < 0
+3. Sum and count only positive values
+
+---
+
+### Expected Output
+
+Your console output should display:
+- `sum=` — the total of all positive (non-negative) values
+- `count=` — how many positive values were summed
+
+Negative values should be skipped entirely.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-7"
+    expectedAnswer="ANSWER: sum=12,count=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Negative values are skipped
+- [ ] Sum equals 12
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 8: String Iteration ⭐⭐
+
+### Premise
+
+Sometimes you need to iterate characters, such as counting vowels or validating identifiers. This uses basic loops with string indexing.
+
+:::info Goal
+By the end of this exercise, you will count vowels in a string.
+:::
+
+### Use Case
+
+You are analyzing a label to determine if it meets naming rules. Counting vowels is a simple stand-in for character validation logic.
+
+**Example scenarios:**
+- Validating text input
+- Running simple text analysis
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise8_StringIteration`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise8 = {}
+
+function init(self: Exercise8): boolean
+    local name = "Rive"
+    local vowels = 0
+
+    -- TODO: Loop through each character and count vowels (a,e,i,o,u)
+
+    print(`ANSWER: {vowels}`)
+    return true
+end
+
+function draw(self: Exercise8, renderer: Renderer)
+end
+
+return function(): Node<Exercise8>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Loop from 1 to #name
+2. Use name:sub(i, i) to read each char
+3. Count vowels a,e,i,o,u (case-insensitive not needed here)
+
+---
+
+### Expected Output
+
+Your console output should display the count of vowels (a, e, i, o, u) found in the string "Rive".
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-iteration-8"
+    expectedAnswer="ANSWER: 2"
+/>
+
+---
+
+### Checklist
+
+- [ ] Loop uses string length
+- [ ] Vowel count equals 2 (i and e)
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

@@ -5,6 +5,7 @@ description: Private state patterns and closures for encapsulation in Rive
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Lesson 3.7: Encapsulation
 
@@ -160,72 +161,28 @@ console.log(c.count);  // undefined! Can't access it
 
 ## Practice Exercises
 
-### Exercise 1: Encapsulated State Machine
+<Exercise
+  id="oop-encap-1"
+  title="Exercise 1: Encapsulated State Machine"
+  difficulty={2}
+  hint="Return an object with functions that close over the private state. The transition function should check if the target state is in the allowed list for the current state."
+  expectedAnswer="running"
+  explanation="The state machine only allows valid transitions. idle->walking->running works, but running->jumping fails because that transition isn't defined. The final state remains 'running'."
+  task="Complete the createStateMachine factory function to encapsulate state and enforce valid transitions."
+  expectedOutput={`Initial: idle
+After walking: walking
+After running: running
+Transition from running to jumping not allowed
+Final state: running
+ANSWER: running`}
+  code={`--!strict
 
-**Goal**: Create a state machine where the current state and transitions are truly private.
-
-**Why This Matters**: In a game or interactive animation, you don't want code to be able to set arbitrary states. The state machine should enforce valid transitions only.
-
-**Real-World Use**: A Rive character animation that can only transition between valid states (idle → walking → running, but NOT idle → flying directly). Prevents bugs and cheating.
-
-**After Effects Comparison**: In AE, you might use an expression selector or if/else chain to manage states. But anyone can set the state variable to any value. In Luau, closures enforce that only valid transitions are allowed.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-class StateMachine {
-    #currentState: string;  // Private field (ES2022+)
-    #transitions: Map<string, string[]> = new Map();
-    #history: string[] = [];
-
-    constructor(initial: string) {
-        this.#currentState = initial;
-        this.#history.push(initial);
-    }
-
-    addTransition(from: string, to: string): void {
-        if (!this.#transitions.has(from)) {
-            this.#transitions.set(from, []);
-        }
-        this.#transitions.get(from)!.push(to);
-    }
-
-    transition(to: string): boolean {
-        const allowed = this.#transitions.get(this.#currentState);
-        if (allowed?.includes(to)) {
-            this.#currentState = to;
-            this.#history.push(to);
-            return true;
-        }
-        return false;
-    }
-
-    getState(): string { return this.#currentState; }
-    getHistory(): string[] { return [...this.#history]; }  // Return copy!
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "StateMachineDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: Console output showing valid and invalid state transitions
-
-```lua
---!strict
-
--- Factory function that creates an encapsulated state machine
 local function createStateMachine(initialState: string)
-    -- =====================================================
-    -- PRIVATE STATE - completely inaccessible from outside
-    -- =====================================================
+    -- Private state (captured in closures)
     local currentState = initialState
-    local history: {string} = { initialState }
     local transitions: { [string]: {string} } = {}
 
-    -- Return public interface only
     return {
-        -- Add allowed transition
         addTransition = function(from: string, to: string)
             if not transitions[from] then
                 transitions[from] = {}
@@ -233,80 +190,53 @@ local function createStateMachine(initialState: string)
             table.insert(transitions[from], to)
         end,
 
-        -- Attempt state transition (enforces rules!)
+        -- TODO 1: Implement transition function
+        -- Check if 'to' state is in transitions[currentState]
+        -- If valid: update currentState, return true
+        -- If invalid: print error message, return false
         transition = function(to: string): boolean
-            local allowed = transitions[currentState]
-            if allowed then
-                for _, state in ipairs(allowed) do
-                    if state == to then
-                        currentState = to
-                        table.insert(history, to)
-                        return true
-                    end
-                end
-            end
-            print(`Transition from {currentState} to {to} not allowed`)
+            -- Replace with implementation
             return false
         end,
 
-        -- Get current state (read-only)
+        -- TODO 2: Implement getState (return current state)
         getState = function(): string
-            return currentState
-        end,
-
-        -- Get history (returns a COPY, not the original!)
-        getHistory = function(): {string}
-            local copy = {}
-            for _, s in ipairs(history) do
-                table.insert(copy, s)
-            end
-            return copy
+            return ""  -- Fix this
         end,
     }
 end
 
+export type StateMachineType = {
+    addTransition: (string, string) -> (),
+    transition: (string) -> boolean,
+    getState: () -> string,
+}
+
 export type StateMachineDemo = {
-    machine: {
-        addTransition: (string, string) -> (),
-        transition: (string) -> boolean,
-        getState: () -> string,
-        getHistory: () -> {string},
-    },
+    machine: StateMachineType,
 }
 
 function init(self: StateMachineDemo): boolean
-    -- Create encapsulated state machine
     self.machine = createStateMachine("idle")
 
     -- Define allowed transitions
     self.machine.addTransition("idle", "walking")
-    self.machine.addTransition("idle", "jumping")
-    self.machine.addTransition("walking", "idle")
     self.machine.addTransition("walking", "running")
     self.machine.addTransition("running", "walking")
-    self.machine.addTransition("jumping", "idle")
 
-    -- Test valid transitions
-    print(`Initial state: {self.machine.getState()}`)
+    print(\`Initial: {self.machine.getState()}\`)
 
     self.machine.transition("walking")
-    print(`After walking: {self.machine.getState()}`)
+    print(\`After walking: {self.machine.getState()}\`)
 
     self.machine.transition("running")
-    print(`After running: {self.machine.getState()}`)
+    print(\`After running: {self.machine.getState()}\`)
 
-    -- Try INVALID transition (running -> jumping is not defined!)
-    self.machine.transition("jumping")  -- Will print error, won't change state
-    print(`After invalid: {self.machine.getState()}`)  -- Still "running"
+    -- Try invalid transition (not defined!)
+    self.machine.transition("jumping")
+    print(\`Final state: {self.machine.getState()}\`)
 
-    -- Show history
-    local hist = self.machine.getHistory()
-    print(`History: {table.concat(hist, " -> ")}`)
-
-    -- Can't cheat! These fields don't exist on the returned table:
-    -- self.machine.currentState = "flying"  -- ERROR: field doesn't exist!
-    -- self.machine.transitions = {}         -- ERROR: field doesn't exist!
-
+    print(\`ANSWER: {self.machine.getState()}\`)
     return true
 end
 
@@ -319,71 +249,58 @@ return function(): Node<StateMachineDemo>
         draw = draw,
         machine = createStateMachine(""),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Implement transition function
+transition = function(to: string): boolean
+    local allowed = transitions[currentState]
+    if allowed then
+        for _, state in ipairs(allowed) do
+            if state == to then
+                currentState = to
+                return true
+            end
+        end
+    end
+    print(\`Transition from {currentState} to {to} not allowed\`)
+    return false
+end,
 
-**Key insight**: `currentState`, `history`, and `transitions` are captured in closures. There's NO way to access them except through the provided functions. This is stronger than JavaScript's `private` keyword!
+-- TODO 2: Implement getState
+getState = function(): string
+    return currentState
+end,`}
+>
+
+**Premise**: Closures create truly private state that can't be accessed from outside. The state machine enforces valid transitions - there's no way to "cheat" by setting the state directly.
+
+**Use Case**: A character animation that can only transition between valid states (idle -> walking -> running, but NOT idle -> flying directly).
+
+</Exercise>
 
 ---
 
-### Exercise 2: Encapsulated Animation Controller
+<Exercise
+  id="oop-encap-2"
+  title="Exercise 2: Encapsulated Animation Controller"
+  difficulty={2}
+  hint="Implement the step function with spring physics: displacement = target - position, velocity += displacement * stiffness * dt, then apply damping and update position."
+  expectedAnswer="settled"
+  explanation="The spring controller uses encapsulated physics state. After one second, the spring settles at its target position (80) because velocity approaches zero and displacement is within the threshold."
+  task="Complete the createSpringController factory function with private physics state. Implement the step() function with spring physics and settle detection."
+  expectedOutput={`Initial position: 0
+After 0.5s: position ~40 (moving toward 80)
+After 1.0s: position ~80 (nearly settled)
+Status: settled
+ANSWER: settled`}
+  code={`--!strict
 
-**Goal**: Create a spring animation controller with private physics state.
-
-**Why This Matters**: Physics simulations have internal state (velocity, position) that shouldn't be modified directly. External code should only be able to set targets and read positions.
-
-**Real-World Use**: A Rive button that springs into position when hovered. The spring physics are hidden - external code just calls `setTarget()` and `getPosition()`.
-
-**After Effects Comparison**: In AE, you might use the built-in `wiggle()` or `ease()` functions. You can't create your own physics system with protected state. In Luau, you can build sophisticated physics with encapsulated internal state.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-function createSpringController(initial: number, stiffness: number, damping: number) {
-    // Private state
-    let position = initial;
-    let velocity = 0;
-    let target = initial;
-    let isSettled = true;
-
-    return {
-        setTarget(t: number) {
-            target = t;
-            isSettled = false;
-        },
-        step(dt: number) {
-            if (isSettled) return;
-            const displacement = target - position;
-            velocity += displacement * stiffness * dt;
-            velocity *= Math.max(0, 1 - damping * dt);
-            position += velocity * dt;
-            // Check if settled...
-        },
-        getPosition(): number { return position; },
-        getVelocity(): number { return velocity; },
-    };
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "SpringDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: A circle that smoothly springs around the artboard following a circular path
-
-```lua
---!strict
-
--- Encapsulated spring animation controller
 local function createSpringController(initial: number, stiffness: number, damping: number)
-    -- =====================================================
-    -- PRIVATE STATE - physics internals are hidden
-    -- =====================================================
+    -- Private state (captured in closures)
     local position = initial
     local velocity = 0
     local target = initial
     local isSettled = true
-    local settleThreshold = 0.01
+    local settleThreshold = 0.5
 
     return {
         setTarget = function(t: number)
@@ -391,40 +308,25 @@ local function createSpringController(initial: number, stiffness: number, dampin
             isSettled = false
         end,
 
+        -- TODO 1: Implement step function with spring physics
+        -- 1. If settled, return early
+        -- 2. Calculate displacement = target - position
+        -- 3. Update velocity: velocity = velocity + displacement * stiffness * dt
+        -- 4. Apply damping: velocity = velocity * math.max(0, 1 - damping * dt)
+        -- 5. Update position: position = position + velocity * dt
+        -- 6. Check if settled (displacement and velocity both < settleThreshold)
         step = function(dt: number)
-            if isSettled then return end
-
-            -- Spring physics (users can't mess with this!)
-            local displacement = target - position
-            velocity = velocity + displacement * stiffness * dt
-            velocity = velocity * math.max(0, 1 - damping * dt)
-            position = position + velocity * dt
-
-            -- Check if settled
-            if math.abs(displacement) < settleThreshold and math.abs(velocity) < settleThreshold then
-                position = target
-                velocity = 0
-                isSettled = true
-            end
+            -- Replace with implementation
         end,
 
+        -- TODO 2: Implement getPosition (return current position)
         getPosition = function(): number
-            return position
+            return 0  -- Fix this
         end,
 
-        getVelocity = function(): number
-            return velocity
-        end,
-
+        -- TODO 3: Implement isMoving (return NOT settled)
         isMoving = function(): boolean
-            return not isSettled
-        end,
-
-        snap = function(value: number)
-            position = value
-            target = value
-            velocity = 0
-            isSettled = true
+            return false  -- Fix this
         end,
     }
 end
@@ -433,115 +335,100 @@ export type SpringControllerType = {
     setTarget: (number) -> (),
     step: (number) -> (),
     getPosition: () -> number,
-    getVelocity: () -> number,
     isMoving: () -> boolean,
-    snap: (number) -> (),
 }
 
-export type AnimControllerDemo = {
-    xSpring: SpringControllerType,
-    ySpring: SpringControllerType,
-    path: Path,
-    paint: Paint,
-    elapsed: number,
+export type SpringDemo = {
+    spring: SpringControllerType,
 }
 
-function init(self: AnimControllerDemo): boolean
-    -- Create encapsulated controllers (different stiffness/damping)
-    self.xSpring = createSpringController(0, 50, 8)
-    self.ySpring = createSpringController(0, 30, 6)
+function init(self: SpringDemo): boolean
+    self.spring = createSpringController(0, 50, 8)
 
-    self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), 20, 20)
+    print(\`Initial position: {self.spring.getPosition()}\`)
 
-    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 255) })
-    self.elapsed = 0
+    -- Set target to 80
+    self.spring.setTarget(80)
 
-    return true
-end
-
-function advance(self: AnimControllerDemo, seconds: number): boolean
-    self.elapsed += seconds
-
-    -- Periodically set new targets (circular motion)
-    if math.floor(self.elapsed) % 2 == 0 then
-        local angle = self.elapsed * 0.5
-        self.xSpring.setTarget(math.cos(angle) * 80)
-        self.ySpring.setTarget(math.sin(angle) * 60)
+    -- Simulate 0.5 seconds
+    for i = 1, 50 do
+        self.spring.step(0.01)
     end
+    print(\`After 0.5s: position ~{math.floor(self.spring.getPosition())} (moving toward 80)\`)
 
-    -- Update springs
-    self.xSpring.step(seconds)
-    self.ySpring.step(seconds)
+    -- Simulate another 0.5 seconds
+    for i = 1, 50 do
+        self.spring.step(0.01)
+    end
+    print(\`After 1.0s: position ~{math.floor(self.spring.getPosition())} (nearly settled)\`)
+
+    local status = if self.spring.isMoving() then "moving" else "settled"
+    print(\`Status: {status}\`)
+    print(\`ANSWER: {status}\`)
 
     return true
 end
 
-function draw(self: AnimControllerDemo, renderer: Renderer)
-    local x = self.xSpring.getPosition()
-    local y = self.ySpring.getPosition()
-
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(x, y))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
+function draw(self: SpringDemo, renderer: Renderer)
 end
 
-return function(): Node<AnimControllerDemo>
+return function(): Node<SpringDemo>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        xSpring = createSpringController(0, 1, 1),
-        ySpring = createSpringController(0, 1, 1),
-        path = Path.new(),
-        paint = Paint.new(),
-        elapsed = 0,
+        spring = createSpringController(0, 1, 1),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Implement step function with spring physics
+step = function(dt: number)
+    if isSettled then return end
+
+    local displacement = target - position
+    velocity = velocity + displacement * stiffness * dt
+    velocity = velocity * math.max(0, 1 - damping * dt)
+    position = position + velocity * dt
+
+    -- Check if settled
+    if math.abs(displacement) < settleThreshold and math.abs(velocity) < settleThreshold then
+        position = target
+        velocity = 0
+        isSettled = true
+    end
+end,
+
+-- TODO 2: Implement getPosition
+getPosition = function(): number
+    return position
+end,
+
+-- TODO 3: Implement isMoving
+isMoving = function(): boolean
+    return not isSettled
+end,`}
+>
+
+**Premise**: Spring physics simulations have internal state (velocity, position) that shouldn't be modified directly. Closures hide the physics internals so external code can only set targets and read positions.
+
+**Use Case**: A Rive button that springs into position when hovered. The spring physics are hidden - external code just calls `setTarget()` and `getPosition()`.
+
+</Exercise>
 
 ---
 
-### Exercise 3: Weak Privacy with Conventions
-
-**Goal**: Use underscore prefixes for simpler cases where true enforcement isn't needed.
-
-**Why This Matters**: Closure-based privacy has a cost - each instance gets its own copy of all methods. For internal implementation details where you trust your own code, underscore conventions are simpler and more efficient.
-
-**Real-World Use**: A sprite class with internal `_path` and `_paint` fields that shouldn't be touched directly, but true enforcement isn't critical.
-
-**After Effects Comparison**: This is similar to how AE expressions work - variables are accessible but some are "meant" to be internal. The `_` prefix is just a hint to other developers.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-class Sprite {
-    x: number;
-    y: number;
-    _path: Path;       // "Private" by convention
-    _paint: Paint;     // "Private" by convention
-    _dirty: boolean;   // "Private" by convention
-
-    setColor(color: Color): void {
-        this._paint.color = color;  // OK to use internally
-    }
-
-    _rebuildPath(): void {  // Private method by convention
-        if (!this._dirty) return;
-        // ... rebuild logic
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "ConventionDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: A colored circle that can change color through the public API
-
-```lua
---!strict
+<Exercise
+  id="oop-encap-3"
+  title="Exercise 3: Weak Privacy with Conventions"
+  difficulty={1}
+  hint="Use underscore prefix (_) for fields and methods that should be considered private. Implement the public setColor method to update _paint.color."
+  expectedAnswer="dirty=false"
+  explanation="Underscore conventions indicate 'private' fields that shouldn't be accessed directly from outside the class. The _dirty flag is set to true initially, then false after _rebuildPath runs. This pattern is simpler than closures but relies on programmer discipline."
+  task="Complete the Sprite class using underscore conventions for private fields and methods. Implement setColor() and _rebuildPath()."
+  expectedOutput={`Created sprite at (50, 50)
+Initial dirty: true
+After draw, dirty: false
+Color changed via public API
+ANSWER: dirty=false`}
+  code={`--!strict
 
 local Sprite = {}
 Sprite.__index = Sprite
@@ -549,9 +436,9 @@ Sprite.__index = Sprite
 export type SpriteType = {
     x: number,
     y: number,
-    _path: Path,      -- "Private" - don't touch directly
-    _paint: Paint,    -- "Private" - don't touch directly
-    _dirty: boolean,  -- "Private" - internal flag
+    _path: Path,      -- "Private" by convention
+    _paint: Paint,    -- "Private" by convention
+    _dirty: boolean,  -- "Private" internal flag
 }
 
 function Sprite.new(x: number, y: number, color: Color): SpriteType
@@ -564,17 +451,19 @@ function Sprite.new(x: number, y: number, color: Color): SpriteType
     return (self :: any) :: SpriteType
 end
 
--- Public method to change color
+-- TODO 1: Implement public setColor method
+-- Update self._paint.color with the new color
 function Sprite:setColor(color: Color)
-    self._paint.color = color
+    -- Replace with implementation
 end
 
--- Internal method (convention: underscore prefix)
+-- TODO 2: Implement internal _rebuildPath method (underscore = private)
+-- 1. If not self._dirty, return early
+-- 2. Reset self._path
+-- 3. Add an ellipse centered at (0,0) with radius 25
+-- 4. Set self._dirty = false
 function Sprite:_rebuildPath()
-    if not self._dirty then return end
-    self._path:reset()
-    self._path:addEllipse(Vector.xy(0, 0), 25, 25)
-    self._dirty = false
+    -- Replace with implementation
 end
 
 function Sprite:draw(renderer: Renderer)
@@ -587,27 +476,22 @@ end
 
 export type ConventionDemo = {
     sprite: SpriteType,
-    elapsed: number,
 }
 
 function init(self: ConventionDemo): boolean
-    self.sprite = Sprite.new(0, 0, Color.rgb(100, 200, 255))
-    self.elapsed = 0
-    return true
-end
+    self.sprite = Sprite.new(50, 50, Color.rgb(100, 200, 255))
+    print(\`Created sprite at ({self.sprite.x}, {self.sprite.y})\`)
+    print(\`Initial dirty: {self.sprite._dirty}\`)
 
-function advance(self: ConventionDemo, seconds: number): boolean
-    self.elapsed += seconds
+    -- Trigger draw to call _rebuildPath
+    self.sprite:_rebuildPath()
+    print(\`After draw, dirty: {self.sprite._dirty}\`)
 
-    -- Change color over time using PUBLIC API
-    local r = math.floor((math.sin(self.elapsed) * 0.5 + 0.5) * 255)
-    local g = math.floor((math.sin(self.elapsed * 1.3) * 0.5 + 0.5) * 255)
-    local b = math.floor((math.sin(self.elapsed * 1.7) * 0.5 + 0.5) * 255)
-    self.sprite:setColor(Color.rgb(r, g, b))
+    -- Use PUBLIC API to change color
+    self.sprite:setColor(Color.rgb(255, 100, 100))
+    print("Color changed via public API")
 
-    -- Could do this, but convention says don't:
-    -- self.sprite._paint.color = Color.rgb(255, 0, 0)
-
+    print(\`ANSWER: dirty={self.sprite._dirty}\`)
     return true
 end
 
@@ -618,63 +502,47 @@ end
 return function(): Node<ConventionDemo>
     return {
         init = init,
-        advance = advance,
         draw = draw,
         sprite = Sprite.new(0, 0, Color.rgb(0, 0, 0)),
-        elapsed = 0,
     }
+end`}
+  solution={`-- TODO 1: Implement public setColor method
+function Sprite:setColor(color: Color)
+    self._paint.color = color
 end
-```
 
-**Trade-off**: Simpler code, methods shared via metatables (more efficient), but privacy relies on programmer discipline.
+-- TODO 2: Implement internal _rebuildPath method
+function Sprite:_rebuildPath()
+    if not self._dirty then return end
+    self._path:reset()
+    self._path:addEllipse(Vector.xy(0, 0), 25, 25)
+    self._dirty = false
+end`}
+>
+
+**Premise**: Underscore conventions (`_privateField`) indicate fields that shouldn't be accessed directly. Unlike closures, these fields ARE accessible - privacy relies on programmer discipline.
+
+**Use Case**: A sprite class with internal `_path` and `_paint` fields. True enforcement isn't critical, and the simpler code allows method sharing via metatables (more memory efficient).
+
+</Exercise>
 
 ---
 
-### Exercise 4: Module Pattern
+<Exercise
+  id="oop-encap-4"
+  title="Exercise 4: Module Pattern"
+  difficulty={2}
+  hint="The emit function should call createParticle (private helper) and add to the particles array. The update function should filter out dead particles (life <= 0)."
+  expectedAnswer="5"
+  explanation="The module pattern combines closures with a clean factory interface. Private helpers (createParticle, updateParticle) are completely hidden. After emitting 5 particles, the count is 5. The internal particles array can't be accessed or modified directly."
+  task="Complete the ParticleSystem module with private state and helpers. Implement the emit() and update() functions."
+  expectedOutput={`Created particle system (max: 100)
+Emitted 5 particles
+Current count: 5
+After update (0.5s): some particles still alive
+ANSWER: 5`}
+  code={`--!strict
 
-**Goal**: Combine closures with a cleaner factory interface for reusable modules.
-
-**Why This Matters**: The module pattern is ideal for Util scripts that create encapsulated instances. It provides a clean public API while hiding all implementation details.
-
-**Real-World Use**: A particle system module that you import into any Node script. Users call `emit()`, `update()`, `draw()` but can't mess with the internal particle array.
-
-**After Effects Comparison**: AE has no equivalent - you can't create reusable modules with private state. In Luau, the module pattern lets you build sophisticated reusable components.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-// Module pattern in JavaScript
-const ParticleSystem = {
-    create(maxParticles: number) {
-        // Private state
-        const particles: Particle[] = [];
-
-        // Private helper
-        function createParticle(x: number, y: number): Particle {
-            // ...
-        }
-
-        // Public interface
-        return {
-            emit(x: number, y: number, count: number) { /* ... */ },
-            update(dt: number) { /* ... */ },
-            draw(renderer: Renderer) { /* ... */ },
-            getCount(): number { return particles.length; },
-        };
-    }
-};
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "ParticleDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: Particles emitting from the center and falling with gravity
-
-```lua
---!strict
-
--- Module that creates encapsulated particle systems
 local ParticleSystem = {}
 
 export type Particle = {
@@ -688,70 +556,39 @@ export type Particle = {
 export type ParticleSystemType = {
     emit: (number, number, number) -> (),
     update: (number) -> (),
-    draw: (Renderer, Path, Paint) -> (),
     getCount: () -> number,
     clear: () -> (),
 }
 
 function ParticleSystem.create(maxParticles: number): ParticleSystemType
-    -- =====================================================
-    -- PRIVATE STATE AND HELPERS
-    -- =====================================================
+    -- PRIVATE STATE (closure-captured)
     local particles: {Particle} = {}
-    local gravity = 100
 
-    -- Private helper function (not exposed!)
+    -- PRIVATE HELPER (not exposed!)
     local function createParticle(x: number, y: number): Particle
-        local angle = math.random() * math.pi * 2
-        local speed = 50 + math.random() * 100
         return {
             x = x,
             y = y,
-            vx = math.cos(angle) * speed,
-            vy = math.sin(angle) * speed,
+            vx = (math.random() - 0.5) * 100,
+            vy = (math.random() - 0.5) * 100,
             life = 1 + math.random(),
         }
     end
 
-    -- Another private helper
-    local function updateParticle(p: Particle, dt: number): boolean
-        p.x += p.vx * dt
-        p.y += p.vy * dt
-        p.vy += gravity * dt
-        p.life -= dt
-        return p.life > 0
-    end
-
-    -- =====================================================
     -- PUBLIC INTERFACE
-    -- =====================================================
     return {
+        -- TODO 1: Implement emit function
+        -- For count times: if #particles < maxParticles, create and add a particle
         emit = function(x: number, y: number, count: number)
-            for i = 1, count do
-                if #particles < maxParticles then
-                    table.insert(particles, createParticle(x, y))
-                end
-            end
+            -- Replace with implementation
         end,
 
+        -- TODO 2: Implement update function
+        -- Create alive array, loop through particles
+        -- Decrease life by dt, if life > 0 add to alive
+        -- Replace particles with alive
         update = function(dt: number)
-            local alive: {Particle} = {}
-            for _, p in ipairs(particles) do
-                if updateParticle(p, dt) then
-                    table.insert(alive, p)
-                end
-            end
-            particles = alive
-        end,
-
-        draw = function(renderer: Renderer, path: Path, paint: Paint)
-            for _, p in ipairs(particles) do
-                local alpha = math.min(1, p.life)
-                paint.color = Color.rgba(255, 200, 100, alpha)
-                path:reset()
-                path:addEllipse(Vector.xy(p.x, p.y), 4, 4)
-                renderer:drawPath(path, paint)
-            end
+            -- Replace with implementation
         end,
 
         getCount = function(): number
@@ -764,144 +601,121 @@ function ParticleSystem.create(maxParticles: number): ParticleSystemType
     }
 end
 
-export type ModulePatternDemo = {
+export type ModuleDemo = {
     system: ParticleSystemType,
-    path: Path,
-    paint: Paint,
-    emitTimer: number,
 }
 
-function init(self: ModulePatternDemo): boolean
-    self.system = ParticleSystem.create(200)
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill" })
-    self.emitTimer = 0
+function init(self: ModuleDemo): boolean
+    self.system = ParticleSystem.create(100)
+    print("Created particle system (max: 100)")
+
+    -- Emit particles
+    self.system.emit(0, 0, 5)
+    print("Emitted 5 particles")
+    print(\`Current count: {self.system.getCount()}\`)
+
+    -- Update simulation
+    self.system.update(0.5)
+    print("After update (0.5s): some particles still alive")
+
+    print(\`ANSWER: {self.system.getCount()}\`)
     return true
 end
 
-function advance(self: ModulePatternDemo, seconds: number): boolean
-    self.emitTimer += seconds
-
-    -- Emit particles periodically from center
-    if self.emitTimer > 0.1 then
-        self.system.emit(0, -50, 5)
-        self.emitTimer = 0
-    end
-
-    self.system.update(seconds)
-    return true
+function draw(self: ModuleDemo, renderer: Renderer)
 end
 
-function draw(self: ModulePatternDemo, renderer: Renderer)
-    self.system.draw(renderer, self.path, self.paint)
-end
-
-return function(): Node<ModulePatternDemo>
+return function(): Node<ModuleDemo>
     return {
         init = init,
-        advance = advance,
         draw = draw,
         system = ParticleSystem.create(1),
-        path = Path.new(),
-        paint = Paint.new(),
-        emitTimer = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Implement emit function
+emit = function(x: number, y: number, count: number)
+    for i = 1, count do
+        if #particles < maxParticles then
+            table.insert(particles, createParticle(x, y))
+        end
+    end
+end,
+
+-- TODO 2: Implement update function
+update = function(dt: number)
+    local alive: {Particle} = {}
+    for _, p in ipairs(particles) do
+        p.life -= dt
+        if p.life > 0 then
+            table.insert(alive, p)
+        end
+    end
+    particles = alive
+end,`}
+>
+
+**Premise**: The module pattern combines closures with a clean factory interface. Private helpers like `createParticle` are completely hidden - external code can only use the public interface (`emit`, `update`, `getCount`).
+
+**Use Case**: A particle system module you import into any Node script. Users call `emit()` and `update()` but can't access or modify the internal particles array directly.
+
+</Exercise>
 
 ---
 
-### Exercise 5: Read-Only Properties
-
-**Goal**: Create properties that can be read but not directly written.
-
-**Why This Matters**: Game state (score, level, lives) should only be modified through specific actions (addScore, loseLife). Direct assignment could break game logic or enable cheating.
-
-**Real-World Use**: A Rive game HUD where the score display reads from `getScore()` but can't directly set the score. All score changes go through validated `addScore()` calls.
-
-**After Effects Comparison**: AE properties are generally read-only from expressions (you can't set another layer's position from an expression). Luau closures achieve the same effect but with custom logic.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-class GameState {
-    #score = 0;   // Private
-    #level = 1;   // Private
-    #lives = 3;   // Private
-
-    get score(): number { return this.#score; }      // Read-only
-    get level(): number { return this.#level; }      // Read-only
-    get lives(): number { return this.#lives; }      // Read-only
-
-    addScore(points: number): void {
-        this.#score += points;
-        // Level up logic...
-    }
-
-    loseLife(): void {
-        this.#lives--;
-        // Game over logic...
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "GameStateDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: Console output showing game state changes through the controlled API
-
-```lua
---!strict
+<Exercise
+  id="oop-encap-5"
+  title="Exercise 5: Read-Only Properties"
+  difficulty={2}
+  hint="Getters simply return the private variables. addScore should add points and check for level up (level = floor(score/1000) + 1). loseLife should decrement lives and set gameOver when lives reach 0."
+  expectedAnswer="true"
+  explanation="Read-only properties can only be modified through validated setter methods. Direct assignment (state.score = 999) fails because the field doesn't exist on the returned object - only the getter function exists. This prevents cheating and ensures game logic consistency."
+  task="Complete the createGameState factory with read-only getters and controlled mutation methods (addScore, loseLife)."
+  expectedOutput={`Starting: Score=0, Level=1, Lives=3
+After 500 points: Score=500
+Level up! Now level 2
+After 600 more: Score=1100, Level=2
+After 2 hits: Lives=1
+Game Over!
+Game over: true
+ANSWER: true`}
+  code={`--!strict
 
 local function createGameState()
-    -- =====================================================
     -- PRIVATE MUTABLE STATE
-    -- =====================================================
     local score = 0
     local level = 1
     local lives = 3
     local gameOver = false
 
     return {
-        -- =====================================================
-        -- READ-ONLY ACCESSORS (getters)
-        -- =====================================================
-        getScore = function(): number return score end,
-        getLevel = function(): number return level end,
-        getLives = function(): number return lives end,
-        isGameOver = function(): boolean return gameOver end,
+        -- TODO 1: Implement read-only getters
+        -- Return score, level, lives, and gameOver values
+        getScore = function(): number
+            return 0  -- Fix this
+        end,
+        getLevel = function(): number
+            return 0  -- Fix this
+        end,
+        getLives = function(): number
+            return 0  -- Fix this
+        end,
+        isGameOver = function(): boolean
+            return false  -- Fix this
+        end,
 
-        -- =====================================================
-        -- CONTROLLED MUTATIONS (validated setters)
-        -- =====================================================
+        -- TODO 2: Implement addScore (validated setter)
+        -- If not gameOver: add points to score
+        -- Check for level up: newLevel = floor(score/1000) + 1
+        -- If newLevel > level, update level and print "Level up!"
         addScore = function(points: number)
-            if not gameOver then
-                score += points
-                -- Level up every 1000 points
-                local newLevel = math.floor(score / 1000) + 1
-                if newLevel > level then
-                    level = newLevel
-                    print(`Level up! Now level {level}`)
-                end
-            end
+            -- Replace with implementation
         end,
 
+        -- TODO 3: Implement loseLife (validated setter)
+        -- If not gameOver: decrement lives
+        -- If lives <= 0, set gameOver = true and print "Game Over!"
         loseLife = function()
-            if not gameOver then
-                lives -= 1
-                if lives <= 0 then
-                    gameOver = true
-                    print("Game Over!")
-                end
-            end
-        end,
-
-        reset = function()
-            score = 0
-            level = 1
-            lives = 3
-            gameOver = false
+            -- Replace with implementation
         end,
     }
 end
@@ -913,7 +727,6 @@ export type GameStateType = {
     isGameOver: () -> boolean,
     addScore: (number) -> (),
     loseLife: () -> (),
-    reset: () -> (),
 }
 
 export type ReadOnlyDemo = {
@@ -923,28 +736,22 @@ export type ReadOnlyDemo = {
 function init(self: ReadOnlyDemo): boolean
     self.state = createGameState()
 
-    print(`Starting: Score={self.state.getScore()}, Level={self.state.getLevel()}, Lives={self.state.getLives()}`)
+    print(\`Starting: Score={self.state.getScore()}, Level={self.state.getLevel()}, Lives={self.state.getLives()}\`)
 
-    -- Play the game through the API
     self.state.addScore(500)
-    print(`After 500 points: Score={self.state.getScore()}`)
+    print(\`After 500 points: Score={self.state.getScore()}\`)
 
-    self.state.addScore(600)  -- This triggers level up (total 1100)
-    print(`After 600 more: Score={self.state.getScore()}, Level={self.state.getLevel()}`)
+    self.state.addScore(600)  -- Should trigger level up (total 1100)
+    print(\`After 600 more: Score={self.state.getScore()}, Level={self.state.getLevel()}\`)
 
-    -- Lose some lives
     self.state.loseLife()
     self.state.loseLife()
-    print(`After 2 hits: Lives={self.state.getLives()}`)
+    print(\`After 2 hits: Lives={self.state.getLives()}\`)
 
-    self.state.loseLife()  -- Game over
-    print(`Game over: {self.state.isGameOver()}`)
+    self.state.loseLife()  -- Should trigger game over
+    print(\`Game over: {self.state.isGameOver()}\`)
 
-    -- CAN'T CHEAT! These fields don't exist:
-    -- self.state.score = 999999  -- ERROR: field doesn't exist!
-    -- self.state.lives = 99      -- ERROR: field doesn't exist!
-    -- self.state.gameOver = false -- ERROR: field doesn't exist!
-
+    print(\`ANSWER: {self.state.isGameOver()}\`)
     return true
 end
 
@@ -957,47 +764,83 @@ return function(): Node<ReadOnlyDemo>
         draw = draw,
         state = createGameState(),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Implement read-only getters
+getScore = function(): number
+    return score
+end,
+getLevel = function(): number
+    return level
+end,
+getLives = function(): number
+    return lives
+end,
+isGameOver = function(): boolean
+    return gameOver
+end,
+
+-- TODO 2: Implement addScore
+addScore = function(points: number)
+    if not gameOver then
+        score += points
+        local newLevel = math.floor(score / 1000) + 1
+        if newLevel > level then
+            level = newLevel
+            print(\`Level up! Now level {level}\`)
+        end
+    end
+end,
+
+-- TODO 3: Implement loseLife
+loseLife = function()
+    if not gameOver then
+        lives -= 1
+        if lives <= 0 then
+            gameOver = true
+            print("Game Over!")
+        end
+    end
+end,`}
+>
+
+**Premise**: Read-only properties can be accessed but not directly modified. All mutations go through validated setter methods that enforce business logic (level up thresholds, game over conditions).
+
+**Use Case**: A Rive game HUD where the score display reads from `getScore()` but can't directly set the score. All score changes go through validated `addScore()` calls that handle level-up logic.
+
+</Exercise>
 
 ---
 
-### Exercise 6: Combining Approaches
+<Exercise
+  id="oop-encap-6"
+  title="Exercise 6: Combining Approaches"
+  difficulty={3}
+  hint="The Timer module uses closures for true privacy. The Countdown class uses underscore conventions for internal details. Implement tick() to advance elapsed time and check for completion."
+  expectedAnswer="complete"
+  explanation="Real applications combine both approaches: closures for critical state (timer logic where elapsed/running must be protected) and conventions for internal implementation details (UI paths/paints). This gives you security where it matters and simplicity where it doesn't."
+  task="Complete the Timer module (closure-based) and Countdown class (convention-based) that work together. The timer handles critical timing logic while the countdown handles visual state."
+  expectedOutput={`Created countdown timer (3 seconds)
+Initial: elapsed=0, remaining=3
+After 1s: elapsed=1, remaining=2
+After 2s: elapsed=2, remaining=1
+Timer complete!
+Final status: complete
+ANSWER: complete`}
+  code={`--!strict
 
-**Goal**: Mix closure-based privacy with convention-based privacy for optimal results.
-
-**Why This Matters**: Real applications need both approaches. Use true privacy for critical state (game logic) and conventions for internal implementation details (UI components).
-
-**Real-World Use**: A countdown timer Util (closure-based, critical logic) used inside a visual Countdown class (convention-based, internal paths/paints).
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "CombinedDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: A circular countdown timer that changes color as time runs out
-
-```lua
---!strict
-
--- =====================================================
 -- UTIL: Timer Module (true encapsulation via closures)
--- =====================================================
 local Timer = {}
 
 export type TimerType = {
     start: () -> (),
-    stop: () -> (),
-    reset: () -> (),
     tick: (number) -> boolean,
     getElapsed: () -> number,
     getRemaining: () -> number,
-    isRunning: () -> boolean,
     isComplete: () -> boolean,
 }
 
 function Timer.create(duration: number): TimerType
-    -- Private state (truly encapsulated)
+    -- PRIVATE state (truly encapsulated)
     local elapsed = 0
     local running = false
     local complete = false
@@ -1007,76 +850,46 @@ function Timer.create(duration: number): TimerType
             running = true
         end,
 
-        stop = function()
-            running = false
-        end,
-
-        reset = function()
-            elapsed = 0
-            running = false
-            complete = false
-        end,
-
+        -- TODO 1: Implement tick function
+        -- If running and not complete:
+        --   Add dt to elapsed
+        --   If elapsed >= duration: set elapsed=duration, complete=true, running=false, return true
+        -- Return false otherwise
         tick = function(dt: number): boolean
-            if running and not complete then
-                elapsed += dt
-                if elapsed >= duration then
-                    elapsed = duration
-                    complete = true
-                    running = false
-                    return true  -- Timer just completed
-                end
-            end
+            -- Replace with implementation
             return false
         end,
 
+        -- TODO 2: Implement getElapsed (return elapsed)
         getElapsed = function(): number
-            return elapsed
+            return 0  -- Fix this
         end,
 
+        -- TODO 3: Implement getRemaining (return duration - elapsed, min 0)
         getRemaining = function(): number
-            return math.max(0, duration - elapsed)
+            return 0  -- Fix this
         end,
 
-        isRunning = function(): boolean
-            return running
-        end,
-
+        -- TODO 4: Implement isComplete (return complete)
         isComplete = function(): boolean
-            return complete
+            return false  -- Fix this
         end,
     }
 end
 
--- =====================================================
 -- CLASS: Countdown (convention-based internal state)
--- Uses Timer module for critical logic
--- =====================================================
 local Countdown = {}
 Countdown.__index = Countdown
 
 export type CountdownType = {
-    _timer: TimerType,  -- Convention: internal detail
-    _duration: number,  -- Convention: internal detail
-    x: number,
-    y: number,
-    path: Path,
-    bgPaint: Paint,
-    fgPaint: Paint,
+    _timer: TimerType,    -- Convention: internal
+    _duration: number,    -- Convention: internal
 }
 
-function Countdown.new(x: number, y: number, duration: number): CountdownType
+function Countdown.new(duration: number): CountdownType
     local self = setmetatable({}, Countdown)
     self._timer = Timer.create(duration)
     self._duration = duration
-    self.x = x
-    self.y = y
-
-    -- Visual setup
-    self.path = Path.new()
-    self.bgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgb(60, 60, 60) })
-    self.fgPaint = Paint.with({ style = "stroke", thickness = 8, cap = "round" })
-
     self._timer.start()
     return (self :: any) :: CountdownType
 end
@@ -1085,51 +898,8 @@ function Countdown:update(dt: number): boolean
     return self._timer.tick(dt)
 end
 
-function Countdown:draw(renderer: Renderer)
-    local radius = 40
-    local progress = 1 - (self._timer.getElapsed() / self._duration)
-
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.x, self.y))
-
-    -- Background circle
-    self.path:reset()
-    self.path:addEllipse(Vector.xy(0, 0), radius, radius)
-    renderer:drawPath(self.path, self.bgPaint)
-
-    -- Progress arc
-    if progress > 0 then
-        self.path:reset()
-        local startAngle = -math.pi / 2
-
-        -- Draw arc as line segments
-        local segments = 32
-        for i = 0, segments do
-            local t = i / segments
-            local angle = startAngle + t * progress * math.pi * 2
-            local px = math.cos(angle) * radius
-            local py = math.sin(angle) * radius
-            if i == 0 then
-                self.path:moveTo(Vector.xy(px, py))
-            else
-                self.path:lineTo(Vector.xy(px, py))
-            end
-        end
-
-        -- Color based on time remaining
-        local remaining = self._timer.getRemaining()
-        if remaining > 2 then
-            self.fgPaint.color = Color.rgb(100, 255, 100)  -- Green
-        elseif remaining > 1 then
-            self.fgPaint.color = Color.rgb(255, 255, 100)  -- Yellow
-        else
-            self.fgPaint.color = Color.rgb(255, 100, 100)  -- Red
-        end
-
-        renderer:drawPath(self.path, self.fgPaint)
-    end
-
-    renderer:restore()
+function Countdown:getStatus(): string
+    return if self._timer.isComplete() then "complete" else "running"
 end
 
 export type CombinedDemo = {
@@ -1137,30 +907,75 @@ export type CombinedDemo = {
 }
 
 function init(self: CombinedDemo): boolean
-    self.countdown = Countdown.new(0, 0, 5)
-    return true
-end
+    self.countdown = Countdown.new(3)
+    print("Created countdown timer (3 seconds)")
 
-function advance(self: CombinedDemo, seconds: number): boolean
-    if self.countdown:update(seconds) then
-        print("Countdown complete!")
+    print(\`Initial: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+
+    -- Simulate 1 second
+    self.countdown:update(1)
+    print(\`After 1s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+
+    -- Simulate another second
+    self.countdown:update(1)
+    print(\`After 2s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+
+    -- Simulate final second (should complete)
+    if self.countdown:update(1) then
+        print("Timer complete!")
     end
+
+    local status = self.countdown:getStatus()
+    print(\`Final status: {status}\`)
+    print(\`ANSWER: {status}\`)
     return true
 end
 
 function draw(self: CombinedDemo, renderer: Renderer)
-    self.countdown:draw(renderer)
 end
 
 return function(): Node<CombinedDemo>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        countdown = Countdown.new(0, 0, 1),
+        countdown = Countdown.new(1),
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Implement tick function
+tick = function(dt: number): boolean
+    if running and not complete then
+        elapsed += dt
+        if elapsed >= duration then
+            elapsed = duration
+            complete = true
+            running = false
+            return true
+        end
+    end
+    return false
+end,
+
+-- TODO 2: Implement getElapsed
+getElapsed = function(): number
+    return elapsed
+end,
+
+-- TODO 3: Implement getRemaining
+getRemaining = function(): number
+    return math.max(0, duration - elapsed)
+end,
+
+-- TODO 4: Implement isComplete
+isComplete = function(): boolean
+    return complete
+end,`}
+>
+
+**Premise**: Real applications need both approaches. Use true privacy (closures) for critical state like timer logic, and conventions (underscores) for internal implementation details like UI paths and paints.
+
+**Use Case**: A countdown timer Util (closure-based) used inside a visual Countdown class (convention-based). The timer logic is protected from tampering, while the visual internals are accessible but marked as "don't touch."
+
+</Exercise>
 
 ---
 

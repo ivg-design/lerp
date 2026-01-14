@@ -5,6 +5,7 @@ description: Arithmetic, comparison, logical, and compound operators in Rive Nod
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Operators
 
@@ -379,74 +380,69 @@ local explicit2 = (2 ^ 3) ^ 2 -- 64, clearly left-to-right
 
 ## Exercises
 
-### Exercise 1: Arithmetic Operators in Action
+### Exercise 1: Damage Math ⭐
 
-**Goal**: Practice all arithmetic operators in a damage calculation system.
+### Premise
 
-**Why This Matters**: Game damage calculations combine multiple operators - multiplication for crits, subtraction for armor, modulo for even/odd effects. This exercise builds fluency with all arithmetic operators.
+Rive animations are driven by numbers: positions, sizes, and effects all come from arithmetic. Practicing the core operators ensures you can compute values that drive visuals correctly.
 
-**Real-World Use**: Damage formulas, experience point calculations, currency conversions, physics simulations.
+:::info Goal
+By the end of this exercise, you will use arithmetic operators to compute a deterministic combat result.
+:::
 
-**Step-by-Step Setup**:
-1. Create a new Rive file with a Node Script
-2. Copy the code below into your script
-3. Run the animation and check the console output
-4. Try modifying the values to see how calculations change
+### Use Case
+
+You are building a combat HUD where damage numbers, shields, and effects are all computed in script. A single mistake in a multiplication or modulo can produce the wrong hit feedback. This exercise mirrors the exact sort of math that feeds a damage readout or a shake intensity.
+
+**Example scenarios:**
+- Damage numbers for a hit flash
+- A screen shake scale based on damage
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_DamageMath`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type DamageCalc = {}
+export type Exercise1 = {}
 
-function init(self: DamageCalc): boolean
-    print("=== Damage Calculation System ===\n")
+function init(self: Exercise1): boolean
+    local base = 12
+    local bonus = 5
+    local penalty = 3
+    local multiplier = 1.5
 
-    local baseDamage = 100
-    local critMultiplier = 2.5
-    local armorReduction = 30
-    local penetration = 0.2
+    -- TODO 1: raw = base + bonus - penalty
+    local raw = 0
+    -- TODO 2: total = raw * multiplier
+    local total = 0
+    -- TODO 3: remainder = total % 4
+    local remainder = 0
+    -- TODO 4: power = 2 ^ 3
+    local power = 0
 
-    print(`Base damage: {baseDamage}`)
-    print(`Crit multiplier: {critMultiplier}x`)
-    print(`Armor: {armorReduction}`)
-    print(`Armor penetration: {penetration * 100}%\n`)
-
-    -- Calculate damage with crit (multiplication)
-    local critDamage = baseDamage * critMultiplier
-    print(`Step 1 - Crit damage: {baseDamage} × {critMultiplier} = {critDamage}`)
-
-    -- Apply armor reduction with penetration (multiple operations)
-    local effectiveArmor = armorReduction * (1 - penetration)
-    print(`Step 2 - Effective armor: {armorReduction} × {1 - penetration} = {effectiveArmor}`)
-
-    local finalDamage = critDamage - effectiveArmor
-    print(`Step 3 - Final damage: {critDamage} - {effectiveArmor} = {finalDamage}`)
-
-    -- Calculate overkill (if target has 200 HP)
-    local targetHP = 200
-    local overkill = finalDamage - targetHP
-    print(`\nTarget HP: {targetHP}`)
-    print(`Overkill damage: {finalDamage} - {targetHP} = {overkill}`)
-
-    -- Use floor division for whole damage numbers
-    local wholeDamage = finalDamage // 1
-    print(`\nWhole damage (floor division): {finalDamage} // 1 = {wholeDamage}`)
-
-    -- Use modulo to check if damage is even
-    local isEven = wholeDamage % 2 == 0
-    print(`Damage {wholeDamage} is even: {isEven} (checked with % 2)`)
-
-    -- Exponentiation for scaling
-    local scaledDamage = baseDamage * (1.1 ^ 10)  -- 10 level-ups at 10% each
-    print(`\nDamage after 10 level-ups (×1.1 each): {scaledDamage // 1}`)
-
+    print(`ANSWER: total={total},rem={remainder},pow={power}`)
     return true
 end
 
-function draw(self: DamageCalc, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<DamageCalc>
+return function(): Node<Exercise1>
     return {
         init = init,
         draw = draw,
@@ -454,120 +450,107 @@ return function(): Node<DamageCalc>
 end
 ```
 
-**Expected Output**:
-```
-=== Damage Calculation System ===
+---
 
-Base damage: 100
-Crit multiplier: 2.5x
-Armor: 30
-Armor penetration: 20%
+### Assignment
 
-Step 1 - Crit damage: 100 × 2.5 = 250
-Step 2 - Effective armor: 30 × 0.8 = 24
-Step 3 - Final damage: 250 - 24 = 226
+Complete these tasks:
 
-Target HP: 200
-Overkill damage: 226 - 200 = 26
-
-Whole damage (floor division): 226 // 1 = 226
-Damage 226 is even: true (checked with % 2)
-
-Damage after 10 level-ups (×1.1 each): 259
-```
-
-**JavaScript Equivalent**:
-```javascript
-const critDamage = baseDamage * critMultiplier;
-const effectiveArmor = armorReduction * (1 - penetration);
-const wholeDamage = Math.floor(finalDamage);
-const isEven = wholeDamage % 2 === 0;
-const scaledDamage = baseDamage * Math.pow(1.1, 10);
-```
+1. Compute `raw` using `+` and `-`
+2. Compute `total` using `*`
+3. Compute `remainder` using `%`
+4. Compute `power` using `^`
 
 ---
 
-### Exercise 2: Comparison Operators for Game Logic
+### Expected Output
 
-**Goal**: Use comparison operators to determine game states.
+Your console output should display three computed values:
+- `total=` — the raw damage multiplied by the multiplier
+- `rem=` — the remainder when total is divided by 4
+- `pow=` — 2 raised to the power of 3
 
-**Why This Matters**: Every game needs to check conditions - is the player alive? Can they afford this item? Are they in range? Mastering comparisons enables responsive, dynamic animations.
+---
 
-**Real-World Use**: Health checks, level requirements, distance calculations, timer expiration.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Predict the output before running
-4. Verify your predictions by running the script
+<ExerciseValidator
+    exerciseId="fundamentals-operators-1"
+    expectedAnswer="ANSWER: total=21,rem=1,pow=8"
+/>
+
+---
+
+### Checklist
+
+- [ ] All four operators are used
+- [ ] `total` equals 21
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Comparison Gate ⭐
+
+### Premise
+
+Comparisons decide when animations are allowed to play or when UI changes should occur. Incorrect comparisons lead to wrong states, like animations firing too early.
+
+:::info Goal
+By the end of this exercise, you will use comparison operators to set boolean flags.
+:::
+
+### Use Case
+
+You are gating a special animation that should only play when the player is high enough level and still alive. These checks are the backbone of all condition-driven animation logic.
+
+**Example scenarios:**
+- Unlocking premium visuals after a threshold
+- Switching to critical animation states
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_ComparisonGate`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type GameState = {}
+export type Exercise2 = {}
 
-function init(self: GameState): boolean
-    print("=== Game State Checks ===\n")
+function init(self: Exercise2): boolean
+    local health = 8
+    local level = 12
+    local name = "Boss"
 
-    local playerHealth = 25
-    local maxHealth = 100
-    local enemyHealth = 0
-    local playerLevel = 5
-    local bossLevel = 10
+    -- TODO 1: isBoss should be true when level >= 10
+    local isBoss = false
+    -- TODO 2: isAlive should be true when health > 0
+    local isAlive = false
+    -- TODO 3: isCritical should be true when health <= 10
+    local isCritical = false
+    -- TODO 4: isDifferent should be true when name ~= "Minion"
+    local isDifferent = false
 
-    print(`Player Health: {playerHealth}/{maxHealth}`)
-    print(`Enemy Health: {enemyHealth}`)
-    print(`Player Level: {playerLevel}`)
-    print(`Boss Level: {bossLevel}\n`)
-
-    -- Health checks (using >, <=, ==)
-    local isAlive = playerHealth > 0
-    local isDead = playerHealth <= 0
-    local isFullHealth = playerHealth == maxHealth
-    local isLowHealth = playerHealth <= maxHealth * 0.3
-
-    print("=== Health Status ===")
-    print(`Is alive (health > 0): {isAlive}`)
-    print(`Is dead (health <= 0): {isDead}`)
-    print(`Full health (health == max): {isFullHealth}`)
-    print(`Low health (health <= 30%): {isLowHealth}`)
-
-    -- Enemy checks
-    local enemyDefeated = enemyHealth <= 0
-    print(`\nEnemy defeated (health <= 0): {enemyDefeated}`)
-
-    -- Level comparison (using >=, ~=)
-    local canFightBoss = playerLevel >= bossLevel
-    local levelDifference = bossLevel - playerLevel
-    local notMaxLevel = playerLevel ~= 100
-
-    print("\n=== Level Status ===")
-    print(`Can fight boss (level >= {bossLevel}): {canFightBoss}`)
-    print(`Levels until boss: {levelDifference}`)
-    print(`Not max level (level ~= 100): {notMaxLevel}`)
-
-    -- Range checks
-    local playerX = 50
-    local enemyX = 75
-    local attackRange = 30
-
-    local distance = math.abs(enemyX - playerX)
-    local inRange = distance <= attackRange
-
-    print("\n=== Range Check ===")
-    print(`Player position: {playerX}`)
-    print(`Enemy position: {enemyX}`)
-    print(`Distance: {distance}`)
-    print(`Attack range: {attackRange}`)
-    print(`In attack range: {inRange}`)
-
+    print(`ANSWER: boss={isBoss},alive={isAlive},critical={isCritical},diff={isDifferent}`)
     return true
 end
 
-function draw(self: GameState, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<GameState>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
@@ -575,139 +558,104 @@ return function(): Node<GameState>
 end
 ```
 
-**Expected Output**:
-```
-=== Game State Checks ===
+---
 
-Player Health: 25/100
-Enemy Health: 0
-Player Level: 5
-Boss Level: 10
+### Assignment
 
-=== Health Status ===
-Is alive (health > 0): true
-Is dead (health <= 0): false
-Full health (health == max): false
-Low health (health <= 30%): true
+Complete these tasks:
 
-Enemy defeated (health <= 0): true
-
-=== Level Status ===
-Can fight boss (level >= 10): false
-Levels until boss: 5
-Not max level (level ~= 100): true
-
-=== Range Check ===
-Player position: 50
-Enemy position: 75
-Distance: 25
-Attack range: 30
-In attack range: true
-```
-
-**JavaScript Equivalent**:
-```javascript
-const isAlive = playerHealth > 0;
-const isDead = playerHealth <= 0;
-const notMaxLevel = playerLevel !== 100;  // !== in JS, ~= in Luau
-const inRange = distance <= attackRange;
-```
+1. Use `>=` to compute `isBoss`
+2. Use `>` to compute `isAlive`
+3. Use `<=` to compute `isCritical`
+4. Use `~=` to compute `isDifferent`
 
 ---
 
-### Exercise 3: Logical Operators for Complex Conditions
+### Expected Output
 
-**Goal**: Combine multiple conditions using `and`, `or`, and `not`.
+Your console output should display four boolean values:
+- `boss=` — whether level meets the boss threshold
+- `alive=` — whether health is above zero
+- `critical=` — whether health is at or below the critical threshold
+- `diff=` — whether name is different from "Minion"
 
-**Why This Matters**: Real game logic requires multiple conditions - "can attack if has weapon AND not stunned AND has target". This exercise builds complex conditional thinking.
+---
 
-**Real-World Use**: Ability availability, permission checks, state validation, multi-factor authentication.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Trace through each logical expression mentally
-4. Run and verify your understanding
+<ExerciseValidator
+    exerciseId="fundamentals-operators-2"
+    expectedAnswer="ANSWER: boss=true,alive=true,critical=true,diff=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] All four comparisons are used
+- [ ] `~=` is used for not equal
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Access Logic ⭐
+
+### Premise
+
+Most interaction logic is a combination of conditions. The `and`, `or`, and `not` operators let you describe those combinations clearly.
+
+:::info Goal
+By the end of this exercise, you will combine multiple booleans into final decision flags.
+:::
+
+### Use Case
+
+You are controlling access to a UI panel. It should open only if the user has a key, no guard is present, and the alarm is off. A separate hide flag triggers an alert animation if any danger is present.
+
+**Example scenarios:**
+- Gating a menu or dialog
+- Conditional visibility of alerts
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_AccessLogic`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type AbilityCheck = {}
+export type Exercise3 = {}
 
-function init(self: AbilityCheck): boolean
-    print("=== Ability System ===\n")
+function init(self: Exercise3): boolean
+    local hasKey = true
+    local alarmOn = false
+    local guardPresent = false
 
-    -- Character state
-    local mana = 30
-    local manaCost = 25
-    local cooldown = 0
-    local isStunned = false
-    local isSilenced = false
-    local hasTarget = true
+    -- TODO 1: canEnter should be true only if hasKey and not alarmOn and not guardPresent
+    local canEnter = false
+    -- TODO 2: shouldHide should be true if alarmOn or guardPresent
+    local shouldHide = false
 
-    print("Character State:")
-    print(`  Mana: {mana}/{manaCost} required`)
-    print(`  Cooldown: {cooldown}s`)
-    print(`  Stunned: {isStunned}`)
-    print(`  Silenced: {isSilenced}`)
-    print(`  Has target: {hasTarget}`)
-
-    -- Individual checks
-    local hasMana = mana >= manaCost
-    local isReady = cooldown <= 0
-    local canAct = not isStunned      -- Using 'not'
-    local canCast = not isSilenced    -- Using 'not'
-
-    print("\n=== Individual Checks ===")
-    print(`Has enough mana: {hasMana}`)
-    print(`Ability ready: {isReady}`)
-    print(`Can act (not stunned): {canAct}`)
-    print(`Can cast (not silenced): {canCast}`)
-
-    -- Combined conditions with 'and'
-    local canUseAbility = hasMana and isReady and canAct and canCast and hasTarget
-    print("\n=== Combined Check (using 'and') ===")
-    print(`Can use ability: {canUseAbility}`)
-    print("(requires: mana AND ready AND can act AND can cast AND has target)")
-
-    -- Alternative paths with 'or'
-    local hasEscape = mana >= 10 or cooldown <= 0
-    print("\n=== Alternative Check (using 'or') ===")
-    print(`Has escape option: {hasEscape}`)
-    print("(requires: enough mana for blink OR dash is ready)")
-
-    -- Complex nested logic
-    local shouldRetreat = (isStunned or isSilenced) and hasTarget
-    local shouldHeal = mana < 50 and not isStunned
-    local isVulnerable = isStunned or (mana < manaCost and cooldown > 0)
-
-    print("\n=== Complex Conditions ===")
-    print(`Should retreat: {shouldRetreat}`)
-    print(`Should heal: {shouldHeal}`)
-    print(`Is vulnerable: {isVulnerable}`)
-
-    -- Short-circuit demonstration
-    print("\n=== Short-Circuit Behavior ===")
-    local function expensiveCheck(): boolean
-        print("  (expensiveCheck was called)")
-        return true
-    end
-
-    print("Testing: false and expensiveCheck()")
-    local result1 = false and expensiveCheck()  -- expensiveCheck NOT called
-    print(`Result: {result1}`)
-
-    print("\nTesting: true or expensiveCheck()")
-    local result2 = true or expensiveCheck()    -- expensiveCheck NOT called
-    print(`Result: {result2}`)
-
+    print(`ANSWER: enter={canEnter},hide={shouldHide}`)
     return true
 end
 
-function draw(self: AbilityCheck, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<AbilityCheck>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
@@ -715,277 +663,101 @@ return function(): Node<AbilityCheck>
 end
 ```
 
-**Expected Output**:
-```
-=== Ability System ===
+---
 
-Character State:
-  Mana: 30/25 required
-  Cooldown: 0s
-  Stunned: false
-  Silenced: false
-  Has target: true
+### Assignment
 
-=== Individual Checks ===
-Has enough mana: true
-Ability ready: true
-Can act (not stunned): true
-Can cast (not silenced): true
+Complete these tasks:
 
-=== Combined Check (using 'and') ===
-Can use ability: true
-(requires: mana AND ready AND can act AND can cast AND has target)
-
-=== Alternative Check (using 'or') ===
-Has escape option: true
-(requires: enough mana for blink OR dash is ready)
-
-=== Complex Conditions ===
-Should retreat: false
-Should heal: true
-Is vulnerable: false
-
-=== Short-Circuit Behavior ===
-Testing: false and expensiveCheck()
-Result: false
-
-Testing: true or expensiveCheck()
-Result: true
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript uses symbols instead of words
-const canAct = !isStunned;              // not -> !
-const canUseAbility = hasMana && isReady && canAct; // and -> &&
-const hasEscape = hasEnoughMana || dashReady;       // or -> ||
-```
+1. Compute `canEnter` using `and` and `not`
+2. Compute `shouldHide` using `or`
 
 ---
 
-### Exercise 4: Compound Assignment for Animation State
+### Expected Output
 
-**Goal**: Use compound assignment operators to update animation values over time.
+Your console output should display two boolean values:
+- `enter=` — whether all conditions for entry are met (key AND no alarm AND no guard)
+- `hide=` — whether any danger condition is present (alarm OR guard)
 
-**Why This Matters**: Animation is all about changing values over time - incrementing rotation, scaling up/down, fading opacity. Compound operators make this code clean and readable.
+---
 
-**Real-World Use**: Continuous rotation, breathing/pulsing effects, fade in/out, score counters.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. This exercise uses `advance()` for per-frame updates
-4. Watch the console output as values change over time
+<ExerciseValidator
+    exerciseId="fundamentals-operators-3"
+    expectedAnswer="ANSWER: enter=true,hide=false"
+/>
+
+---
+
+### Checklist
+
+- [ ] `canEnter` uses `and` and `not`
+- [ ] `shouldHide` uses `or`
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Motion Stepper ⭐⭐
+
+### Premise
+
+Compound assignments are the most common way to update animation state each frame. If you are building motion, you will use them constantly.
+
+:::info Goal
+By the end of this exercise, you will update position and velocity using compound operators.
+:::
+
+### Use Case
+
+You are animating a UI element that accelerates and then speeds up. Each step updates position and velocity. Compact updates reduce mistakes and make the script easier to reason about.
+
+**Example scenarios:**
+- Moving indicators
+- Animating slider handles
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_MotionStepper`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type AnimState = {
-    rotation: number,
-    scale: number,
-    alpha: number,
-    frameCount: number,
-}
+export type Exercise4 = {}
 
-function init(self: AnimState): boolean
-    self.rotation = 0
-    self.scale = 1
-    self.alpha = 1
-    self.frameCount = 0
+function init(self: Exercise4): boolean
+    local position = 0
+    local velocity = 10
+    local drag = 2
 
-    print("=== Animation State Demo ===")
-    print("Using compound assignment operators for smooth animation\n")
-    print("Initial state:")
-    print(`  Rotation: {self.rotation}°`)
-    print(`  Scale: {self.scale}x`)
-    print(`  Alpha: {self.alpha}`)
-    print("\nWatch values change every second (60 frames)...")
+    -- TODO 1: position += velocity
+    -- TODO 2: velocity -= drag
+    -- TODO 3: position += velocity
+    -- TODO 4: velocity *= 2
+    -- TODO 5: position += velocity
 
+    print(`ANSWER: pos={position},vel={velocity}`)
     return true
 end
 
-function advance(self: AnimState, seconds: number): boolean
-    self.frameCount += 1  -- Increment frame counter
-
-    -- Rotate continuously (+=)
-    self.rotation += 90 * seconds  -- 90 degrees per second
-
-    -- Keep rotation in 0-360 range (%=)
-    self.rotation %= 360
-
-    -- Pulse scale up and down (*= and /=)
-    if self.frameCount % 60 < 30 then
-        self.scale *= 1.002  -- Grow by 0.2% per frame
-    else
-        self.scale /= 1.002  -- Shrink by 0.2% per frame
-    end
-
-    -- Fade alpha with bounds checking (-= and +=)
-    if self.frameCount % 120 < 60 then
-        self.alpha -= 0.005
-        if self.alpha < 0.2 then self.alpha = 0.2 end
-    else
-        self.alpha += 0.005
-        if self.alpha > 1 then self.alpha = 1 end
-    end
-
-    -- Log every second (assuming ~60fps)
-    if self.frameCount % 60 == 0 then
-        print(`\nFrame {self.frameCount}:`)
-        print(`  Rotation: {self.rotation // 1}° (using +=, %=)`)
-        print(`  Scale: {string.format("%.2f", self.scale)}x (using *=, /=)`)
-        print(`  Alpha: {string.format("%.2f", self.alpha)} (using -=, +=)`)
-    end
-
-    return true
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-function draw(self: AnimState, renderer: Renderer)
-end
-
-return function(): Node<AnimState>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        rotation = 0,
-        scale = 1,
-        alpha = 1,
-        frameCount = 0,
-    }
-end
-```
-
-**Expected Output** (after a few seconds):
-```
-=== Animation State Demo ===
-Using compound assignment operators for smooth animation
-
-Initial state:
-  Rotation: 0°
-  Scale: 1x
-  Alpha: 1
-
-Watch values change every second (60 frames)...
-
-Frame 60:
-  Rotation: 90° (using +=, %=)
-  Scale: 1.06x (using *=, /=)
-  Alpha: 0.70 (using -=, +=)
-
-Frame 120:
-  Rotation: 180° (using +=, %=)
-  Scale: 1.00x (using *=, /=)
-  Alpha: 1.00 (using -=, +=)
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript compound operators are identical
-rotation += 90 * deltaTime;
-rotation %= 360;
-scale *= 1.002;
-scale /= 1.002;
-alpha -= 0.005;
-```
-
----
-
-### Exercise 5: String Operators for UI Text
-
-**Goal**: Build dynamic UI text using string concatenation and interpolation.
-
-**Why This Matters**: Every UI needs dynamic text - score displays, health bars, item descriptions, dialogue. String operations are essential for user-facing content.
-
-**Real-World Use**: Score displays, player stats, inventory tooltips, achievement notifications.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Notice the difference between concatenation (`..`) and interpolation (backticks)
-4. Interpolation is usually cleaner for complex strings
-
-```lua
---!strict
-
-export type UIText = {}
-
-function init(self: UIText): boolean
-    print("=== UI Text Building ===\n")
-
-    local playerName = "DragonSlayer"
-    local level = 42
-    local gold = 15750
-    local playtime = 3.5
-
-    -- Method 1: Basic concatenation with ..
-    print("Method 1: Concatenation (..) operator")
-    print("--------------------------------------")
-    local greeting = "Welcome, " .. playerName .. "!"
-    print(greeting)
-
-    -- Numbers auto-convert in concatenation
-    local goldDisplay = "Gold: " .. gold .. " coins"
-    print(goldDisplay)
-
-    -- String length with #
-    local nameLength = #playerName
-    print(`Your name "{playerName}" has {nameLength} characters`)
-
-    -- Method 2: String interpolation (cleaner!)
-    print("\nMethod 2: String Interpolation (backticks)")
-    print("-------------------------------------------")
-    local statsLine = `Level {level} | Gold: {gold} | Hours: {playtime}`
-    print(statsLine)
-
-    -- Expressions inside interpolation
-    local healthPercent = 75
-    local maxHealth = 100
-    local healthBar = `HP: {healthPercent}/{maxHealth} ({healthPercent}%)`
-    print(healthBar)
-
-    -- Method 3: Building formatted displays
-    print("\nMethod 3: Formatted UI Panel")
-    print("----------------------------")
-    local separator = string.rep("-", 30)  -- Repeat character
-    print(separator)
-    print(`| Player: {playerName}`)
-    print(`| Level:  {level}`)
-    print(`| Gold:   {gold}`)
-    print(`| Time:   {playtime}h`)
-    print(separator)
-
-    -- Method 4: Compound string assignment (..=)
-    print("\nMethod 4: Building Log with ..= operator")
-    print("-----------------------------------------")
-    local log = ""
-    log ..= `[{os.clock() // 1}s] Game started\n`
-    log ..= `[{os.clock() // 1}s] Player "{playerName}" loaded\n`
-    log ..= `[{os.clock() // 1}s] Level: {level}, Gold: {gold}\n`
-    print(log)
-
-    -- Comparison: Concatenation vs Interpolation
-    print("Comparison: Same output, different methods")
-    print("------------------------------------------")
-
-    local damage = 150
-    local target = "Goblin"
-
-    -- Concatenation (messier)
-    local msg1 = playerName .. " dealt " .. damage .. " damage to " .. target .. "!"
-    print(`Concatenation: {msg1}`)
-
-    -- Interpolation (cleaner)
-    local msg2 = `{playerName} dealt {damage} damage to {target}!`
-    print(`Interpolation: {msg2}`)
-
-    return true
-end
-
-function draw(self: UIText, renderer: Renderer)
-end
-
-return function(): Node<UIText>
+return function(): Node<Exercise4>
     return {
         init = init,
         draw = draw,
@@ -993,164 +765,101 @@ return function(): Node<UIText>
 end
 ```
 
-**Expected Output**:
-```
-=== UI Text Building ===
+---
 
-Method 1: Concatenation (..) operator
---------------------------------------
-Welcome, DragonSlayer!
-Gold: 15750 coins
-Your name "DragonSlayer" has 12 characters
+### Assignment
 
-Method 2: String Interpolation (backticks)
--------------------------------------------
-Level 42 | Gold: 15750 | Hours: 3.5
-HP: 75/100 (75%)
+Complete these tasks in order:
 
-Method 3: Formatted UI Panel
-----------------------------
-------------------------------
-| Player: DragonSlayer
-| Level:  42
-| Gold:   15750
-| Time:   3.5h
-------------------------------
-
-Method 4: Building Log with ..= operator
------------------------------------------
-[0s] Game started
-[0s] Player "DragonSlayer" loaded
-[0s] Level: 42, Gold: 15750
-
-Comparison: Same output, different methods
-------------------------------------------
-Concatenation: DragonSlayer dealt 150 damage to Goblin!
-Interpolation: DragonSlayer dealt 150 damage to Goblin!
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript concatenation (same concept, different operator)
-const greeting = "Welcome, " + playerName + "!";
-
-// JavaScript template literals (similar syntax, different marker)
-const statsLine = `Level ${level} | Gold: ${gold}`;
-
-// No compound string assignment in JavaScript
-// You'd write: log = log + newLine;
-```
+1. Apply the first position update
+2. Apply drag to velocity
+3. Apply the second position update
+4. Double the velocity
+5. Apply the final position update
 
 ---
 
-### Exercise 6: Operator Precedence Challenge
+### Expected Output
 
-**Goal**: Understand and predict operator precedence to write bug-free expressions.
+Your console output should display the final position and velocity after all five operations are applied in sequence. Remember that each operation uses the updated value from the previous step.
 
-**Why This Matters**: Incorrect precedence assumptions cause subtle bugs. This exercise builds intuition for how Luau evaluates complex expressions.
+---
 
-**Real-World Use**: Damage formulas, physics calculations, conditional logic chains.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Before running, predict each result on paper
-3. Run and compare your predictions
-4. If any surprised you, trace through with precedence rules
+<ExerciseValidator
+    exerciseId="fundamentals-operators-4"
+    expectedAnswer="ANSWER: pos=34,vel=16"
+/>
+
+---
+
+### Checklist
+
+- [ ] You used `+=`, `-=`, and `*=` at least once
+- [ ] Final position is 34
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: UI Label Assembly ⭐⭐
+
+### Premise
+
+Operators also handle strings. Building UI labels often requires concatenation and length checks for layout.
+
+:::info Goal
+By the end of this exercise, you will build a label and compute its length.
+:::
+
+### Use Case
+
+You are creating a health label that shows current and max HP. You also need to know its length for alignment or truncation logic.
+
+**Example scenarios:**
+- Dynamic text labels
+- Auto-resizing text containers
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_UILabelAssembly`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type Precedence = {}
+export type Exercise5 = {}
 
-function init(self: Precedence): boolean
-    print("=== Operator Precedence Challenge ===")
-    print("Try to predict each result BEFORE looking!\n")
+function init(self: Exercise5): boolean
+    local prefix = "HP"
+    local current = 85
+    local maxHp = 100
 
-    -- Challenge 1: Exponentiation (right-associative!)
-    print("Challenge 1: Exponentiation")
-    print("---------------------------")
-    local a = 2 ^ 3 ^ 2
-    print(`2 ^ 3 ^ 2 = {a}`)
-    print("Explanation: ^ is RIGHT-associative")
-    print("  = 2 ^ (3 ^ 2)")
-    print("  = 2 ^ 9")
-    print("  = 512")
-    print(`NOT (2 ^ 3) ^ 2 = {(2 ^ 3) ^ 2}\n`)
+    -- TODO 1: Build label using concatenation
+    local label = ""
+    -- TODO 2: Compute labelLength using #label
+    local labelLength = 0
 
-    -- Challenge 2: Multiplication before addition
-    print("Challenge 2: PEMDAS")
-    print("-------------------")
-    local b = 2 + 3 * 4
-    print(`2 + 3 * 4 = {b}`)
-    print("Explanation: * before +")
-    print("  = 2 + (3 * 4)")
-    print("  = 2 + 12")
-    print("  = 14\n")
-
-    -- Challenge 3: Comparison before logical
-    print("Challenge 3: Comparisons then Logic")
-    print("------------------------------------")
-    local c = 5 > 3 and 2 < 4
-    print(`5 > 3 and 2 < 4 = {c}`)
-    print("Explanation: Comparisons evaluate first")
-    print("  = (5 > 3) and (2 < 4)")
-    print("  = true and true")
-    print("  = true\n")
-
-    -- Challenge 4: 'and' before 'or'
-    print("Challenge 4: 'and' before 'or'")
-    print("------------------------------")
-    local d = true or false and false
-    print(`true or false and false = {d}`)
-    print("Explanation: 'and' binds tighter than 'or'")
-    print("  = true or (false and false)")
-    print("  = true or false")
-    print("  = true\n")
-
-    -- Challenge 5: Parentheses change everything
-    print("Challenge 5: Parentheses Override")
-    print("----------------------------------")
-    local e = (true or false) and false
-    print(`(true or false) and false = {e}`)
-    print("Explanation: Parentheses force 'or' first")
-    print("  = (true or false) and false")
-    print("  = true and false")
-    print("  = false\n")
-
-    -- Challenge 6: Real-world damage formula
-    print("Challenge 6: Real Damage Formula")
-    print("--------------------------------")
-    local damage = 100
-    local armor = 20
-    local pen = 0.25
-
-    -- Without parentheses (might not be what you expect!)
-    local wrong = damage - armor * 1 - pen
-    print(`damage - armor * 1 - pen = {wrong}`)
-    print("This is probably wrong! Let's trace it:")
-    print("  = damage - (armor * 1) - pen")
-    print("  = 100 - 20 - 0.25")
-    print("  = 79.75")
-
-    -- With parentheses (correct intent)
-    local correct = damage - armor * (1 - pen)
-    print(`\ndamage - armor * (1 - pen) = {correct}`)
-    print("This is correct:")
-    print("  = 100 - (20 * 0.75)")
-    print("  = 100 - 15")
-    print("  = 85")
-
-    print("\n=== Key Takeaway ===")
-    print("When in doubt, use parentheses!")
-    print("Clear code > clever code")
-
+    print(`ANSWER: {label}|len={labelLength}`)
     return true
 end
 
-function draw(self: Precedence, renderer: Renderer)
+function draw(self: Exercise5, renderer: Renderer)
 end
 
-return function(): Node<Precedence>
+return function(): Node<Exercise5>
     return {
         init = init,
         draw = draw,
@@ -1158,155 +867,147 @@ return function(): Node<Precedence>
 end
 ```
 
-**Expected Output**:
-```
-=== Operator Precedence Challenge ===
-Try to predict each result BEFORE looking!
+---
 
-Challenge 1: Exponentiation
----------------------------
-2 ^ 3 ^ 2 = 512
-Explanation: ^ is RIGHT-associative
-  = 2 ^ (3 ^ 2)
-  = 2 ^ 9
-  = 512
-NOT (2 ^ 3) ^ 2 = 64
+### Assignment
 
-Challenge 2: PEMDAS
--------------------
-2 + 3 * 4 = 14
-Explanation: * before +
-  = 2 + (3 * 4)
-  = 2 + 12
-  = 14
+Complete these tasks:
 
-Challenge 3: Comparisons then Logic
-------------------------------------
-5 > 3 and 2 < 4 = true
-Explanation: Comparisons evaluate first
-  = (5 > 3) and (2 < 4)
-  = true and true
-  = true
-
-Challenge 4: 'and' before 'or'
-------------------------------
-true or false and false = true
-Explanation: 'and' binds tighter than 'or'
-  = true or (false and false)
-  = true or false
-  = true
-
-Challenge 5: Parentheses Override
-----------------------------------
-(true or false) and false = false
-Explanation: Parentheses force 'or' first
-  = (true or false) and false
-  = true and false
-  = false
-
-Challenge 6: Real Damage Formula
---------------------------------
-damage - armor * 1 - pen = 79.75
-This is probably wrong! Let's trace it:
-  = damage - (armor * 1) - pen
-  = 100 - 20 - 0.25
-  = 79.75
-
-damage - armor * (1 - pen) = 85
-This is correct:
-  = 100 - (20 * 0.75)
-  = 100 - 15
-  = 85
-
-=== Key Takeaway ===
-When in doubt, use parentheses!
-Clear code > clever code
-```
+1. Build `label` as `HP: 85/100`
+2. Compute `labelLength` with `#label`
 
 ---
 
-## Knowledge Check
+### Expected Output
 
-<Quiz
-  question="What operator is used for 'not equal' in Luau?"
-  id="op-q1"
-  options={[
-    { text: "!=" },
-    { text: "~=", correct: true },
-    { text: "<>" },
-    { text: "=/=" },
-  ]}
-  explanation="Luau uses ~= for not equal, not != like JavaScript or most other languages. This is inherited from Lua."
-/>
+Your console output should display:
+- The formatted health label in the format `[prefix]: [current]/[max]`
+- The length of that label string after the pipe character
 
-<Quiz
-  question="What is the result of: 10 // 3"
-  id="op-q2"
-  type="code"
-  answer="3"
-  explanation="The // operator is floor division - it divides and rounds down to the nearest integer. 10 / 3 = 3.33..., floored = 3."
-/>
+---
 
-<Quiz
-  question="What values are considered 'falsy' in Luau?"
-  id="op-q3"
-  options={[
-    { text: "false, nil, 0, and empty string" },
-    { text: "false and nil only", correct: true },
-    { text: "false, nil, and 0" },
-    { text: "Only false" },
-  ]}
-  explanation="In Luau, only 'false' and 'nil' are falsy. The number 0 and empty strings are truthy, unlike many other languages."
-/>
+### Verify Your Answer
 
-<Quiz
-  question="What is the result of: 2 ^ 3 ^ 2"
-  id="op-q4"
-  options={[
-    { text: "64 (evaluated left to right)" },
-    { text: "512 (evaluated right to left)", correct: true },
-    { text: "36" },
-    { text: "Error - ambiguous" },
-  ]}
-  explanation="Exponentiation is right-associative in Luau, so 2 ^ 3 ^ 2 = 2 ^ (3 ^ 2) = 2 ^ 9 = 512."
-/>
-
-<Quiz
-  question="What does the compound operator x //= 2 do?"
-  id="op-q5"
-  options={[
-    { text: "Divides x by 2" },
-    { text: "Divides x by 2 and floors the result", correct: true },
-    { text: "Doubles x using integer math" },
-    { text: "This is not valid Luau syntax" },
-  ]}
-  explanation="The //= operator performs floor division and assignment: x //= 2 is equivalent to x = x // 2."
-/>
-
-<Quiz
-  question="What is the Luau equivalent of JavaScript's `!isActive`?"
-  id="op-q6"
-  options={[
-    { text: "!isActive" },
-    { text: "~isActive" },
-    { text: "not isActive", correct: true },
-    { text: "-isActive" },
-  ]}
-  explanation="Luau uses the word 'not' instead of the symbol '!' for logical negation. Similarly, 'and' replaces '&&' and 'or' replaces '||'."
-/>
-
-<Quiz
-  question="What is the result of: 0 or 'default' in Luau?"
-  id="op-q7"
-  type="code"
-  answer="0"
-  explanation="Since 0 is truthy in Luau (only false and nil are falsy), the 'or' operator returns 0, not 'default'. This is different from JavaScript where 0 || 'default' returns 'default'."
+<ExerciseValidator
+    exerciseId="fundamentals-operators-5"
+    expectedAnswer="ANSWER: HP: 85/100|len=10"
 />
 
 ---
 
-## Common Mistakes
+### Checklist
 
+- [ ] `label` uses the `..` operator
+- [ ] `labelLength` equals 10
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Precedence Check ⭐⭐
+
+### Premise
+
+Operator precedence mistakes are subtle and lead to incorrect calculations that are hard to debug. Understanding order of operations keeps your scripts predictable.
+
+:::info Goal
+By the end of this exercise, you will compute values using default precedence and explicit grouping.
+:::
+
+### Use Case
+
+You are building a formula for a dynamic animation effect and need to verify whether multiplication and exponentiation are applied in the correct order. This is common when you write easing or intensity formulas.
+
+**Example scenarios:**
+- Easing curves and falloff calculations
+- Priority rules in state computations
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_PrecedenceCheck`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+function init(self: Exercise6): boolean
+    local defaultOrder = 0
+    local grouped = 0
+    local rightAssoc = 0
+    local leftAssoc = 0
+
+    -- TODO 1: defaultOrder should be 2 + 3 * 4
+    -- TODO 2: grouped should be (2 + 3) * 4
+    -- TODO 3: rightAssoc should be 2 ^ 3 ^ 2
+    -- TODO 4: leftAssoc should be (2 ^ 3) ^ 2
+
+    print(`ANSWER: d={defaultOrder},g={grouped},r={rightAssoc},l={leftAssoc}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Compute `defaultOrder` with no parentheses
+2. Compute `grouped` with parentheses
+3. Compute `rightAssoc` using the default exponent behavior
+4. Compute `leftAssoc` using explicit grouping
+
+---
+
+### Expected Output
+
+Your console output should display four values demonstrating precedence:
+- `d=` — default precedence with no parentheses (multiplication before addition)
+- `g=` — grouped with parentheses to force addition first
+- `r=` — right-associative exponentiation (evaluates right-to-left)
+- `l=` — left-associative grouping (evaluates left-to-right)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-operators-6"
+    expectedAnswer="ANSWER: d=14,g=20,r=512,l=64"
+/>
+
+---
+
+### Checklist
+
+- [ ] `^` is right-associative in the rightAssoc line
+- [ ] Parentheses change the grouped and leftAssoc results
+- [ ] Output matches the expected line
+
+---
 :::danger Common Operator Errors
 1. **Using `!=` instead of `~=`** - Luau uses `~=` for not-equal
 2. **Using `&&`, `||`, `!`** - Luau uses `and`, `or`, `not` (words, not symbols)

@@ -5,6 +5,7 @@ description: Extend classes and implement design patterns
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import Exercise from '@site/src/components/Exercise';
 
 # Lesson 3.3: Inheritance & Patterns
 
@@ -111,161 +112,112 @@ end
 
 ## Practice Exercises
 
-### Exercise 1: Drawable Base + Two Shapes
+<Exercise
+  id="oop-inherit-1"
+  title="Exercise 1: Drawable Base + Two Shapes"
+  difficulty={2}
+  hint="Use setmetatable(ChildClass, { __index = ParentClass }) to set up inheritance. The child class will automatically have access to parent methods."
+  expectedAnswer="2"
+  explanation="Both shapes inherit draw() from Shape, so the count is 2. This demonstrates polymorphism - different objects responding to the same method call."
+  task="Complete the inheritance setup for Triangle so it inherits from Shape, then create both shapes in init."
+  expectedOutput={`Created 2 shapes
+Drawing shape 1
+Drawing shape 2
+ANSWER: 2`}
+  code={`--!strict
 
-**Goal**: Create a base `Shape` class and derive `Rect` and `Triangle` from it.
-
-**Why This Matters**: In Rive, you'll often have multiple drawable objects that share common behavior (like `draw`) but have different geometry. Inheritance lets you define shared behavior once and specialize as needed.
-
-**Real-World Use**: A Rive animation with multiple UI elements (buttons, panels, icons) that all need to be drawn but have different shapes.
-
-**After Effects Comparison**: In AE, you'd create separate shape layers with similar expressions. Each would have duplicated code for shared behavior. In Luau, inheritance eliminates this duplication.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-// TypeScript version of this inheritance pattern
-abstract class Shape {
-    position: { x: number; y: number };
-    abstract rebuild(): void;
-
-    draw(renderer: Renderer): void {
-        renderer.drawPath(this.path, this.paint);
-    }
-}
-
-class Rect extends Shape {
-    width: number;
-    height: number;
-
-    rebuild(): void {
-        // Build rectangle path
-    }
-}
-
-class Triangle extends Shape {
-    size: number;
-
-    rebuild(): void {
-        // Build triangle path
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "ShapeDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: A red rectangle on the left and a blue triangle on the right
-
-```lua
---!strict
-
--- ============================================
 -- BASE CLASS: Shape
--- All shapes inherit from this
--- ============================================
 local Shape = {}
 Shape.__index = Shape
 
-export type Shape = {
+export type ShapeType = {
     position: Vector,
     path: Path,
     paint: Paint,
-    draw: (Shape, Renderer) -> (),
 }
 
--- Base draw method - all shapes use this
 function Shape:draw(renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
--- ============================================
 -- CHILD CLASS: Rect (inherits from Shape)
--- ============================================
 local Rect = {}
 Rect.__index = Rect
-setmetatable(Rect, { __index = Shape })  -- Rect inherits from Shape!
+setmetatable(Rect, { __index = Shape })  -- Rect inherits from Shape
 
-type Rect = Shape & {
+type RectType = ShapeType & {
     width: number,
     height: number,
-    rebuild: (Rect) -> (),
 }
 
-function Rect.new(position: Vector, width: number, height: number, color: Color): Rect
+function Rect.new(x: number, y: number, w: number, h: number, color: Color): RectType
     local self = setmetatable({}, Rect)
-    self.position = position
-    self.width = width
-    self.height = height
+    self.position = Vector.xy(x, y)
+    self.width = w
+    self.height = h
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = color })
-    Rect.rebuild(self)  -- Note: using Rect.rebuild, not self:rebuild
-    return (self :: any) :: Rect
-end
-
-function Rect:rebuild()
-    local halfW = self.width / 2
-    local halfH = self.height / 2
-
-    self.path:reset()
-    self.path:moveTo(Vector.xy(self.position.x - halfW, self.position.y - halfH))
-    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y - halfH))
-    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y + halfH))
-    self.path:lineTo(Vector.xy(self.position.x - halfW, self.position.y + halfH))
+    -- Build rect path
+    local hw, hh = w/2, h/2
+    self.path:moveTo(Vector.xy(x - hw, y - hh))
+    self.path:lineTo(Vector.xy(x + hw, y - hh))
+    self.path:lineTo(Vector.xy(x + hw, y + hh))
+    self.path:lineTo(Vector.xy(x - hw, y + hh))
     self.path:close()
+    return (self :: any) :: RectType
 end
 
--- ============================================
--- CHILD CLASS: Triangle (inherits from Shape)
--- ============================================
+-- CHILD CLASS: Triangle
 local Triangle = {}
 Triangle.__index = Triangle
-setmetatable(Triangle, { __index = Shape })  -- Triangle inherits from Shape!
+-- TODO 1: Set up Triangle to inherit from Shape
+-- Use setmetatable to link Triangle to Shape
 
-type Triangle = Shape & {
+type TriangleType = ShapeType & {
     size: number,
-    rebuild: (Triangle) -> (),
 }
 
-function Triangle.new(position: Vector, size: number, color: Color): Triangle
+function Triangle.new(x: number, y: number, size: number, color: Color): TriangleType
     local self = setmetatable({}, Triangle)
-    self.position = position
+    self.position = Vector.xy(x, y)
     self.size = size
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = color })
-    Triangle.rebuild(self)
-    return (self :: any) :: Triangle
-end
-
-function Triangle:rebuild()
-    local half = self.size / 2
-
-    self.path:reset()
-    self.path:moveTo(Vector.xy(self.position.x, self.position.y - half))
-    self.path:lineTo(Vector.xy(self.position.x + half, self.position.y + half))
-    self.path:lineTo(Vector.xy(self.position.x - half, self.position.y + half))
+    -- Build triangle path
+    local half = size / 2
+    self.path:moveTo(Vector.xy(x, y - half))
+    self.path:lineTo(Vector.xy(x + half, y + half))
+    self.path:lineTo(Vector.xy(x - half, y + half))
     self.path:close()
+    return (self :: any) :: TriangleType
 end
 
--- ============================================
--- NODE SCRIPT
--- ============================================
 export type ShapeDemo = {
-    shapes: {Shape},
+    shapes: {ShapeType},
+    shapeCount: number,
 }
 
 function init(self: ShapeDemo): boolean
-    -- Both Rect and Triangle can be stored as Shape!
-    self.shapes = {
-        Rect.new(Vector.xy(-90, 0), 120, 70, Color.rgb(255, 120, 90)),
-        Triangle.new(Vector.xy(110, 0), 90, Color.rgb(80, 180, 255)),
-    }
+    -- TODO 2: Create a Rect at (-60, 0) with size 80x50, red color
+    -- TODO 3: Create a Triangle at (60, 0) with size 70, blue color
+    -- Store both in self.shapes
+
+    self.shapes = {}  -- Replace with actual shapes
+
+    self.shapeCount = #self.shapes
+    print(\`Created {self.shapeCount} shapes\`)
+
+    -- Verify inheritance works
+    for i, shape in ipairs(self.shapes) do
+        print(\`Drawing shape {i}\`)
+        -- This will error if Triangle doesn't inherit draw from Shape!
+    end
+
+    print(\`ANSWER: {self.shapeCount}\`)
     return true
 end
 
 function draw(self: ShapeDemo, renderer: Renderer)
-    -- Polymorphism: each shape draws itself correctly
     for _, shape in ipairs(self.shapes) do
         shape:draw(renderer)
     end
@@ -276,302 +228,234 @@ return function(): Node<ShapeDemo>
         init = init,
         draw = draw,
         shapes = {},
+        shapeCount = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Set up Triangle to inherit from Shape
+setmetatable(Triangle, { __index = Shape })
 
-**Key Pattern**: Both `Rect` and `Triangle` inherit the `draw` method from `Shape`, but each defines its own `rebuild` for geometry. This is **polymorphism** - different objects responding to the same method call in different ways.
+-- TODO 2 & 3: Create shapes
+self.shapes = {
+    Rect.new(-60, 0, 80, 50, Color.rgb(255, 100, 100)),
+    Triangle.new(60, 0, 70, Color.rgb(100, 100, 255)),
+}`}
+>
+
+**Premise**: Inheritance lets multiple drawable objects share common behavior (like `draw`) but have different geometry. You define shared behavior once in the parent and specialize in children.
+
+**Use Case**: A Rive animation with multiple UI elements (buttons, panels, icons) that all need to be drawn but have different shapes.
+
+</Exercise>
 
 ---
 
-### Exercise 2: Override a Method
+<Exercise
+  id="oop-inherit-2"
+  title="Exercise 2: Override a Method"
+  difficulty={2}
+  hint="Override the draw method in OutlineRect to render both fill and stroke. Remember to draw the fill first, then the stroke on top."
+  expectedAnswer="stroke"
+  explanation="OutlineRect overrides draw() to render both fill and stroke. The child defines its own version of the method, which takes precedence over the parent's."
+  task="Complete the OutlineRect class by overriding the draw method to render both fill and stroke."
+  expectedOutput={`Plain rect: fill only
+Outline rect: fill + stroke
+ANSWER: stroke`}
+  code={`--!strict
 
-**Goal**: Add a stroke outline by overriding `draw` on a child class.
-
-**Why This Matters**: Sometimes you need to extend parent behavior rather than replace it. Overriding lets you add functionality while reusing existing code.
-
-**Real-World Use**: A Rive button that needs both fill and stroke, or a selected state that adds a highlight effect on top of the base rendering.
-
-**After Effects Comparison**: In AE, you might use multiple shape layers or effects to achieve fill + stroke. In Luau, you override the draw method to render both in sequence.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-class OutlineRect extends Rect {
-    strokePaint: Paint;
-
-    constructor(/* params */) {
-        super(/* params */);  // Call parent constructor
-        this.strokePaint = new Paint({ style: "stroke", thickness: 5 });
-    }
-
-    draw(renderer: Renderer): void {
-        super.draw(renderer);  // Call parent's draw first
-        renderer.drawPath(this.path, this.strokePaint);  // Then add stroke
-    }
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "OutlineDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: A plain red rectangle on the left, and a blue rectangle with a dark blue outline on the right
-
-```lua
---!strict
-
--- ============================================
 -- BASE CLASS: Shape
--- ============================================
 local Shape = {}
 Shape.__index = Shape
 
-export type Shape = {
-    position: Vector,
+export type ShapeType = {
     path: Path,
     paint: Paint,
-    draw: (Shape, Renderer) -> (),
 }
 
 function Shape:draw(renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
 
--- ============================================
 -- CHILD CLASS: Rect
--- ============================================
 local Rect = {}
 Rect.__index = Rect
 setmetatable(Rect, { __index = Shape })
 
-type Rect = Shape & {
+type RectType = ShapeType & {
     width: number,
     height: number,
-    rebuild: (Rect) -> (),
 }
 
-function Rect.new(position: Vector, width: number, height: number, color: Color): Rect
+function Rect.new(x: number, y: number, w: number, h: number, color: Color): RectType
     local self = setmetatable({}, Rect)
-    self.position = position
-    self.width = width
-    self.height = height
+    self.width = w
+    self.height = h
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = color })
-    Rect.rebuild(self)
-    return (self :: any) :: Rect
-end
-
-function Rect:rebuild()
-    local halfW = self.width / 2
-    local halfH = self.height / 2
-
-    self.path:reset()
-    self.path:moveTo(Vector.xy(self.position.x - halfW, self.position.y - halfH))
-    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y - halfH))
-    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y + halfH))
-    self.path:lineTo(Vector.xy(self.position.x - halfW, self.position.y + halfH))
+    local hw, hh = w/2, h/2
+    self.path:moveTo(Vector.xy(x - hw, y - hh))
+    self.path:lineTo(Vector.xy(x + hw, y - hh))
+    self.path:lineTo(Vector.xy(x + hw, y + hh))
+    self.path:lineTo(Vector.xy(x - hw, y + hh))
     self.path:close()
+    return (self :: any) :: RectType
 end
 
--- ============================================
 -- GRANDCHILD CLASS: OutlineRect (extends Rect)
--- Demonstrates method overriding
--- ============================================
 local OutlineRect = {}
 OutlineRect.__index = OutlineRect
-setmetatable(OutlineRect, { __index = Rect })  -- Inherits from Rect!
+setmetatable(OutlineRect, { __index = Rect })
 
-type OutlineRect = Rect & {
+type OutlineRectType = RectType & {
     stroke: Paint,
-    draw: (OutlineRect, Renderer) -> (),  -- Override signature
 }
 
-function OutlineRect.new(position: Vector, width: number, height: number, fill: Color, stroke: Color): OutlineRect
-    -- Reuse parent constructor
-    local base = Rect.new(position, width, height, fill)
-    -- Change metatable to OutlineRect
+function OutlineRect.new(x: number, y: number, w: number, h: number, fill: Color, strokeColor: Color): OutlineRectType
+    local base = Rect.new(x, y, w, h, fill)
     local self = setmetatable(base, OutlineRect) :: any
-    -- Add stroke paint
-    self.stroke = Paint.with({ style = "stroke", thickness = 5, color = stroke })
+    self.stroke = Paint.with({ style = "stroke", thickness = 5, color = strokeColor })
     return self
 end
 
--- OVERRIDE: Draw both fill and stroke
+-- TODO: Override the draw method to render BOTH fill AND stroke
+-- The fill uses self.paint (inherited), the stroke uses self.stroke
 function OutlineRect:draw(renderer: Renderer)
-    -- We could call Rect.draw(self, renderer) here, but we'll just
-    -- render both paints directly for clarity
-    renderer:drawPath(self.path, self.paint)   -- Fill (inherited)
-    renderer:drawPath(self.path, self.stroke)  -- Stroke (new)
+    -- Replace this with code that draws both fill and stroke
+    renderer:drawPath(self.path, self.paint)  -- This only draws fill
 end
 
--- ============================================
--- NODE SCRIPT
--- ============================================
 export type OutlineDemo = {
-    shapes: {Shape},
+    plainRect: RectType,
+    outlineRect: OutlineRectType,
+    hasStroke: string,
 }
 
 function init(self: OutlineDemo): boolean
-    self.shapes = {
-        Rect.new(Vector.xy(-100, 0), 80, 60, Color.rgb(255, 120, 90)),
-        OutlineRect.new(Vector.xy(100, 0), 80, 60, Color.rgb(80, 180, 255), Color.rgb(40, 80, 120)),
-    }
+    self.plainRect = Rect.new(-70, 0, 80, 60, Color.rgb(255, 120, 90))
+    self.outlineRect = OutlineRect.new(70, 0, 80, 60, Color.rgb(80, 180, 255), Color.rgb(40, 80, 120))
+
+    print("Plain rect: fill only")
+    print("Outline rect: fill + stroke")
+
+    -- Check if stroke property exists and is used
+    self.hasStroke = if self.outlineRect.stroke then "stroke" else "none"
+    print(\`ANSWER: {self.hasStroke}\`)
+
     return true
 end
 
 function draw(self: OutlineDemo, renderer: Renderer)
-    for _, shape in ipairs(self.shapes) do
-        shape:draw(renderer)
-    end
+    self.plainRect:draw(renderer)
+    self.outlineRect:draw(renderer)
 end
 
 return function(): Node<OutlineDemo>
     return {
         init = init,
         draw = draw,
-        shapes = {},
+        plainRect = Rect.new(0, 0, 1, 1, Color.rgb(0, 0, 0)),
+        outlineRect = OutlineRect.new(0, 0, 1, 1, Color.rgb(0, 0, 0), Color.rgb(0, 0, 0)),
+        hasStroke = "",
     }
-end
-```
+end`}
+  solution={`-- Override the draw method to render BOTH fill AND stroke
+function OutlineRect:draw(renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)   -- Draw fill first
+    renderer:drawPath(self.path, self.stroke)  -- Draw stroke on top
+end`}
+>
 
-**Rive takeaway:** Inheritance is most useful when you need to tweak the drawing behavior while keeping shared geometry logic intact.
+**Premise**: Sometimes you need to extend parent behavior rather than replace it. Overriding lets you add functionality while keeping the parent's logic.
+
+**Use Case**: A Rive button that needs both fill and stroke, or a selected state that adds a highlight effect on top of the base rendering.
+
+</Exercise>
 
 ---
 
-### Exercise 3: Calling Parent Methods
+<Exercise
+  id="oop-inherit-3"
+  title="Exercise 3: Calling Parent Methods"
+  difficulty={2}
+  hint="Use dot notation with explicit self to call parent methods: Enemy.attack(self). This is like super.attack() in JavaScript."
+  expectedAnswer="45"
+  explanation="After nextPhase (damage 25 -> 35), and another nextPhase (35 -> 45), the final damage is 45. The boss's attack method calls the parent's attack using Enemy.attack(self)."
+  task="Complete the Boss class by calling parent methods correctly using dot notation and explicit self."
+  expectedOutput={`Dragon: 500 HP, 25 DMG
+  Phase: 1, Special: Fire Breath
+Phase 1 attack:
+Dragon attacks for 25 damage!
+Dragon enters phase 2!
+Dragon enters phase 3!
+Phase 3 attack:
+Dragon attacks for 45 damage!
+Dragon also uses Fire Breath!
+ANSWER: 45`}
+  code={`--!strict
 
-**Goal**: Extend parent methods rather than completely replacing them.
-
-**Why This Matters**: Often you want to ADD behavior to a parent method, not replace it entirely. This requires calling the parent's version inside your override.
-
-**Real-World Use**: A boss enemy in a game that does normal attack damage PLUS a special attack. Or a premium button that does normal click handling PLUS analytics tracking.
-
-**After Effects Comparison**: In AE, you might use expression controls that reference other layers. In Luau, you explicitly call the parent method using **dot notation** with **explicit self**.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-class Boss extends Enemy {
-    phase: number = 1;
-    specialAttack: string;
-
-    attack(): void {
-        super.attack();  // Call parent's attack
-        if (this.phase >= 2) {
-            console.log(`${this.name} uses ${this.specialAttack}!`);
-        }
-    }
-
-    describe(): void {
-        super.describe();  // Call parent's describe
-        console.log(`  Phase: ${this.phase}`);
-    }
-}
-```
-
-:::danger Critical: Calling Parent Methods
-**WRONG** (passes wrong self):
-```lua
-function Boss:attack()
-    Enemy:attack()  -- WRONG! This passes Enemy as self, not self
-end
-```
-
-**CORRECT** (passes correct self):
-```lua
-function Boss:attack()
-    Enemy.attack(self)  -- CORRECT! Use DOT and pass self explicitly
-end
-```
-
-Always use **dot notation** and **pass `self` explicitly** when calling parent methods.
-:::
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "BossDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: Console output showing the boss attacking (check Rive's output panel)
-
-```lua
---!strict
-
--- ============================================
 -- BASE CLASS: Enemy
--- ============================================
 local Enemy = {}
 Enemy.__index = Enemy
 
-type EnemyBase = {
+type EnemyType = {
     name: string,
     health: number,
     damage: number,
 }
 
-function Enemy.new(name: string, health: number, damage: number): EnemyBase
+function Enemy.new(name: string, health: number, damage: number): EnemyType
     local self = setmetatable({}, Enemy)
     self.name = name
     self.health = health
     self.damage = damage
-    return (self :: any) :: EnemyBase
+    return (self :: any) :: EnemyType
 end
 
 function Enemy:attack()
-    print(`{self.name} attacks for {self.damage} damage!`)
+    print(\`{self.name} attacks for {self.damage} damage!\`)
 end
 
 function Enemy:describe()
-    print(`{self.name}: {self.health} HP, {self.damage} DMG`)
+    print(\`{self.name}: {self.health} HP, {self.damage} DMG\`)
 end
 
--- ============================================
 -- CHILD CLASS: Boss (extends Enemy)
--- Demonstrates calling parent methods
--- ============================================
 local Boss = {}
 Boss.__index = Boss
 setmetatable(Boss, { __index = Enemy })
 
-type BossType = EnemyBase & {
+type BossType = EnemyType & {
     phase: number,
     specialAttackName: string,
 }
 
-function Boss.new(name: string, health: number, damage: number, specialAttackName: string): BossType
-    -- Start with a base Enemy
+function Boss.new(name: string, health: number, damage: number, special: string): BossType
     local base = Enemy.new(name, health, damage)
-    -- Add Boss-specific properties
     base.phase = 1
-    base.specialAttackName = specialAttackName
-    -- Change metatable to Boss
+    base.specialAttackName = special
     return setmetatable(base, Boss) :: any :: BossType
 end
 
--- OVERRIDE: attack() but ALSO call parent's attack
+-- TODO 1: Override attack() to call parent's attack FIRST, then add special if phase >= 2
+-- CRITICAL: Use DOT notation with explicit self: Enemy.attack(self)
 function Boss:attack()
-    Enemy.attack(self)  -- Call parent method with DOT notation!
-    if self.phase >= 2 then
-        print(`{self.name} also uses {self.specialAttackName}!`)
-    end
+    -- Call parent's attack method here (use DOT notation!)
+    -- Then if phase >= 2, print special attack message
+    print("Boss attack not implemented")
 end
 
--- OVERRIDE: describe() but ALSO call parent's describe
+-- TODO 2: Override describe() to call parent's describe FIRST, then add phase info
 function Boss:describe()
-    Enemy.describe(self)  -- Call parent first
-    print(`  Phase: {self.phase}, Special: {self.specialAttackName}`)
+    -- Call parent's describe method here (use DOT notation!)
+    -- Then print phase and special attack info
+    print("Boss describe not implemented")
 end
 
--- Boss-only method
 function Boss:nextPhase()
     self.phase += 1
     self.damage += 10
-    print(`{self.name} enters phase {self.phase}!`)
+    print(\`{self.name} enters phase {self.phase}!\`)
 end
 
--- ============================================
--- NODE SCRIPT
--- ============================================
 export type BossDemo = {
     boss: BossType,
 }
@@ -579,22 +463,23 @@ export type BossDemo = {
 function init(self: BossDemo): boolean
     self.boss = Boss.new("Dragon", 500, 25, "Fire Breath")
 
-    -- Test the methods
     self.boss:describe()
 
-    print("\n--- Phase 1 Attack ---")
+    print("Phase 1 attack:")
     self.boss:attack()
 
-    self.boss:nextPhase()
+    self.boss:nextPhase()  -- Phase 2, damage = 35
+    self.boss:nextPhase()  -- Phase 3, damage = 45
 
-    print("\n--- Phase 2 Attack ---")
+    print("Phase 3 attack:")
     self.boss:attack()
+
+    print(\`ANSWER: {self.boss.damage}\`)
 
     return true
 end
 
 function draw(self: BossDemo, renderer: Renderer)
-    -- Nothing to draw in this example
 end
 
 return function(): Node<BossDemo>
@@ -603,79 +488,61 @@ return function(): Node<BossDemo>
         draw = draw,
         boss = Boss.new("", 0, 0, ""),
     }
+end`}
+  solution={`-- TODO 1: Override attack() to call parent's attack FIRST
+function Boss:attack()
+    Enemy.attack(self)  -- Call parent with DOT and explicit self!
+    if self.phase >= 2 then
+        print(\`{self.name} also uses {self.specialAttackName}!\`)
+    end
 end
-```
 
-**Key Pattern**: To call a parent method, use `ParentClass.methodName(self)` with dot notation. This ensures the correct `self` is passed.
+-- TODO 2: Override describe() to call parent's describe FIRST
+function Boss:describe()
+    Enemy.describe(self)  -- Call parent with DOT and explicit self!
+    print(\`  Phase: {self.phase}, Special: {self.specialAttackName}\`)
+end`}
+>
+
+**Premise**: Often you want to ADD behavior to a parent method, not replace it entirely. Call the parent's version using **dot notation** with **explicit self**: `Parent.method(self)`.
+
+**Use Case**: A boss enemy that does normal attack damage PLUS a special attack. Or a premium button that does normal click handling PLUS analytics tracking.
+
+:::danger Critical: Calling Parent Methods
+```lua
+-- WRONG: passes Enemy as self
+Enemy:attack()
+
+-- CORRECT: passes self explicitly
+Enemy.attack(self)
+```
+:::
+
+</Exercise>
 
 ---
 
-### Exercise 4: Complete Drawable Hierarchy
+<Exercise
+  id="oop-inherit-4"
+  title="Exercise 4: Complete Drawable Hierarchy"
+  difficulty={3}
+  hint="Build the hierarchy step by step: GameObject (base) -> DrawableObject (adds rendering) -> Circle (adds geometry). Each level uses setmetatable to inherit from its parent."
+  expectedAnswer="3"
+  explanation="3 objects are created (2 boxes + 1 circle), all stored as DrawableType. The hierarchy chains: Circle/Box -> DrawableObject -> GameObject."
+  task="Complete the 3-level hierarchy by setting up the inheritance chain and creating shapes in init."
+  expectedOutput={`Level 1: GameObject (position, active)
+Level 2: DrawableObject (path, paint, draw)
+Level 3: Box/Circle (specific geometry)
+Created 3 objects
+Active objects: 3
+ANSWER: 3`}
+  code={`--!strict
 
-**Goal**: Build a full game object hierarchy with drawing support.
-
-**Why This Matters**: Real applications often have multi-level hierarchies. Understanding how to chain inheritance through multiple levels is essential for complex Rive projects.
-
-**Real-World Use**: A game with various entities - some are just data (positions), some are drawable (sprites), and some are specific shapes (boxes, circles). Each level adds functionality.
-
-**After Effects Comparison**: In AE, you'd manage this complexity with precomps and expression links. In Luau, inheritance creates a clean hierarchy where each level adds its own responsibilities.
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-// Three-level hierarchy
-class GameObject {
-    id: number;
-    x: number;
-    y: number;
-    active: boolean = true;
-
-    update(dt: number): void {}
-    draw(renderer: Renderer): void {}
-    destroy(): void { this.active = false; }
-}
-
-class DrawableObject extends GameObject {
-    path: Path;
-    paint: Paint;
-
-    draw(renderer: Renderer): void {
-        renderer.save();
-        renderer.translate(this.x, this.y);
-        renderer.drawPath(this.path, this.paint);
-        renderer.restore();
-    }
-}
-
-class Circle extends DrawableObject {
-    radius: number;
-    // Builds circular path in constructor
-}
-
-class Box extends DrawableObject {
-    width: number;
-    height: number;
-    // Builds rectangular path in constructor
-}
-```
-
-**Step-by-Step Setup**:
-
-1. **Create a new Rive file** with a single artboard (400x400)
-2. **Add a Node** named "HierarchyDemo"
-3. **Create the Node Script** with the code below
-4. **What to expect**: Two rectangles and a circle that bob up and down with a sine wave animation
-
-```lua
---!strict
-
--- ============================================
 -- LEVEL 1: Base GameObject
--- Just position and active state
--- ============================================
 local GameObject = {}
 GameObject.__index = GameObject
 
-type GameObjectBase = {
+type GameObjectType = {
     id: number,
     x: number,
     y: number,
@@ -684,47 +551,37 @@ type GameObjectBase = {
 
 local nextId = 1
 
-function GameObject.new(x: number, y: number): GameObjectBase
+function GameObject.new(x: number, y: number): GameObjectType
     local self = setmetatable({}, GameObject)
     self.id = nextId
     nextId += 1
     self.x = x
     self.y = y
     self.active = true
-    return (self :: any) :: GameObjectBase
+    return (self :: any) :: GameObjectType
 end
-
-function GameObject:update(seconds: number) end
-function GameObject:draw(renderer: Renderer) end
 
 function GameObject:destroy()
     self.active = false
 end
 
--- ============================================
 -- LEVEL 2: DrawableObject (extends GameObject)
--- Adds path and paint for rendering
--- ============================================
 local DrawableObject = {}
 DrawableObject.__index = DrawableObject
-setmetatable(DrawableObject, { __index = GameObject })
+-- TODO 1: Set up DrawableObject to inherit from GameObject
 
-type DrawableType = GameObjectBase & {
+type DrawableType = GameObjectType & {
     path: Path,
     paint: Paint,
 }
 
 function DrawableObject.new(x: number, y: number, color: Color): DrawableType
-    -- Start with base GameObject
     local base = GameObject.new(x, y)
-    -- Add drawing properties
     base.path = Path.new()
     base.paint = Paint.with({ style = "fill", color = color })
-    -- Change metatable
     return setmetatable(base, DrawableObject) :: any :: DrawableType
 end
 
--- Override draw to actually render
 function DrawableObject:draw(renderer: Renderer)
     renderer:save()
     renderer:transform(Mat2D.withTranslation(self.x, self.y))
@@ -732,58 +589,42 @@ function DrawableObject:draw(renderer: Renderer)
     renderer:restore()
 end
 
--- ============================================
 -- LEVEL 3: Box (extends DrawableObject)
--- Specific rectangle geometry
--- ============================================
 local Box = {}
 Box.__index = Box
-setmetatable(Box, { __index = DrawableObject })
+-- TODO 2: Set up Box to inherit from DrawableObject
 
 type BoxType = DrawableType & {
     width: number,
     height: number,
 }
 
-function Box.new(x: number, y: number, width: number, height: number, color: Color): BoxType
-    -- Start with DrawableObject
+function Box.new(x: number, y: number, w: number, h: number, color: Color): BoxType
     local base = DrawableObject.new(x, y, color)
-    -- Add box-specific properties
-    base.width = width
-    base.height = height
-
-    -- Build the path (geometry centered at origin)
-    local hw = width / 2
-    local hh = height / 2
+    base.width = w
+    base.height = h
+    local hw, hh = w/2, h/2
     base.path:moveTo(Vector.xy(-hw, -hh))
     base.path:lineTo(Vector.xy(hw, -hh))
     base.path:lineTo(Vector.xy(hw, hh))
     base.path:lineTo(Vector.xy(-hw, hh))
     base.path:close()
-
     return setmetatable(base, Box) :: any :: BoxType
 end
 
--- ============================================
 -- LEVEL 3: Circle (extends DrawableObject)
--- Specific circular geometry
--- ============================================
 local Circle = {}
 Circle.__index = Circle
-setmetatable(Circle, { __index = DrawableObject })
+-- TODO 3: Set up Circle to inherit from DrawableObject
 
 type CircleType = DrawableType & {
     radius: number,
 }
 
 function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
-    -- Start with DrawableObject
     local base = DrawableObject.new(x, y, color)
-    -- Add circle-specific properties
     base.radius = radius
-
-    -- Build the path (circle centered at origin)
-    local segments = 32
+    local segments = 24
     for i = 0, segments - 1 do
         local angle = (i / segments) * math.pi * 2
         local px = math.cos(angle) * radius
@@ -795,35 +636,38 @@ function Circle.new(x: number, y: number, radius: number, color: Color): CircleT
         end
     end
     base.path:close()
-
     return setmetatable(base, Circle) :: any :: CircleType
 end
 
--- ============================================
--- NODE SCRIPT
--- ============================================
 export type HierarchyDemo = {
     objects: {DrawableType},
-    elapsed: number,
+    objectCount: number,
 }
 
 function init(self: HierarchyDemo): boolean
-    -- Create a mix of shapes - all stored as DrawableType!
-    self.objects = {
-        Box.new(-80, -30, 60, 40, Color.rgb(255, 100, 100)),
-        Box.new(80, 30, 40, 60, Color.rgb(100, 255, 100)),
-        Circle.new(0, 0, 35, Color.rgb(100, 100, 255)),
-    }
-    self.elapsed = 0
-    return true
-end
+    print("Level 1: GameObject (position, active)")
+    print("Level 2: DrawableObject (path, paint, draw)")
+    print("Level 3: Box/Circle (specific geometry)")
 
-function advance(self: HierarchyDemo, seconds: number): boolean
-    self.elapsed += seconds
-    -- Animate each object with a different phase
-    for i, obj in ipairs(self.objects) do
-        obj.y = math.sin(self.elapsed * 2 + i) * 20
+    -- TODO 4: Create objects array with:
+    -- - Box at (-60, 0), size 50x40, red
+    -- - Box at (60, 0), size 40x50, green
+    -- - Circle at (0, 0), radius 30, blue
+    self.objects = {}  -- Replace with actual objects
+
+    self.objectCount = #self.objects
+    print(\`Created {self.objectCount} objects\`)
+
+    -- Count active objects
+    local activeCount = 0
+    for _, obj in ipairs(self.objects) do
+        if obj.active then
+            activeCount += 1
+        end
     end
+    print(\`Active objects: {activeCount}\`)
+    print(\`ANSWER: {activeCount}\`)
+
     return true
 end
 
@@ -838,23 +682,38 @@ end
 return function(): Node<HierarchyDemo>
     return {
         init = init,
-        advance = advance,
         draw = draw,
         objects = {},
-        elapsed = 0,
+        objectCount = 0,
     }
-end
-```
+end`}
+  solution={`-- TODO 1: Set up DrawableObject to inherit from GameObject
+setmetatable(DrawableObject, { __index = GameObject })
 
-**Inheritance chain:**
+-- TODO 2: Set up Box to inherit from DrawableObject
+setmetatable(Box, { __index = DrawableObject })
+
+-- TODO 3: Set up Circle to inherit from DrawableObject
+setmetatable(Circle, { __index = DrawableObject })
+
+-- TODO 4: Create objects array
+self.objects = {
+    Box.new(-60, 0, 50, 40, Color.rgb(255, 100, 100)),
+    Box.new(60, 0, 40, 50, Color.rgb(100, 255, 100)),
+    Circle.new(0, 0, 30, Color.rgb(100, 100, 255)),
+}`}
+>
+
+**Premise**: Real applications have multi-level hierarchies. Understanding how to chain inheritance through multiple levels is essential for complex Rive projects.
+
+**Use Case**: A game with various entities - some are just data (positions), some are drawable (sprites), and some are specific shapes (boxes, circles). Each level adds functionality.
+
+**Hierarchy:**
 ```
 Circle/Box -> DrawableObject -> GameObject
 ```
 
-Each level adds functionality:
-- `GameObject`: position, active state, destroy
-- `DrawableObject`: path, paint, basic draw
-- `Circle`/`Box`: specific geometry
+</Exercise>
 
 ---
 

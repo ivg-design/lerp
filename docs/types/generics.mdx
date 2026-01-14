@@ -5,6 +5,7 @@ description: Create flexible, reusable type definitions with generics
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 2.3: Generics & Advanced Types
 
@@ -111,721 +112,590 @@ Artboard<Data.MyViewModel>
 
 ## Practice Exercises
 
-### Exercise 1: Generic Functions Basics
+### Exercise 1: Generic Pair ⭐
 
-**Goal:** Write functions that work with any type while maintaining type safety.
+### Premise
 
-**Why This Matters:** Without generics, you'd write `getFirstString`, `getFirstNumber`, `getFirstEnemy`... With generics, you write ONE function that works for ALL types.
+Generic aliases let you reuse one shape across multiple types. A single Pair definition can hold numbers, strings, or anything else.
 
-**Real-World Use:** Utility functions (get first, get last, wrap value), data structure operations (push, pop, peek), safe access patterns (default if nil).
+:::info Goal
+By the end of this exercise, you will use a generic type alias with numbers.
+:::
 
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add `--!strict` at the top
-3. Define generic functions using `<T>` syntax
-4. Call them with different types to see type inference in action
+### Use Case
 
-**Task**: Implement these generic functions:
+You pass a pair of values into a helper, like two timing offsets or two coordinates. Generics keep the pair definition reusable.
+
+**Example scenarios:**
+- Paired values in animation
+- Simple tuple-like data
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_GenericPair`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- EXAMPLE: A generic identity function (returns what it receives)
-local function identity<T>(value: T): T
-    return value
-end
+export type Exercise1 = {}
 
--- 1. getFirst: Returns the first element of any array
-local function getFirst<T>(arr: {T}): T?
-    if #arr > 0 then
-        return arr[1]
-    end
-    return nil
-end
+type Pair<T> = {
+    left: T,
+    right: T,
+}
 
--- 2. getLast: Returns the last element of any array
-local function getLast<T>(arr: {T}): T?
-    if #arr > 0 then
-        return arr[#arr]
-    end
-    return nil
-end
+function init(self: Exercise1): boolean
+    -- TODO: Set left to 4 and right to 6
+    local pair: Pair<number> = {
+        left = 0,
+        right = 0,
+    }
 
--- 3. wrapInArray: Wraps any single value in an array
-local function wrapInArray<T>(value: T): {T}
-    return {value}
-end
-
--- 4. defaultIfNil: Returns value if not nil, otherwise returns default
-local function defaultIfNil<T>(value: T?, default: T): T
-    if value then
-        return value
-    end
-    return default
-end
-
-export type GenericsBasics = {}
-
-function init(self: GenericsBasics): boolean
-    -- Test with strings
-    local names = {"Alice", "Bob", "Charlie"}
-    print(`First name: {getFirst(names)}`)
-    print(`Last name: {getLast(names)}`)
-
-    -- Test with numbers
-    local scores = {100, 85, 92}
-    print(`First score: {getFirst(scores)}`)
-    print(`Last score: {getLast(scores)}`)
-
-    -- Test wrapInArray
-    local wrapped = wrapInArray(42)
-    print(`Wrapped: {wrapped[1]}`)
-
-    -- Test defaultIfNil
-    local maybeValue: string? = nil
-    local result = defaultIfNil(maybeValue, "default")
-    print(`Default result: {result}`)
-
-    local actualValue: string? = "actual"
-    local result2 = defaultIfNil(actualValue, "default")
-    print(`Actual result: {result2}`)
-
+    local sum = pair.left + pair.right
+    print(`ANSWER: sum={sum}`)
     return true
 end
 
-function draw(self: GenericsBasics, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<GenericsBasics>
-    return { init = init, draw = draw }
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
-```
-
-**Expected Output:**
-```
-First name: Alice
-Last name: Charlie
-First score: 100
-Last score: 92
-Wrapped: 42
-Default result: default
-Actual result: actual
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console prints generic helper outputs so you can see type inference working with strings and numbers.
-:::
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-function getFirst<T>(arr: T[]): T | undefined {
-    return arr.length > 0 ? arr[0] : undefined;
-}
-
-function defaultIfNil<T>(value: T | null, defaultVal: T): T {
-    return value !== null ? value : defaultVal;
-}
 ```
 
 ---
 
-### Exercise 2: Generic Type Aliases
+### Assignment
 
-**Goal:** Create reusable type structures that work with any inner type.
+Complete these tasks:
 
-**Why This Matters:** A `Box<string>` and `Box<number>` share the same structure but hold different types. Generic types let you define the structure once.
+1. Set left to 4 and right to 6
+2. Keep the Pair type generic
 
-**Real-World Use:** Result types (success/error), container types (stack, queue), wrapper types (observable, cached).
+---
 
-**Step-by-Step Setup:**
-1. Define generic types with `<T>` or `<T, E>` syntax
-2. Create instances by specifying the concrete type
-3. Write functions that operate on generic types
+### Expected Output
 
-**Task**: Create and use generic type aliases:
+Your console output should display the sum of the two values from the generic Pair type.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-1"
+    expectedAnswer="ANSWER: sum=10"
+/>
+
+---
+
+### Checklist
+
+- [ ] Generic alias is used
+- [ ] Sum equals 10
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Generic Box ⭐
+
+### Premise
+
+Generic containers keep your data structures flexible. A Box can hold any type without re-implementing the shape.
+
+:::info Goal
+By the end of this exercise, you will use a generic box for a string value.
+:::
+
+### Use Case
+
+You store a labeled value that might later be swapped for another type. Generics keep the container consistent.
+
+**Example scenarios:**
+- Generic wrappers
+- Typed containers for values
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_GenericBox`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- A container that holds a value of any type
+export type Exercise2 = {}
+
 type Box<T> = {
     value: T,
-    label: string,
 }
 
--- A result type that's either success or error
-type Result<T, E> = {
-    success: boolean,
-    value: T?,
-    error: E?,
-}
+function init(self: Exercise2): boolean
+    -- TODO: Set the boxed value to "Glow"
+    local boxed: Box<string> = {
+        value = "",
+    }
 
--- Pair: Holds two values of different types
-type Pair<A, B> = {
-    first: A,
-    second: B,
-}
-
--- Stack: A stack with items array
-type Stack<T> = {
-    items: {T},
-    top: number,
-}
-
--- Optional: Simple wrapper with hasValue flag
-type Optional<T> = {
-    hasValue: boolean,
-    value: T?,
-}
-
--- Create values using these types
-local function createBox<T>(value: T, label: string): Box<T>
-    return { value = value, label = label }
-end
-
-local function createPair<A, B>(first: A, second: B): Pair<A, B>
-    return { first = first, second = second }
-end
-
-local function createStack<T>(): Stack<T>
-    return { items = {}, top = 0 }
-end
-
-local function pushStack<T>(stack: Stack<T>, value: T)
-    stack.top += 1
-    stack.items[stack.top] = value
-end
-
-local function popStack<T>(stack: Stack<T>): T?
-    if stack.top > 0 then
-        local value = stack.items[stack.top]
-        stack.items[stack.top] = nil :: any
-        stack.top -= 1
-        return value
-    end
-    return nil
-end
-
-export type GenericTypes = {}
-
-function init(self: GenericTypes): boolean
-    -- Test Box
-    local numberBox = createBox(42, "Answer")
-    local stringBox = createBox("Hello", "Greeting")
-    print(`Number box: {numberBox.label} = {numberBox.value}`)
-    print(`String box: {stringBox.label} = {stringBox.value}`)
-
-    -- Test Pair
-    local coords = createPair(100, 200)
-    local mixed = createPair("name", 42)
-    print(`Coords: ({coords.first}, {coords.second})`)
-    print(`Mixed: {mixed.first} = {mixed.second}`)
-
-    -- Test Stack
-    local numStack: Stack<number> = createStack()
-    pushStack(numStack, 1)
-    pushStack(numStack, 2)
-    pushStack(numStack, 3)
-    print(`Pop: {popStack(numStack)}`)  -- 3
-    print(`Pop: {popStack(numStack)}`)  -- 2
-
+    print(`ANSWER: value={boxed.value}`)
     return true
 end
 
-function draw(self: GenericTypes, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<GenericTypes>
-    return { init = init, draw = draw }
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console prints example outputs from the Box, Pair, and Stack types, showing how generic structures behave.
-:::
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript generic types
-type Box<T> = {
-    value: T;
-    label: string;
-};
-
-type Result<T, E> = {
-    success: boolean;
-    value?: T;
-    error?: E;
-};
-
-type Pair<A, B> = {
-    first: A;
-    second: B;
-};
-
-// Usage
-const numberBox: Box<number> = { value: 42, label: "Answer" };
-const stringBox: Box<string> = { value: "Hello", label: "Greeting" };
 ```
 
 ---
 
-### Exercise 3: Understanding Rive's Generic Types
+### Assignment
 
-**Goal:** Understand how Rive uses generics in its API, especially `Input<T>` and `Node<T>`.
+Complete these tasks:
 
-**Why This Matters:** Every Rive script uses `Node<T>` and most use `Input<T>`. Understanding these generics helps you read and write Rive code correctly.
+1. Set the boxed value to "Glow"
+2. Keep the Box type generic
 
-**Real-World Use:** Every single Rive Node Script uses these patterns. This is fundamental knowledge.
+---
 
-**Step-by-Step Setup:**
-1. Look at the `export type` with `Input<T>` properties
-2. Understand that inputs are read directly (you get the `T`)
-3. See how `Node<T>` wraps your script type in the factory
+### Expected Output
 
-**Context**: Rive uses generics extensively. Understanding them helps you use the API correctly.
+Your console output should display the boxed string value from the generic container.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-2"
+    expectedAnswer="ANSWER: value=Glow"
+/>
+
+---
+
+### Checklist
+
+- [ ] Generic box uses string type
+- [ ] Value is correct
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Input Number ⭐
+
+### Premise
+
+`Input<T>` is Rive's most common generic. It represents editor-exposed values with a concrete type.
+
+:::info Goal
+By the end of this exercise, you will use `Input<number>` in a script.
+:::
+
+### Use Case
+
+A designer sets a speed in the editor. Your script reads it and computes a distance value.
+
+**Example scenarios:**
+- Speed sliders
+- Tunable animation rates
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_InputNumber`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Rive's Input<T> is generic - it declares an editor-exposed value
--- The T parameter specifies what type you read directly from self
-
-export type RiveGenerics = {
-    -- Different Input types
+export type Exercise3 = {
     speed: Input<number>,
-    playerName: Input<string>,
-    isActive: Input<boolean>,
-    tint: Input<Color>,
-
-    -- Path and Paint (not generic, but used with generics)
-    myPath: Path,
-    myPaint: Paint,
 }
 
-function init(self: RiveGenerics): boolean
-    -- Accessing generic Input values directly
-    local speedValue: number = self.speed       -- number
-    local nameValue: string = self.playerName   -- string
-    local activeValue: boolean = self.isActive  -- boolean
-    local colorValue: Color = self.tint         -- Color
-
-    print(`Speed (number): {speedValue}`)
-    print(`Name (string): {nameValue}`)
-    print(`Active (boolean): {activeValue}`)
-    print(`Tint: R={Color.red(colorValue)}`)
-
-    -- Initialize non-generic types
-    self.myPath = Path.new()
-    self.myPaint = Paint.new()
-    self.myPaint.color = self.tint  -- Use the Input value
-
+function init(self: Exercise3): boolean
+    local distance = self.speed * 5
+    print(`ANSWER: distance={distance}`)
     return true
 end
 
--- The factory function uses Node<T> - also generic!
--- Node<RiveGenerics> tells Rive this Node has RiveGenerics properties
-
-function draw(self: RiveGenerics, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<RiveGenerics>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
-        -- Inputs with default values
-        speed = 100,
-        playerName = "Hero",
-        isActive = true,
-        tint = Color.rgba(255, 128, 0, 255),
-        -- late() for things initialized in init
-        myPath = late(),
-        myPaint = late(),
+        speed = 1.2,
     }
 end
-```
-
-**Key Questions Answered:**
-
-| Question | Answer |
-|----------|--------|
-| What is `self.speed`? | An editor-exposed input value (read as a `number`) |
-| What is `self.speed.value`? | Not used in this course (inputs are read directly) |
-| Why `late()` for some properties? | They're created in `init()`, not the factory |
-| What does `Node<RiveGenerics>` mean? | The Node script has `RiveGenerics` properties |
-
-:::note Rive Result
-Attach the script to any node, then press Play. The Console prints the input values and a color channel read, confirming how `Input<T>` values are read directly.
-:::
-
----
-
-### Exercise 4: Generic Cache System
-
-**Goal:** Build a practical, type-safe generic data structure.
-
-**Why This Matters:** Caches, pools, and registries are common in game development. Generic types let you build one cache that works for any value type.
-
-**Real-World Use:** Animation caches, asset pools, memoization, computed value storage.
-
-**Task**: Build a type-safe generic cache:
-
-```lua
---!strict
-
-type CacheEntry<T> = {
-    value: T,
-    timestamp: number,
-    key: string,
-}
-
-type Cache<T> = {
-    entries: {[string]: CacheEntry<T>},
-    maxAge: number,
-}
-
-local function createCache<T>(maxAge: number): Cache<T>
-    return {
-        entries = {},
-        maxAge = maxAge
-    }
-end
-
-local function setCache<T>(cache: Cache<T>, key: string, value: T)
-    cache.entries[key] = {
-        value = value,
-        timestamp = os.clock(),
-        key = key
-    }
-end
-
-local function getCache<T>(cache: Cache<T>, key: string): T?
-    local entry = cache.entries[key]
-    if entry then
-        local age = os.clock() - entry.timestamp
-        if age < cache.maxAge then
-            return entry.value
-        else
-            -- Expired, remove it
-            cache.entries[key] = nil
-        end
-    end
-    return nil
-end
-
-export type CacheDemo = {}
-
-function init(self: CacheDemo): boolean
-    -- Test the cache with strings
-    local stringCache: Cache<string> = createCache(10)  -- 10 second max age
-
-    setCache(stringCache, "greeting", "Hello!")
-    setCache(stringCache, "farewell", "Goodbye!")
-
-    local greeting = getCache(stringCache, "greeting")
-    print(`Cached greeting: {greeting or "not found"}`)
-
-    local missing = getCache(stringCache, "missing")
-    print(`Missing key: {missing or "not found"}`)
-
-    -- Test with numbers
-    local numberCache: Cache<number> = createCache(5)
-    setCache(numberCache, "score", 100)
-    setCache(numberCache, "level", 5)
-
-    print(`Cached score: {getCache(numberCache, "score") or 0}`)
-    print(`Cached level: {getCache(numberCache, "level") or 0}`)
-
-    return true
-end
-
-function draw(self: CacheDemo, renderer: Renderer)
-end
-
-return function(): Node<CacheDemo>
-    return { init = init, draw = draw }
-end
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console prints cached values and missing keys, showing how a typed cache would back animation data.
-:::
-
----
-
-### Exercise 5: Intersection Types
-
-**Goal:** Combine multiple types into one using the `&` operator.
-
-**Why This Matters:** Intersection types let you compose behaviors. An object can be `Named & Positioned & Drawable`—having all properties from all three types.
-
-**Real-World Use:** Game entity systems, component composition, mixin patterns.
-
-**Step-by-Step Setup:**
-1. Define small, focused types
-2. Combine them with `&`
-3. Create objects that satisfy the combined type
-4. Write functions that accept specific combinations
-
-**Context**: Intersection types (`&`) combine multiple types into one. The result must satisfy ALL combined types.
-
-```lua
---!strict
-
--- Base types
-type Named = { name: string }
-type Positioned = { x: number, y: number }
-type Sized = { width: number, height: number }
-type Colored = { color: Color }
-
--- Intersection: Must have ALL properties from both types
-type NamedPosition = Named & Positioned
-
--- More complex intersection
-type GameObject = Named & Positioned & Sized
-
--- Full intersection
-type VisualObject = Named & Positioned & Sized & Colored
-
--- Functions that work with different intersection levels
-local function printName(obj: Named)
-    print(`Name: {obj.name}`)
-end
-
-local function printPosition(obj: Positioned)
-    print(`Position: ({obj.x}, {obj.y})`)
-end
-
-local function printBounds(obj: Positioned & Sized)
-    print(`Bounds: ({obj.x}, {obj.y}) to ({obj.x + obj.width}, {obj.y + obj.height})`)
-end
-
-local function printColor(obj: Colored)
-    print(`Color: R={Color.red(obj.color)}, G={Color.green(obj.color)}, B={Color.blue(obj.color)}`)
-end
-
-export type IntersectionDemo = {}
-
-function init(self: IntersectionDemo): boolean
-    -- Create objects with different intersection types
-    local simple: NamedPosition = {
-        name = "Point A",
-        x = 10,
-        y = 20,
-    }
-
-    local gameObj: GameObject = {
-        name = "Player",
-        x = 100,
-        y = 100,
-        width = 32,
-        height = 48,
-    }
-
-    local visual: VisualObject = {
-        name = "Enemy",
-        x = 200,
-        y = 150,
-        width = 24,
-        height = 24,
-        color = Color.rgba(255, 0, 0, 255),
-    }
-
-    -- All objects with Named work with printName
-    printName(simple)
-    printName(gameObj)
-    printName(visual)
-
-    -- All objects with Positioned work with printPosition
-    printPosition(simple)
-    printPosition(gameObj)
-    printPosition(visual)
-
-    -- Only objects with Positioned & Sized work with printBounds
-    -- printBounds(simple)  -- Error! simple doesn't have width/height
-    printBounds(gameObj)
-    printBounds(visual)
-
-    -- Only Colored objects work with printColor
-    printColor(visual)
-    -- printColor(gameObj)  -- Error! no color property
-
-    return true
-end
-
-function draw(self: IntersectionDemo, renderer: Renderer)
-end
-
-return function(): Node<IntersectionDemo>
-    return { init = init, draw = draw }
-end
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console logs names, positions, bounds, and colors, demonstrating how intersected types control which helpers can be called.
-:::
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript intersection types - identical concept
-type Named = { name: string };
-type Positioned = { x: number; y: number };
-
-type NamedPosition = Named & Positioned;
-
-const obj: NamedPosition = {
-    name: "Point",
-    x: 10,
-    y: 20,
-};
 ```
 
 ---
 
-### Exercise 6: Entity System
+### Assignment
 
-**Goal:** Build a complete entity system using generics and composition.
+Complete these tasks:
 
-**Why This Matters:** This exercise combines everything: generic types, intersection types, and factory functions. It's a realistic example of how professional game code is structured.
+1. Keep speed typed as `Input<number>`
+2. Use the default speed of 1.2
 
-**Real-World Use:** Every game with multiple entity types (players, enemies, items, projectiles) benefits from this pattern.
+---
 
-**Task**: Build a mini entity system using all type features:
+### Expected Output
+
+Your console output should display the computed distance from the Input number value.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-3"
+    expectedAnswer="ANSWER: distance=6"
+/>
+
+---
+
+### Checklist
+
+- [ ] Input default is numeric
+- [ ] Output matches the expected line
+- [ ] Input is read-only
+
+---
+
+### Exercise 4: Input String ⭐
+
+### Premise
+
+Input generics work for strings too. The type parameter tells the editor and script exactly what to expect.
+
+:::info Goal
+By the end of this exercise, you will use an `Input<string>` and transform it.
+:::
+
+### Use Case
+
+A label comes from the editor, and your script formats it for a debug overlay.
+
+**Example scenarios:**
+- Label inputs
+- UI text formatting
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_InputString`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Base entity type with generic data
-type Entity<T> = {
-    id: number,
-    name: string,
-    data: T,
-    active: boolean,
+export type Exercise4 = {
+    label: Input<string>,
 }
 
--- Specific data types
-type PlayerData = {
-    health: number,
-    score: number,
-    inventory: {string},
-}
-
-type EnemyData = {
-    health: number,
-    damage: number,
-    speed: number,
-}
-
-type ItemData = {
-    value: number,
-    rarity: "common" | "rare" | "epic" | "legendary",
-}
-
--- Type aliases for specific entities
-type Player = Entity<PlayerData>
-type Enemy = Entity<EnemyData>
-type Item = Entity<ItemData>
-
--- Entity registry with generics
-type EntityRegistry<T> = {
-    entities: {[number]: Entity<T>},
-    nextId: number,
-}
-
-local function createRegistry<T>(): EntityRegistry<T>
-    return {
-        entities = {},
-        nextId = 1
-    }
-end
-
-local function addEntity<T>(registry: EntityRegistry<T>, name: string, data: T): Entity<T>
-    local entity: Entity<T> = {
-        id = registry.nextId,
-        name = name,
-        data = data,
-        active = true
-    }
-    registry.entities[registry.nextId] = entity
-    registry.nextId += 1
-    return entity
-end
-
-local function getEntity<T>(registry: EntityRegistry<T>, id: number): Entity<T>?
-    return registry.entities[id]
-end
-
-local function removeEntity<T>(registry: EntityRegistry<T>, id: number): boolean
-    if registry.entities[id] then
-        registry.entities[id] = nil
-        return true
-    end
-    return false
-end
-
-export type EntitySystem = {
-    players: EntityRegistry<PlayerData>,
-    enemies: EntityRegistry<EnemyData>,
-    items: EntityRegistry<ItemData>,
-}
-
-function init(self: EntitySystem): boolean
-    -- Initialize registries
-    self.players = createRegistry()
-    self.enemies = createRegistry()
-    self.items = createRegistry()
-
-    -- Add some entities
-    local player1 = addEntity(self.players, "Hero", {
-        health = 100,
-        score = 0,
-        inventory = {"Sword", "Shield"}
-    })
-
-    local enemy1 = addEntity(self.enemies, "Goblin", {
-        health = 30,
-        damage = 5,
-        speed = 2
-    })
-
-    local item1 = addEntity(self.items, "Gold Coin", {
-        value = 10,
-        rarity = "common"
-    })
-
-    print(`Created player: {player1.name} (ID: {player1.id})`)
-    print(`Created enemy: {enemy1.name} (ID: {enemy1.id})`)
-    print(`Created item: {item1.name} (ID: {item1.id})`)
-
-    -- Retrieve entity
-    local retrieved = getEntity(self.players, player1.id)
-    if retrieved then
-        print(`Retrieved: {retrieved.name} with {retrieved.data.health} HP`)
-    end
-
+function init(self: Exercise4): boolean
+    local upper = string.upper(self.label)
+    print(`ANSWER: label={upper}`)
     return true
 end
 
-function draw(self: EntitySystem, renderer: Renderer)
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-return function(): Node<EntitySystem>
+return function(): Node<Exercise4>
     return {
         init = init,
         draw = draw,
-        players = late(),
-        enemies = late(),
-        items = late(),
+        label = "orbit",
     }
 end
 ```
 
-:::note Rive Result
-Attach the script to any node and press Play. The Console prints created entities and a retrieval log, showing how a typed registry can back animation logic.
-:::
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Keep label typed as `Input<string>`
+2. Use the default label "orbit"
 
 ---
 
+### Expected Output
+
+Your console output should display the transformed (uppercased) string from the Input field.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-4"
+    expectedAnswer="ANSWER: label=ORBIT"
+/>
+
+---
+
+### Checklist
+
+- [ ] Input uses string type
+- [ ] Uppercase formatting works
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Input Boolean ⭐⭐
+
+### Premise
+
+Boolean inputs toggle features on and off. The generic type keeps the value strictly true or false.
+
+:::info Goal
+By the end of this exercise, you will use an `Input<boolean>` to drive a toggle.
+:::
+
+### Use Case
+
+A designer enables or disables a highlight effect. Your script uses the input to compute a numeric flag.
+
+**Example scenarios:**
+- Feature toggles
+- Conditional effects
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_InputBoolean`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {
+    enabled: Input<boolean>,
+}
+
+function init(self: Exercise5): boolean
+    local flag = self.enabled and 1 or 0
+    print(`ANSWER: active={flag}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+        enabled = true,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Keep enabled typed as `Input<boolean>`
+2. Use the default value true
+
+---
+
+### Expected Output
+
+Your console output should display the numeric flag derived from the boolean Input (1 when true, 0 when false).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-5"
+    expectedAnswer="ANSWER: active=1"
+/>
+
+---
+
+### Checklist
+
+- [ ] Boolean input is read correctly
+- [ ] Flag equals 1 when enabled
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Generic Meter ⭐⭐
+
+### Premise
+
+Generics let you define a reusable data shape once and supply the concrete type later. This is powerful for shared utilities.
+
+:::info Goal
+By the end of this exercise, you will use a generic type for numeric meters.
+:::
+
+### Use Case
+
+You measure progress across multiple values and reuse the same meter shape for each. Generics keep the structure consistent.
+
+**Example scenarios:**
+- Progress bars
+- Resource meters
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_GenericMeter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+type Meter<T> = {
+    current: T,
+    max: T,
+}
+
+function init(self: Exercise6): boolean
+    -- TODO: Set current to 25 and max to 100
+    local meter: Meter<number> = {
+        current = 0,
+        max = 0,
+    }
+
+    local percent = meter.current / meter.max
+    print(`ANSWER: percent={percent}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set current to 25 and max to 100
+2. Keep the meter generic and use `Meter<number>`
+
+---
+
+### Expected Output
+
+Your console output should display the percent value computed from the generic Meter type (current / max).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-generics-6"
+    expectedAnswer="ANSWER: percent=0.25"
+/>
+
+---
+
+### Checklist
+
+- [ ] Meter uses the generic alias
+- [ ] Percent equals 0.25
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz
@@ -841,15 +711,15 @@ Attach the script to any node and press Play. The Console prints created entitie
 />
 
 <Quiz
-  question="How is Input<number> different from just number?"
+  question="How is Input&lt;number&gt; different from just number?"
   id="gen-q2"
   options={[
     { text: "They're the same" },
-    { text: "Input<number> is an editor-exposed, read-only input value", correct: true },
-    { text: "Input<number> is faster" },
+    { text: "Input&lt;number&gt; is an editor-exposed, read-only input value", correct: true },
+    { text: "Input&lt;number&gt; is faster" },
     { text: "number can't be used in Rive" },
   ]}
-  explanation="Input<T> values are controlled by the editor and are read-only in scripts, even though you read them directly."
+  explanation="Input&lt;T&gt; values are controlled by the editor and are read-only in scripts, even though you read them directly."
 />
 
 <Quiz

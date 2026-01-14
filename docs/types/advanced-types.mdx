@@ -5,6 +5,7 @@ description: Master intersection types, union types, optional types, and functio
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Advanced Types
 
@@ -126,1031 +127,605 @@ type MaybeString = string | null
 
 ## Practice Exercises
 
-### Exercise 1: Intersection Types for Component Composition
+### Exercise 1: Intersection Components ⭐⭐
+
+### Premise
+
+Intersection types combine multiple behaviors into one. This is common when a value must satisfy several capabilities at once.
 
 :::info Goal
-Build a component system where objects can have multiple behaviors using intersection types.
+By the end of this exercise, you will build a value that matches an intersection type.
 :::
 
-:::tip Why This Matters
-**After Effects comparison**: In AE, you might create different composition properties and manually check which apply to each layer. In Rive with Luau's intersection types, the type system tracks this automatically—if something is `Drawable & Interactive`, you KNOW it has both sets of properties.
+### Use Case
 
-**Real-World Use**: Game entities often combine multiple behaviors. A "Button" is both drawable AND clickable. A "Player" is positioned AND animated AND interactive. Intersection types let you compose these cleanly and have the compiler verify correct usage.
-:::
+A UI element needs a name, position, and visibility flag. Intersection types keep those requirements explicit and enforceable.
 
-<details>
-<summary>Step-by-Step Setup</summary>
+**Example scenarios:**
+- Named drawable objects
+- Components with multiple capabilities
 
-1. Create a new Rive file or open an existing one
-2. Add a Node Script to any artboard
-3. Copy the code below
-4. The script demonstrates how intersection types compose behavior
+---
 
-</details>
+### Setup
 
-**Rive setup:** Attach the script to any node (a rectangle or group is fine). This exercise is data modeling only; you will see Console output, not shapes. To visualize later, map these objects to drawing code in `draw()` or to inputs on real nodes.
+#### In Rive Editor:
 
-:::note Rive Result
-This exercise is logic-only (no drawing). Attach the script to any node, press Play, and check the Console. You should see render/move logs and a `Button clicked!` line when the simulated click fires.
-:::
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Intersection`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Base component types
-type Drawable = {
-    visible: boolean,
-    opacity: number,
-}
+export type Exercise1 = {}
 
-type Transformable = {
-    x: number,
-    y: number,
-    rotation: number,
-    scale: number,
-}
+type Named = { name: string }
+type Transform = { x: number, y: number }
+type Drawable = { visible: boolean }
 
-type Interactive = {
-    enabled: boolean,
-    hovered: boolean,
-    onClick: () -> (),
-}
+type Widget = Named & Transform & Drawable
 
-type Named = {
-    name: string,
-    id: number,
-}
-
--- Intersection types for different object kinds
-type Sprite = Named & Drawable & Transformable
-type Button = Named & Drawable & Transformable & Interactive
-type Label = Named & Drawable & Transformable  -- Not interactive
-
--- Functions that work with specific capabilities
-local function renderDrawable(obj: Drawable)
-    if obj.visible and obj.opacity > 0 then
-        print(`Rendering with opacity {obj.opacity}`)
-    end
-end
-
-local function moveTransformable(obj: Transformable, dx: number, dy: number)
-    obj.x += dx
-    obj.y += dy
-    print(`Moved to ({obj.x}, {obj.y})`)
-end
-
-local function handleClick(obj: Interactive)
-    if obj.enabled and obj.hovered then
-        obj.onClick()
-    end
-end
-
-export type IntersectionDemo = {
-    sprite: Sprite,
-    button: Button,
-}
-
-function init(self: IntersectionDemo): boolean
-    -- Create objects that satisfy intersection types
-    self.sprite = {
-        name = "Player",
-        id = 1,
-        visible = true,
-        opacity = 1.0,
-        x = 100,
-        y = 200,
-        rotation = 0,
-        scale = 1.0,
+function init(self: Exercise1): boolean
+    -- TODO: Fill in the widget fields
+    local widget: Widget = {
+        name = "",
+        x = 0,
+        y = 0,
+        visible = false,
     }
 
-    self.button = {
-        name = "StartButton",
-        id = 2,
-        visible = true,
-        opacity = 1.0,
-        x = 300,
-        y = 400,
-        rotation = 0,
-        scale = 1.0,
-        enabled = true,
-        hovered = false,
-        onClick = function()
-            print("Button clicked!")
-        end,
-    }
-
-    -- Both work with Drawable functions
-    renderDrawable(self.sprite)
-    renderDrawable(self.button)
-
-    -- Both work with Transformable functions
-    moveTransformable(self.sprite, 10, 5)
-    moveTransformable(self.button, -5, 10)
-
-    -- Only button works with Interactive functions
-    self.button.hovered = true
-    handleClick(self.button)
-    -- handleClick(self.sprite)  -- ERROR: Sprite is not Interactive
-
+    local pos = widget.x + widget.y
+    print(`ANSWER: name={widget.name},pos={pos},visible={widget.visible}`)
     return true
 end
 
-function draw(self: IntersectionDemo, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<IntersectionDemo>
+return function(): Node<Exercise1>
     return {
         init = init,
         draw = draw,
-        sprite = late(),
-        button = late(),
     }
 end
-```
-
-```typescript
-// JavaScript/TypeScript equivalent:
-
-type Drawable = {
-    visible: boolean;
-    opacity: number;
-}
-
-type Transformable = {
-    x: number;
-    y: number;
-    rotation: number;
-    scale: number;
-}
-
-type Interactive = {
-    enabled: boolean;
-    hovered: boolean;
-    onClick: () => void;
-}
-
-type Named = {
-    name: string;
-    id: number;
-}
-
-// Intersection types - identical to TypeScript!
-type Sprite = Named & Drawable & Transformable;
-type Button = Named & Drawable & Transformable & Interactive;
-
-// TypeScript functions
-function renderDrawable(obj: Drawable) {
-    if (obj.visible && obj.opacity > 0) {
-        console.log(`Rendering with opacity ${obj.opacity}`);
-    }
-}
-
-function handleClick(obj: Interactive) {
-    if (obj.enabled && obj.hovered) {
-        obj.onClick();
-    }
-}
 ```
 
 ---
 
-### Exercise 2: Union Types for Multiple States
+### Assignment
+
+Complete these tasks:
+
+1. Set name to "Panel"
+2. Set x to 5 and y to 7
+3. Set visible to true
+
+---
+
+### Expected Output
+
+Your console output should display the intersection type fields (name, position sum, and visible flag).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-1"
+    expectedAnswer="ANSWER: name=Panel,pos=12,visible=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] All intersection fields are present
+- [ ] Position sum equals 12
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Union ID Format ⭐⭐
+
+### Premise
+
+Union types allow a value to be one of several types. You must refine the type before you use it.
 
 :::info Goal
-Model different animation states using discriminated union types.
+By the end of this exercise, you will narrow a `number | string` union.
 :::
 
-:::tip Why This Matters
-**After Effects comparison**: In AE expressions, you might use string comparisons like `if (effect("State").value == "walking")`. This is error-prone—typos compile fine but fail at runtime. In Luau, the type system ensures you only use valid state names.
+### Use Case
 
-**Real-World Use**: Game characters have states (idle, walking, attacking, dead). Each state has different data. Union types with a `kind` discriminator let you safely handle each case while Luau automatically narrows the type when you check the `kind`.
-:::
+IDs sometimes arrive as numbers or strings depending on the source. You normalize them to a single display format before printing.
 
-<details>
-<summary>Step-by-Step Setup</summary>
+**Example scenarios:**
+- Flexible IDs from JSON
+- Debug labels that accept multiple types
 
-1. Create a new Node Script in Rive
-2. Copy the code below
-3. Watch the console output to see state transitions
-4. Try adding a new state type (like "jumping") and handle it
+---
 
-</details>
+### Setup
 
-:::note Rive Result
-This is a console-only exercise. Attach the script to any node and press Play. You should see a sequence of state descriptions (idle, walking, attacking, combo, dead) and `Can move:` lines in the Console.
-:::
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_UnionId`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Different animation states with their specific data
-type IdleState = {
-    kind: "idle",
-    duration: number,
-}
+export type Exercise2 = {}
 
-type WalkingState = {
-    kind: "walking",
-    speed: number,
-    direction: number,
-}
+type ID = number | string
 
-type AttackingState = {
-    kind: "attacking",
-    damage: number,
-    target: string,
-    combo: number,
-}
+function init(self: Exercise2): boolean
+    local id: ID = 42
+    local label = ""
 
-type DeadState = {
-    kind: "dead",
-    respawnTime: number,
-}
+    -- TODO: If id is a number, prefix with "#"; otherwise use it directly
 
--- Union of all possible states
-type CharacterState = IdleState | WalkingState | AttackingState | DeadState
-
--- State transition functions
-local function toIdle(): IdleState
-    return { kind = "idle", duration = 0 }
-end
-
-local function toWalking(speed: number, direction: number): WalkingState
-    return { kind = "walking", speed = speed, direction = direction }
-end
-
-local function toAttacking(damage: number, target: string): AttackingState
-    return { kind = "attacking", damage = damage, target = target, combo = 1 }
-end
-
-local function toDead(respawnTime: number): DeadState
-    return { kind = "dead", respawnTime = respawnTime }
-end
-
--- Process state - Luau narrows the type based on 'kind'
-local function processState(state: CharacterState): string
-    if state.kind == "idle" then
-        -- Luau KNOWS state is IdleState here
-        return `Idle for {state.duration}s`
-    elseif state.kind == "walking" then
-        -- Luau KNOWS state is WalkingState here
-        return `Walking at speed {state.speed} in direction {state.direction}`
-    elseif state.kind == "attacking" then
-        -- Luau KNOWS state is AttackingState here
-        return `Attacking {state.target} for {state.damage} damage (combo {state.combo})`
-    elseif state.kind == "dead" then
-        -- Luau KNOWS state is DeadState here
-        return `Dead, respawning in {state.respawnTime}s`
-    end
-    return "Unknown state"  -- Unreachable but satisfies return type
-end
-
--- Check if state allows movement
-local function canMove(state: CharacterState): boolean
-    return state.kind == "idle" or state.kind == "walking"
-end
-
-export type UnionStateDemo = {
-    currentState: CharacterState,
-}
-
-function init(self: UnionStateDemo): boolean
-    -- Start idle
-    self.currentState = toIdle()
-    print(processState(self.currentState))
-
-    -- Start walking
-    self.currentState = toWalking(5, 90)
-    print(processState(self.currentState))
-    print(`Can move: {canMove(self.currentState)}`)
-
-    -- Attack!
-    self.currentState = toAttacking(25, "Goblin")
-    print(processState(self.currentState))
-    print(`Can move: {canMove(self.currentState)}`)
-
-    -- Combo attack
-    if self.currentState.kind == "attacking" then
-        self.currentState.combo = 2
-        print(processState(self.currentState))
-    end
-
-    -- Die
-    self.currentState = toDead(5)
-    print(processState(self.currentState))
-
+    print(`ANSWER: id={label}`)
     return true
 end
 
-function draw(self: UnionStateDemo, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<UnionStateDemo>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
-        currentState = { kind = "idle", duration = 0 },
     }
 end
 ```
 
-```typescript
-// JavaScript/TypeScript equivalent:
+---
 
-type IdleState = {
-    kind: "idle";
-    duration: number;
-}
+### Assignment
 
-type WalkingState = {
-    kind: "walking";
-    speed: number;
-    direction: number;
-}
+Complete these tasks:
 
-type AttackingState = {
-    kind: "attacking";
-    damage: number;
-    target: string;
-    combo: number;
-}
-
-type DeadState = {
-    kind: "dead";
-    respawnTime: number;
-}
-
-// Discriminated union - identical pattern!
-type CharacterState = IdleState | WalkingState | AttackingState | DeadState;
-
-// TypeScript also narrows based on discriminator
-function processState(state: CharacterState): string {
-    switch (state.kind) {
-        case "idle":
-            return `Idle for ${state.duration}s`;
-        case "walking":
-            return `Walking at speed ${state.speed}`;
-        case "attacking":
-            return `Attacking ${state.target}`;
-        case "dead":
-            return `Dead, respawning in ${state.respawnTime}s`;
-    }
-}
-```
+1. Use `type(id)` to check if it is a number
+2. When it is a number, build `"#<id>"`
 
 ---
 
-### Exercise 3: Literal Union Types
+### Expected Output
+
+Your console output should display the formatted ID after narrowing the union type.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-2"
+    expectedAnswer="ANSWER: id=#42"
+/>
+
+---
+
+### Checklist
+
+- [ ] Union is narrowed safely
+- [ ] Label is formatted correctly
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Optional Subtitle ⭐⭐
+
+### Premise
+
+Optional types represent values that may be nil. You must handle the nil path before using them.
 
 :::info Goal
-Use literal unions to constrain string and number values to specific allowed values.
+By the end of this exercise, you will handle an optional string safely.
 :::
 
-:::tip Why This Matters
-**After Effects comparison**: In AE, if you want a "direction" value, you might use a dropdown that returns 1, 2, 3, 4 and then write `if (dir == 1) // north`. Typos and wrong numbers cause silent bugs. In Luau, `type Direction = "north" | "south" | "east" | "west"` means only those exact strings are allowed.
+### Use Case
 
-**Real-World Use**: Game rarity systems ("common" | "rare" | "legendary"), direction enums, log levels—anywhere you want to constrain values to a specific set. The compiler catches typos immediately.
-:::
+A subtitle may be absent on some labels. You need a fallback to avoid nil values in text output.
 
-<details>
-<summary>Step-by-Step Setup</summary>
+**Example scenarios:**
+- Optional text labels
+- Optional metadata
 
-1. Create a new Node Script
-2. Copy the code below
-3. Try changing `"north"` to `"up"` and see the type error
-4. Add a new rarity tier and see what functions need updating
+---
 
-</details>
+### Setup
 
-:::note Rive Result
-Attach the script to any node and run it. You’ll see log output for direction and rarity checks. If you intentionally use an invalid literal (like `"up"`), the Rive editor will flag it before you run.
-:::
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_OptionalSubtitle`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Literal string unions - only these exact values allowed
-type Direction = "north" | "south" | "east" | "west"
-type LogLevel = "debug" | "info" | "warn" | "error"
-type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary"
+export type Exercise3 = {}
 
--- Literal number unions
-type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6
-
--- Functions using literal unions
-local function getOppositeDirection(dir: Direction): Direction
-    if dir == "north" then return "south"
-    elseif dir == "south" then return "north"
-    elseif dir == "east" then return "west"
-    else return "east"
-    end
-end
-
-local function getLogColor(level: LogLevel): Color
-    if level == "debug" then
-        return Color.rgba(128, 128, 128, 255)  -- Gray
-    elseif level == "info" then
-        return Color.rgba(0, 128, 255, 255)    -- Blue
-    elseif level == "warn" then
-        return Color.rgba(255, 200, 0, 255)    -- Yellow
-    else
-        return Color.rgba(255, 0, 0, 255)      -- Red
-    end
-end
-
-local function getRarityMultiplier(rarity: RarityTier): number
-    if rarity == "common" then return 1
-    elseif rarity == "uncommon" then return 1.5
-    elseif rarity == "rare" then return 2
-    elseif rarity == "epic" then return 3
-    else return 5  -- legendary
-    end
-end
-
-type Item = {
-    name: string,
-    rarity: RarityTier,
-    baseValue: number,
+type Label = {
+    text: string,
+    subtitle: string?,
 }
 
-local function getItemValue(item: Item): number
-    return item.baseValue * getRarityMultiplier(item.rarity)
-end
-
-export type LiteralUnionDemo = {}
-
-function init(self: LiteralUnionDemo): boolean
-    -- Direction examples
-    local facing: Direction = "north"
-    print(`Facing {facing}, opposite is {getOppositeDirection(facing)}`)
-
-    -- This would be an error:
-    -- local bad: Direction = "up"  -- ERROR: "up" is not a valid Direction
-
-    -- Log level examples
-    local levels: {LogLevel} = {"debug", "info", "warn", "error"}
-    for _, level in ipairs(levels) do
-        local color = getLogColor(level)
-        print(`{level}: R={Color.red(color)}`)
-    end
-
-    -- Rarity examples
-    local items: {Item} = {
-        {name = "Rusty Sword", rarity = "common", baseValue = 10},
-        {name = "Silver Dagger", rarity = "rare", baseValue = 50},
-        {name = "Dragon Slayer", rarity = "legendary", baseValue = 100},
+function init(self: Exercise3): boolean
+    local label: Label = {
+        text = "Signal",
+        subtitle = nil,
     }
 
-    for _, item in ipairs(items) do
-        print(`{item.name} ({item.rarity}): {getItemValue(item)} gold`)
-    end
+    -- TODO: Use "None" when subtitle is nil
+    local subtitle = ""
 
+    print(`ANSWER: subtitle={subtitle}`)
     return true
 end
 
-function draw(self: LiteralUnionDemo, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<LiteralUnionDemo>
-    return { init = init, draw = draw }
-end
-```
-
-```typescript
-// JavaScript/TypeScript equivalent:
-
-type Direction = "north" | "south" | "east" | "west";
-type LogLevel = "debug" | "info" | "warn" | "error";
-type RarityTier = "common" | "uncommon" | "rare" | "epic" | "legendary";
-
-// TypeScript also supports literal number unions
-type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6;
-
-function getOppositeDirection(dir: Direction): Direction {
-    const opposites: Record<Direction, Direction> = {
-        north: "south",
-        south: "north",
-        east: "west",
-        west: "east"
-    };
-    return opposites[dir];
-}
-
-// Works identically - typos caught at compile time!
-const facing: Direction = "north";
-// const bad: Direction = "up";  // TypeScript Error!
-```
-
----
-
-### Exercise 4: Optional Types for Nullable Values
-
-:::info Goal
-Handle optional values safely using `T?` syntax.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: In AE expressions, checking for missing values is manual: `if (typeof myValue !== "undefined")`. You can easily forget and crash. In Luau, the type system FORCES you to handle nil cases—code won't compile if you access a `string?` without checking first.
-
-**Real-World Use**: User profiles have optional fields (display name, email, guild). API responses may be missing data. Search functions return nil if not found. Optional types make these patterns explicit and safe.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node Script
-2. Copy the code below
-3. Try removing a nil check and see the type error
-4. Add a new optional field to PlayerProfile
-
-</details>
-
-:::note Rive Result
-Console-only exercise. Run the script and you’ll see formatted profile output and a search result. Use this pattern any time your script reads optional ViewModel properties or nullable inputs.
-:::
-
-```lua
---!strict
-
-type PlayerProfile = {
-    username: string,
-    displayName: string?,     -- Optional: might not be set
-    email: string?,           -- Optional
-    score: number,
-    guild: string?,           -- Optional: not everyone is in a guild
-    lastLogin: number?,       -- Optional: new players haven't logged in yet
-}
-
--- Safe access patterns
-local function getDisplayName(player: PlayerProfile): string
-    -- Pattern 1: Nil check with fallback
-    if player.displayName then
-        return player.displayName
-    end
-    return player.username
-end
-
-local function getGuildTag(player: PlayerProfile): string
-    -- Pattern 2: Ternary-style with 'or'
-    -- Note: This only works if the value can't be 'false'
-    return player.guild or "No Guild"
-end
-
-local function formatLastLogin(player: PlayerProfile): string
-    -- Pattern 3: Early return for nil
-    if not player.lastLogin then
-        return "Never logged in"
-    end
-    local seconds = os.clock() - player.lastLogin
-    return `{math.floor(seconds)}s ago`
-end
-
--- Function with optional parameter
-local function greetPlayer(player: PlayerProfile, customGreeting: string?)
-    local greeting = customGreeting or "Welcome"
-    local name = getDisplayName(player)
-    print(`{greeting}, {name}!`)
-end
-
--- Function returning optional value
-local function findPlayerByEmail(players: {PlayerProfile}, email: string): PlayerProfile?
-    for _, player in ipairs(players) do
-        if player.email == email then
-            return player
-        end
-    end
-    return nil  -- Not found
-end
-
-export type OptionalDemo = {}
-
-function init(self: OptionalDemo): boolean
-    -- Players with varying levels of profile completion
-    local players: {PlayerProfile} = {
-        {
-            username = "veteran42",
-            displayName = "The Veteran",
-            email = "vet@example.com",
-            score = 9500,
-            guild = "Elite Squad",
-            lastLogin = os.clock() - 3600,
-        },
-        {
-            username = "newbie",
-            score = 0,
-            -- Missing: displayName, email, guild, lastLogin
-        },
-        {
-            username = "casual_player",
-            email = "casual@example.com",
-            score = 250,
-            -- Missing: displayName, guild, lastLogin
-        },
-    }
-
-    -- Process all players
-    for _, player in ipairs(players) do
-        print(`\n=== {player.username} ===`)
-        print(`Display: {getDisplayName(player)}`)
-        print(`Guild: {getGuildTag(player)}`)
-        print(`Last Login: {formatLastLogin(player)}`)
-        greetPlayer(player)
-        greetPlayer(player, "Good to see you")
-    end
-
-    -- Search for a player
-    print("\n--- Searching ---")
-    local found = findPlayerByEmail(players, "vet@example.com")
-    if found then
-        print(`Found: {found.username} with score {found.score}`)
-    else
-        print("Player not found")
-    end
-
-    local notFound = findPlayerByEmail(players, "nobody@example.com")
-    if notFound then
-        print(`Found: {notFound.username}`)
-    else
-        print("Player not found")
-    end
-
-    return true
-end
-
-function draw(self: OptionalDemo, renderer: Renderer)
-end
-
-return function(): Node<OptionalDemo>
-    return { init = init, draw = draw }
-end
-```
-
-```typescript
-// JavaScript/TypeScript equivalent:
-
-type PlayerProfile = {
-    username: string;
-    displayName?: string;     // TypeScript optional syntax
-    email?: string;
-    score: number;
-    guild?: string;
-    lastLogin?: number;
-}
-
-// Same patterns in TypeScript:
-function getDisplayName(player: PlayerProfile): string {
-    return player.displayName ?? player.username;  // Nullish coalescing
-}
-
-function getGuildTag(player: PlayerProfile): string {
-    return player.guild || "No Guild";
-}
-
-// Optional parameter
-function greetPlayer(player: PlayerProfile, customGreeting?: string) {
-    const greeting = customGreeting ?? "Welcome";
-    console.log(`${greeting}, ${getDisplayName(player)}!`);
-}
-
-// Return type with | null (or undefined)
-function findPlayerByEmail(
-    players: PlayerProfile[],
-    email: string
-): PlayerProfile | undefined {
-    return players.find(p => p.email === email);
-}
-```
-
----
-
-### Exercise 5: Function Types
-
-:::info Goal
-Define and use function types for callbacks and higher-order functions.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE expressions don't really have function types—you call built-in functions or define simple helpers. In Luau, you can pass functions as arguments and return them from other functions, enabling powerful patterns like `map`, `filter`, and event handlers.
-
-**Real-World Use**: Event systems need callback types. Data processing uses `map`/`filter`/`reduce`. Animation systems pass easing functions. Function types let you define clear contracts for these callbacks.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node Script
-2. Copy the code below
-3. Try creating your own higher-order function (like `forEach`)
-4. Modify a function type and see where errors appear
-
-</details>
-
-:::note Rive Result
-Attach the script and run it. The Console will print the results of `applyTwice`, `filter`, `map`, and `reduce`. Use these function types when you build reusable animation helpers or pass callbacks into input listeners.
-:::
-
-```lua
---!strict
-
--- Basic function type syntax: (params) -> returnType
-type NumberToNumber = (number) -> number
-type StringToString = (string) -> string
-type NoArgs = () -> ()
-type Predicate<T> = (T) -> boolean
-
--- Multiple parameters
-type BinaryOp = (number, number) -> number
-type Formatter = (string, ...any) -> string
-
--- Multiple return values (Luau specialty!)
-type DivMod = (number, number) -> (number, number)
-
--- Function taking a callback
-local function applyTwice(value: number, fn: NumberToNumber): number
-    return fn(fn(value))
-end
-
--- Function returning a function (closure)
-local function makeMultiplier(factor: number): NumberToNumber
-    return function(x: number): number
-        return x * factor
-    end
-end
-
--- Higher-order function: filter
-local function filter<T>(items: {T}, predicate: Predicate<T>): {T}
-    local result: {T} = {}
-    for _, item in ipairs(items) do
-        if predicate(item) then
-            table.insert(result, item)
-        end
-    end
-    return result
-end
-
--- Higher-order function: map
-local function map<T, U>(items: {T}, transform: (T) -> U): {U}
-    local result: {U} = {}
-    for _, item in ipairs(items) do
-        table.insert(result, transform(item))
-    end
-    return result
-end
-
--- Higher-order function: reduce
-local function reduce<T, U>(items: {T}, initial: U, folder: (U, T) -> U): U
-    local acc = initial
-    for _, item in ipairs(items) do
-        acc = folder(acc, item)
-    end
-    return acc
-end
-
-export type FunctionTypesDemo = {}
-
-function init(self: FunctionTypesDemo): boolean
-    -- Using applyTwice
-    local double: NumberToNumber = function(x) return x * 2 end
-    print(`5 doubled twice: {applyTwice(5, double)}`)  -- 20
-
-    local square: NumberToNumber = function(x) return x * x end
-    print(`2 squared twice: {applyTwice(2, square)}`)  -- 16
-
-    -- Using makeMultiplier (returns a function)
-    local triple = makeMultiplier(3)
-    local quadruple = makeMultiplier(4)
-    print(`Triple 7: {triple(7)}`)      -- 21
-    print(`Quadruple 7: {quadruple(7)}`) -- 28
-
-    -- Using filter
-    local numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
-
-    local evens = filter(numbers, function(n) return n % 2 == 0 end)
-    print(`Evens: {table.concat(evens, ", ")}`)  -- 2, 4, 6, 8, 10
-
-    local bigNumbers = filter(numbers, function(n) return n > 5 end)
-    print(`Big numbers: {table.concat(bigNumbers, ", ")}`)  -- 6, 7, 8, 9, 10
-
-    -- Using map
-    local doubled = map(numbers, function(n) return n * 2 end)
-    print(`Doubled: {table.concat(doubled, ", ")}`)
-
-    local strings = map(numbers, function(n) return `#{n}` end)
-    print(`As strings: {table.concat(strings, ", ")}`)
-
-    -- Using reduce
-    local sum = reduce(numbers, 0, function(acc, n) return acc + n end)
-    print(`Sum: {sum}`)  -- 55
-
-    local product = reduce(numbers, 1, function(acc, n) return acc * n end)
-    print(`Product: {product}`)  -- 3628800
-
-    return true
-end
-
-function draw(self: FunctionTypesDemo, renderer: Renderer)
-end
-
-return function(): Node<FunctionTypesDemo>
-    return { init = init, draw = draw }
-end
-```
-
-```typescript
-// JavaScript/TypeScript equivalent:
-
-// Function type syntax - note the arrow direction
-type NumberToNumber = (x: number) => number;
-type Predicate<T> = (item: T) => boolean;
-
-// TypeScript can't express multiple return values directly
-// You'd return a tuple:
-type DivMod = (a: number, b: number) => [number, number];
-
-// Higher-order functions - same concepts
-function applyTwice(value: number, fn: NumberToNumber): number {
-    return fn(fn(value));
-}
-
-function makeMultiplier(factor: number): NumberToNumber {
-    return (x) => x * factor;
-}
-
-// JavaScript has built-in filter/map/reduce!
-const numbers = [1, 2, 3, 4, 5];
-const evens = numbers.filter(n => n % 2 === 0);
-const doubled = numbers.map(n => n * 2);
-const sum = numbers.reduce((acc, n) => acc + n, 0);
-```
-
----
-
-### Exercise 6: Rive Event Callbacks
-
-:::info Goal
-Use function types for Rive-style event handling with a generic event emitter.
-:::
-
-:::tip Why This Matters
-**After Effects comparison**: AE doesn't have a built-in event system—you poll values or use expression controls. In Rive, you can build proper event-driven architectures where subscribers are notified when things happen.
-
-**Real-World Use**: Click handlers, animation events, input changes—all use callback patterns. This exercise shows how to build a type-safe event emitter that ensures handlers receive the correct event data type.
-:::
-
-<details>
-<summary>Step-by-Step Setup</summary>
-
-1. Create a new Node Script
-2. Copy the code below
-3. The event emitter pattern is reusable in your own projects
-4. Try adding a new event type (like keyboard events)
-
-</details>
-
-:::note Rive Result
-Console-only exercise. When you run it, you’ll see simulated click events and animation event logs. This mirrors how you can centralize callbacks for pointer events or ViewModel changes in larger Rive systems.
-:::
-
-```lua
---!strict
-
--- Event handler types
-type EventHandler<T> = (T) -> ()
-type ClickHandler = EventHandler<Vector>
-type ChangeHandler<T> = (oldValue: T, newValue: T) -> ()
-
--- Event data types
-type AnimationEvent = {
-    name: string,
-    time: number,
-    data: {[string]: any}?,
-}
-
-type InputChangeEvent<T> = {
-    inputName: string,
-    oldValue: T,
-    newValue: T,
-}
-
--- Event emitter pattern
-type EventEmitter<T> = {
-    listeners: {EventHandler<T>},
-}
-
-local function createEmitter<T>(): EventEmitter<T>
-    return { listeners = {} }
-end
-
-local function subscribe<T>(emitter: EventEmitter<T>, handler: EventHandler<T>)
-    table.insert(emitter.listeners, handler)
-end
-
-local function emit<T>(emitter: EventEmitter<T>, event: T)
-    for _, handler in emitter.listeners do
-        handler(event)
-    end
-end
-
-export type EventDemo = {
-    clickEmitter: EventEmitter<Vector>,
-    animEventEmitter: EventEmitter<AnimationEvent>,
-    clickCount: number,
-}
-
-function init(self: EventDemo): boolean
-    self.clickCount = 0
-
-    -- Create emitters
-    self.clickEmitter = createEmitter()
-    self.animEventEmitter = createEmitter()
-
-    -- Subscribe to click events
-    subscribe(self.clickEmitter, function(pos: Vector)
-        self.clickCount += 1
-        print(`Click #{self.clickCount} at ({pos.x}, {pos.y})`)
-    end)
-
-    subscribe(self.clickEmitter, function(pos: Vector)
-        -- Another handler: log to console
-        print(`[LOG] Click position: {pos.x}, {pos.y}`)
-    end)
-
-    -- Subscribe to animation events
-    subscribe(self.animEventEmitter, function(event: AnimationEvent)
-        print(`Animation event: {event.name} at time {event.time}`)
-    end)
-
-    -- Simulate some events
-    print("--- Simulating clicks ---")
-    emit(self.clickEmitter, Vector.xy(100, 200))
-    emit(self.clickEmitter, Vector.xy(150, 250))
-
-    print("\n--- Simulating animation events ---")
-    emit(self.animEventEmitter, {
-        name = "footstep",
-        time = 0.5,
-        data = nil,
-    })
-
-    emit(self.animEventEmitter, {
-        name = "attack_hit",
-        time = 1.2,
-        data = {damage = 25, target = "enemy1"},
-    })
-
-    return true
-end
-
-function draw(self: EventDemo, renderer: Renderer)
-end
-
-return function(): Node<EventDemo>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
-        clickEmitter = late(),
-        animEventEmitter = late(),
-        clickCount = late(),
     }
 end
 ```
 
-```typescript
-// JavaScript/TypeScript equivalent:
+---
 
-type EventHandler<T> = (event: T) => void;
+### Assignment
 
-type AnimationEvent = {
-    name: string;
-    time: number;
-    data?: Record<string, any>;
-}
+Complete these tasks:
 
-// Generic event emitter class
-class EventEmitter<T> {
-    private listeners: EventHandler<T>[] = [];
+1. Check for a nil subtitle
+2. Use "None" as the fallback
 
-    subscribe(handler: EventHandler<T>) {
-        this.listeners.push(handler);
+---
+
+### Expected Output
+
+Your console output should display the subtitle value or the fallback when the optional is nil.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-3"
+    expectedAnswer="ANSWER: subtitle=None"
+/>
+
+---
+
+### Checklist
+
+- [ ] Optional value is handled
+- [ ] Subtitle is never nil
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Function Type Alias ⭐⭐
+
+### Premise
+
+Function types define callable shapes. This lets you enforce that callbacks accept and return the right values.
+
+:::info Goal
+By the end of this exercise, you will use a function type alias for an easing helper.
+:::
+
+### Use Case
+
+You pass easing functions into animation helpers. Strong types ensure the function signature is consistent.
+
+**Example scenarios:**
+- Easing utilities
+- Animation callbacks
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_FunctionAlias`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+type EaseFn = (t: number) -> number
+
+function init(self: Exercise4): boolean
+    local easeIn: EaseFn = function(t: number): number
+        -- TODO: Return t * t
+        return 0
+    end
+
+    local eased = easeIn(0.5)
+    print(`ANSWER: eased={eased}`)
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
     }
-
-    emit(event: T) {
-        for (const handler of this.listeners) {
-            handler(event);
-        }
-    }
-}
-
-// Usage
-const clickEmitter = new EventEmitter<{x: number, y: number}>();
-clickEmitter.subscribe((pos) => {
-    console.log(`Clicked at ${pos.x}, ${pos.y}`);
-});
-clickEmitter.emit({x: 100, y: 200});
+end
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Return t * t
+2. Keep the function typed as EaseFn
+
+---
+
+### Expected Output
+
+Your console output should display the eased value from the function type alias.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-4"
+    expectedAnswer="ANSWER: eased=0.25"
+/>
+
+---
+
+### Checklist
+
+- [ ] Function signature matches EaseFn
+- [ ] Output equals 0.25
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Literal Direction Union ⭐⭐
+
+### Premise
+
+Literal unions restrict values to a safe set. This prevents invalid direction strings from breaking logic.
+
+:::info Goal
+By the end of this exercise, you will use a literal union to map directions.
+:::
+
+### Use Case
+
+You control a small movement direction for a procedural effect. The value must be one of a few known directions.
+
+**Example scenarios:**
+- Directional motion
+- State-driven movement
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_LiteralDirection`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+type Direction = "up" | "down" | "left" | "right"
+
+function init(self: Exercise5): boolean
+    local direction: Direction = "left"
+    local dx = 0
+    local dy = 0
+
+    -- TODO: Map the direction to dx/dy
+
+    print(`ANSWER: dx={dx},dy={dy}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set dx to -1 when direction is "left"
+2. Set dy to 0 for left
+
+---
+
+### Expected Output
+
+Your console output should display the dx and dy values mapped from the literal direction union.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-5"
+    expectedAnswer="ANSWER: dx=-1,dy=0"
+/>
+
+---
+
+### Checklist
+
+- [ ] Direction is one of the literals
+- [ ] dx/dy mapping is correct
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Multiple Returns ⭐⭐
+
+### Premise
+
+Luau supports multiple return values, and types can describe them. This is useful for compact helpers that return pairs.
+
+:::info Goal
+By the end of this exercise, you will implement a function with typed multiple returns.
+:::
+
+### Use Case
+
+A helper returns min and max values for a range. You then compute a span from those two values.
+
+**Example scenarios:**
+- Range helpers
+- Returning paired values
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_MultiReturn`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+local function bounds(): (number, number)
+    -- TODO: Return 2 and 10
+    return 0, 0
+end
+
+function init(self: Exercise6): boolean
+    local minValue, maxValue = bounds()
+    local range = maxValue - minValue
+
+    print(`ANSWER: range={range}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Return 2 and 10 from bounds
+2. Keep the function return types as numbers
+
+---
+
+### Expected Output
+
+Your console output should display the range computed from the multiple return values.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-advancedtypes-6"
+    expectedAnswer="ANSWER: range=8"
+/>
+
+---
+
+### Checklist
+
+- [ ] Function returns two numbers
+- [ ] Range equals 8
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

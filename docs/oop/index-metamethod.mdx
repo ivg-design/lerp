@@ -5,6 +5,7 @@ description: Deep dive into __index, __newindex, and method lookup chains
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # The __index Metamethod
 
@@ -77,764 +78,170 @@ print(t.missing)   -- prints "Looking up: missing", returns "fallback"
 
 ---
 
-## Exercise 1: __index as a Table (Default Values)
+## Exercises
 
-**Goal**: Use `__index` to provide default values without duplicating data.
+### Exercise 1: __index Defaults ⭐
 
-**Why This Matters**: In any application, you have default settings. Rather than copying defaults into every object, you point to a shared default table. Change the default once, all objects update.
+### Premise
 
-**Real-World Use**: A drawing application has default brush settings (size: 10, opacity: 1.0, color: black). Each brush overrides only what it changes. The defaults come from `__index`.
+__index can point to a defaults table. This gives you fallback values without copying them into every instance.
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Notice how each style only defines what it overrides
-4. All other values come from `defaultStyle`
+:::info Goal
+By the end of this exercise, you will use __index as a table for defaults.
+:::
 
-```lua
---!strict
+### Use Case
 
-export type StyleDemo = {
-    path: Path,
-    paintA: Paint,
-    paintB: Paint,
-    paintC: Paint,
-}
+You want default properties for UI elements, but allow per-instance overrides for specific values.
 
-function init(self: StyleDemo): boolean
-    -- Default style configuration
-    local defaultStyle = {
-        thickness = 4,
-        cap = "round",
-        join = "round",
-        color = Color.rgb(100, 100, 100),
-    }
-
-    -- Each style overrides only what it needs
-    local styleA = setmetatable({
-        color = Color.rgb(255, 80, 80),
-    }, { __index = defaultStyle })
-
-    local styleB = setmetatable({
-        thickness = 8,
-        color = Color.rgb(80, 255, 80),
-    }, { __index = defaultStyle })
-
-    local styleC = setmetatable({
-        cap = "square",
-    }, { __index = defaultStyle })
-
-    -- Create paints from styles
-    self.paintA = Paint.with({
-        style = "stroke",
-        thickness = styleA.thickness,
-        cap = styleA.cap,
-        join = styleA.join,
-        color = styleA.color,
-    })
-
-    self.paintB = Paint.with({
-        style = "stroke",
-        thickness = styleB.thickness,
-        cap = styleB.cap,
-        join = styleB.join,
-        color = styleB.color,
-    })
-
-    self.paintC = Paint.with({
-        style = "stroke",
-        thickness = styleC.thickness,
-        cap = styleC.cap,
-        join = styleC.join,
-        color = styleC.color,
-    })
-
-    -- Build path
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-100, 0))
-    self.path:lineTo(Vector.xy(100, 0))
-
-    return true
-end
-
-function draw(self: StyleDemo, renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(0, -40))
-    renderer:drawPath(self.path, self.paintA)
-    renderer:restore()
-
-    renderer:drawPath(self.path, self.paintB)
-
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(0, 40))
-    renderer:drawPath(self.path, self.paintC)
-    renderer:restore()
-end
-
-return function(): Node<StyleDemo>
-    return {
-        init = init,
-        draw = draw,
-        path = Path.new(),
-        paintA = Paint.new(),
-        paintB = Paint.new(),
-        paintC = Paint.new(),
-    }
-end
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript uses Object.assign or spread for defaults
-const defaultStyle = {
-    thickness: 4,
-    cap: 'round',
-    join: 'round',
-    color: '#666666',
-};
-
-// Option 1: Spread operator
-const styleA = { ...defaultStyle, color: '#ff5050' };
-
-// Option 2: Prototype chain (similar to Luau)
-const styleB = Object.create(defaultStyle);
-styleB.thickness = 8;
-styleB.color = '#50ff50';
-```
-
-**Rive benefit**: Define a style guide once, override specific properties per element.
+**Example scenarios:**
+- Theme defaults
+- Shared style settings
 
 ---
 
-## Exercise 2: __index as a Function (Computed Properties)
+### Setup
 
-**Goal**: Create properties that are calculated dynamically when accessed.
+#### In Rive Editor:
 
-**Why This Matters**: Some values shouldn't be stored—they should be computed. A rectangle's `area` is always `width * height`. Storing it means keeping it in sync manually. Computing it means it's always correct.
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_IndexDefaults`
 
-**Real-World Use**: A game entity has `centerX`, `centerY`, `right`, `bottom` properties that are computed from `x`, `y`, `width`, `height`. You never manually update them—they're always accurate.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Notice the computed properties: `centerX`, `centerY`, `right`, `bottom`, `area`, `diagonal`
-4. Change `width` or `height` and the computed values automatically update!
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type ComputedDemo = {
-    box: {
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-    },
-    path: Path,
-    paint: Paint,
-}
+export type Exercise1 = {}
 
-function init(self: ComputedDemo): boolean
-    -- Box with computed properties
-    local boxData = {
-        x = -50,
-        y = -30,
-        width = 100,
-        height = 60,
+function init(self: Exercise1): boolean
+    local defaults = {
+        opacity = 0.4,
+        blur = 2,
     }
 
-    self.box = setmetatable(boxData, {
-        __index = function(tbl, key)
-            -- Compute derived properties on-demand
-            if key == "centerX" then
-                return tbl.x + tbl.width / 2
-            elseif key == "centerY" then
-                return tbl.y + tbl.height / 2
-            elseif key == "right" then
-                return tbl.x + tbl.width
-            elseif key == "bottom" then
-                return tbl.y + tbl.height
-            elseif key == "area" then
-                return tbl.width * tbl.height
-            elseif key == "diagonal" then
-                return math.sqrt(tbl.width^2 + tbl.height^2)
+    -- TODO: Override opacity to 0.9 and use defaults for blur
+    local style = {
+        opacity = 0,
+    }
+    setmetatable(style, { __index = defaults })
+
+    print(`ANSWER: opacity={style.opacity},blur={style.blur}`)
+    return true
+end
+
+function draw(self: Exercise1, renderer: Renderer)
+end
+
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set style.opacity to 0.9
+2. Keep __index pointing to defaults
+
+---
+
+### Expected Output
+
+Your console output should display the opacity value (overridden) and the blur value (from defaults via `__index`).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-1"
+    expectedAnswer="ANSWER: opacity=0.9,blur=2"
+/>
+
+---
+
+### Checklist
+
+- [ ] Defaults supply blur
+- [ ] Opacity override works
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: __index Computed ⭐⭐
+
+### Premise
+
+__index can be a function that computes values on demand. This is useful for derived properties.
+
+:::info Goal
+By the end of this exercise, you will compute a property inside __index.
+:::
+
+### Use Case
+
+You need to compute a derived value like length without storing it. __index can compute it only when needed.
+
+**Example scenarios:**
+- Vector length
+- Derived UI measurements
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_IndexComputed`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {}
+
+function init(self: Exercise2): boolean
+    local vec = { x = 6, y = 8 }
+
+    -- TODO: Compute length when key == "length"
+    setmetatable(vec, {
+        __index = function(t, key)
+            if key == "length" then
+                return 0
             end
             return nil
-        end
-    }) :: any
-
-    -- Access computed properties
-    print(`Box center: ({self.box.centerX}, {self.box.centerY})`)
-    print(`Box area: {self.box.area}`)
-    print(`Box diagonal: {self.box.diagonal}`)
-
-    -- Build visual
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(self.box.x, self.box.y))
-    self.path:lineTo(Vector.xy(self.box.right, self.box.y))
-    self.path:lineTo(Vector.xy(self.box.right, self.box.bottom))
-    self.path:lineTo(Vector.xy(self.box.x, self.box.bottom))
-    self.path:close()
-
-    self.paint = Paint.with({ style = "stroke", thickness = 2, color = Color.rgb(255, 200, 100) })
-
-    return true
-end
-
-function draw(self: ComputedDemo, renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)
-end
-
-return function(): Node<ComputedDemo>
-    return {
-        init = init,
-        draw = draw,
-        box = { x = 0, y = 0, width = 0, height = 0 },
-        path = Path.new(),
-        paint = Paint.new(),
-    }
-end
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript uses getters for computed properties
-class Box {
-    x = 0;
-    y = 0;
-    width = 100;
-    height = 60;
-
-    get centerX() { return this.x + this.width / 2; }
-    get centerY() { return this.y + this.height / 2; }
-    get right() { return this.x + this.width; }
-    get bottom() { return this.y + this.height; }
-    get area() { return this.width * this.height; }
-    get diagonal() { return Math.sqrt(this.width**2 + this.height**2); }
-}
-
-const box = new Box();
-console.log(box.centerX);  // Computed on access
-```
-
-**Why functions**: Computed properties always reflect current state. If `width` changes, `centerX` automatically updates.
-
----
-
-## Exercise 3: The Lookup Chain (Multi-Level Inheritance)
-
-**Goal**: Build a multi-level inheritance hierarchy where methods are found through chained `__index` lookups.
-
-**Why This Matters**: Real applications have hierarchies. A Circle is a Shape is a Drawable is a GameObject. Each level adds functionality. Understanding the lookup chain lets you architect these properly.
-
-**Real-World Use**: In a game: `PlayerBullet` → `Bullet` → `Projectile` → `Entity` → `GameObject`. Each level adds specific behavior while inheriting everything from above.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the console—notice how `circle:show()` finds the method in `Drawable` (grandparent!)
-4. The lookup chain: `circle` → `Circle` → `Shape` → `Drawable`
-
-```lua
---!strict
-
--- Base drawable (Level 3 - top of chain)
-local Drawable = {}
-Drawable.__index = Drawable
-
-export type DrawableType = {
-    x: number,
-    y: number,
-    visible: boolean,
-}
-
-function Drawable.new(x: number, y: number): DrawableType
-    local self = setmetatable({}, Drawable)
-    self.x = x
-    self.y = y
-    self.visible = true
-    return (self :: any) :: DrawableType
-end
-
-function Drawable:show()
-    self.visible = true
-end
-
-function Drawable:hide()
-    self.visible = false
-end
-
--- Shape extends Drawable (Level 2)
-local Shape = setmetatable({}, { __index = Drawable })
-Shape.__index = Shape
-
-export type ShapeType = DrawableType & {
-    color: Color,
-    path: Path,
-    paint: Paint,
-}
-
-function Shape.new(x: number, y: number, color: Color): ShapeType
-    local self = setmetatable({}, Shape)
-    self.x = x
-    self.y = y
-    self.visible = true
-    self.color = color
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = color })
-    return (self :: any) :: ShapeType
-end
-
-function Shape:setColor(color: Color)
-    self.color = color
-    self.paint.color = color
-end
-
--- Circle extends Shape (Level 1)
-local Circle = setmetatable({}, { __index = Shape })
-Circle.__index = Circle
-
-export type CircleType = ShapeType & {
-    radius: number,
-}
-
-function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
-    local self = setmetatable({}, Circle)
-    self.x = x
-    self.y = y
-    self.visible = true
-    self.color = color
-    self.radius = radius
-    self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), radius, radius)
-    self.paint = Paint.with({ style = "fill", color = color })
-    return (self :: any) :: CircleType
-end
-
-function Circle:setRadius(r: number)
-    self.radius = r
-    self.path:reset()
-    self.path:addEllipse(Vector.xy(0, 0), r, r)
-end
-
-function Circle:draw(renderer: Renderer)
-    if not self.visible then return end
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.x, self.y))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
-
-export type InheritanceDemo = {
-    circle: CircleType,
-    elapsed: number,
-}
-
-function init(self: InheritanceDemo): boolean
-    self.circle = Circle.new(0, 0, 50, Color.rgb(100, 200, 255))
-    self.elapsed = 0
-
-    -- Test the inheritance chain
-    print("Testing inheritance chain:")
-
-    -- Circle's own method
-    self.circle:setRadius(60)
-    print(`Set radius to 60`)
-
-    -- Shape's method (inherited)
-    self.circle:setColor(Color.rgb(255, 150, 100))
-    print(`Changed color`)
-
-    -- Drawable's method (inherited from grandparent)
-    self.circle:hide()
-    print(`Hidden: {not self.circle.visible}`)
-    self.circle:show()
-    print(`Shown: {self.circle.visible}`)
-
-    return true
-end
-
-function advance(self: InheritanceDemo, seconds: number): boolean
-    self.elapsed += seconds
-    -- Animate radius using inherited method
-    local newRadius = 40 + math.sin(self.elapsed * 2) * 20
-    self.circle:setRadius(newRadius)
-    return true
-end
-
-function draw(self: InheritanceDemo, renderer: Renderer)
-    self.circle:draw(renderer)
-end
-
-return function(): Node<InheritanceDemo>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        circle = Circle.new(0, 0, 1, Color.rgb(0, 0, 0)),
-        elapsed = 0,
-    }
-end
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript class inheritance (hides the prototype chain)
-class Drawable {
-    x = 0;
-    y = 0;
-    visible = true;
-
-    show() { this.visible = true; }
-    hide() { this.visible = false; }
-}
-
-class Shape extends Drawable {
-    color;
-    setColor(color) { this.color = color; }
-}
-
-class Circle extends Shape {
-    radius;
-    setRadius(r) { this.radius = r; }
-    draw(ctx) { /* ... */ }
-}
-
-// Under the hood, JavaScript does the same chain lookup
-```
-
-**Lookup for `circle:show()`**:
-1. `circle` table - not found
-2. `Circle` (via `__index`) - not found
-3. `Shape` (via Circle's metatable `__index`) - not found
-4. `Drawable` (via Shape's metatable `__index`) - found!
-
----
-
-## Exercise 4: __newindex for Validation
-
-**Goal**: Intercept property assignments to validate or transform values.
-
-**Why This Matters**: User input can be invalid. Animation parameters can be out of range. `__newindex` lets you automatically clamp, validate, or transform values when they're set.
-
-**Real-World Use**: A color picker clamps RGB values to 0-255. An opacity slider clamps to 0-1. A speed setting clamps to reasonable bounds. All automatic through `__newindex`.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the console—see how out-of-range values get clamped automatically
-
-```lua
---!strict
-
-export type ValidatedDemo = {
-    config: {
-        speed: number,
-        scale: number,
-        opacity: number,
-    },
-    path: Path,
-    paint: Paint,
-}
-
-function init(self: ValidatedDemo): boolean
-    -- Storage for validated values
-    local storage = {
-        speed = 1.0,
-        scale = 1.0,
-        opacity = 1.0,
-    }
-
-    -- Validation rules
-    local validators = {
-        speed = function(v: number): number
-            return math.clamp(v, 0.1, 10.0)
         end,
-        scale = function(v: number): number
-            return math.clamp(v, 0.1, 5.0)
-        end,
-        opacity = function(v: number): number
-            return math.clamp(v, 0.0, 1.0)
-        end,
-    }
-
-    self.config = setmetatable({}, {
-        __index = storage,
-        __newindex = function(tbl, key, value)
-            local validator = validators[key]
-            if validator and type(value) == "number" then
-                local validated = validator(value)
-                if validated ~= value then
-                    print(`Clamped {key}: {value} -> {validated}`)
-                end
-                rawset(storage, key, validated)
-            else
-                rawset(storage, key, value)
-            end
-        end
-    }) :: any
-
-    -- Test validation
-    self.config.speed = 100    -- Clamped to 10
-    self.config.scale = -5     -- Clamped to 0.1
-    self.config.opacity = 0.5  -- Stays 0.5
-
-    print(`Final: speed={self.config.speed}, scale={self.config.scale}, opacity={self.config.opacity}`)
-
-    -- Visual
-    self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), 40, 40)
-    self.paint = Paint.with({ style = "fill", color = Color.rgba(100, 200, 255, self.config.opacity) })
-
-    return true
-end
-
-function draw(self: ValidatedDemo, renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withScale(self.config.scale, self.config.scale))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
-
-return function(): Node<ValidatedDemo>
-    return {
-        init = init,
-        draw = draw,
-        config = { speed = 1, scale = 1, opacity = 1 },
-        path = Path.new(),
-        paint = Paint.new(),
-    }
-end
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript Proxy for validation
-const config = new Proxy({ speed: 1, scale: 1, opacity: 1 }, {
-    set(target, prop, value) {
-        const validators = {
-            speed: v => Math.max(0.1, Math.min(10, v)),
-            scale: v => Math.max(0.1, Math.min(5, v)),
-            opacity: v => Math.max(0, Math.min(1, v)),
-        };
-
-        if (validators[prop]) {
-            value = validators[prop](value);
-        }
-        target[prop] = value;
-        return true;
-    }
-});
-
-config.speed = 100;  // Clamped to 10
-```
-
-**Rive use case**: Automatically clamp animation parameters to valid ranges.
-
----
-
-## rawget and rawset
-
-Sometimes you need to bypass metamethods:
-
-```lua
-rawget(t, key)     -- Get without triggering __index
-rawset(t, key, v)  -- Set without triggering __newindex
-```
-
-Use these inside `__index` and `__newindex` to avoid infinite loops:
-
-```lua
-setmetatable(t, {
-    __newindex = function(tbl, key, value)
-        -- Must use rawset, not tbl[key] = value
-        rawset(tbl, key, value)
-    end
-})
-```
-
----
-
-## Exercise 5: Lazy Initialization
-
-**Goal**: Create expensive resources only when they're first accessed.
-
-**Why This Matters**: Some resources are expensive to create but might not be needed immediately (or at all). Lazy initialization defers the cost until the resource is actually used.
-
-**Real-World Use**: A game level has many possible particle effects. Rather than creating all of them at startup, you create each one only when triggered. This speeds up initial load time.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the console—"Creating expensive path..." only prints when you first draw the spiral (after 2 seconds)
-
-```lua
---!strict
-
--- Expensive resource that we only want to create when needed
-local function createExpensivePath(): Path
-    print("Creating expensive path...")
-    local p = Path.new()
-    -- Complex path with many points
-    for i = 0, 100 do
-        local angle = (i / 100) * math.pi * 4
-        local radius = 30 + i / 5
-        local x = math.cos(angle) * radius
-        local y = math.sin(angle) * radius
-        if i == 0 then
-            p:moveTo(Vector.xy(x, y))
-        else
-            p:lineTo(Vector.xy(x, y))
-        end
-    end
-    return p
-end
-
-export type LazyDemo = {
-    resources: {
-        spiralPath: Path?,
-        initialized: boolean,
-    },
-    paint: Paint,
-    showSpiral: boolean,
-}
-
-function init(self: LazyDemo): boolean
-    -- Storage for lazy resources
-    local storage: { [string]: any } = {
-        initialized = true,
-    }
-
-    -- Lazy loaders
-    local loaders: { [string]: () -> any } = {
-        spiralPath = createExpensivePath,
-    }
-
-    self.resources = setmetatable({}, {
-        __index = function(tbl, key)
-            -- Check storage first
-            local existing = rawget(storage, key)
-            if existing ~= nil then
-                return existing
-            end
-
-            -- Check if we have a loader
-            local loader = loaders[key]
-            if loader then
-                print(`Lazy loading: {key}`)
-                local value = loader()
-                rawset(storage, key, value)
-                return value
-            end
-
-            return nil
-        end
-    }) :: any
-
-    self.paint = Paint.with({ style = "stroke", thickness = 2, color = Color.rgb(255, 200, 100) })
-    self.showSpiral = false
-
-    print("Init complete - spiralPath NOT created yet")
-    return true
-end
-
-function advance(self: LazyDemo, seconds: number): boolean
-    -- Enable spiral after 2 seconds
-    if os.clock() > 2 and not self.showSpiral then
-        self.showSpiral = true
-        print("Enabling spiral - this will trigger lazy load")
-    end
-    return true
-end
-
-function draw(self: LazyDemo, renderer: Renderer)
-    if self.showSpiral then
-        -- First access triggers lazy load
-        local spiral = self.resources.spiralPath
-        if spiral then
-            renderer:drawPath(spiral, self.paint)
-        end
-    end
-end
-
-return function(): Node<LazyDemo>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        resources = { initialized = false },
-        paint = Paint.new(),
-        showSpiral = false,
-    }
-end
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript lazy initialization with getters
-class ResourceManager {
-    _spiralPath = null;
-
-    get spiralPath() {
-        if (this._spiralPath === null) {
-            console.log("Creating expensive path...");
-            this._spiralPath = createExpensivePath();
-        }
-        return this._spiralPath;
-    }
-}
-```
-
-**Why lazy loading**: In Rive, you might have resources that are expensive to create but not always needed. Lazy initialization defers the cost until first use.
-
----
-
-## Exercise 6: Read-Only Tables
-
-**Goal**: Create tables where properties cannot be modified after creation.
-
-**Why This Matters**: Configuration constants, mathematical constants, or state that should never change benefit from being read-only. Accidental modification causes bugs; read-only tables prevent them.
-
-**Real-World Use**: Physics constants (`GRAVITY = 9.8`), color palettes, API keys—anything that should never change at runtime.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Try uncommenting the line that modifies `constants.PI`—you'll get an error
-
-```lua
---!strict
-
-export type ReadOnlyDemo = {}
-
-function init(self: ReadOnlyDemo): boolean
-    local data = {
-        PI = 3.14159,
-        TAU = 6.28318,
-        E = 2.71828,
-    }
-
-    local constants = setmetatable({}, {
-        __index = data,
-        __newindex = function(_, key, _)
-            error(`Cannot modify constant: {key}`)
-        end
     })
 
-    print(`PI = {constants.PI}`)
-    print(`TAU = {constants.TAU}`)
-    print(`E = {constants.E}`)
-
-    -- Uncomment to see the error:
-    -- constants.PI = 3  -- Error: Cannot modify constant: PI
-
+    print(`ANSWER: length={vec.length}`)
     return true
 end
 
-function draw(self: ReadOnlyDemo, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<ReadOnlyDemo>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
@@ -842,20 +249,442 @@ return function(): Node<ReadOnlyDemo>
 end
 ```
 
-**JavaScript Equivalent**:
-```javascript
-// JavaScript Object.freeze for read-only
-const constants = Object.freeze({
-    PI: 3.14159,
-    TAU: 6.28318,
-    E: 2.71828,
-});
+---
 
-constants.PI = 3;  // Silently fails (or throws in strict mode)
+### Assignment
+
+Complete these tasks:
+
+1. Return sqrt(x*x + y*y)
+2. Keep the computed value inside __index
+
+---
+
+### Expected Output
+
+Your console output should display the computed length from the `__index` function (the hypotenuse of a 6-8-10 triangle).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-2"
+    expectedAnswer="ANSWER: length=10"
+/>
+
+---
+
+### Checklist
+
+- [ ] __index computes length
+- [ ] Length equals 10
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Lookup Chain ⭐⭐
+
+### Premise
+
+The __index chain can span multiple tables. This lets you build inheritance hierarchies for shared behavior.
+
+:::info Goal
+By the end of this exercise, you will use a multi-level __index chain.
+:::
+
+### Use Case
+
+You have a base widget with shared methods, then derived widgets add their own behavior. The lookup chain finds the right method.
+
+**Example scenarios:**
+- Base and derived UI widgets
+- Shared helper methods
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_LookupChain`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {}
+
+local Base = { kind = "Base" }
+function Base:describe(): string
+    return `Kind={self.kind}`
+end
+
+local Derived = { kind = "Derived" }
+setmetatable(Derived, { __index = Base })
+
+function init(self: Exercise3): boolean
+    local instance = setmetatable({}, { __index = Derived })
+    -- TODO: Change Derived.kind to "Widget"
+
+    print(`ANSWER: {instance:describe()}`)
+    return true
+end
+
+function draw(self: Exercise3, renderer: Renderer)
+end
+
+return function(): Node<Exercise3>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Set Derived.kind to "Widget"
+2. Keep the lookup chain intact
+
+---
+
+### Expected Output
+
+Your console output should display the describe method result showing the kind value from the lookup chain.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-3"
+    expectedAnswer="ANSWER: Kind=Widget"
+/>
+
+---
+
+### Checklist
+
+- [ ] Lookup chain uses Base then Derived
+- [ ] Kind resolves to Widget
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: __newindex Validation ⭐⭐
+
+### Premise
+
+__newindex lets you intercept assignments and enforce rules. This is useful for clamping or validation.
+
+:::info Goal
+By the end of this exercise, you will validate assignments with __newindex.
+:::
+
+### Use Case
+
+You want to ensure a value never exceeds a max threshold. __newindex can clamp values as they are assigned.
+
+**Example scenarios:**
+- Clamped style values
+- Safe configuration assignment
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_NewIndex`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+function init(self: Exercise4): boolean
+    local config = {}
+    local maxValue = 10
+
+    setmetatable(config, {
+        __newindex = function(t, key, value)
+            -- TODO: Clamp numeric values to maxValue
+            rawset(t, key, value)
+        end,
+    })
+
+    config.power = 15
+    print(`ANSWER: power={config.power}`)
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. If value is a number above maxValue, store maxValue
+2. Otherwise store the original value
+
+---
+
+### Expected Output
+
+Your console output should display the clamped power value enforced by the `__newindex` metamethod.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-4"
+    expectedAnswer="ANSWER: power=10"
+/>
+
+---
+
+### Checklist
+
+- [ ] __newindex clamps values
+- [ ] power equals 10
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Lazy Initialization ⭐⭐
+
+### Premise
+
+You can lazily create values when they are first accessed. __index is a common tool for this pattern.
+
+:::info Goal
+By the end of this exercise, you will lazily initialize a missing key.
+:::
+
+### Use Case
+
+You want to create an entry the first time it is requested, without pre-allocating everything.
+
+**Example scenarios:**
+- Lazy caches
+- On-demand table entries
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_LazyInit`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+function init(self: Exercise5): boolean
+    local cache = {}
+
+    setmetatable(cache, {
+        __index = function(t, key)
+            -- TODO: Create and store a default value for missing keys
+            return nil
+        end,
+    })
+
+    local value = cache["token"]
+    print(`ANSWER: {value}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. When a key is missing, store "created" in the table
+2. Return the stored value
+
+---
+
+### Expected Output
+
+Your console output should display the lazily initialized value that was created and stored on first access.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-5"
+    expectedAnswer="ANSWER: created"
+/>
+
+---
+
+### Checklist
+
+- [ ] Missing keys are initialized
+- [ ] Value is stored and returned
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Read-Only Table ⭐⭐
+
+### Premise
+
+You can prevent writes by intercepting __newindex. This is useful for read-only configuration.
+
+:::info Goal
+By the end of this exercise, you will block writes with __newindex.
+:::
+
+### Use Case
+
+You want a config table that should not be mutated at runtime. Writes are ignored so defaults stay intact.
+
+**Example scenarios:**
+- Immutable configuration
+- Read-only settings
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_ReadOnly`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+function init(self: Exercise6): boolean
+    local config = {
+        mode = "locked",
+    }
+
+    setmetatable(config, {
+        -- TODO: Ignore any new assignments
+        __newindex = function(t, key, value)
+        end,
+    })
+
+    config.mode = "open"
+    print(`ANSWER: mode={config.mode}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Make __newindex ignore writes
+2. Keep the original mode value
+
+---
+
+### Expected Output
+
+Your console output should display the original mode value, proving that writes were blocked by `__newindex`.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-indexmeta-6"
+    expectedAnswer="ANSWER: mode=locked"
+/>
+
+---
+
+### Checklist
+
+- [ ] Writes are ignored
+- [ ] Mode remains locked
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

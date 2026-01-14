@@ -5,6 +5,7 @@ description: Define custom type aliases, table types, and union types
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 2.2: Custom Types & Unions
 
@@ -111,704 +112,722 @@ type MaybeString = string | null;  // null instead of nil
 
 ## Practice Exercises
 
-### Exercise 1: Basic Type Aliases
+### Exercise 1: Stats Alias ⭐
 
-**Goal:** Create meaningful names for primitive types to improve code readability.
+### Premise
 
-**Why This Matters:** When you see `local width: Pixels = 1920`, it's immediately clear what the number represents. `local width: number = 1920` requires more context.
+Custom type aliases make repeated data shapes easy to reuse. You define the shape once and then rely on it everywhere.
 
-**Real-World Use:** In game development, you might have `type Damage = number`, `type Health = number`, `type Percentage = number`—all numbers, but with different meanings.
+:::info Goal
+By the end of this exercise, you will create and use a simple type alias.
+:::
 
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add `--!strict` at the top
-3. Define type aliases before your `export type`
-4. Use those aliases in variable declarations
+### Use Case
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+You track health and mana values for a Rive-driven HUD. A Stats type guarantees that both fields are present and numeric.
 
-**Expected result:** The Console prints the screen size, progress, and color alias values.
-
-**Task**: Create type aliases and use them in your code:
-
-```lua
---!strict
-
--- Create these type aliases
-type Pixels = number
-type Percentage = number
-type ColorHex = string
-
-export type TypeAliasDemo = {}
-
-function init(self: TypeAliasDemo): boolean
-    -- Use your type aliases
-    local screenWidth: Pixels = 1920
-    local completion: Percentage = 75
-    local background: ColorHex = "#FF5500"
-
-    print(`Screen: {screenWidth}px`)
-    print(`Progress: {completion}%`)
-    print(`Color: {background}`)
-
-    -- Type aliases are just names - this still works
-    local anotherWidth: Pixels = 100 + 200  -- Pixels is just number
-
-    return true
-end
-
-function draw(self: TypeAliasDemo, renderer: Renderer)
-end
-
-return function(): Node<TypeAliasDemo>
-    return { init = init, draw = draw }
-end
-```
-
-**Key insight**: Type aliases don't create new types—they're just names for existing types. A `Pixels` variable can accept any `number`. This is for documentation and clarity, not enforcement.
+**Example scenarios:**
+- Health/mana bars
+- HUD state bundles
 
 ---
 
-### Exercise 2: Table Types (Interfaces)
+### Setup
 
-**Goal:** Define the shape of complex objects using table types.
+#### In Rive Editor:
 
-**Why This Matters:** When you define a `type Enemy = { name: string, health: number, damage: number }`, you can't accidentally forget to include the `damage` property. The type checker enforces it.
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_StatsAlias`
 
-**Real-World Use:** Every game entity (player, enemy, item, projectile) should have a defined type. This prevents bugs like "undefined is not an object" that plague JavaScript.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Define table types using `type Name = { ... }`
-3. Create variables that match those types
-4. Try removing a required property to see the error
+---
 
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints the enemy, weapon, and spawn values; missing required properties trigger editor errors.
-
-**Task**: Define and use table types:
+### Starter Code
 
 ```lua
 --!strict
 
--- Define these types
-type Enemy = {
-    name: string,
-    health: number,
-    damage: number,
+export type Exercise1 = {}
+
+type Stats = {
+    hp: number,
+    mp: number,
 }
 
-type Weapon = {
-    name: string,
-    power: number,
-    range: number,
-}
+function init(self: Exercise1): boolean
+    -- TODO: Set hp to 90 and mp to 30
+    local stats: Stats = {
+        hp = 0,
+        mp = 0,
+    }
 
-type Position = {
+    local total = stats.hp + stats.mp
+    print(`ANSWER: total={total}`)
+    return true
+end
+
+function draw(self: Exercise1, renderer: Renderer)
+end
+
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set hp to 90
+2. Set mp to 30
+
+---
+
+### Expected Output
+
+Your console output should display the total computed from the typed Stats table (hp + mp).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-1"
+    expectedAnswer="ANSWER: total=120"
+/>
+
+---
+
+### Checklist
+
+- [ ] Stats uses the alias type
+- [ ] Values are correct
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Nested Types ⭐
+
+### Premise
+
+Aliases can reference other aliases, letting you model nested state cleanly. This mirrors how real animation data is structured.
+
+:::info Goal
+By the end of this exercise, you will compose types to represent nested data.
+:::
+
+### Use Case
+
+You track a sprite name and its position. The position is its own reusable shape, so you define it as a separate type.
+
+**Example scenarios:**
+- Grouping transforms for layers
+- Organizing nested state
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_NestedTypes`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {}
+
+type Transform = {
     x: number,
     y: number,
 }
 
-export type TableTypesDemo = {}
-
-function init(self: TableTypesDemo): boolean
-    -- Create instances matching your types
-    local goblin: Enemy = {
-        name = "Goblin",
-        health = 30,
-        damage = 5
-    }
-
-    local sword: Weapon = {
-        name = "Iron Sword",
-        power = 15,
-        range = 2
-    }
-
-    local spawn: Position = {
-        x = 100,
-        y = 200
-    }
-
-    -- Types prevent errors - this would fail:
-    -- local brokenEnemy: Enemy = { name = "Orc" }  -- Missing health and damage!
-
-    print(`Enemy: {goblin.name} with {goblin.health} HP`)
-    print(`Weapon: {sword.name} ({sword.power} damage)`)
-    print(`Position: ({spawn.x}, {spawn.y})`)
-
-    return true
-end
-
-function draw(self: TableTypesDemo, renderer: Renderer)
-end
-
-return function(): Node<TableTypesDemo>
-    return { init = init, draw = draw }
-end
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript - nearly identical syntax
-type Enemy = {
-    name: string;
-    health: number;
-    damage: number;
-};
-
-const goblin: Enemy = {
-    name: "Goblin",
-    health: 30,
-    damage: 5
-};
-
-// This would also error in TypeScript:
-// const broken: Enemy = { name: "Orc" };  // Missing properties
-```
-
----
-
-### Exercise 3: Nested and Complex Types
-
-**Goal:** Build sophisticated data structures by composing smaller types.
-
-**Why This Matters:** Real applications have nested data. A character has stats, which have individual values. A game has players, which have inventories, which have items. Type composition keeps this manageable.
-
-**Real-World Use:** RPG characters, UI component hierarchies, game configuration systems—all benefit from nested types.
-
-**Step-by-Step Setup:**
-1. Define small, focused types first
-2. Compose them into larger types
-3. Create factory functions that return properly typed objects
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints the character's stats, inventory, and position based on the composed types.
-
-**Task**: Build a character system with nested types:
-
-```lua
---!strict
-
--- Define these types in order
-type Stats = {
-    strength: number,
-    defense: number,
-    speed: number,
-}
-
-type Inventory = {
-    items: {string},
-    gold: number,
-}
-
-type Position = { x: number, y: number }
-
-type Character = {
+type Sprite = {
     name: string,
-    level: number,
-    stats: Stats,
-    inventory: Inventory,
-    position: Position,
+    transform: Transform,
 }
 
--- Function with typed parameter and return
-local function createCharacter(name: string, level: number): Character
-    return {
-        name = name,
-        level = level,
-        stats = {
-            strength = 10 + level * 2,
-            defense = 5 + level,
-            speed = 8 + level
-        },
-        inventory = {
-            items = {"Starter Sword", "Health Potion"},
-            gold = 100
-        },
-        position = {
+function init(self: Exercise2): boolean
+    -- TODO: Set name to "Beacon", x to 12, y to 18
+    local sprite: Sprite = {
+        name = "",
+        transform = {
             x = 0,
-            y = 0
-        }
+            y = 0,
+        },
     }
-end
 
-local function printCharacter(char: Character)
-    print(`=== {char.name} (Level {char.level}) ===`)
-    print(`STR: {char.stats.strength}, DEF: {char.stats.defense}, SPD: {char.stats.speed}`)
-    print(`Gold: {char.inventory.gold}`)
-    print(`Items: {#char.inventory.items}`)
-    print(`Position: ({char.position.x}, {char.position.y})`)
-end
-
-export type NestedTypesDemo = {}
-
-function init(self: NestedTypesDemo): boolean
-    local hero = createCharacter("Aria", 5)
-    printCharacter(hero)
-
-    -- Modify nested properties
-    hero.stats.strength += 5
-    hero.inventory.gold -= 50
-    table.insert(hero.inventory.items, "Magic Ring")
-
-    print("\nAfter upgrades:")
-    printCharacter(hero)
-
+    local pos = sprite.transform.x + sprite.transform.y
+    print(`ANSWER: name={sprite.name},pos={pos}`)
     return true
 end
 
-function draw(self: NestedTypesDemo, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<NestedTypesDemo>
-    return { init = init, draw = draw }
-end
-```
-
----
-
-### Exercise 4: Union Types
-
-**Goal:** Handle values that can be one of several different types.
-
-**Why This Matters:** Sometimes a function needs to accept different types. An ID might be a number OR a string. A movement command might be coordinates OR a direction name. Union types handle this safely.
-
-**Real-World Use:** API responses (success or error), form inputs (string or number), game commands (action or direction).
-
-**Step-by-Step Setup:**
-1. Define union types with the `|` operator
-2. Use `type()` to check which type you have
-3. Handle each case appropriately
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints different output depending on whether each value is a number, string, or movement table.
-
-**Task**: Work with union types:
-
-```lua
---!strict
-
--- A value that could be a number or a string
-type ID = number | string
-
--- A result that could be success (string) or error code (number)
-type Result = string | number
-
--- A value that could be a position OR a direction name
-type Movement = {x: number, y: number} | "up" | "down" | "left" | "right"
-
-export type UnionDemo = {}
-
--- This function accepts either type
-local function printID(id: ID)
-    -- We need to check which type it is before using type-specific operations
-    if type(id) == "number" then
-        print(`Numeric ID: {id}`)
-    else
-        print(`String ID: {id}`)
-    end
-end
-
--- Process movement - could be coordinates or direction
-local function processMovement(move: Movement)
-    if type(move) == "string" then
-        print(`Direction: {move}`)
-    else
-        print(`Coordinates: ({move.x}, {move.y})`)
-    end
-end
-
-function init(self: UnionDemo): boolean
-    printID(12345)
-    printID("ABC-789")
-
-    processMovement("up")
-    processMovement("left")
-    processMovement({x = 10, y = 20})
-
-    return true
-end
-
-function draw(self: UnionDemo, renderer: Renderer)
-end
-
-return function(): Node<UnionDemo>
-    return { init = init, draw = draw }
-end
-```
-
-**Expected Output:**
-```
-Numeric ID: 12345
-String ID: ABC-789
-Direction: up
-Direction: left
-Coordinates: (10, 20)
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript union types work the same way
-type ID = number | string;
-
-function printID(id: ID) {
-    if (typeof id === "number") {
-        console.log(`Numeric ID: ${id}`);
-    } else {
-        console.log(`String ID: ${id}`);
-    }
-}
-```
-
----
-
-### Exercise 5: Optional Types
-
-**Goal:** Handle values that might not exist (can be nil).
-
-**Why This Matters:** Not every user has an email. Not every character has a weapon equipped. Optional types let you express "this might be missing" in the type system.
-
-**Real-World Use:** User profiles with optional fields, game inventories with empty slots, configuration with optional overrides.
-
-**Step-by-Step Setup:**
-1. Add `?` after a type to make it optional
-2. Always check for nil before using the value
-3. Use fallback values when appropriate
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints different output depending on which optional fields are present.
-
-**Task**: Handle optional values safely:
-
-```lua
---!strict
-
-type UserProfile = {
-    username: string,
-    displayName: string?,      -- Optional: might not be set
-    email: string?,            -- Optional
-    age: number?,              -- Optional
-    verified: boolean,
-}
-
--- This function REQUIRES an email
-local function sendEmail(email: string, message: string)
-    print(`Sending "{message}" to {email}`)
-end
-
--- Get display name, fallback to username if not set
-local function getDisplayName(user: UserProfile): string
-    if user.displayName then
-        return user.displayName
-    else
-        return user.username
-    end
-end
-
--- Safely send a welcome email (only if email exists)
-local function sendWelcomeEmail(user: UserProfile)
-    if user.email then
-        sendEmail(user.email, "Welcome!")
-    else
-        print(`No email on file for {user.username}`)
-    end
-end
-
--- Get age category
-local function getAgeCategory(user: UserProfile): string
-    if user.age then
-        if user.age < 18 then
-            return "minor"
-        else
-            return "adult"
-        end
-    else
-        return "unknown"
-    end
-end
-
-export type OptionalDemo = {}
-
-function init(self: OptionalDemo): boolean
-    local user1: UserProfile = {
-        username = "warrior42",
-        displayName = "The Mighty Warrior",
-        email = "warrior@example.com",
-        age = 25,
-        verified = true
-    }
-
-    local user2: UserProfile = {
-        username = "newbie",
-        verified = false
-        -- No displayName, email, or age!
-    }
-
-    print(`User 1 display: {getDisplayName(user1)}`)
-    print(`User 2 display: {getDisplayName(user2)}`)
-
-    sendWelcomeEmail(user1)
-    sendWelcomeEmail(user2)
-
-    print(`User 1 category: {getAgeCategory(user1)}`)
-    print(`User 2 category: {getAgeCategory(user2)}`)
-
-    return true
-end
-
-function draw(self: OptionalDemo, renderer: Renderer)
-end
-
-return function(): Node<OptionalDemo>
-    return { init = init, draw = draw }
-end
-```
-
-**Expected Output:**
-```
-User 1 display: The Mighty Warrior
-User 2 display: newbie
-Sending "Welcome!" to warrior@example.com
-No email on file for newbie
-User 1 category: adult
-User 2 category: unknown
-```
-
-:::danger Always Check Optionals
-```lua
--- WRONG: email might be nil!
-sendEmail(user.email)  -- Type error: string? is not string
-
--- CORRECT: Check first
-if user.email then
-    sendEmail(user.email)  -- Now Luau knows it's string
-end
-```
-:::
-
----
-
-### Exercise 6: Discriminated Unions (State Machines)
-
-**Goal:** Use a "kind" field to distinguish between different states in a union.
-
-**Why This Matters:** State machines are everywhere—loading states, game states, animation states. Discriminated unions let you model these safely, with the type system ensuring you handle all cases.
-
-**Real-World Use:** Network request states (loading/success/error), character states (idle/walking/attacking), UI states (collapsed/expanded).
-
-**Step-by-Step Setup:**
-1. Define each state as a separate type with a `kind` field
-2. Create a union of all states
-3. Check `kind` to determine which state you're in
-4. Luau automatically narrows the type based on the `kind` check
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints state transitions with messages for idle, fetching, success, and error.
-
-**Context**: A powerful pattern for state machines. Add a `kind` field to distinguish between states.
-
-```lua
---!strict
-
--- Each state has a "kind" field that identifies it
-type LoadingState = { kind: "idle" }
-type FetchingState = { kind: "fetching", url: string, progress: number }
-type SuccessState = { kind: "success", data: string }
-type ErrorState = { kind: "error", message: string, code: number }
-
--- Union of all states
-type AppState = LoadingState | FetchingState | SuccessState | ErrorState
-
-local function renderState(state: AppState)
-    -- Luau narrows the type based on the kind field
-    if state.kind == "idle" then
-        print("Ready to load...")
-    elseif state.kind == "fetching" then
-        -- Inside this block, state is known to be FetchingState
-        print(`Loading {state.url}: {state.progress}%`)
-    elseif state.kind == "success" then
-        print(`Loaded: {state.data}`)
-    elseif state.kind == "error" then
-        print(`Error {state.code}: {state.message}`)
-    end
-end
-
--- State transition functions
-local function startLoading(url: string): FetchingState
-    return { kind = "fetching", url = url, progress = 0 }
-end
-
-local function updateProgress(state: FetchingState, newProgress: number): FetchingState
-    return { kind = "fetching", url = state.url, progress = newProgress }
-end
-
-local function finishLoading(data: string): SuccessState
-    return { kind = "success", data = data }
-end
-
-local function failLoading(message: string, code: number): ErrorState
-    return { kind = "error", message = message, code = code }
-end
-
-export type StateDemo = {
-    currentState: AppState,
-}
-
-function init(self: StateDemo): boolean
-    -- Simulate a loading sequence
-    self.currentState = { kind = "idle" }
-    renderState(self.currentState)
-
-    self.currentState = startLoading("https://api.example.com/data")
-    renderState(self.currentState)
-
-    -- Type guard: only update progress if we're in fetching state
-    if self.currentState.kind == "fetching" then
-        self.currentState = updateProgress(self.currentState, 50)
-        renderState(self.currentState)
-
-        self.currentState = updateProgress(self.currentState, 100)
-        renderState(self.currentState)
-    end
-
-    -- Success path
-    self.currentState = finishLoading("Player data loaded!")
-    renderState(self.currentState)
-
-    -- Alternative: Error path
-    print("\n--- Simulating error ---")
-    self.currentState = { kind = "idle" }
-    self.currentState = startLoading("https://api.example.com/missing")
-    self.currentState = failLoading("Resource not found", 404)
-    renderState(self.currentState)
-
-    return true
-end
-
-function draw(self: StateDemo, renderer: Renderer)
-end
-
-return function(): Node<StateDemo>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
-        currentState = { kind = "idle" }
     }
 end
 ```
 
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// This pattern is identical in TypeScript!
-type LoadingState = { kind: "idle" };
-type FetchingState = { kind: "fetching"; url: string; progress: number };
-type SuccessState = { kind: "success"; data: string };
-type ErrorState = { kind: "error"; message: string; code: number };
+---
 
-type AppState = LoadingState | FetchingState | SuccessState | ErrorState;
+### Assignment
 
-function renderState(state: AppState) {
-    switch (state.kind) {
-        case "idle":
-            console.log("Ready to load...");
-            break;
-        case "fetching":
-            // TypeScript knows state.url and state.progress exist here
-            console.log(`Loading ${state.url}: ${state.progress}%`);
-            break;
-        // ... etc
-    }
-}
-```
+Complete these tasks:
+
+1. Set the sprite name to "Beacon"
+2. Set x to 12 and y to 18
 
 ---
 
-### Exercise 7: Read-Only Properties
+### Expected Output
 
-**Goal:** Prevent modification of certain properties after initialization.
+Your console output should display the sprite name and position sum (x + y) from the nested types.
 
-**Why This Matters:** Some values should never change—configuration constants, version numbers, IDs. Read-only properties enforce this at the type level.
+---
 
-**Real-World Use:** Game configuration, entity IDs, immutable settings.
+### Verify Your Answer
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+<ExerciseValidator
+    exerciseId="types-customtypes-2"
+    expectedAnswer="ANSWER: name=Beacon,pos=30"
+/>
 
-**Expected result:** The Console prints config values; attempts to mutate read-only fields should be flagged by the editor.
+---
 
-**Task**: Prevent modification of certain properties:
+### Checklist
+
+- [ ] Nested types are filled correctly
+- [ ] Position sum equals 30
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Array Alias ⭐
+
+### Premise
+
+Lists are common in animation scripts. Aliasing array types makes intent obvious and keeps APIs consistent.
+
+:::info Goal
+By the end of this exercise, you will define and use an array type alias.
+:::
+
+### Use Case
+
+You store timing offsets in a list and need a quick average. A typed array ensures every value is numeric.
+
+**Example scenarios:**
+- Timing offsets
+- Sample lists
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_ArrayAlias`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Read-only properties use the 'read' modifier
-type ImmutableConfig = {
-    read version: string,
-    read maxPlayers: number,
-    read debug: boolean,
-}
+export type Exercise3 = {}
 
-type MutableConfig = {
-    currentPlayers: number,
-    serverName: string,
-}
+type Points = { number }
 
-type GameConfig = ImmutableConfig & MutableConfig
+function init(self: Exercise3): boolean
+    -- TODO: Set the points to {2, 4, 6}
+    local points: Points = {0, 0, 0}
 
-export type ReadOnlyDemo = {}
-
-function init(self: ReadOnlyDemo): boolean
-    local config: GameConfig = {
-        version = "1.0.0",
-        maxPlayers = 100,
-        debug = false,
-        currentPlayers = 0,
-        serverName = "Main Server"
-    }
-
-    -- Reading is always OK
-    print(`Version: {config.version}`)
-    print(`Max Players: {config.maxPlayers}`)
-
-    -- Mutable properties can be changed
-    config.currentPlayers = 42
-    config.serverName = "Updated Server"
-
-    -- These would error:
-    -- config.version = "2.0.0"  -- Error: cannot write to read-only property
-    -- config.maxPlayers = 200   -- Error: cannot write to read-only property
-
-    print(`Current Players: {config.currentPlayers}`)
-    print(`Server: {config.serverName}`)
-
+    local total = points[1] + points[2] + points[3]
+    local avg = total / #points
+    print(`ANSWER: avg={avg}`)
     return true
 end
 
-function draw(self: ReadOnlyDemo, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<ReadOnlyDemo>
-    return { init = init, draw = draw }
+return function(): Node<Exercise3>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript uses 'readonly' instead of 'read'
-type ImmutableConfig = {
-    readonly version: string;
-    readonly maxPlayers: number;
-    readonly debug: boolean;
-};
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Replace the array values with 2, 4, 6
+2. Keep the type alias for the array
+
+---
+
+### Expected Output
+
+Your console output should display the average of the array values.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-3"
+    expectedAnswer="ANSWER: avg=4"
+/>
+
+---
+
+### Checklist
+
+- [ ] Array values are correct
+- [ ] Type alias is used
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Optional Field ⭐
+
+### Premise
+
+Custom types can include optional fields. This lets you model data that might not always be present.
+
+:::info Goal
+By the end of this exercise, you will handle an optional field from a type alias.
+:::
+
+### Use Case
+
+A label may include an optional subtitle. If it is missing, you need a safe fallback.
+
+**Example scenarios:**
+- Optional subtitles
+- Default metadata values
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_OptionalField`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+type Label = {
+    text: string,
+    subtitle: string?,
+}
+
+function init(self: Exercise4): boolean
+    local label: Label = {
+        text = "Signal",
+        subtitle = nil,
+    }
+
+    -- TODO: Use "None" when subtitle is nil
+    local subtitle = ""
+
+    print(`ANSWER: subtitle={subtitle}`)
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Read the optional subtitle
+2. Use "None" as a fallback
+
+---
+
+### Expected Output
+
+Your console output should display the subtitle value — either the actual subtitle or the fallback when nil.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-4"
+    expectedAnswer="ANSWER: subtitle=None"
+/>
+
+---
+
+### Checklist
+
+- [ ] Optional field is checked for nil
+- [ ] Fallback value is used
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Function Alias ⭐⭐
+
+### Premise
+
+Function aliases make reusable helpers easier to reason about. They also help you share signatures across multiple scripts.
+
+:::info Goal
+By the end of this exercise, you will use a function type alias.
+:::
+
+### Use Case
+
+You define an easing helper that is reused across animations. The alias makes the required signature explicit.
+
+**Example scenarios:**
+- Easing functions
+- Reusable animation helpers
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_FunctionAlias`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+type EaseFn = (t: number) -> number
+
+function init(self: Exercise5): boolean
+    local easeIn: EaseFn = function(t: number): number
+        -- TODO: Return t * t
+        return 0
+    end
+
+    local eased = easeIn(0.5)
+    print(`ANSWER: eased={eased}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Return t * t in the easing function
+2. Keep the function typed as EaseFn
+
+---
+
+### Expected Output
+
+Your console output should display the eased value computed by the function alias (t squared).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-5"
+    expectedAnswer="ANSWER: eased=0.25"
+/>
+
+---
+
+### Checklist
+
+- [ ] Ease function matches the alias
+- [ ] Output equals 0.25
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: State Alias ⭐⭐
+
+### Premise
+
+You can embed custom types inside `export type` definitions. This keeps complex state organized without repeating fields.
+
+:::info Goal
+By the end of this exercise, you will embed a custom type inside script state.
+:::
+
+### Use Case
+
+You store meter data as a nested structure, then compute a percentage for UI rendering.
+
+**Example scenarios:**
+- Progress meters
+- Battery or cooldown displays
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_StateAlias`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {
+    state: MeterState,
+}
+
+type MeterState = {
+    current: number,
+    max: number,
+}
+
+function init(self: Exercise6): boolean
+    -- TODO: Set current to 50 and max to 100
+    self.state = {
+        current = 0,
+        max = 0,
+    }
+
+    local percent = self.state.current / self.state.max
+    print(`ANSWER: percent={percent}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+        state = { current = 0, max = 0 },
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set current to 50 and max to 100
+2. Keep the nested state typed as MeterState
+
+---
+
+### Expected Output
+
+Your console output should display the percent computed from the nested state alias (current / max).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-6"
+    expectedAnswer="ANSWER: percent=0.5"
+/>
+
+---
+
+### Checklist
+
+- [ ] Nested state uses the alias
+- [ ] Percent equals 0.5
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 7: Config Alias ⭐⭐
+
+### Premise
+
+Aliases make configuration objects easier to pass around without losing clarity. A typed config prevents mismatched fields.
+
+:::info Goal
+By the end of this exercise, you will use a config alias for a small setup table.
+:::
+
+### Use Case
+
+You store tuning values in a config table for a motion effect. Using a type alias keeps every script consistent.
+
+**Example scenarios:**
+- Motion tuning settings
+- Reusable effect configs
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise7_ConfigAlias`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise7 = {}
+
+type Config = {
+    speed: number,
+    enabled: boolean,
+}
+
+function init(self: Exercise7): boolean
+    -- TODO: Set speed to 1.2 and enabled to true
+    local config: Config = {
+        speed = 0,
+        enabled = false,
+    }
+
+    local output = config.enabled and config.speed or 0
+    print(`ANSWER: speed={output}`)
+    return true
+end
+
+function draw(self: Exercise7, renderer: Renderer)
+end
+
+return function(): Node<Exercise7>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set speed to 1.2
+2. Set enabled to true
+
+---
+
+### Expected Output
+
+Your console output should display the speed value from the config alias when enabled is true.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-customtypes-7"
+    expectedAnswer="ANSWER: speed=1.2"
+/>
+
+---
+
+### Checklist
+
+- [ ] Config matches the alias
+- [ ] Enabled gate works
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

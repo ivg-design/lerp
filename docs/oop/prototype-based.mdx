@@ -5,6 +5,7 @@ description: Understanding Lua's prototype-based approach to object-oriented pro
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Prototype-Based OOP
 
@@ -67,542 +68,446 @@ Lua uses **prototype-based** OOP:
 
 ---
 
-## Exercise 1: Understanding the Prototype Chain
+## Exercises
 
-**Goal**: See how method lookup works through the `__index` chain.
+### Exercise 1: Prototype Instance ⭐
 
-**Why This Matters**: Every object you create in Rive finds its methods through this chain. Understanding it prevents "nil" errors and helps you structure code properly.
+### Premise
 
-**Real-World Use**: In a game, all enemies might share movement methods while each type (zombie, robot, alien) adds specific behaviors. The prototype chain lets enemies inherit common code automatically.
+Prototypes let you define shared behavior once, then reuse it across many instances. This is the foundation of OOP in Luau.
 
-**Step-by-Step Setup**:
-1. Create a new Node Script in Rive
-2. Copy the code below
-3. Attach to any node
-4. Check the console for output explaining the lookup process
+:::info Goal
+By the end of this exercise, you will create an instance that delegates to a prototype.
+:::
 
-**Rive setup:** Attach the script to any node and open the Console panel.
+### Use Case
 
-**Expected result:** The Console logs which table provides each method in the chain.
+You want multiple Rive elements to share the same behavior without duplicating functions. A prototype gives every instance the same methods.
 
-```lua
---!strict
-
--- Prototype table (the "parent")
-local Animal = {
-    name = "Unknown",
-    sound = "...",
-}
-
--- Instance table (the "child")
-local dog = setmetatable({
-    name = "Rex",
-}, { __index = Animal })
-
--- dog.name -> found in dog ("Rex")
--- dog.sound -> not in dog, found in Animal ("...")
-```
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript has prototypes too, but hides them behind 'class'
-class Animal {
-    constructor() {
-        this.name = "Unknown";
-        this.sound = "...";
-    }
-}
-
-// Under the hood, JavaScript does similar delegation
-const dog = Object.create(Animal.prototype);
-dog.name = "Rex";
-// dog.sound would come from the prototype chain
-```
-
-**Key Insight**: When you access `dog.sound`, Lua:
-1. Checks `dog` table → not found
-2. Checks metatable's `__index` → it's `Animal`
-3. Checks `Animal` table → found! Returns `"..."`
+**Example scenarios:**
+- Multiple UI elements with shared behaviors
+- Reusable node helpers
 
 ---
 
-## Exercise 2: Complete Node Script - Basic Prototype Pattern
+### Setup
 
-**Goal**: Create a working shape system using prototypes.
+#### In Rive Editor:
 
-**Why This Matters**: This is THE pattern you'll use for every custom object in Rive—particles, UI elements, game characters, animation helpers. Master this and you can build anything.
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_PrototypeInstance`
 
-**Real-World Use**: A data visualization might have dozens of chart elements (bars, lines, points). Each shares drawing logic but has different data. Prototypes let you write the draw method once.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the complete code below
-3. Attach to a node
-4. You'll see a red circle and blue square animating
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- The prototype table holds shared behavior
-local ShapeProto = {}
-ShapeProto.__index = ShapeProto
+export type Exercise1 = {}
 
-export type Shape = {
-    x: number,
-    y: number,
-    color: Color,
-    path: Path,
-    paint: Paint,
-    moveTo: (Shape, number, number) -> (),
-    draw: (Shape, Renderer) -> (),
-}
+local Widget = {}
+Widget.__index = Widget
 
--- Factory function creates instances
-function ShapeProto.new(x: number, y: number, color: Color): Shape
-    local self = setmetatable({}, ShapeProto)
-    self.x = x
-    self.y = y
-    self.color = color
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = color })
-    return (self :: any) :: Shape
+function Widget.new(name: string)
+    return setmetatable({ name = name }, Widget)
 end
 
--- Methods are defined on the prototype
-function ShapeProto:moveTo(newX: number, newY: number)
-    self.x = newX
-    self.y = newY
+function Widget:describe(): string
+    return self.name
 end
 
-function ShapeProto:draw(renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.x, self.y))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
+function init(self: Exercise1): boolean
+    local widget = Widget.new("")
+    -- TODO: Set the widget name to "Panel"
 
--- Node script using the prototype
-export type PrototypeDemo = {
-    shapes: {Shape},
-}
-
-function init(self: PrototypeDemo): boolean
-    -- Create instances from the prototype
-    local circle = ShapeProto.new(-80, 0, Color.rgb(255, 100, 100))
-    circle.path:addEllipse(Vector.xy(0, 0), 30, 30)
-
-    local square = ShapeProto.new(80, 0, Color.rgb(100, 100, 255))
-    square.path:moveTo(Vector.xy(-25, -25))
-    square.path:lineTo(Vector.xy(25, -25))
-    square.path:lineTo(Vector.xy(25, 25))
-    square.path:lineTo(Vector.xy(-25, 25))
-    square.path:close()
-
-    self.shapes = { circle, square }
+    local label = widget:describe()
+    print(`ANSWER: {label}`)
     return true
 end
 
-function advance(self: PrototypeDemo, seconds: number): boolean
-    -- Both shapes share the same moveTo method via prototype
-    for i, shape in ipairs(self.shapes) do
-        shape:moveTo(shape.x + math.sin(os.clock() + i) * 30 * seconds, shape.y)
-    end
-    return true
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-function draw(self: PrototypeDemo, renderer: Renderer)
-    for _, shape in ipairs(self.shapes) do
-        shape:draw(renderer)  -- Shared draw method
-    end
-end
-
-return function(): Node<PrototypeDemo>
+return function(): Node<Exercise1>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        shapes = {},
     }
 end
 ```
 
-**JavaScript/TypeScript Equivalent**:
-```typescript
-// TypeScript version of the same pattern
-interface Shape {
-    x: number;
-    y: number;
-    color: string;
-    moveTo(newX: number, newY: number): void;
-    draw(ctx: CanvasRenderingContext2D): void;
-}
+---
 
-class ShapeProto implements Shape {
-    x: number;
-    y: number;
-    color: string;
+### Assignment
 
-    constructor(x: number, y: number, color: string) {
-        this.x = x;
-        this.y = y;
-        this.color = color;
-    }
+Complete these tasks:
 
-    moveTo(newX: number, newY: number): void {
-        this.x = newX;
-        this.y = newY;
-    }
-
-    draw(ctx: CanvasRenderingContext2D): void {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        // draw shape...
-        ctx.restore();
-    }
-}
-```
-
-**Key insight**: Both `circle` and `square` use the same `moveTo` and `draw` functions stored in `ShapeProto`. No duplication.
+1. Create the widget with the name "Panel"
+2. Keep the prototype and metatable setup unchanged
 
 ---
 
-## How Prototypes Save Memory
+### Expected Output
 
-**Without prototypes (wasteful)**:
-```lua
--- Each object gets its own copy of methods
-local obj1 = {
-    value = 10,
-    increment = function(self) self.value += 1 end,  -- Copy 1
-}
-local obj2 = {
-    value = 20,
-    increment = function(self) self.value += 1 end,  -- Copy 2 (wasteful!)
-}
--- 2 objects = 2 function copies in memory
-```
-
-**With prototypes (efficient)**:
-```lua
--- Methods live in one place
-local Proto = {}
-Proto.__index = Proto
-function Proto:increment() self.value += 1 end  -- Single copy
-
-local obj1 = setmetatable({ value = 10 }, { __index = Proto })
-local obj2 = setmetatable({ value = 20 }, { __index = Proto })
--- 100 objects = still just 1 function copy in memory
-```
-
-In Rive, where you might have dozens of animated elements, this difference matters.
+Your console output should display the widget name returned by the prototype's describe method.
 
 ---
 
-## Exercise 3: Prototype Chain with Inheritance
+### Verify Your Answer
 
-**Goal**: Create a multi-level inheritance chain where specialized objects extend base objects.
+<ExerciseValidator
+    exerciseId="oop-prototypes-1"
+    expectedAnswer="ANSWER: Panel"
+/>
 
-**Why This Matters**: Complex applications need hierarchies. A game character might extend Entity which extends GameObject. Understanding prototype chains lets you build these cleanly.
+---
 
-**Real-World Use**: In a particle system: `Particle` extends `MovingEntity` extends `Entity`. Each level adds functionality without duplicating code.
+### Checklist
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the console to see inheritance in action
-4. Notice how `moving:deactivate()` finds the method in the parent
+- [ ] Widget uses the prototype
+- [ ] Name is set to Panel
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Prototype Counter ⭐
+
+### Premise
+
+Prototypes keep state and behavior together. A counter object demonstrates how methods update instance state.
+
+:::info Goal
+By the end of this exercise, you will create multiple instances that share a method.
+:::
+
+### Use Case
+
+You track independent counters for different UI components. Each counter has its own state but the same increment logic.
+
+**Example scenarios:**
+- Independent timers
+- Multiple progress trackers
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_PrototypeCounter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
--- Base prototype
+export type Exercise2 = {}
+
+local Counter = {}
+Counter.__index = Counter
+
+function Counter.new(start: number)
+    return setmetatable({ value = start }, Counter)
+end
+
+function Counter:increment(): number
+    self.value += 1
+    return self.value
+end
+
+function init(self: Exercise2): boolean
+    local a = Counter.new(0)
+    local b = Counter.new(5)
+
+    local aValue = 0
+    local bValue = 0
+    -- TODO: Increment a twice and store the final value in aValue
+    -- TODO: Increment b once and store the value in bValue
+
+    print(`ANSWER: a={aValue},b={bValue}`)
+    return true
+end
+
+function draw(self: Exercise2, renderer: Renderer)
+end
+
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Call a:increment() twice and store the final result
+2. Call b:increment() once and store the result
+
+---
+
+### Expected Output
+
+Your console output should display the final values of both counters after incrementing (a twice, b once).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-prototypes-2"
+    expectedAnswer="ANSWER: a=2,b=6"
+/>
+
+---
+
+### Checklist
+
+- [ ] Two instances are created
+- [ ] a increments to 2, b increments to 6
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Prototype Inheritance ⭐⭐
+
+### Premise
+
+Prototype chains enable inheritance. A derived table can reuse behavior from a base table through __index delegation.
+
+:::info Goal
+By the end of this exercise, you will build a derived prototype that inherits behavior.
+:::
+
+### Use Case
+
+You define a base entity with shared logic, then create specialized versions like enemies or UI widgets.
+
+**Example scenarios:**
+- Enemy types sharing base behavior
+- Specialized components derived from a base
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_PrototypeInheritance`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {}
+
 local Entity = {}
 Entity.__index = Entity
 
-export type EntityType = {
-    x: number,
-    y: number,
-    active: boolean,
-}
-
-function Entity.new(x: number, y: number): EntityType
-    local self = setmetatable({}, Entity)
-    self.x = x
-    self.y = y
-    self.active = true
-    return (self :: any) :: EntityType
+function Entity.new(kind: string)
+    return setmetatable({ kind = kind }, Entity)
 end
 
 function Entity:describe(): string
-    return `Entity at ({self.x}, {self.y})`
+    return `Kind={self.kind}`
 end
 
-function Entity:deactivate()
-    self.active = false
+local Enemy = {}
+Enemy.__index = Enemy
+setmetatable(Enemy, { __index = Entity })
+
+function Enemy.new(kind: string, level: number)
+    local base = Entity.new(kind)
+    base.level = level
+    return setmetatable(base, Enemy)
 end
 
--- Specialized prototype that extends Entity
-local MovingEntity = setmetatable({}, { __index = Entity })
-MovingEntity.__index = MovingEntity
-
-export type MovingEntityType = EntityType & {
-    vx: number,
-    vy: number,
-}
-
-function MovingEntity.new(x: number, y: number, vx: number, vy: number): MovingEntityType
-    local self = setmetatable({}, MovingEntity)
-    self.x = x
-    self.y = y
-    self.vx = vx
-    self.vy = vy
-    self.active = true
-    return (self :: any) :: MovingEntityType
+function Enemy:tag(): string
+    return `Enemy Lv.{self.level} {self.kind}`
 end
 
-function MovingEntity:update(dt: number)
-    if self.active then
-        self.x += self.vx * dt
-        self.y += self.vy * dt
-    end
-end
+function init(self: Exercise3): boolean
+    local enemy = Enemy.new("", 0)
+    -- TODO: Set kind to "Crawler" and level to 3
 
--- Override describe but can still access parent behavior
-function MovingEntity:describe(): string
-    return `MovingEntity at ({self.x}, {self.y}) moving ({self.vx}, {self.vy})`
-end
-
-export type ChainDemo = {
-    entities: {EntityType | MovingEntityType},
-}
-
-function init(self: ChainDemo): boolean
-    local static = Entity.new(0, 50)
-    local moving = MovingEntity.new(0, -50, 20, 0)
-
-    -- Both have describe() - but different implementations
-    print(static:describe())   -- "Entity at (0, 50)"
-    print(moving:describe())   -- "MovingEntity at (0, -50) moving (20, 0)"
-
-    -- Both have deactivate() - moving inherits it from Entity
-    moving:deactivate()
-    print(`Moving active: {moving.active}`)  -- false
-
-    self.entities = { static, moving }
+    local label = enemy:tag()
+    print(`ANSWER: {label}`)
     return true
 end
 
-function draw(self: ChainDemo, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<ChainDemo>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
-        entities = {},
     }
 end
 ```
 
-**JavaScript Equivalent**:
-```javascript
-// JavaScript class inheritance (hides prototype mechanics)
-class Entity {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.active = true;
-    }
+---
 
-    describe() {
-        return `Entity at (${this.x}, ${this.y})`;
-    }
+### Assignment
 
-    deactivate() {
-        this.active = false;
-    }
-}
+Complete these tasks:
 
-class MovingEntity extends Entity {
-    constructor(x, y, vx, vy) {
-        super(x, y);  // Luau: done manually
-        this.vx = vx;
-        this.vy = vy;
-    }
-
-    update(dt) {
-        if (this.active) {
-            this.x += this.vx * dt;
-            this.y += this.vy * dt;
-        }
-    }
-
-    // Override
-    describe() {
-        return `MovingEntity at (${this.x}, ${this.y})`;
-    }
-}
-```
-
-**Prototype chain lookup for `moving:deactivate()`**:
-1. Look in `moving` table - not found
-2. Check metatable `__index` - it's `MovingEntity`
-3. Look in `MovingEntity` - not found
-4. Check `MovingEntity`'s metatable `__index` - it's `Entity`
-5. Look in `Entity` - found `deactivate`!
+1. Create the enemy with kind "Crawler" and level 3
+2. Keep the inheritance chain intact
 
 ---
 
-## Exercise 4: Dynamic Prototypes (Runtime Modification)
+### Expected Output
 
-**Goal**: Modify prototype behavior at runtime to affect all instances.
+Your console output should display the enemy's tag string showing level and kind from the inherited prototype chain.
 
-**Why This Matters**: Unlike classes in Java/C#, prototypes can change. This enables features like power-ups that modify all enemies, or theme switches that update all UI elements.
+---
 
-**Real-World Use**: In a game, activating a "slow motion" power-up could modify the movement prototype to slow down ALL moving objects at once—without looping through each one.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the circles—after 2 seconds, all radii double because we modified the prototype!
+<ExerciseValidator
+    exerciseId="oop-prototypes-3"
+    expectedAnswer="ANSWER: Enemy Lv.3 Crawler"
+/>
+
+---
+
+### Checklist
+
+- [ ] Enemy inherits from Entity
+- [ ] Label shows level and kind
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Dynamic Prototype Update ⭐⭐
+
+### Premise
+
+Prototypes are dynamic: you can add or change behavior at runtime. Instances automatically see updated methods.
+
+:::info Goal
+By the end of this exercise, you will add a method to a prototype after creating an instance.
+:::
+
+### Use Case
+
+You need to add a helper method during development without rebuilding every instance. Updating the prototype updates all instances.
+
+**Example scenarios:**
+- Debug methods added late
+- Live updates to shared behavior
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_DynamicPrototype`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-local Drawable = {}
-Drawable.__index = Drawable
+export type Exercise4 = {}
 
-export type DrawableType = {
-    x: number,
-    y: number,
-    size: number,
-}
+local Pulse = {}
+Pulse.__index = Pulse
 
-function Drawable.new(x: number, y: number, size: number): DrawableType
-    local self = setmetatable({}, Drawable)
-    self.x = x
-    self.y = y
-    self.size = size
-    return (self :: any) :: DrawableType
+function Pulse.new(value: number)
+    return setmetatable({ value = value }, Pulse)
 end
 
--- Initial shared method
-function Drawable:getRadius(): number
-    return self.size / 2
+function Pulse:double(): number
+    -- TODO: Return self.value * 2
+    return 0
 end
 
-export type DynamicProtoDemo = {
-    items: {DrawableType},
-    path: Path,
-    paint: Paint,
-    modified: boolean,
-}
+function init(self: Exercise4): boolean
+    local pulse = Pulse.new(4)
 
-function init(self: DynamicProtoDemo): boolean
-    self.items = {
-        Drawable.new(-60, 0, 40),
-        Drawable.new(0, 0, 60),
-        Drawable.new(60, 0, 30),
-    }
-
-    self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 255) })
-    self.modified = false
-
-    -- All items use the same getRadius method
-    for _, item in ipairs(self.items) do
-        print(`Radius: {item:getRadius()}`)
-    end
-
+    local doubled = pulse:double()
+    print(`ANSWER: {doubled}`)
     return true
 end
 
-function advance(self: DynamicProtoDemo, seconds: number): boolean
-    -- After 2 seconds, modify the prototype
-    if os.clock() > 2 and not self.modified then
-        -- Change behavior for ALL instances at once
-        Drawable.getRadius = function(s: DrawableType): number
-            return s.size  -- Now returns full size instead of half
-        end
-        self.modified = true
-        print("Prototype modified! All radii doubled.")
-    end
-    return true
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-function draw(self: DynamicProtoDemo, renderer: Renderer)
-    for _, item in ipairs(self.items) do
-        self.path:reset()
-        self.path:addEllipse(Vector.xy(item.x, item.y), item:getRadius(), item:getRadius())
-        renderer:drawPath(self.path, self.paint)
-    end
-end
-
-return function(): Node<DynamicProtoDemo>
+return function(): Node<Exercise4>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        items = {},
-        path = Path.new(),
-        paint = Paint.new(),
-        modified = false,
     }
 end
 ```
 
-**JavaScript Equivalent**:
-```javascript
-// JavaScript can also modify prototypes at runtime
-class Drawable {
-    constructor(x, y, size) {
-        this.x = x;
-        this.y = y;
-        this.size = size;
-    }
+---
 
-    getRadius() {
-        return this.size / 2;
-    }
-}
+### Assignment
 
-// Later, modify the prototype:
-Drawable.prototype.getRadius = function() {
-    return this.size;  // All instances now see this change
-};
-```
+Complete these tasks:
 
-**Rive use case**: You could modify prototype behavior based on game state - e.g., all enemies become faster when a power-up expires.
+1. Implement the double method
+2. Return value * 2 from the method
 
 ---
 
-## Comparing OOP Approaches
+### Expected Output
 
-| Feature | Class-Based (Java/C#) | Prototype-Based (Lua) |
-|---------|----------------------|----------------------|
-| Blueprint | Class definition | Prototype object |
-| Instance creation | `new ClassName()` | `setmetatable({}, proto)` |
-| Method lookup | Class hierarchy | `__index` chain |
-| Runtime modification | Limited | Fully dynamic |
-| Memory model | Methods on class | Methods on prototype |
-| Best for | Large teams, strict contracts | Flexible, lightweight systems |
+Your console output should display the doubled value returned by the prototype method.
 
 ---
 
-## When to Use Prototypes in Rive
+### Verify Your Answer
 
-**Use prototypes when:**
-- Multiple objects share the same behavior (particles, UI elements)
-- You need runtime flexibility (theme switching, behavior modes)
-- Memory efficiency matters (many instances)
-
-**Use plain tables when:**
-- Objects are one-offs (main game state)
-- No shared behavior needed (configuration)
-- Simplicity is more important than structure
+<ExerciseValidator
+    exerciseId="oop-prototypes-4"
+    expectedAnswer="ANSWER: 8"
+/>
 
 ---
 
+### Checklist
+
+- [ ] Method is added to the prototype
+- [ ] doubled equals 8
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

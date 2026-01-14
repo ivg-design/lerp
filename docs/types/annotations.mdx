@@ -5,6 +5,7 @@ description: Master type annotations for Rive Node Scripts with practical patter
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Type Annotations Deep Dive
 
@@ -106,509 +107,603 @@ class MyScript {
 
 ## Practice Exercises
 
-### Exercise 1: Annotate Script State
+### Exercise 1: Exported State Shape ⭐
 
-**Goal:** Learn how to define persistent state in your script using `export type`.
+### Premise
 
-**Why This Matters:** The `export type` tells Rive what data your script needs to track. Without it, you can't have persistent state that survives between frames.
+Your `export type` is the contract for your script state. When the shape is clear, you can trust every field and the editor can catch mistakes early.
 
-**Real-World Use:** Every game character, particle system, and animation controller needs to track state (health, position, velocity, etc.). The `export type` is where you declare all of it.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add `--!strict` at the top
-3. Define your `export type` with the properties you need
-4. Set those properties in `init()`
-5. Use `late()` in the factory for properties set in `init()`
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints the character stats once on init.
-
-**Task**: Create a character stats script with properly typed state.
-
-```lua
---!strict
-
-export type CharacterStats = {
-    health: number,
-    stamina: number,
-    name: string,
-}
-
-function init(self: CharacterStats): boolean
-    self.health = 100
-    self.stamina = 50
-    self.name = "Astra"
-
-    print(`{self.name}: {self.health} HP, {self.stamina} STA`)
-    return true
-end
-
-function draw(self: CharacterStats, renderer: Renderer)
-end
-
-return function(): Node<CharacterStats>
-    return {
-        init = init,
-        draw = draw,
-        health = late(),
-        stamina = late(),
-        name = late(),
-    }
-end
-```
-
-**Why `late()`?** These values are set in `init()`, not when the Node is created. The `late()` placeholder tells the type system "this will be provided later."
-
-**JavaScript Equivalent (conceptually):**
-```javascript
-// In JavaScript, you'd set properties in the constructor:
-class CharacterStats {
-    constructor() {
-        this.health = 100;  // Set immediately
-        this.stamina = 50;
-        this.name = "Astra";
-    }
-}
-
-// In Rive, the factory runs BEFORE init(),
-// so properties set in init() need late()
-```
-
----
-
-### Exercise 2: Function Annotations in Rive Scripts
-
-**Goal:** Learn how to properly annotate helper functions with parameter and return types.
-
-**Why This Matters:** When you write utility functions, clear types prevent bugs. A function that returns a number won't accidentally return a string.
-
-**Real-World Use:** Damage calculation, clamping values, interpolation—all common helpers that need correct types.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add `--!strict` at the top
-3. Write helper functions ABOVE your main functions
-4. Annotate both parameters AND return types
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints clamped values and stats from the helper functions.
-
-**Task**: Add complete type annotations to helper functions.
-
-```lua
---!strict
-
-export type FunctionTypes = {}
-
--- Helper function with full annotations
-local function clamp(value: number, minVal: number, maxVal: number): number
-    if value < minVal then return minVal end
-    if value > maxVal then return maxVal end
-    return value
-end
-
--- Function that processes damage
-local function calculateDamage(base: number, armor: number): number
-    local reduced = base - armor
-    if reduced < 0 then return 0 end
-    return reduced
-end
-
--- Function returning multiple values
-local function getStats(): (number, number, string)
-    return 100, 50, "Warrior"
-end
-
-function init(self: FunctionTypes): boolean
-    print(clamp(120, 0, 100))           -- 100
-    print(calculateDamage(50, 20))       -- 30
-
-    local hp, mp, class = getStats()
-    print(`{class}: {hp} HP, {mp} MP`)
-
-    return true
-end
-
-function draw(self: FunctionTypes, renderer: Renderer)
-end
-
-return function(): Node<FunctionTypes>
-    return {
-        init = init,
-        draw = draw,
-    }
-end
-```
-
-**JavaScript Equivalent:**
-```javascript
-// JavaScript (no type safety)
-function clamp(value, minVal, maxVal) {
-    if (value < minVal) return minVal;
-    if (value > maxVal) return maxVal;
-    return value;
-}
-
-// TypeScript (with types)
-function clamp(value: number, minVal: number, maxVal: number): number {
-    if (value < minVal) return minVal;
-    if (value > maxVal) return maxVal;
-    return value;
-}
-
-// Multiple return values don't exist in JS/TS the same way
-// You'd use an object or tuple:
-function getStats(): [number, number, string] {
-    return [100, 50, "Warrior"];
-}
-```
-
----
-
-### Exercise 3: Inputs Are Typed (Rive-Specific)
-
-**Goal:** Understand how `Input<T>` works—a Rive-specific concept with no direct JavaScript equivalent.
-
-**Why This Matters:** `Input<T>` connects your script to the Rive editor. When a designer changes a value in the editor, your script sees the new value directly.
-
-**Real-World Use:** Every configurable property in your animation (speed, color, size, enabled state) should be an Input so designers can tweak it without editing code.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Define your `export type` with `Input<T>` properties
-3. Read input values directly in your code (e.g., `self.speed`)
-4. Set DEFAULT values (not `late()`) for Inputs in the factory
-
-**Context**: `Input<T>` is Rive's way of exposing values to the editor. The `T` determines what type of value the input holds.
-
-:::note Rive Result
-Attach the script to any node, set the input values in the inspector, then press Play. The Console prints the current input values so you can confirm they update when you change defaults.
+:::info Goal
+By the end of this exercise, you will define a typed state shape and initialize it.
 :::
 
+### Use Case
+
+You are building a small overlay with a label, opacity, and enabled flag. These values are used by multiple functions, so the type definition must be explicit.
+
+**Example scenarios:**
+- UI overlays with labels and toggles
+- Shared state between init and draw
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_StateShape`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
 ```lua
 --!strict
 
-export type InputDemo = {
+export type Exercise1 = {
+    label: string,
+    opacity: number,
+    enabled: boolean,
+}
+
+function init(self: Exercise1): boolean
+    -- TODO: Set the state fields to the correct values
+    self.label = ""
+    self.opacity = 0
+    self.enabled = false
+
+    print(`ANSWER: label={self.label},opacity={self.opacity},enabled={self.enabled}`)
+    return true
+end
+
+function draw(self: Exercise1, renderer: Renderer)
+end
+
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+        label = "",
+        opacity = 0,
+        enabled = false,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set label to `Glow`
+2. Set opacity to `0.8`
+3. Set enabled to `true`
+
+---
+
+### Expected Output
+
+Your console output should display the three annotated field values demonstrating proper type annotations.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-annotations-1"
+    expectedAnswer="ANSWER: label=Glow,opacity=0.8,enabled=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] Fields match their annotated types
+- [ ] Values match the assignment
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Typed Range Table ⭐
+
+### Premise
+
+Table types let you describe structured data with clarity. Even small structs like ranges and bounds benefit from explicit annotations.
+
+:::info Goal
+By the end of this exercise, you will annotate a table with a custom type.
+:::
+
+### Use Case
+
+You are clamping motion in a small range before driving a Rive animation. A typed range table keeps min and max consistent.
+
+**Example scenarios:**
+- Clamping progress values
+- Defining numeric ranges for inputs
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_TypedRange`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {}
+
+type Range = {
+    min: number,
+    max: number,
+}
+
+function init(self: Exercise2): boolean
+    -- TODO: Set min to 3 and max to 15
+    local bounds: Range = {
+        min = 0,
+        max = 0,
+    }
+
+    local range = bounds.max - bounds.min
+    print(`ANSWER: range={range}`)
+    return true
+end
+
+function draw(self: Exercise2, renderer: Renderer)
+end
+
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set `min` to 3 and `max` to 15
+2. Keep `bounds` typed as `Range`
+
+---
+
+### Expected Output
+
+Your console output should display the computed range (max minus min) from the typed table.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-annotations-2"
+    expectedAnswer="ANSWER: range=12"
+/>
+
+---
+
+### Checklist
+
+- [ ] Range table uses the correct type
+- [ ] Min and max are correct
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Input Defaults ⭐
+
+### Premise
+
+`Input<T>` values are editor-controlled and read-only in scripts. You provide defaults in the factory, then read them in init.
+
+:::info Goal
+By the end of this exercise, you will declare `Input<T>` fields and read them safely.
+:::
+
+### Use Case
+
+A designer tweaks speed and enablement from the editor. Your script reads those values each run without mutating them.
+
+**Example scenarios:**
+- Adjustable speed or opacity sliders
+- Toggleable effects in the editor
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_InputDefaults`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {
     speed: Input<number>,
-    label: Input<string>,
     enabled: Input<boolean>,
-    tint: Input<Color>,
 }
 
-function init(self: InputDemo): boolean
-    -- Read inputs directly
-    print(`Speed: {self.speed}`)
-    print(`Label: {self.label}`)
-    print(`Enabled: {self.enabled}`)
+function init(self: Exercise3): boolean
+    local speed = self.speed
+    local enabled = self.enabled
+    local boost = speed * (enabled and 2 or 1)
 
-    -- Color inputs work the same way
-    local r = Color.red(self.tint)
-    print(`Tint red channel: {r}`)
-
+    print(`ANSWER: boost={boost}`)
     return true
 end
 
-function draw(self: InputDemo, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<InputDemo>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
-        -- Default values for inputs (NOT late()!)
-        speed = 10,
-        label = "Runner",
+        speed = 1.5,
         enabled = true,
-        tint = Color.rgba(255, 128, 0, 255),
     }
 end
 ```
 
-:::danger Critical Rule: Input vs Non-Input
-```lua
--- Input<number> properties get DIRECT default values
-speed = 10,
+---
 
--- Non-Input properties set in init() use late()
-computedSpeed = late(),
-```
+### Assignment
 
-`Input<T>` is provided by Rive automatically. You provide the default value, and Rive treats it as an editor-exposed input with change tracking and editor integration.
+Complete these tasks:
+
+1. Keep speed as an `Input<number>`
+2. Keep enabled as an `Input<boolean>`
+3. Use the provided defaults (1.5 and true)
+
+---
+
+### Expected Output
+
+Your console output should display the boost value computed from the Input fields (speed × 2 when enabled).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-annotations-3"
+    expectedAnswer="ANSWER: boost=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Input fields have direct defaults
+- [ ] Values are read, not assigned
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Input to State ⭐⭐
+
+### Premise
+
+Input values are read-only, but your script can derive writable state from them. This pattern keeps editor controls clean while letting you compute internal values.
+
+:::info Goal
+By the end of this exercise, you will derive typed state from `Input<T>` fields.
 :::
 
-**Key insight**: `Input<number>` is not the same as `number`. It is editor-controlled and read-only in scripts, even though you read it directly (e.g., `self.speed`).
+### Use Case
+
+A speed input comes from the editor, but your script stores a smoothed version for use during animation.
+
+**Example scenarios:**
+- Smoothed speed values
+- Precomputed thresholds
 
 ---
 
-### Exercise 4: Type Inference vs. Explicit Types
+### Setup
 
-**Goal:** Learn when to explicitly annotate types vs. when to let Luau infer them.
+#### In Rive Editor:
 
-**Why This Matters:** Over-annotating clutters code. Under-annotating causes errors. This exercise teaches the right balance.
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_InputToState`
 
-**Real-World Use:** Professional code annotates `export type`, function signatures, and ambiguous cases—but lets Luau infer obvious local variables.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Step-by-Step Setup:**
-1. Create a new Node Script
-2. Notice which variables need explicit types
-3. Notice which can be inferred
+---
 
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints inferred values, and the editor flags missing types on empty tables if you remove annotations.
-
-**Guideline**: Use explicit types for `self` and function signatures. Let locals infer unless unclear.
+### Starter Code
 
 ```lua
 --!strict
 
-export type InferenceDemo = {
-    count: number,
-    items: {string},
+export type Exercise4 = {
+    speed: Input<number>,
+    smoothed: number,
 }
 
-function init(self: InferenceDemo): boolean
-    -- self.count is explicitly typed in export type
-    self.count = 0
-    self.items = {}
+function init(self: Exercise4): boolean
+    -- TODO: Compute a smoothed value from speed
+    self.smoothed = 0
 
-    -- Local variables can often infer their type
-    local nextCount = self.count + 1     -- Inferred as number
-    local greeting = "Hello"              -- Inferred as string
-    local scores = {10, 20, 30}          -- Inferred as {number}
-
-    -- Empty tables NEED explicit types (Luau can't infer element type)
-    local names: {string} = {}            -- Must annotate!
-    local coords: {x: number, y: number} = {x = 0, y = 0}
-
-    print(`Next count: {nextCount}`)
-    print(`Scores: {#scores}`)
-
+    print(`ANSWER: smoothed={self.smoothed}`)
     return true
 end
 
-function draw(self: InferenceDemo, renderer: Renderer)
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-return function(): Node<InferenceDemo>
+return function(): Node<Exercise4>
     return {
         init = init,
         draw = draw,
-        count = late(),
-        items = late(),
+        speed = 2.0,
+        smoothed = late(),
     }
 end
 ```
 
-**When to Annotate (DO):**
-- `export type` definitions (always)
-- Function parameters and return types (always)
-- Empty tables (`local x: {string} = {}`)
-- Ambiguous cases where inference might fail
+---
 
-**When to Infer (DON'T annotate):**
-- Simple assignments (`local x = 5`)
-- Tables with initial values (`local items = {"a", "b"}`)
-- Return values from well-typed functions
+### Assignment
+
+Complete these tasks:
+
+1. Multiply speed by 0.9
+2. Store the result in `self.smoothed`
 
 ---
 
-### Exercise 5: Annotating Complex State
+### Expected Output
 
-**Goal:** Build more sophisticated scripts with nested types.
+Your console output should display the smoothed value derived from the input speed.
 
-**Why This Matters:** Real animations need complex state—a character has position, velocity, stats, inventory. Nested types keep this organized.
+---
 
-**Real-World Use:** Physics simulations, game characters, particle systems—all need nested state structures.
+### Verify Your Answer
 
-**Step-by-Step Setup:**
-1. Define smaller types first (`Position`, `Velocity`)
-2. Compose them into a larger type (`PhysicsObject`)
-3. Use those types in your `export type`
+<ExerciseValidator
+    exerciseId="types-annotations-4"
+    expectedAnswer="ANSWER: smoothed=1.8"
+/>
 
-**Rive setup:** Attach the script to any node and let it run.
+---
 
-**Expected result:** The Console prints the initial spawn position; the state updates silently each frame.
+### Checklist
 
-**Task**: Build a more complex script with nested types.
+- [ ] Input is read-only
+- [ ] smoothed is computed in init
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Input Label to Status ⭐⭐
+
+### Premise
+
+String inputs are common for labels and identifiers. A typed status string ensures you do not mix raw input with computed output.
+
+:::info Goal
+By the end of this exercise, you will derive a typed string from an input label.
+:::
+
+### Use Case
+
+A designer supplies a label in the editor. Your script adds a status suffix before displaying it.
+
+**Example scenarios:**
+- Label formatting for HUD elements
+- Status text in a state machine
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_LabelStatus`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-type Position = {
-    x: number,
-    y: number,
+export type Exercise5 = {
+    label: Input<string>,
+    status: string,
 }
 
-type Velocity = {
-    dx: number,
-    dy: number,
-}
+function init(self: Exercise5): boolean
+    -- TODO: Create status as "<label> ready"
+    self.status = ""
 
-export type PhysicsObject = {
-    position: Position,
-    velocity: Velocity,
-    mass: number,
-    friction: number,
-}
-
-function init(self: PhysicsObject): boolean
-    self.position = { x = 100, y = 50 }
-    self.velocity = { dx = 0, dy = 0 }
-    self.mass = 1.0
-    self.friction = 0.98
-
-    print(`Spawned at ({self.position.x}, {self.position.y})`)
+    print(`ANSWER: status={self.status}`)
     return true
 end
 
-function advance(self: PhysicsObject, elapsed: number): boolean
-    -- Update position based on velocity
-    self.position.x += self.velocity.dx * elapsed
-    self.position.y += self.velocity.dy * elapsed
-
-    -- Apply friction
-    self.velocity.dx *= self.friction
-    self.velocity.dy *= self.friction
-
-    return true
+function draw(self: Exercise5, renderer: Renderer)
 end
 
-function draw(self: PhysicsObject, renderer: Renderer)
-end
-
-return function(): Node<PhysicsObject>
+return function(): Node<Exercise5>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        position = late(),
-        velocity = late(),
-        mass = late(),
-        friction = late(),
+        label = "Orbit",
+        status = late(),
     }
 end
 ```
 
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript approach
-interface Position {
-    x: number;
-    y: number;
-}
+---
 
-interface Velocity {
-    dx: number;
-    dy: number;
-}
+### Assignment
 
-interface PhysicsObject {
-    position: Position;
-    velocity: Velocity;
-    mass: number;
-    friction: number;
-}
+Complete these tasks:
 
-// The nested types work the same way conceptually
-```
+1. Read the input label from `self.label`
+2. Set `self.status` to `"<label> ready"`
 
 ---
 
-### Exercise 6: Working with Rive Types
+### Expected Output
 
-**Goal:** Use Rive's built-in types correctly with their constructors.
+Your console output should display the formatted status string combining the input label with a suffix.
 
-**Why This Matters:** Rive provides `Vector`, `Color`, `Path`, and `Paint` types. These are NOT plain tables—they're engine objects with special methods. Using them correctly is essential.
+---
 
-**Real-World Use:** Every Rive script that draws anything uses these types. Every script that positions elements uses `Vector`.
+### Verify Your Answer
 
-**Step-by-Step Setup:**
-1. Declare Rive types in your `export type`
-2. Create them in `init()` using constructors
-3. Use `late()` in the factory
-4. Access properties and methods in `draw()`
+<ExerciseValidator
+    exerciseId="types-annotations-5"
+    expectedAnswer="ANSWER: status=Orbit ready"
+/>
 
-**Rive setup:** Attach the script to any node on the artboard (a group is fine). This exercise draws a circle using the `draw()` callback.
+---
 
-**Expected result:** You should see a stroked circle drawn at the given position when you press Play.
+### Checklist
 
-**Task**: Use Rive's built-in types correctly.
+- [ ] label is an `Input<string>`
+- [ ] status is computed in init
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Function Field Annotation ⭐⭐
+
+### Premise
+
+Functions can be stored as fields, and their signatures should be typed too. This makes it clear how the function should be called elsewhere in the script.
+
+:::info Goal
+By the end of this exercise, you will annotate a function field in a state type.
+:::
+
+### Use Case
+
+You want a reusable formatter that converts a label and value into a single string used across multiple prints or UI labels.
+
+**Example scenarios:**
+- Label formatting helpers
+- Reusable debugging output
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_FunctionField`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type RiveTypesDemo = {
-    position: Vector,
-    color: Color,
-    path: Path,
-    paint: Paint,
+export type Exercise6 = {
+    format: (label: string, value: number) -> string,
 }
 
-local function addCircle(path: Path, center: Vector, radius: number)
-    local k = 0.5522847498
-    local cx, cy = center.x, center.y
-    local r = radius
-
-    path:moveTo(Vector.xy(cx, cy - r))
-    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
-    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
-    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
-    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
-    path:close()
-end
-
-function init(self: RiveTypesDemo): boolean
-    -- CORRECT way to create Rive types:
-    self.position = Vector.xy(100, 50)           -- Not {x = 100, y = 50}
-    self.color = Color.rgba(255, 0, 0, 255)      -- Not "#FF0000"
-    self.path = Path.new()
-    self.paint = Paint.new()
-
-    -- Set paint properties
-    self.paint.color = self.color
-    self.paint.thickness = 2
-    self.paint.style = PaintStyle.stroke
-
-    print("Position:", self.position.x, self.position.y)
-    print("Color red:", Color.red(self.color))
-
+function init(self: Exercise6): boolean
+    local result = self.format("Glow", 4)
+    print(`ANSWER: {result}`)
     return true
 end
 
-function draw(self: RiveTypesDemo, renderer: Renderer)
-    -- Draw a circle at position
-    self.path:reset()
-    addCircle(self.path, self.position, 25)
-    renderer:drawPath(self.path, self.paint)
+function draw(self: Exercise6, renderer: Renderer)
 end
 
-return function(): Node<RiveTypesDemo>
+return function(): Node<Exercise6>
     return {
         init = init,
         draw = draw,
-        position = late(),
-        color = late(),
-        path = late(),
-        paint = late(),
+        format = function(label: string, value: number): string
+            -- TODO: Return "label:value" with a colon
+            return ""
+        end,
     }
 end
 ```
 
-**Rive Type Constructors:**
+---
 
-| Type | Constructor | Example |
-|------|------------|---------|
-| `Vector` | `Vector.xy(x, y)` | `Vector.xy(100, 50)` |
-| `Color` | `Color.rgba(r, g, b, a)` | `Color.rgba(255, 0, 0, 255)` |
-| `Path` | `Path.new()` | `Path.new()` |
-| `Paint` | `Paint.new()` | `Paint.new()` |
+### Assignment
+
+Complete these tasks:
+
+1. Return `label .. ":" .. value` from format
+2. Keep the function signature typed
 
 ---
 
+### Expected Output
+
+Your console output should display the formatted result from the typed function field.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-annotations-6"
+    expectedAnswer="ANSWER: Glow:4"
+/>
+
+---
+
+### Checklist
+
+- [ ] Function field has a typed signature
+- [ ] Formatter returns the correct string
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz
@@ -624,15 +719,15 @@ end
 />
 
 <Quiz
-  question="What's the difference between Input<number> and number?"
+  question="What's the difference between Input&lt;number&gt; and number?"
   id="anno-q2"
   options={[
     { text: "They're the same thing" },
-    { text: "Input<number> is an editor-exposed, read-only input value", correct: true },
-    { text: "Input<number> is faster" },
+    { text: "Input&lt;number&gt; is an editor-exposed, read-only input value", correct: true },
+    { text: "Input&lt;number&gt; is faster" },
     { text: "number can't be used in strict mode" },
   ]}
-  explanation="Input<T> values are controlled by the editor and are read-only in scripts, even though you read them directly."
+  explanation="Input&lt;T&gt; values are controlled by the editor and are read-only in scripts, even though you read them directly."
 />
 
 <Quiz

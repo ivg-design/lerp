@@ -5,6 +5,7 @@ description: Create proper class constructors with typing and methods
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 3.2: Building Classes
 
@@ -87,481 +88,288 @@ return MyClass
 
 ---
 
-## Exercise 1: Build a Spring Class in a Util Script
+## Exercises
 
-**Goal**: Create a reusable physics spring that can be imported into any Node script.
+### Exercise 1: Spring Step ⭐⭐
 
-**Why This Matters**: Springs are fundamental to smooth animations. Rather than hardcoding spring math everywhere, you create a class once and reuse it. This is the professional approach—write once, use everywhere.
+### Premise
 
-**Real-World Use**: UI animations use springs constantly: bouncy buttons, elastic menus, smooth scroll deceleration. A Spring class lets you animate any value with physics instead of linear interpolation.
+A class pattern groups state and behavior. A simple spring class shows how methods update internal state.
 
-**Step-by-Step Setup**:
-1. In Rive, create a new **Util Script** named "Spring"
-2. Copy the code below
-3. This becomes your reusable spring library
+:::info Goal
+By the end of this exercise, you will implement a class method that updates state.
+:::
 
-**File: `Spring.luau` (Util Script)**
+### Use Case
+
+Springs are common for easing UI or motion values. A class keeps the parameters and step logic together.
+
+**Example scenarios:**
+- Smooth UI transitions
+- Animated easing helpers
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_SpringStep`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
+
+export type Exercise1 = {}
 
 local Spring = {}
 Spring.__index = Spring
 
-export type Spring = {
-    position: number,
-    velocity: number,
-    target: number,
-    stiffness: number,
-    damping: number,
-    step: (Spring, number) -> (),
-    snap: (Spring, number) -> (),
-}
-
-function Spring.new(position: number, stiffness: number, damping: number): Spring
-    local self = setmetatable({}, Spring)
-    self.position = position
-    self.velocity = 0
-    self.target = position
-    self.stiffness = stiffness
-    self.damping = damping
-    return (self :: any) :: Spring
+function Spring.new(value: number, target: number, stiffness: number)
+    return setmetatable({ value = value, target = target, stiffness = stiffness }, Spring)
 end
 
-function Spring:step(dt: number)
-    local displacement = self.target - self.position
-    self.velocity += displacement * self.stiffness * dt
-    self.velocity *= math.max(0, 1 - self.damping * dt)
-    self.position += self.velocity * dt
+function Spring:step(): number
+    self.value += (self.target - self.value) * self.stiffness
+    return self.value
 end
 
-function Spring:snap(value: number)
-    self.position = value
-    self.target = value
-    self.velocity = 0
-end
+function init(self: Exercise1): boolean
+    local spring = Spring.new(0, 10, 0.5)
+    local result = 0
+    -- TODO: Call spring:step() once and store the result
 
-return Spring
-```
-
-**JavaScript/TypeScript Equivalent**:
-```typescript
-// TypeScript class version
-class Spring {
-    position: number;
-    velocity: number = 0;
-    target: number;
-    stiffness: number;
-    damping: number;
-
-    constructor(position: number, stiffness: number, damping: number) {
-        this.position = position;
-        this.target = position;
-        this.stiffness = stiffness;
-        this.damping = damping;
-    }
-
-    step(dt: number): void {
-        const displacement = this.target - this.position;
-        this.velocity += displacement * this.stiffness * dt;
-        this.velocity *= Math.max(0, 1 - this.damping * dt);
-        this.position += this.velocity * dt;
-    }
-
-    snap(value: number): void {
-        this.position = value;
-        this.target = value;
-        this.velocity = 0;
-    }
-}
-```
-
----
-
-## Exercise 2: Use the Class in a Node Script
-
-**Goal**: Animate a square using the Spring class and a script input.
-
-**Why This Matters**: This shows the Rive workflow: Util scripts contain reusable logic, Node scripts consume them. Changing the Spring class updates ALL animations that use it.
-
-**Real-World Use**: You might have a Spring for position, one for scale, one for rotation—all using the same class. Adjusting `stiffness` and `damping` lets you fine-tune the feel without rewriting physics.
-
-**Step-by-Step Setup**:
-1. Create a Node Script for Exercise 2
-2. Attach it to a Node in Rive
-3. Adjust the `target` input in the sidebar
-4. Watch the square spring to the new position!
-
-```lua
---!strict
-
-local SpringLib = require("Spring")
-
-export type SpringDemo = {
-    target: Input<number>,
-    spring: SpringLib.Spring,
-    path: Path,
-    paint: Paint,
-}
-
-function init(self: SpringDemo): boolean
-    self.path = Path.new()
-    self.path:moveTo(Vector.xy(-12, -12))
-    self.path:lineTo(Vector.xy(12, -12))
-    self.path:lineTo(Vector.xy(12, 12))
-    self.path:lineTo(Vector.xy(-12, 12))
-    self.path:close()
-
-    self.paint = Paint.with({
-        style = "fill",
-        color = Color.rgb(255, 200, 0),
-    })
-
+    print(`ANSWER: {result}`)
     return true
 end
 
-function update(self: SpringDemo)
-    self.spring.target = self.target
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-function advance(self: SpringDemo, seconds: number): boolean
-    self.spring:step(seconds)
-    return true
-end
-
-function draw(self: SpringDemo, renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.spring.position, 0))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
-
-return function(): Node<SpringDemo>
+return function(): Node<Exercise1>
     return {
         init = init,
-        update = update,
-        advance = advance,
         draw = draw,
-        target = 160,
-        spring = SpringLib.new(0, 30, 6),
-        path = Path.new(),
-        paint = Paint.new(),
     }
 end
 ```
 
-**JavaScript Equivalent** (conceptually):
-```javascript
-// In a web app, you'd import the Spring class
-import { Spring } from './Spring';
+---
 
-class SpringDemo {
-    target = 160;
-    spring = new Spring(0, 30, 6);
+### Assignment
 
-    update() {
-        this.spring.target = this.target;
-    }
+Complete these tasks:
 
-    advance(seconds) {
-        this.spring.step(seconds);
-    }
-
-    draw(ctx) {
-        ctx.save();
-        ctx.translate(this.spring.position, 0);
-        // draw square...
-        ctx.restore();
-    }
-}
-```
-
-**Rive workflow:**
-1. Create a Util Script named `Spring` and paste Exercise 1.
-2. Create a Node Script for Exercise 2 and attach it to a Node.
-3. Adjust the `target` input in the sidebar and observe the spring motion.
-
-**Note:** The `Spring` type is exported by the Util script and can be used directly in this Node script.
+1. Call spring:step() one time
+2. Store the returned value in result
 
 ---
 
-## Exercise 3: Complete Drawable Sprite Class
+### Expected Output
 
-**Goal**: Build a sprite class that handles its own path, paint, and drawing.
+Your console output should display the spring's value after one step toward the target.
 
-**Why This Matters**: In real projects, you'll have many drawable objects (characters, bullets, particles). Each needs position, appearance, and a draw method. A Sprite class bundles all of this.
+---
 
-**Real-World Use**: A game might have 50 sprites on screen. Each sprite manages its own state, and you just loop through calling `sprite:draw(renderer)`. Clean, organized, efficient.
+### Verify Your Answer
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Attach to a node
-4. You'll see two colored rectangles bouncing horizontally
+<ExerciseValidator
+    exerciseId="oop-classes-1"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] Method updates the spring value
+- [ ] Result equals 5
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Class Instance ⭐
+
+### Premise
+
+A class-style table provides a consistent constructor and shared methods. Each instance keeps its own state.
+
+:::info Goal
+By the end of this exercise, you will create and use a class instance.
+:::
+
+### Use Case
+
+You need independent counters for different UI elements. Each instance should increment separately.
+
+**Example scenarios:**
+- Independent timers
+- Multiple counters
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_ClassInstance`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
+
+export type Exercise2 = {}
+
+local Counter = {}
+Counter.__index = Counter
+
+function Counter.new(start: number)
+    return setmetatable({ value = start }, Counter)
+end
+
+function Counter:increment(): number
+    self.value += 1
+    return self.value
+end
+
+function init(self: Exercise2): boolean
+    local counter = Counter.new(10)
+    local value = 0
+    -- TODO: Call increment twice and store the final value
+
+    print(`ANSWER: {value}`)
+    return true
+end
+
+function draw(self: Exercise2, renderer: Renderer)
+end
+
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Call counter:increment() twice
+2. Store the final value in value
+
+---
+
+### Expected Output
+
+Your console output should display the counter's value after incrementing twice from the starting value.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-classes-2"
+    expectedAnswer="ANSWER: 12"
+/>
+
+---
+
+### Checklist
+
+- [ ] Counter instance keeps its own state
+- [ ] Value equals 12
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Sprite Class ⭐
+
+### Premise
+
+Classes are useful when objects have both data and behavior. A sprite class keeps position updates in one place.
+
+:::info Goal
+By the end of this exercise, you will update instance state via a class method.
+:::
+
+### Use Case
+
+You track a sprite's position in a Node Script. Methods update x and y together to avoid duplicated math.
+
+**Example scenarios:**
+- Moving UI elements
+- Position tracking
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_SpriteClass`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {}
 
 local Sprite = {}
 Sprite.__index = Sprite
 
-export type SpriteType = {
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: Color,
-    path: Path,
-    paint: Paint,
-}
-
-function Sprite.new(x: number, y: number, width: number, height: number, color: Color): SpriteType
-    local self = setmetatable({}, Sprite)
-    self.x = x
-    self.y = y
-    self.width = width
-    self.height = height
-    self.color = color
-    self.path = Path.new()
-    self.paint = Paint.new()
-    self.paint.style = "fill"
-    self.paint.color = color
-    Sprite._rebuildPath(self)
-    return (self :: any) :: SpriteType
+function Sprite.new(name: string, x: number, y: number)
+    return setmetatable({ name = name, x = x, y = y }, Sprite)
 end
 
-function Sprite:_rebuildPath()
-    local hw = self.width / 2
-    local hh = self.height / 2
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-hw, -hh))
-    self.path:lineTo(Vector.xy(hw, -hh))
-    self.path:lineTo(Vector.xy(hw, hh))
-    self.path:lineTo(Vector.xy(-hw, hh))
-    self.path:close()
+function Sprite:move(dx: number, dy: number)
+    self.x += dx
+    self.y += dy
 end
 
-function Sprite:setColor(color: Color)
-    self.color = color
-    self.paint.color = color
+function Sprite:posSum(): number
+    return self.x + self.y
 end
 
-function Sprite:draw(renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.x, self.y))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
+function init(self: Exercise3): boolean
+    local sprite = Sprite.new("Orb", 2, 3)
+    -- TODO: Move by dx=3, dy=4
 
-export type SpriteDemo = {
-    sprites: {SpriteType},
-    elapsed: number,
-}
-
-function init(self: SpriteDemo): boolean
-    self.sprites = {
-        Sprite.new(-60, 0, 50, 50, Color.rgb(255, 0, 0)),
-        Sprite.new(60, 0, 30, 60, Color.rgb(0, 255, 0)),
-    }
-    self.elapsed = 0
+    print(`ANSWER: name={sprite.name},pos={sprite:posSum()}`)
     return true
 end
 
-function advance(self: SpriteDemo, seconds: number): boolean
-    self.elapsed += seconds
-    for i, sprite in ipairs(self.sprites) do
-        sprite.x += math.sin(self.elapsed + i) * 50 * seconds
-    end
-    return true
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-function draw(self: SpriteDemo, renderer: Renderer)
-    for _, sprite in ipairs(self.sprites) do
-        sprite:draw(renderer)
-    end
-end
-
-return function(): Node<SpriteDemo>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        sprites = {},
-        elapsed = 0,
-    }
-end
-```
-
-**TypeScript Equivalent**:
-```typescript
-class Sprite {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    color: string;
-
-    constructor(x: number, y: number, w: number, h: number, color: string) {
-        this.x = x;
-        this.y = y;
-        this.width = w;
-        this.height = h;
-        this.color = color;
-    }
-
-    setColor(color: string): void {
-        this.color = color;
-    }
-
-    draw(ctx: CanvasRenderingContext2D): void {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(-this.width/2, -this.height/2, this.width, this.height);
-        ctx.restore();
-    }
-}
-```
-
----
-
-## Exercise 4: The Double Cast Pattern Explained
-
-**Goal**: Understand why `(self :: any) :: MyType` is necessary in strict mode.
-
-**Why This Matters**: Without this pattern, your code won't compile in strict mode. Understanding WHY it's needed helps you write it confidently rather than just copying it blindly.
-
-**Real-World Use**: Every class you create in Rive needs this pattern. Once you understand it, you'll write it automatically.
-
-**Step-by-Step Explanation**:
-
-```lua
---!strict
-
-local BadClass = {}
-BadClass.__index = BadClass
-
-type BadType = { name: string }
-
-function BadClass.new(): BadType
-    local self = setmetatable({}, BadClass)
-    self.name = "test"
-    -- return self  -- Error! Type is not compatible
-    return (self :: any) :: BadType  -- This works
-end
-
--- Why?
--- 1. setmetatable({}, BadClass) returns a table with metatable
--- 2. Luau sees it as a generic table, not BadType
--- 3. :: any tells Luau "trust me, forget the current type"
--- 4. :: BadType tells Luau "treat this as BadType"
-```
-
-**TypeScript Comparison**:
-```typescript
-// TypeScript handles this automatically
-class MyClass {
-    name: string;
-    constructor() {
-        this.name = "test";
-        // No cast needed - TypeScript infers the type
-    }
-}
-
-// If you needed a similar pattern in TypeScript:
-function createBadType(): BadType {
-    const self = { name: "test" };
-    return self as unknown as BadType;  // Similar to (self :: any) :: BadType
-}
-```
-
-**Key Insight**: The double cast doesn't change runtime behavior - it only satisfies the type checker. Your code runs exactly the same with or without it.
-
----
-
-## Exercise 5: Factory Functions (Multiple Constructors)
-
-**Goal**: Create multiple constructor variants for flexible object creation.
-
-**Why This Matters**: Sometimes you want to create objects in different ways: from coordinates, from corners, centered, as squares. Factory functions let you provide all these options without confusing the API.
-
-**Real-World Use**: A Rectangle might be created `centered(x, y, w, h)`, `fromCorners(x1, y1, x2, y2)`, or just `square(x, y, size)`. Same class, multiple convenient ways to construct it.
-
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Watch the console to see different creation patterns
-
-```lua
---!strict
-
-local Rectangle = {}
-Rectangle.__index = Rectangle
-
-export type RectangleType = {
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-}
-
-function Rectangle.new(x: number, y: number, width: number, height: number): RectangleType
-    local self = setmetatable({}, Rectangle)
-    self.x = x
-    self.y = y
-    self.width = width
-    self.height = height
-    return (self :: any) :: RectangleType
-end
-
-function Rectangle.fromCorners(x1: number, y1: number, x2: number, y2: number): RectangleType
-    return Rectangle.new(math.min(x1, x2), math.min(y1, y2), math.abs(x2 - x1), math.abs(y2 - y1))
-end
-
-function Rectangle.centered(centerX: number, centerY: number, width: number, height: number): RectangleType
-    return Rectangle.new(centerX - width / 2, centerY - height / 2, width, height)
-end
-
-function Rectangle.square(x: number, y: number, size: number): RectangleType
-    return Rectangle.new(x, y, size, size)
-end
-
-function Rectangle:area(): number
-    return self.width * self.height
-end
-
-function Rectangle:contains(px: number, py: number): boolean
-    return px >= self.x and px <= self.x + self.width
-       and py >= self.y and py <= self.y + self.height
-end
-
-Rectangle.__tostring = function(r: RectangleType): string
-    return `Rect({r.x}, {r.y}, {r.width}x{r.height})`
-end
-
-export type FactoryDemo = {}
-
-function init(self: FactoryDemo): boolean
-    local r1 = Rectangle.new(0, 0, 100, 50)
-    local r2 = Rectangle.fromCorners(-50, -25, 50, 25)
-    local r3 = Rectangle.centered(0, 0, 80, 40)
-    local r4 = Rectangle.square(-20, -20, 40)
-
-    print(`r1: {r1}  area: {r1:area()}`)
-    print(`r2: {r2}  area: {r2:area()}`)
-    print(`r3: {r3}  area: {r3:area()}`)
-    print(`r4: {r4}  area: {r4:area()}`)
-
-    print(`\nr1 contains (10, 10)? {r1:contains(10, 10)}`)
-    print(`r1 contains (200, 200)? {r1:contains(200, 200)}`)
-
-    return true
-end
-
-function draw(self: FactoryDemo, renderer: Renderer)
-end
-
-return function(): Node<FactoryDemo>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
@@ -569,111 +377,362 @@ return function(): Node<FactoryDemo>
 end
 ```
 
-**TypeScript Equivalent**:
-```typescript
-class Rectangle {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+---
 
-    constructor(x: number, y: number, width: number, height: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
+### Assignment
 
-    // Static factory methods
-    static fromCorners(x1: number, y1: number, x2: number, y2: number): Rectangle {
-        return new Rectangle(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2-x1), Math.abs(y2-y1));
-    }
+Complete these tasks:
 
-    static centered(cx: number, cy: number, w: number, h: number): Rectangle {
-        return new Rectangle(cx - w/2, cy - h/2, w, h);
-    }
+1. Call sprite:move(3, 4)
+2. Keep the name unchanged
 
-    static square(x: number, y: number, size: number): Rectangle {
-        return new Rectangle(x, y, size, size);
-    }
+---
 
-    area(): number {
-        return this.width * this.height;
-    }
+### Expected Output
 
-    contains(px: number, py: number): boolean {
-        return px >= this.x && px <= this.x + this.width
-            && py >= this.y && py <= this.y + this.height;
+Your console output should display the sprite's name and the sum of x and y after moving.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-classes-3"
+    expectedAnswer="ANSWER: name=Orb,pos=12"
+/>
+
+---
+
+### Checklist
+
+- [ ] Sprite position updates correctly
+- [ ] Position sum equals 12
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Instance Formatter ⭐⭐
+
+### Premise
+
+Methods often format data for display. Keeping formatting logic on the class keeps usage consistent.
+
+:::info Goal
+By the end of this exercise, you will implement an instance method that returns formatted text.
+:::
+
+### Use Case
+
+You want consistent labels for debugging or UI readouts. The class method ensures every instance formats the same way.
+
+**Example scenarios:**
+- Debug labels
+- UI formatting helpers
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_InstanceFormatter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+local Label = {}
+Label.__index = Label
+
+function Label.new(text: string)
+    return setmetatable({ text = text }, Label)
+end
+
+function Label:format(): string
+    -- TODO: Return "Label:<text>"
+    return ""
+end
+
+function init(self: Exercise4): boolean
+    local label = Label.new("Play")
+    print(`ANSWER: {label:format()}`)
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
     }
-}
+end
 ```
 
 ---
 
-## Exercise 6: When to Use Classes vs. Plain Tables
+### Assignment
 
-**Goal**: Understand when classes add value and when simple tables are better.
+Complete these tasks:
 
-**Why This Matters**: Over-engineering with classes when you don't need them makes code harder to understand. Under-engineering with tables when you need classes leads to duplicated code. Knowing when to use each is professional judgment.
-
-**Use classes for:**
-- Objects with behavior (`step`, `draw`, `reset`)
-- Complex state updates across frames
-- Multiple instances that share the same logic
-
-**Use plain tables for:**
-- Static configuration (`style`, `palette`, `layout`)
-- One-off data passed into a function
-
-**Example - When to use classes**:
-```lua
--- Multiple particles, all need to update and draw
--- Class is perfect here
-local Particle = {}
-Particle.__index = Particle
-
-function Particle.new(x, y)
-    local self = setmetatable({}, Particle)
-    self.x = x
-    self.y = y
-    return self
-end
-
-function Particle:update(dt)
-    self.y += self.vy * dt
-end
-
-function Particle:draw(renderer)
-    -- draw particle
-end
-
--- Create 100 particles, all share methods
-local particles = {}
-for i = 1, 100 do
-    particles[i] = Particle.new(math.random()*200, 0)
-end
-```
-
-**Example - When to use plain tables**:
-```lua
--- Configuration - just data, no behavior
-local config = {
-    backgroundColor = Color.rgb(20, 20, 30),
-    lineThickness = 2,
-    animationSpeed = 1.5,
-}
-
--- Pass to functions, no methods needed
-local paint = Paint.with({
-    style = "fill",
-    color = config.backgroundColor,
-})
-```
-
-In Rive, this keeps your Node scripts lean and your Util scripts reusable.
+1. Return "Label:" .. self.text
+2. Keep the method on the class
 
 ---
 
+### Expected Output
+
+Your console output should display the formatted string from the label's format method.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-classes-4"
+    expectedAnswer="ANSWER: Label:Play"
+/>
+
+---
+
+### Checklist
+
+- [ ] Method formats correctly
+- [ ] Output matches the expected line
+- [ ] Formatting uses self.text
+
+---
+
+### Exercise 5: Multiple Constructors ⭐⭐
+
+### Premise
+
+Factory functions are common in Lua classes. Multiple constructors let you create the same object from different inputs.
+
+:::info Goal
+By the end of this exercise, you will implement two constructor helpers.
+:::
+
+### Use Case
+
+You might construct a marker by name or by id. Both should produce a valid instance with consistent fields.
+
+**Example scenarios:**
+- Creating instances from different data sources
+- Alternate constructors
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_MultipleConstructors`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+local Marker = {}
+Marker.__index = Marker
+
+function Marker.new(name: string, id: number)
+    return setmetatable({ name = name, id = id }, Marker)
+end
+
+function Marker.fromName(name: string)
+    -- TODO: Use name and id 1
+    return Marker.new("", 0)
+end
+
+function Marker.fromId(id: number)
+    -- TODO: Use name "M<id>" and the provided id
+    return Marker.new("", 0)
+end
+
+function init(self: Exercise5): boolean
+    local byName = Marker.fromName("Pulse")
+    local byId = Marker.fromId(7)
+
+    print(`ANSWER: name={byName.name},id={byName.id},fromId={byId.name}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. In fromName, call Marker.new(name, 1)
+2. In fromId, call Marker.new(`M{id}`, id)
+
+---
+
+### Expected Output
+
+Your console output should display the marker fields from both constructor helpers showing name, id, and the formatted fromId name.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-classes-5"
+    expectedAnswer="ANSWER: name=Pulse,id=1,fromId=M7"
+/>
+
+---
+
+### Checklist
+
+- [ ] Both constructors call Marker.new
+- [ ] Fields match expected values
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Class vs Plain Table ⭐⭐
+
+### Premise
+
+Plain tables are great for static data. Classes are better when you need shared behavior.
+
+:::info Goal
+By the end of this exercise, you will use a plain table and a class instance together.
+:::
+
+### Use Case
+
+A configuration object holds static values, while a timer class updates over time. Each tool fits its purpose.
+
+**Example scenarios:**
+- Config + runtime state
+- Static settings with dynamic behavior
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_ClassVsTable`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {}
+
+local Timer = {}
+Timer.__index = Timer
+
+function Timer.new(value: number)
+    return setmetatable({ value = value }, Timer)
+end
+
+function Timer:tick(): number
+    self.value += 0.5
+    return self.value
+end
+
+function init(self: Exercise6): boolean
+    local config = {
+        mode = "loop",
+    }
+
+    local timer = Timer.new(1.0)
+    local nextValue = 0
+    -- TODO: Call timer:tick() and store the result
+
+    print(`ANSWER: mode={config.mode},time={nextValue}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Call timer:tick() once
+2. Store the result in nextValue
+
+---
+
+### Expected Output
+
+Your console output should display the config's mode (plain table) and the timer's value after ticking (class method).
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-classes-6"
+    expectedAnswer="ANSWER: mode=loop,time=1.5"
+/>
+
+---
+
+### Checklist
+
+- [ ] Config is a plain table
+- [ ] Timer uses a class method
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

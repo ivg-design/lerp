@@ -5,7 +5,7 @@ description: Understanding Luau's fundamental data types for Rive animations
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Data Types
 
@@ -418,84 +418,68 @@ end
 
 ## Exercises
 
-### Exercise 1: Type Explorer
+### Exercise 1: Type Snapshot ⭐
 
-**Goal**: Understand how `type()` works and explore all fundamental types.
+### Premise
 
-**Why This Matters**: When debugging Rive scripts, you'll often need to check what type a variable actually is. This exercise builds familiarity with Luau's type system.
+When you bind data or debug scripts in Rive, you often need to confirm what type a value actually is. Using `type()` helps you catch mismatches early, before the wrong value is fed into a drawing or input path.
 
-**Step-by-Step Setup**:
-1. Create a new Rive file with a Node Script
-2. Copy the code below into your script
-3. Run the animation and check the console output
+:::info Goal
+By the end of this exercise, you will define values of multiple types and print a compact verification summary.
+:::
+
+### Use Case
+
+Imagine a script that reads data from different sources: a ViewModel value, a state flag, and a table of points for a path. You need to verify that each is the expected type before you build visuals. A quick type snapshot prevents debugging blind spots.
+
+**Example scenarios:**
+- Verifying ViewModel properties before use
+- Checking whether a value is a table or a number
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_TypeSnapshot`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type TypeExplorer = {}
+export type Exercise1 = {}
 
-function init(self: TypeExplorer): boolean
-    print("=== Exploring Luau Types ===\n")
+function init(self: Exercise1): boolean
+    -- TODO 1: Set isActive to true
+    local isActive = false
+    -- TODO 2: Set count to 42
+    local count = 0
+    -- TODO 3: Set label to "Score"
+    local label = ""
+    -- TODO 4: Set points to a table with 3 numbers
+    local points = {}
+    -- Keep this as nil on purpose
+    local maybeNil: any = nil
+    local callback = function() end
 
-    -- nil type
-    local nothing = nil
-    print(`1. nil value:`)
-    print(`   Value: {tostring(nothing)}`)
-    print(`   Type: {type(nothing)}\n`)
-
-    -- boolean type
-    local yes = true
-    local no = false
-    print(`2. boolean values:`)
-    print(`   true → Type: {type(yes)}`)
-    print(`   false → Type: {type(no)}\n`)
-
-    -- number type (various formats)
-    local integer = 42
-    local decimal = 3.14159
-    local hex = 0xFF
-    local binary = 0b1010
-    local readable = 1_000_000
-
-    print(`3. number values:`)
-    print(`   42 → Type: {type(integer)}`)
-    print(`   3.14159 → Type: {type(decimal)}`)
-    print(`   0xFF → Value: {hex}, Type: {type(hex)}`)
-    print(`   0b1010 → Value: {binary}, Type: {type(binary)}`)
-    print(`   1_000_000 → Value: {readable}, Type: {type(readable)}\n`)
-
-    -- string type (various syntaxes)
-    local single = 'single quotes'
-    local double = "double quotes"
-    local interpolated = `interpolated: {integer}`
-
-    print(`4. string values:`)
-    print(`   'single quotes' → Type: {type(single)}`)
-    print(`   "double quotes" → Type: {type(double)}`)
-    print(`   Interpolated → "{interpolated}", Type: {type(interpolated)}\n`)
-
-    -- table type
-    local array = {1, 2, 3}
-    local dict = {name = "test", value = 42}
-
-    print(`5. table values:`)
-    print(`   Array {1,2,3} → Type: {type(array)}`)
-    print(`   Dictionary → Type: {type(dict)}\n`)
-
-    -- function type
-    local myFunc = function() end
-    print(`6. function value:`)
-    print(`   function() end → Type: {type(myFunc)}\n`)
-
-    print("=== All 6 fundamental types explored! ===")
-
+    local summary = `{type(maybeNil)},{isActive},{count},{label},{#points},{type(callback)}`
+    print(`ANSWER: {summary}`)
     return true
 end
 
-function draw(self: TypeExplorer, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<TypeExplorer>
+return function(): Node<Exercise1>
     return {
         init = init,
         draw = draw,
@@ -503,128 +487,102 @@ return function(): Node<TypeExplorer>
 end
 ```
 
-**Expected Output**:
-```
-=== Exploring Luau Types ===
+---
 
-1. nil value:
-   Value: nil
-   Type: nil
+### Assignment
 
-2. boolean values:
-   true → Type: boolean
-   false → Type: boolean
+Complete these tasks:
 
-3. number values:
-   42 → Type: number
-   3.14159 → Type: number
-   0xFF → Value: 255, Type: number
-   0b1010 → Value: 10, Type: number
-   1_000_000 → Value: 1000000, Type: number
-
-4. string values:
-   'single quotes' → Type: string
-   "double quotes" → Type: string
-   Interpolated → "interpolated: 42", Type: string
-
-5. table values:
-   Array {1,2,3} → Type: table
-   Dictionary → Type: table
-
-6. function value:
-   function() end → Type: function
-
-=== All 6 fundamental types explored! ===
-```
-
-:::note Rive Result
-Console-only exercise. Attach the script to any node and press Play to see the type breakdown. No artboard setup is required.
-:::
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript type checking
-console.log(typeof null);        // "object" (historical bug!)
-console.log(typeof undefined);   // "undefined"
-console.log(typeof true);        // "boolean"
-console.log(typeof 42);          // "number"
-console.log(typeof "hello");     // "string"
-console.log(typeof [1,2,3]);     // "object" (not "array"!)
-console.log(typeof {a: 1});      // "object"
-console.log(typeof function(){}); // "function"
-
-// Array.isArray() needed for arrays in JS
-Array.isArray([1,2,3]);  // true
-```
+1. Set `isActive` to `true`
+2. Set `count` to `42`
+3. Set `label` to `"Score"`
+4. Set `points` to a table with three numbers (length 3)
 
 ---
 
-### Exercise 2: Truthy/Falsy Challenge
+### Expected Output
 
-**Goal**: Understand the critical difference between Luau and JavaScript truthiness.
+Your console output should display a comma-separated summary containing:
+- The type of the nil variable
+- The boolean value
+- The numeric count
+- The string label
+- The length of the points table
+- The type of the callback function
 
-**Why This Matters**: If you're coming from JavaScript, this is one of the most common sources of bugs. Understanding that `0` and `""` are truthy in Luau will save you hours of debugging!
+---
 
-**Step-by-Step Setup**:
-1. Create a new Node Script in Rive
-2. Copy the code below
-3. Before running, predict which values will print "truthy"
-4. Run and compare your predictions
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-datatypes-1"
+    expectedAnswer="ANSWER: nil,true,42,Score,3,function"
+/>
+
+---
+
+### Checklist
+
+- [ ] All values match the requested types
+- [ ] Table length is exactly 3
+- [ ] Output matches the expected `ANSWER:` line
+
+---
+
+### Exercise 2: Truthiness Check ⭐
+
+### Premise
+
+In Luau, only `false` and `nil` are falsy. That is a frequent source of bugs for developers coming from JavaScript, where `0` and empty strings are falsy.
+
+:::info Goal
+By the end of this exercise, you will compute truthiness results using `if` in Luau.
+:::
+
+### Use Case
+
+You are building a script that tests inputs like "opacity" and "label text." In JavaScript, an empty string or 0 would act false, but in Luau they do not. This check keeps you from disabling UI elements by mistake.
+
+**Example scenarios:**
+- Validating numeric inputs like 0
+- Treating empty strings as present values
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Truthiness`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type TruthyTest = {}
+export type Exercise2 = {}
 
-function init(self: TruthyTest): boolean
-    print("=== Truthy/Falsy Test ===\n")
-    print("Testing which values are truthy in Luau:\n")
+function init(self: Exercise2): boolean
+    -- TODO 1: Use if-statements to set these truthiness results
+    local zeroTruthy = false
+    local emptyStringTruthy = false
+    local nilTruthy = true
 
-    local testValues: {any} = {
-        false,           -- 1. false
-        nil,             -- 2. nil
-        true,            -- 3. true
-        0,               -- 4. zero
-        1,               -- 5. one
-        -1,              -- 6. negative one
-        "",              -- 7. empty string
-        "hello",         -- 8. non-empty string
-        {},              -- 9. empty table
-        {1, 2, 3},       -- 10. non-empty table
-    }
-
-    local labels = {
-        "false",
-        "nil",
-        "true",
-        "0 (zero)",
-        "1",
-        "-1",
-        '"" (empty string)',
-        '"hello"',
-        "{} (empty table)",
-        "{1,2,3} (array)"
-    }
-
-    print("Results:")
-    print("---------")
-
-    for i, value in ipairs(testValues) do
-        local result = if value then "TRUTHY" else "FALSY"
-        print(`{i}. {labels[i]}: {result}`)
-    end
-
-    print("\n=== Key Takeaway ===")
-    print("Only 'false' and 'nil' are falsy in Luau!")
-    print("0, empty string, and empty table are ALL truthy!")
-
+    print(`ANSWER: zero={zeroTruthy},empty={emptyStringTruthy},nil={nilTruthy}`)
     return true
 end
 
-function draw(self: TruthyTest, renderer: Renderer)
+function draw(self: Exercise2, renderer: Renderer)
 end
 
-return function(): Node<TruthyTest>
+return function(): Node<Exercise2>
     return {
         init = init,
         draw = draw,
@@ -632,153 +590,105 @@ return function(): Node<TruthyTest>
 end
 ```
 
-**Expected Output**:
-```
-=== Truthy/Falsy Test ===
+---
 
-Testing which values are truthy in Luau:
+### Assignment
 
-Results:
----------
-1. false: FALSY
-2. nil: FALSY
-3. true: TRUTHY
-4. 0 (zero): TRUTHY
-5. 1: TRUTHY
-6. -1: TRUTHY
-7. "" (empty string): TRUTHY
-8. "hello": TRUTHY
-9. {} (empty table): TRUTHY
-10. {1,2,3} (array): TRUTHY
+Complete these tasks:
 
-=== Key Takeaway ===
-Only 'false' and 'nil' are falsy in Luau!
-0, empty string, and empty table are ALL truthy!
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console prints which values are truthy or falsy in Luau, so you can compare directly with JavaScript.
-:::
-
-**JavaScript Equivalent**:
-```javascript
-// Same test in JavaScript - notice the different results!
-const testValues = [false, null, undefined, true, 0, 1, -1, "", "hello", [], [1,2,3]];
-const labels = ["false", "null", "undefined", "true", "0", "1", "-1", '""', '"hello"', "[]", "[1,2,3]"];
-
-testValues.forEach((value, i) => {
-    const result = value ? "TRUTHY" : "FALSY";
-    console.log(`${labels[i]}: ${result}`);
-});
-
-// JavaScript results would be:
-// false: FALSY
-// null: FALSY
-// undefined: FALSY
-// true: TRUTHY
-// 0: FALSY          ← Different from Luau!
-// 1: TRUTHY
-// -1: TRUTHY
-// "": FALSY         ← Different from Luau!
-// "hello": TRUTHY
-// []: TRUTHY
-// [1,2,3]: TRUTHY
-```
+1. Set `zeroTruthy` using `if 0 then ...`
+2. Set `emptyStringTruthy` using `if "" then ...`
+3. Set `nilTruthy` using `if nil then ...`
 
 ---
 
-### Exercise 3: String Operations
+### Expected Output
 
-**Goal**: Master string creation, concatenation, and interpolation.
+Your console output should display three truthiness results:
+- `zero=` — whether 0 is truthy in Luau
+- `empty=` — whether an empty string is truthy in Luau
+- `nil=` — whether nil is truthy in Luau
 
-**Why This Matters**: Building dynamic text for UI elements, debug messages, and state descriptions is essential in Rive animations. String interpolation is the cleanest approach.
+Remember: Luau's truthiness rules differ from JavaScript!
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Run and observe how different string operations work
-4. Experiment with your own string combinations
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-datatypes-2"
+    expectedAnswer="ANSWER: zero=true,empty=true,nil=false"
+/>
+
+---
+
+### Checklist
+
+- [ ] You used `if` checks, not hard-coded strings
+- [ ] `zeroTruthy` and `emptyStringTruthy` are true in Luau
+- [ ] `nilTruthy` is false
+
+---
+
+### Exercise 3: Label Builder ⭐⭐
+
+### Premise
+
+Most Rive scripts build strings for labels, debug logs, or state banners. You need both concatenation (`..`) and interpolation (backticks) to format text cleanly.
+
+:::info Goal
+By the end of this exercise, you will build the same label using concatenation and interpolation.
+:::
+
+### Use Case
+
+You are building a scoreboard label that includes player name, level, and HP. The label is used in the UI and also logged in the Console for debugging. Creating it in two different ways shows you how to pick the most readable approach.
+
+**Example scenarios:**
+- HUD labels and status text
+- Debug logs for values during animation
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_LabelBuilder`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type StringOps = {}
+export type Exercise3 = {}
 
-function init(self: StringOps): boolean
-    print("=== String Operations Demo ===\n")
+function init(self: Exercise3): boolean
+    local name = "Nova"
+    local level = 7
+    local hp = 85
+    local maxHp = 100
 
-    -- Part 1: Basic string creation
-    print("Part 1: String Creation")
-    print("-----------------------")
-    local single = 'Using single quotes'
-    local double = "Using double quotes"
-    print(single)
-    print(double)
+    -- TODO 1: Build concatLabel using ..
+    local concatLabel = ""
+    -- TODO 2: Build interpLabel using backticks
+    local interpLabel = ""
 
-    -- Part 2: Multi-line strings
-    print("\nPart 2: Multi-line Strings")
-    print("--------------------------")
-    local poem = [[
-Roses are red,
-Violets are blue,
-Luau is great,
-And so are you!]]
-    print(poem)
-
-    -- Part 3: Escape sequences
-    print("\nPart 3: Escape Sequences")
-    print("------------------------")
-    local escaped = "Tab:\tHere\nNewline above"
-    local quoted = "She said \"Hello!\""
-    print(escaped)
-    print(quoted)
-
-    -- Part 4: Concatenation with ..
-    print("\nPart 4: Concatenation")
-    print("---------------------")
-    local firstName = "Rive"
-    local lastName = "Developer"
-    local fullName = firstName .. " " .. lastName
-    print(`Concatenated: {fullName}`)
-
-    -- Numbers auto-convert in concatenation
-    local score = 9001
-    local message = "Power level: " .. score
-    print(message)
-
-    -- Part 5: String interpolation (preferred method)
-    print("\nPart 5: String Interpolation (Backticks)")
-    print("----------------------------------------")
-    local playerName = "Hero"
-    local level = 42
-    local health = 85.5
-    local isAlive = true
-
-    -- Clean and readable!
-    local status = `Player: {playerName}, Level: {level}, HP: {health}, Alive: {isAlive}`
-    print(status)
-
-    -- Expressions inside interpolation
-    local damage = 30
-    local remaining = `After {damage} damage: {health - damage} HP remaining`
-    print(remaining)
-
-    -- Part 6: String length
-    print("\nPart 6: String Length")
-    print("---------------------")
-    local text = "Hello, World!"
-    print(`"{text}" has {#text} characters`)
-
-    local empty = ""
-    print(`Empty string length: {#empty}`)
-
+    print(`ANSWER: {concatLabel} | {interpLabel}`)
     return true
 end
 
-function draw(self: StringOps, renderer: Renderer)
+function draw(self: Exercise3, renderer: Renderer)
 end
 
-return function(): Node<StringOps>
+return function(): Node<Exercise3>
     return {
         init = init,
         draw = draw,
@@ -786,170 +696,103 @@ return function(): Node<StringOps>
 end
 ```
 
-**Expected Output**:
-```
-=== String Operations Demo ===
+---
 
-Part 1: String Creation
------------------------
-Using single quotes
-Using double quotes
+### Assignment
 
-Part 2: Multi-line Strings
---------------------------
-Roses are red,
-Violets are blue,
-Luau is great,
-And so are you!
+Complete these tasks:
 
-Part 3: Escape Sequences
-------------------------
-Tab:	Here
-Newline above
-She said "Hello!"
-
-Part 4: Concatenation
----------------------
-Concatenated: Rive Developer
-Power level: 9001
-
-Part 5: String Interpolation (Backticks)
-----------------------------------------
-Player: Hero, Level: 42, HP: 85.5, Alive: true
-After 30 damage: 55.5 HP remaining
-
-Part 6: String Length
----------------------
-"Hello, World!" has 13 characters
-Empty string length: 0
-```
-
-:::note Rive Result
-Attach the script to any node and press Play. The Console walks through the string operations so you can see the output format Rive uses for text.
-:::
-
-**JavaScript Equivalent**:
-```javascript
-// JavaScript string operations
-const firstName = "Rive";
-const lastName = "Developer";
-
-// Concatenation (same concept, different operator)
-const fullName = firstName + " " + lastName;
-
-// Template literals (similar to Luau interpolation)
-const level = 42;
-const status = `Player: ${playerName}, Level: ${level}`;
-
-// String length
-const text = "Hello";
-console.log(text.length);  // 5 (property, not operator)
-```
+1. Build `concatLabel` with `..` using this format:
+   - `Player Nova (Lv.7) - HP 85/100`
+2. Build `interpLabel` using backticks with the same format
 
 ---
 
-### Exercise 4: Number Formats in Practice
+### Expected Output
 
-**Goal**: Use different number formats for real Rive animation scenarios.
+Your console output should display two identical labels separated by " | ":
+- The first label built with concatenation (`..`)
+- The second label built with interpolation (backticks)
 
-**Why This Matters**: Hexadecimal is essential for colors, binary is useful for flags and bitmasking, and readable number formats help with large values like milliseconds.
+Both labels should follow the format: `Player [name] (Lv.[level]) - HP [hp]/[maxHp]`
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Run and observe how different number formats work
-4. Try modifying the color values and see the results
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-datatypes-3"
+    expectedAnswer="ANSWER: Player Nova (Lv.7) - HP 85/100 | Player Nova (Lv.7) - HP 85/100"
+/>
+
+---
+
+### Checklist
+
+- [ ] `concatLabel` uses `..` at least twice
+- [ ] `interpLabel` uses backticks and `{}` placeholders
+- [ ] Both labels match exactly
+
+---
+
+### Exercise 4: Number Formats ⭐⭐
+
+### Premise
+
+Rive scripts use hex for colors, binary for flags, and underscores for readability. These formats are common in production scripts and should feel natural.
+
+:::info Goal
+By the end of this exercise, you will assign values using hex, binary, and readable numeric formats and verify their decimal results.
+:::
+
+### Use Case
+
+You are translating design specs into numbers: a hex color, a bit-flag mask, and a large time constant. Using the correct format keeps code readable and avoids mistakes when you work with artists or other engineers.
+
+**Example scenarios:**
+- Converting design colors into numeric values
+- Packing multiple on/off flags into one number
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_NumberFormats`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type NumberFormats = {}
+export type Exercise4 = {}
 
-function init(self: NumberFormats): boolean
-    print("=== Number Formats in Practice ===\n")
+function init(self: Exercise4): boolean
+    -- TODO 1: Set hexValue to 0xFF
+    local hexValue = 0
+    -- TODO 2: Set binaryValue to 0b1010
+    local binaryValue = 0
+    -- TODO 3: Set readableValue to 1_000_000
+    local readableValue = 0
+    -- TODO 4: sum should be hexValue + binaryValue
+    local sum = 0
 
-    -- Part 1: Colors with Hexadecimal
-    print("Part 1: Hex Colors")
-    print("------------------")
-    local red = 0xFF0000
-    local green = 0x00FF00
-    local blue = 0x0000FF
-    local white = 0xFFFFFF
-    local black = 0x000000
-    local orange = 0xFFA500
-
-    print(`Red:    0xFF0000 = {red}`)
-    print(`Green:  0x00FF00 = {green}`)
-    print(`Blue:   0x0000FF = {blue}`)
-    print(`White:  0xFFFFFF = {white}`)
-    print(`Black:  0x000000 = {black}`)
-    print(`Orange: 0xFFA500 = {orange}`)
-
-    -- Extract RGB components
-    local color = 0xFFA500  -- Orange
-    local r = bit32.rshift(bit32.band(color, 0xFF0000), 16)
-    local g = bit32.rshift(bit32.band(color, 0x00FF00), 8)
-    local b = bit32.band(color, 0x0000FF)
-    print(`\nOrange RGB: R={r}, G={g}, B={b}`)
-
-    -- Part 2: Binary for Flags
-    print("\nPart 2: Binary Flags")
-    print("--------------------")
-    local FLAG_VISIBLE = 0b0001    -- 1
-    local FLAG_ACTIVE = 0b0010     -- 2
-    local FLAG_SELECTED = 0b0100   -- 4
-    local FLAG_LOCKED = 0b1000     -- 8
-
-    print(`FLAG_VISIBLE:  0b0001 = {FLAG_VISIBLE}`)
-    print(`FLAG_ACTIVE:   0b0010 = {FLAG_ACTIVE}`)
-    print(`FLAG_SELECTED: 0b0100 = {FLAG_SELECTED}`)
-    print(`FLAG_LOCKED:   0b1000 = {FLAG_LOCKED}`)
-
-    -- Combine flags
-    local objectFlags = FLAG_VISIBLE + FLAG_ACTIVE
-    print(`\nObject with VISIBLE + ACTIVE = {objectFlags}`)
-
-    -- Check if flag is set
-    local hasVisible = bit32.band(objectFlags, FLAG_VISIBLE) > 0
-    local hasLocked = bit32.band(objectFlags, FLAG_LOCKED) > 0
-    print(`Has VISIBLE: {hasVisible}`)
-    print(`Has LOCKED: {hasLocked}`)
-
-    -- Part 3: Readable Large Numbers
-    print("\nPart 3: Readable Numbers")
-    print("------------------------")
-    local milliseconds = 1_000        -- 1 second
-    local oneMinute = 60_000          -- 60 seconds
-    local oneHour = 3_600_000         -- 3600 seconds
-    local gameScore = 1_234_567
-    local precise = 3.141_592_653
-
-    print(`1 second in ms: {milliseconds}`)
-    print(`1 minute in ms: {oneMinute}`)
-    print(`1 hour in ms: {oneHour}`)
-    print(`Game score: {gameScore}`)
-    print(`Pi: {precise}`)
-
-    -- Part 4: Decimal precision
-    print("\nPart 4: Decimal Numbers")
-    print("-----------------------")
-    local opacity = 0.75
-    local scale = 1.5
-    local rotation = 45.0
-    local verySmall = 0.001
-
-    print(`Opacity: {opacity}`)
-    print(`Scale: {scale}x`)
-    print(`Rotation: {rotation} degrees`)
-    print(`Very small: {verySmall}`)
-
+    print(`ANSWER: hex={hexValue},bin={binaryValue},sum={sum},readable={readableValue}`)
     return true
 end
 
-function draw(self: NumberFormats, renderer: Renderer)
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-return function(): Node<NumberFormats>
+return function(): Node<Exercise4>
     return {
         init = init,
         draw = draw,
@@ -957,229 +800,151 @@ return function(): Node<NumberFormats>
 end
 ```
 
-**Expected Output**:
-```
-=== Number Formats in Practice ===
+---
 
-Part 1: Hex Colors
-------------------
-Red:    0xFF0000 = 16711680
-Green:  0x00FF00 = 65280
-Blue:   0x0000FF = 255
-White:  0xFFFFFF = 16777215
-Black:  0x000000 = 0
-Orange: 0xFFA500 = 16753920
+### Assignment
 
-Orange RGB: R=255, G=165, B=0
+Complete these tasks:
 
-Part 2: Binary Flags
---------------------
-FLAG_VISIBLE:  0b0001 = 1
-FLAG_ACTIVE:   0b0010 = 2
-FLAG_SELECTED: 0b0100 = 4
-FLAG_LOCKED:   0b1000 = 8
-
-Object with VISIBLE + ACTIVE = 3
-Has VISIBLE: true
-Has LOCKED: false
-
-Part 3: Readable Numbers
-------------------------
-1 second in ms: 1000
-1 minute in ms: 60000
-1 hour in ms: 3600000
-Game score: 1234567
-Pi: 3.141592653
-
-Part 4: Decimal Numbers
------------------------
-Opacity: 0.75
-Scale: 1.5x
-Rotation: 45 degrees
-Very small: 0.001
-```
-
-:::note Rive Result
-Console-only exercise. Attach the script to any node and press Play to see numeric formats you will reuse for colors, flags, and time values.
-:::
+1. Set `hexValue` to `0xFF` (decimal 255)
+2. Set `binaryValue` to `0b1010` (decimal 10)
+3. Set `readableValue` to `1_000_000`
+4. Set `sum` to `hexValue + binaryValue`
 
 ---
 
-### Exercise 5: nil Handling Patterns
+### Expected Output
 
-**Goal**: Learn safe patterns for working with potentially nil values.
+Your console output should display four values:
+- `hex=` — the decimal equivalent of 0xFF
+- `bin=` — the decimal equivalent of 0b1010
+- `sum=` — the sum of hex and binary values
+- `readable=` — the number with underscores as plain decimal
 
-**Why This Matters**: In Rive Node Scripts, values are often `nil` before initialization. Learning to handle `nil` safely prevents runtime errors and creates robust animations.
+All values should be displayed as plain decimal numbers.
 
-**Step-by-Step Setup**:
-1. Create a new Node Script
-2. Copy the code below
-3. Run and observe each nil-handling pattern
-4. These patterns will be essential in your Rive development
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-datatypes-4"
+    expectedAnswer="ANSWER: hex=255,bin=10,sum=265,readable=1000000"
+/>
+
+---
+
+### Checklist
+
+- [ ] Hex and binary values are written using 0x / 0b formats
+- [ ] The readable number uses underscores
+- [ ] sum is 265
+
+---
+
+### Exercise 5: Nil Defaults ⭐⭐
+
+### Premise
+
+In Rive scripts, values can be `nil` before you assign them (especially with late bindings). Safe defaults keep your script from crashing and make your UI predictable.
+
+:::info Goal
+By the end of this exercise, you will use `or` and nil checks to produce safe defaults.
+:::
+
+### Use Case
+
+A script reads a name and lives count from external data. If those values are not present yet, the UI should still show a fallback label and a default number of lives. This is common in early initialization frames.
+
+**Example scenarios:**
+- Optional ViewModel values
+- Late-bound inputs that are not set yet
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_NilDefaults`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
-export type NilHandling = {
-    health: number?,      -- Optional (can be nil)
-    name: string?,
-    inventory: {string}?,
-}
+export type Exercise5 = {}
 
-function init(self: NilHandling): boolean
-    print("=== nil Handling Patterns ===\n")
-
-    -- Pattern 1: Check before use
-    print("Pattern 1: Explicit nil Check")
-    print("------------------------------")
-    local maybeValue: number? = nil
-
-    if maybeValue ~= nil then
-        print(`Value is: {maybeValue}`)
-    else
-        print("Value is nil - cannot use")
-    end
-
-    -- Pattern 2: Default values with 'or'
-    print("\nPattern 2: Default with 'or'")
-    print("----------------------------")
+function init(self: Exercise5): boolean
     local inputName: string? = nil
-    local displayName = inputName or "Anonymous"
-    print(`Display name: {displayName}`)
+    local inputLives: number? = nil
 
-    local inputScore: number? = nil
-    local displayScore = inputScore or 0
-    print(`Display score: {displayScore}`)
+    -- TODO 1: Use "or" to set displayName to "Guest" when inputName is nil
+    local displayName = ""
+    -- TODO 2: Use "or" to set lives to 3 when inputLives is nil
+    local lives = 0
+    -- TODO 3: hasName should be true only when inputName is not nil
+    local hasName = true
 
-    -- Pattern 3: Safe self initialization
-    print("\nPattern 3: Safe self Initialization")
-    print("------------------------------------")
-    if self.health == nil then
-        self.health = 100
-        print("Initialized health to 100")
-    end
-
-    if self.name == nil then
-        self.name = "Player"
-        print("Initialized name to 'Player'")
-    end
-
-    if self.inventory == nil then
-        self.inventory = {}
-        print("Initialized inventory to empty table")
-    end
-
-    print(`\nFinal state:`)
-    print(`  Health: {self.health}`)
-    print(`  Name: {self.name}`)
-    print(`  Inventory size: {#self.inventory}`)
-
-    -- Pattern 4: Guard clauses
-    print("\nPattern 4: Guard Clauses")
-    print("------------------------")
-    local target: {name: string}? = nil
-
-    -- Early return pattern
-    local function attackTarget(t: {name: string}?)
-        if t == nil then
-            print("No target to attack!")
-            return
-        end
-
-        -- Safe to use t here
-        print(`Attacking {t.name}!`)
-    end
-
-    attackTarget(nil)
-    attackTarget({name = "Dragon"})
-
-    -- Pattern 5: Optional chaining simulation
-    print("\nPattern 5: Safe Table Access")
-    print("----------------------------")
-    local player: {stats: {health: number}?}? = nil
-
-    -- Unsafe (would error):
-    -- local hp = player.stats.health
-
-    -- Safe nested access:
-    local function getHealth(p: {stats: {health: number}?}?): number
-        if p == nil then return 0 end
-        if p.stats == nil then return 0 end
-        return p.stats.health
-    end
-
-    print(`Player health (nil player): {getHealth(nil)}`)
-    print(`Player health (nil stats): {getHealth({stats = nil})}`)
-    print(`Player health (valid): {getHealth({stats = {health = 85}})}`)
-
+    print(`ANSWER: name={displayName},lives={lives},hasName={hasName}`)
     return true
 end
 
-function draw(self: NilHandling, renderer: Renderer)
+function draw(self: Exercise5, renderer: Renderer)
 end
 
-return function(): Node<NilHandling>
+return function(): Node<Exercise5>
     return {
         init = init,
         draw = draw,
-        health = nil,
-        name = nil,
-        inventory = nil,
     }
 end
 ```
 
-**Expected Output**:
-```
-=== nil Handling Patterns ===
+---
 
-Pattern 1: Explicit nil Check
-------------------------------
-Value is nil - cannot use
+### Assignment
 
-Pattern 2: Default with 'or'
-----------------------------
-Display name: Anonymous
-Display score: 0
+Complete these tasks:
 
-Pattern 3: Safe self Initialization
-------------------------------------
-Initialized health to 100
-Initialized name to 'Player'
-Initialized inventory to empty table
+1. Set `displayName` to `inputName or "Guest"`
+2. Set `lives` to `inputLives or 3`
+3. Set `hasName` using an explicit nil check
 
-Final state:
-  Health: 100
-  Name: Player
-  Inventory size: 0
+---
 
-Pattern 4: Guard Clauses
-------------------------
-No target to attack!
-Attacking Dragon!
+### Expected Output
 
-Pattern 5: Safe Table Access
-----------------------------
-Player health (nil player): 0
-Player health (nil stats): 0
-Player health (valid): 85
-```
+Your console output should display three values:
+- `name=` — the display name (either the input or the default)
+- `lives=` — the lives count (either the input or the default)
+- `hasName=` — whether the original input name was provided (not nil)
 
-:::note Rive Result
-Attach the script to any node and press Play. The Console shows safe nil-handling patterns you will reuse for optional inputs and ViewModel data.
-:::
+The defaults should be used since both inputs are nil.
 
-**JavaScript Equivalent**:
-```javascript
-// JavaScript has optional chaining (Luau doesn't)
-const hp = player?.stats?.health ?? 0;
+---
 
-// JavaScript nullish coalescing
-const name = inputName ?? "Anonymous";
+### Verify Your Answer
 
-// Note: In JS, ?? only considers null/undefined
-// In Luau, 'or' considers false as well as nil
-```
+<ExerciseValidator
+    exerciseId="fundamentals-datatypes-5"
+    expectedAnswer="ANSWER: name=Guest,lives=3,hasName=false"
+/>
+
+---
+
+### Checklist
+
+- [ ] Defaults use `or` instead of hard-coded replacements later
+- [ ] `hasName` checks against nil explicitly
+- [ ] Output matches the expected line
 
 ---
 

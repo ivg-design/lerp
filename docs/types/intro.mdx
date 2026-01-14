@@ -5,6 +5,7 @@ description: Enable strict mode, add type annotations, and understand type infer
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
 # Lesson 2.1: Type Annotations & Inference
 
@@ -124,508 +125,592 @@ local items = {"a", "b"} -- Luau infers: {string}
 
 ## Practice Exercises
 
-### Exercise 1: Enable Strict Mode
+### Exercise 1: Strict Mode Guard ⭐
 
-**Goal:** Understand how `--!strict` catches bugs that would otherwise slip through.
+### Premise
 
-**Why This Matters:** In JavaScript and AE expressions, type bugs crash at runtime—sometimes only in specific conditions. Strict mode catches them during development, saving hours of debugging.
+Strict mode is your safety net. It forces you to keep numeric math numeric and prevents quiet type coercion mistakes.
 
-**Real-World Use:** Every professional Rive animation uses strict mode. It's the difference between "works on my machine" and "works everywhere."
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Start WITHOUT the strict directive to see what happens
-3. Then add `--!strict` to see the errors
-
-**Rive setup:** Attach the script to any node and open both the Console and Problems panels.
-
-**Expected result:** Without `--!strict`, the script runs and may produce a wrong value. With `--!strict`, the editor flags the type error before you run.
-
-**Part A - WITHOUT strict mode (DON'T DO THIS IN PRODUCTION):**
-
-```lua
-export type BuggyScript = {}
-
-function init(self: BuggyScript): boolean
-    local damage = "50"  -- Oops, string instead of number!
-    local health = 100
-
-    local result = health - damage  -- This should error...
-    print(`Result: {result}`)
-
-    return true
-end
-
-function draw(self: BuggyScript, renderer: Renderer)
-end
-
-return function(): Node<BuggyScript>
-    return { init = init, draw = draw }
-end
-```
-
-**Question 1**: What happens when you run this? Does it catch the bug?
-
-**JavaScript Equivalent:**
-```javascript
-// This would also fail silently in JavaScript!
-let damage = "50";  // String, not number
-let health = 100;
-let result = health - damage;  // JavaScript converts "50" to 50 (coercion)
-console.log(result);  // Prints 50, but this hides a bug!
-```
-
-**Part B - WITH strict mode (DO THIS):**
-
-```lua
---!strict
-
-export type BuggyScript = {}
--- ... rest of code
-```
-
-**Question 2**: What error do you see in the Problems tab?
-
-**Part C**: Fix the bug by changing `"50"` to `50`.
-
----
-
-### Exercise 2: Variable Type Annotations
-
-**Goal:** Learn the syntax for annotating variables with their types.
-
-**Why This Matters:** When you see `local level: number = 15`, you immediately know what kind of data `level` holds. This makes code readable and prevents accidental misuse.
-
-**Real-World Use:** In a game character script, you'd annotate health, position, and inventory to ensure you never accidentally assign a string to a number field.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add the `--!strict` directive
-3. Copy the code below
-4. Run to see the output
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints typed values for the player stats and inventory.
-
-**Task**: Add type annotations to ALL variables:
-
-```lua
---!strict
-
-export type CharacterStats = {}
-
-function init(self: CharacterStats): boolean
-    -- Add type annotations to each variable
-    local playerName: string = "Warrior"
-    local level: number = 15
-    local experience: number = 2500.75
-    local isAlive: boolean = true
-    local inventory: {string} = {"sword", "shield", "potion"}
-    local position: {x: number, y: number} = {x = 100, y = 200}
-
-    print(`Player: {playerName}`)
-    print(`Level {level} with {experience} XP`)
-    print(`Alive: {isAlive}`)
-    print(`Items: {#inventory}`)
-    print(`Position: ({position.x}, {position.y})`)
-
-    return true
-end
-
-function draw(self: CharacterStats, renderer: Renderer)
-end
-
-return function(): Node<CharacterStats>
-    return { init = init, draw = draw }
-end
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript (similar concept)
-let playerName: string = "Warrior";
-let level: number = 15;
-let experience: number = 2500.75;
-let isAlive: boolean = true;
-let inventory: string[] = ["sword", "shield", "potion"];
-let position: { x: number, y: number } = { x: 100, y: 200 };
-```
-
-**Key Difference:** In TypeScript, arrays use `string[]` or `Array<string>`. In Luau, it's `{string}` with curly braces.
-
----
-
-### Exercise 3: Function Type Annotations
-
-**Goal:** Learn how to annotate function parameters and return types.
-
-**Why This Matters:** When you call `calculateDamage(50, "armor")` by mistake, strict mode catches it immediately. Without types, this bug might only appear in specific gameplay scenarios.
-
-**Real-World Use:** Game logic functions like damage calculation, collision detection, and animation timing all benefit from typed parameters.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add the `--!strict` directive
-3. Implement the functions with proper type annotations
-4. Test by calling them in `init()`
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints the function outputs, and type errors surface if any signatures are wrong.
-
-**Task**: Add complete type annotations (parameters AND return types):
-
-```lua
---!strict
-
--- 1. Takes two numbers, returns their sum
-local function add(a: number, b: number): number
-    return a + b
-end
-
--- 2. Takes a number array, returns the average (or 0 if empty)
-local function average(numbers: {number}): number
-    if #numbers == 0 then return 0 end
-    local sum = 0
-    for _, n in ipairs(numbers) do
-        sum += n
-    end
-    return sum / #numbers
-end
-
--- 3. Takes damage and armor, returns reduced damage (minimum 0)
-local function calculateDamage(baseDamage: number, armor: number): number
-    local reduced = baseDamage - armor
-    if reduced < 0 then return 0 end
-    return reduced
-end
-
--- 4. Takes a name string, returns a greeting string
-local function createGreeting(name: string): string
-    return `Welcome, {name}!`
-end
-
-export type FunctionTypes = {}
-
-function init(self: FunctionTypes): boolean
-    print(add(10, 20))                        -- 30
-    print(average({10, 20, 30}))              -- 20
-    print(calculateDamage(50, 20))            -- 30
-    print(calculateDamage(10, 50))            -- 0
-    print(createGreeting("Hero"))             -- Welcome, Hero!
-    return true
-end
-
-function draw(self: FunctionTypes, renderer: Renderer)
-end
-
-return function(): Node<FunctionTypes>
-    return { init = init, draw = draw }
-end
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript
-function add(a: number, b: number): number {
-    return a + b;
-}
-
-function average(numbers: number[]): number {
-    if (numbers.length === 0) return 0;
-    return numbers.reduce((sum, n) => sum + n, 0) / numbers.length;
-}
-
-function calculateDamage(baseDamage: number, armor: number): number {
-    return Math.max(0, baseDamage - armor);
-}
-
-function createGreeting(name: string): string {
-    return `Welcome, ${name}!`;
-}
-```
-
----
-
-### Exercise 4: Type Inference Investigation
-
-**Goal:** Understand when Luau can infer types and when you must provide them explicitly.
-
-**Why This Matters:** You don't want to over-annotate (clutters code), but you also can't under-annotate (causes errors). This exercise teaches the balance.
-
-**Real-World Use:** Professional code uses inference for obvious cases (like `local x = 5`) but explicit types for function signatures and empty collections.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add the `--!strict` directive
-3. Try uncommenting the problem lines to see errors
-
-**Rive setup:** Attach the script to any node and watch the Problems tab as you toggle the commented lines.
-
-**Expected result:** The editor flags inference failures (like empty tables) until you add explicit types.
-
-**Task**: For each variable, predict what type Luau infers:
-
-```lua
---!strict
-
-export type InferenceTest = {}
-
-function init(self: InferenceTest): boolean
-    -- Part A: What types does Luau infer?
-    local a = 42                              -- number
-    local b = "hello"                         -- string
-    local c = true                            -- boolean
-    local d = {1, 2, 3}                       -- {number}
-    local e = {name = "test", value = 10}    -- {name: string, value: number}
-    local f = function(x: number) return x * 2 end  -- (number) -> number
-
-    -- Part B: This empty table needs a type - Luau can't infer it!
-    -- local emptyArray = {}  -- Error in strict mode!
-
-    -- Fix it:
-    local emptyArray: {number} = {}
-
-    -- Part C: Mixed arrays
-    local mixed = {1, "two", 3}  -- {number | string}
-
-    return true
-end
-
-function draw(self: InferenceTest, renderer: Renderer)
-end
-
-return function(): Node<InferenceTest>
-    return { init = init, draw = draw }
-end
-```
-
-:::danger Critical Rule
-**Empty tables (`{}`) MUST have explicit type annotations in strict mode** because Luau cannot infer what type of elements they will contain.
-
-```lua
--- WRONG - Error in strict mode
-local items = {}
-
--- CORRECT - Explicit type
-local items: {string} = {}
-```
+:::info Goal
+By the end of this exercise, you will use strict mode to keep a numeric calculation type-safe.
 :::
 
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript has the same inference behavior
-let a = 42;              // number (inferred)
-let b = "hello";         // string (inferred)
+### Use Case
 
-// Empty arrays also need types in TypeScript
-let items: string[] = [];  // Must specify type
-```
+You are calculating remaining health for a character driven by a Rive state machine. If a number becomes a string, your math breaks and the animation desyncs. Strict mode makes sure the error is caught before you press Play.
+
+**Example scenarios:**
+- Health or stamina bars
+- Progress and cooldown timers
 
 ---
 
-### Exercise 5: Type Refinement
+### Setup
 
-**Goal:** Learn how Luau automatically narrows types based on control flow checks.
+#### In Rive Editor:
 
-**Why This Matters:** When you have a `string?` (optional string), you can't use it directly—it might be nil. But after an `if value then` check, Luau knows it's definitely a string. This is called "type narrowing" or "refinement."
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_StrictModeGuard`
 
-**Real-World Use:** When loading user data, many fields might be optional. Type refinement lets you handle missing data safely.
+2. **Attach and run:**
+   - Attach to any shape and press Play
 
-**Context**: Luau tracks types through control flow. This is called "type refinement" or "narrowing."
+---
 
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add the `--!strict` directive
-3. Study how the `if` checks affect what types Luau allows
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints messages based on optional values; type errors appear if you remove the nil checks.
+### Starter Code
 
 ```lua
 --!strict
 
--- A user might or might not have an email
-type UserProfile = {
-    name: string,
-    email: string?  -- The ? means optional (string | nil)
-}
+export type Exercise1 = {}
 
-local function sendEmail(email: string)
-    print(`Sending email to: {email}`)
-end
+function init(self: Exercise1): boolean
+    local maxHealth: number = 100
+    local damage: number = 0
+    -- TODO: Set damage to 25 (keep it a number)
 
-local function processUser(user: UserProfile)
-    print(`Processing: {user.name}`)
-
-    -- This would ERROR without the check:
-    -- sendEmail(user.email)  -- Error: string? is not string
-
-    -- Type refinement: after the check, Luau knows email is string
-    if user.email then
-        sendEmail(user.email)  -- OK! Luau knows it's a string here
-    else
-        print("No email on file")
-    end
-end
-
--- Function 1: Takes a value that might be number or string
-local function processValue(value: number | string): number
-    if type(value) == "number" then
-        return value * 2
-    else
-        return #value  -- string length
-    end
-end
-
--- Function 2: Safely get the length of an optional array
-local function safeLength(arr: {number}?): number
-    if arr then
-        return #arr
-    else
-        return 0
-    end
-end
-
-export type RefinementTest = {}
-
-function init(self: RefinementTest): boolean
-    local user1: UserProfile = {name = "Alice", email = "alice@example.com"}
-    local user2: UserProfile = {name = "Bob"}  -- No email
-
-    processUser(user1)
-    processUser(user2)
-
-    print(processValue(10))         -- 20
-    print(processValue("hello"))    -- 5
-    print(safeLength({1, 2, 3}))    -- 3
-    print(safeLength(nil))          -- 0
-
+    local remaining = maxHealth - damage
+    print(`ANSWER: remaining={remaining}`)
     return true
 end
 
-function draw(self: RefinementTest, renderer: Renderer)
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-return function(): Node<RefinementTest>
-    return { init = init, draw = draw }
-end
-```
-
-**JavaScript/TypeScript Equivalent:**
-```typescript
-// TypeScript has the same type narrowing feature
-type UserProfile = {
-    name: string;
-    email?: string;  // Optional (string | undefined)
-};
-
-function processUser(user: UserProfile) {
-    if (user.email) {
-        // TypeScript knows email is string here, not undefined
-        sendEmail(user.email);
-    }
-}
-
-function processValue(value: number | string): number {
-    if (typeof value === "number") {
-        return value * 2;
-    } else {
-        return value.length;
-    }
-}
-```
-
----
-
-### Exercise 6: Real-World Rive Types
-
-**Goal:** Learn how to use Rive's built-in types correctly with proper constructors.
-
-**Why This Matters:** Rive has special types like `Vector`, `Color`, `Path`, and `Paint`. You can't just use plain tables—you must use the constructors. This exercise teaches the correct patterns.
-
-**Real-World Use:** Every Rive animation that draws custom graphics uses `Path` and `Paint`. Every animation that positions elements uses `Vector`.
-
-**Step-by-Step Setup:**
-1. Create a new Node Script in Rive
-2. Add the `--!strict` directive
-3. Note the use of `late()` for values set in `init()`
-
-**Rive setup:** Attach the script to any node and open the Console panel.
-
-**Expected result:** The Console prints the constructed values. If you revert to plain tables, the editor raises type errors.
-
-**Task**: Fix the type errors in this Rive script:
-
-```lua
---!strict
-
-export type RiveTypesDemo = {
-    position: Vector,
-    color: Color,
-    path: Path,
-    paint: Paint,
-}
-
-function init(self: RiveTypesDemo): boolean
-    -- CORRECT way to create Rive types:
-    self.position = Vector.xy(100, 50)           -- Not {x = 100, y = 50}
-    self.color = Color.rgba(255, 0, 0, 255)      -- Not "#FF0000"
-    self.path = Path.new()
-    self.paint = Paint.new()
-
-    print("Position:", self.position.x, self.position.y)
-
-    return true
-end
-
-function draw(self: RiveTypesDemo, renderer: Renderer)
-end
-
-return function(): Node<RiveTypesDemo>
+return function(): Node<Exercise1>
     return {
         init = init,
         draw = draw,
-        position = late(),
-        color = late(),
-        path = late(),
-        paint = late(),
     }
 end
 ```
 
-:::danger Common Mistake - Plain Tables vs Rive Constructors
-```lua
--- WRONG - Plain table is NOT a Vector
-self.position = {x = 100, y = 50}  -- Type error!
+---
 
--- CORRECT - Use the Vector constructor
-self.position = Vector.xy(100, 50)
+### Assignment
 
--- WRONG - String is NOT a Color
-self.color = "#FF0000"  -- Type error!
+Complete these tasks:
 
--- CORRECT - Use the Color constructor
-self.color = Color.rgba(255, 0, 0, 255)
-```
+1. Set `damage` to 25
+2. Keep the subtraction numeric (no strings)
+
+---
+
+### Expected Output
+
+Your console output should display the remaining health after applying damage. The function should subtract damage from health and return the result.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-1"
+    expectedAnswer="ANSWER: remaining=75"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] `damage` is a number
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Typed Variables ⭐
+
+### Premise
+
+Typed variables are the backbone of readable, reliable scripts. They communicate intent to you and enforce correctness for the editor.
+
+:::info Goal
+By the end of this exercise, you will annotate variables with explicit types.
 :::
 
-**JavaScript Equivalent (conceptually):**
-```javascript
-// In JavaScript, you might use plain objects:
-let position = { x: 100, y: 50 };
+### Use Case
 
-// In Rive/Luau, you MUST use constructors:
-// self.position = Vector.xy(100, 50)
+You are preparing a small state payload for a HUD: a label, a numeric level, and an on/off flag. Keeping the types clear prevents accidentally mixing text and numbers in your UI formatting.
 
-// This is similar to how you'd use a class in JS:
-// let position = new Vector(100, 50);
+**Example scenarios:**
+- Labels that combine text and numbers
+- Feature toggles for UI states
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_TypedVariables`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {}
+
+function init(self: Exercise2): boolean
+    -- TODO: Add explicit types to each variable
+    local label: string = "Pulse"
+    local level: number = 7
+    local active: boolean = true
+
+    print(`ANSWER: label={label},level={level},active={active}`)
+    return true
+end
+
+function draw(self: Exercise2, renderer: Renderer)
+end
+
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Ensure each variable has the correct type annotation
+2. Keep the values exactly as shown
+
+---
+
+### Expected Output
+
+Your console output should display three fields from the typed variables:
+- `label=` — the string value
+- `level=` — the number value
+- `active=` — the boolean value
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-2"
+    expectedAnswer="ANSWER: label=Pulse,level=7,active=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] label is a string
+- [ ] level is a number
+- [ ] active is a boolean
+
+---
+
+### Exercise 3: Typed Function ⭐
+
+### Premise
+
+Functions are the most common place where type errors hide. Clear parameter and return types make it obvious how a helper should be used.
+
+:::info Goal
+By the end of this exercise, you will implement a typed helper function.
+:::
+
+### Use Case
+
+You are scaling an opacity value before drawing a layer. The helper should only accept numbers and always return a number for the renderer.
+
+**Example scenarios:**
+- Scaling opacity or alpha
+- Converting input ranges
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_TypedFunction`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {}
+
+local function scaleOpacity(value: number, multiplier: number): number
+    -- TODO: Return the scaled value
+    return 0
+end
+
+function init(self: Exercise3): boolean
+    local scaled = scaleOpacity(0.8, 0.75)
+    print(`ANSWER: opacity={scaled}`)
+    return true
+end
+
+function draw(self: Exercise3, renderer: Renderer)
+end
+
+return function(): Node<Exercise3>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Multiply value by multiplier in `scaleOpacity`
+2. Leave the function signature unchanged
+
+---
+
+### Expected Output
+
+Your console output should display the computed opacity value after applying the multiplier to the base value.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-3"
+    expectedAnswer="ANSWER: opacity=0.6"
+/>
+
+---
+
+### Checklist
+
+- [ ] Parameters are typed as numbers
+- [ ] Return type is number
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Inference Snapshot ⭐
+
+### Premise
+
+You do not need to annotate every variable. Luau can infer obvious types, which keeps your code concise while staying safe.
+
+:::info Goal
+By the end of this exercise, you will rely on type inference for local values.
+:::
+
+### Use Case
+
+You are collecting a few inferred values before pushing them into a typed API call. Seeing the inferred types helps you trust the compiler when the values are obvious.
+
+**Example scenarios:**
+- Quick debug summaries
+- Temporary values during calculations
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_InferenceSnapshot`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+function init(self: Exercise4): boolean
+    local label = "Pulse"
+    local frames = 12
+    local weights = {0.1, 0.2, 0.3}
+
+    -- TODO: Build the summary string using type() and #weights
+    local summary = ""
+
+    print(`ANSWER: {summary}`)
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Use `type(label)` and `type(frames)`
+2. Use `type(weights[1])` and `#weights`
+3. Format as `label=string,frames=number,weight=number,len=3`
+
+---
+
+### Expected Output
+
+Your console output should display the inferred types of the variables using `type()` and the length of the weights array. This demonstrates Luau's type inference.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-4"
+    expectedAnswer="ANSWER: label=string,frames=number,weight=number,len=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Inferred types match the values
+- [ ] Summary uses type() and #weights
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Type Refinement ⭐⭐
+
+### Premise
+
+Union types are common when data can arrive in multiple forms. Refinement lets you safely handle each case without losing strict mode benefits.
+
+:::info Goal
+By the end of this exercise, you will refine a `string | number` union.
+:::
+
+### Use Case
+
+An input may arrive as text from a UI field or as a number from a state machine. You need a single numeric value for calculations, so you refine the type before using it.
+
+**Example scenarios:**
+- Parsing text inputs
+- Accepting multiple input formats
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_TypeRefinement`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+function init(self: Exercise5): boolean
+    local raw: string | number = "3"
+    local value = 0
+
+    -- TODO: Refine raw into a number and store in value
+
+    local doubled = value * 2
+    print(`ANSWER: doubled={doubled}`)
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. If `raw` is a string, convert it with `tonumber`
+2. If `raw` is already a number, use it directly
+3. Keep `value` as a number
+
+---
+
+### Expected Output
+
+Your console output should display the doubled value after refining the union type and converting string to number if needed.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-5"
+    expectedAnswer="ANSWER: doubled=6"
+/>
+
+---
+
+### Checklist
+
+- [ ] raw is refined with a type check
+- [ ] value is a number before doubling
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Rive State Type ⭐⭐
+
+### Premise
+
+Typed state makes Rive scripts easier to reason about. When you declare fields, the editor can catch missing or mistyped values early.
+
+:::info Goal
+By the end of this exercise, you will define a typed state payload for a script.
+:::
+
+### Use Case
+
+You are tracking animation progress and a UI label inside a Node Script. A typed state ensures that progress is always numeric and the label is always text.
+
+**Example scenarios:**
+- Progress and label pairs
+- Typed state for HUD elements
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_RiveStateType`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise6 = {
+    progress: number,
+    label: string,
+    playing: boolean,
+}
+
+function init(self: Exercise6): boolean
+    -- TODO: Set state fields to the correct values
+    self.progress = 0
+    self.label = ""
+    self.playing = false
+
+    print(`ANSWER: label={self.label},progress={self.progress},playing={self.playing}`)
+    return true
+end
+
+function draw(self: Exercise6, renderer: Renderer)
+end
+
+return function(): Node<Exercise6>
+    return {
+        init = init,
+        draw = draw,
+        progress = 0,
+        label = "",
+        playing = false,
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Set label to `Orbit`
+2. Set progress to `0.75`
+3. Set playing to `true`
+
+---
+
+### Expected Output
+
+Your console output should display the three state fields with the assigned values, demonstrating typed state management.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="types-intro-6"
+    expectedAnswer="ANSWER: label=Orbit,progress=0.75,playing=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] State fields match their types
+- [ ] Output uses the updated values
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz

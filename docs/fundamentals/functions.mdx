@@ -5,6 +5,7 @@ description: Define functions, understand scope, and use closures in Rive Node S
 ---
 
 import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
 # Lesson 1.3: Functions & Closures
@@ -452,59 +453,59 @@ end
 
 ## Exercises
 
-### Exercise 1: Basic Functions ⭐
+### Exercise 1: Damage Function ⭐
 
-**Goal:** Define and call simple functions.
+### Premise
 
-**Why this matters:** Functions are the building blocks of all code. Every Rive script uses lifecycle functions, and you'll create helpers constantly.
+Functions let you encapsulate math once and reuse it everywhere. This is how you avoid duplicating formulas across scripts.
 
-**Real-world use:** Damage calculations, animation easing, value clamping, string formatting.
+:::info Goal
+By the end of this exercise, you will implement a typed function and verify its output with test cases.
+:::
+
+### Use Case
+
+You are building a combat HUD and need a reliable damage function that is used for hits, crits, and tooltips. If the function is wrong, every animation that depends on it becomes inconsistent.
+
+**Example scenarios:**
+- Damage popups
+- Critical hit flashes
 
 ---
 
-#### Step-by-Step Setup
+### Setup
 
-1. **Create a new Node Script** named "Exercise1_Functions"
+#### In Rive Editor:
 
-2. **Copy and paste:**
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_DamageFunction`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise1 = {}
 
--- Define helper functions at module level
-local function add(a: number, b: number): number
-    return a + b
-end
-
-local function subtract(a: number, b: number): number
-    return a - b
-end
-
-local function multiply(a: number, b: number): number
-    return a * b
-end
-
-local function divide(a: number, b: number): number
-    if b == 0 then
-        return 0  -- Avoid division by zero
-    end
-    return a / b
+-- TODO: Implement the function using the formula
+-- baseDamage * weaponMultiplier * (2 if critical, else 1)
+local function calculateDamage(baseDamage: number, weaponMultiplier: number, isCritical: boolean): number
+    return 0
 end
 
 function init(self: Exercise1): boolean
-    -- Test each function
-    print(`add(5, 3) = {add(5, 3)}`)
-    print(`subtract(10, 4) = {subtract(10, 4)}`)
-    print(`multiply(6, 7) = {multiply(6, 7)}`)
-    print(`divide(20, 4) = {divide(20, 4)}`)
-    print(`divide(10, 0) = {divide(10, 0)}`)  -- Safe division
+    local t1 = calculateDamage(100, 1.0, false)
+    local t2 = calculateDamage(100, 1.5, false)
+    local t3 = calculateDamage(100, 1.0, true)
+    local t4 = calculateDamage(50, 2.0, true)
 
-    -- Chain function calls
-    local result = add(multiply(3, 4), 5)
-    print(`3 * 4 + 5 = {result}`)
-
+    print(`ANSWER: {t1},{t2},{t3},{t4}`)
     return true
 end
 
@@ -519,74 +520,99 @@ return function(): Node<Exercise1>
 end
 ```
 
-**Expected Output:**
-```
-add(5, 3) = 8
-subtract(10, 4) = 6
-multiply(6, 7) = 42
-divide(20, 4) = 5
-divide(10, 0) = 0
-3 * 4 + 5 = 17
-```
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Implement `calculateDamage`
+2. Use an inline conditional for the crit multiplier
 
 ---
 
-### Exercise 2: Functions with Type Annotations ⭐
+### Expected Output
 
-**Goal:** Practice typed function signatures.
-
-**Why this matters:** Type annotations catch errors early and improve autocomplete in the Rive Editor.
-
-**Rive setup:** Create a Node Script named "Exercise2_FunctionAnnotations", attach it to any node, and open the Console panel.
-
-**Expected result:** The Console prints formatted currency and percentages. If you intentionally pass a wrong type, the editor flags it before you run.
+Your console output should display four damage values separated by commas:
+- Test 1: Base damage with no multiplier or crit
+- Test 2: Base damage with weapon multiplier
+- Test 3: Base damage with critical hit (doubles damage)
+- Test 4: Modified base with both multiplier and crit
 
 ---
 
-#### Code
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-1"
+    expectedAnswer="ANSWER: 100,150,200,200"
+/>
+
+---
+
+### Checklist
+
+- [ ] Function returns a number
+- [ ] Critical hits double damage
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 2: Typed Formatters ⭐
+
+### Premise
+
+Typed parameters and return values catch errors early. This matters in Rive where a bad type can break your entire script at runtime.
+
+:::info Goal
+By the end of this exercise, you will implement two typed helper functions and use them together.
+:::
+
+### Use Case
+
+You are formatting values for a UI label and a progress indicator. Both functions need to accept numbers and return consistent outputs.
+
+**Example scenarios:**
+- Currency formatting for a shop
+- Percent labels for progress bars
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_TypedFormatters`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise2 = {}
 
--- Function that returns a formatted string
+-- TODO 1: Return a formatted currency string
 local function formatCurrency(amount: number, symbol: string): string
-    return `{symbol}{amount}`
+    return ""
 end
 
--- Function that calculates percentage
-local function percentage(value: number, total: number): number
-    if total == 0 then return 0 end
-    return (value / total) * 100
-end
-
--- Function with multiple returns
-local function getStats(health: number, maxHealth: number): (number, string)
-    local percent = percentage(health, maxHealth)
-    local status = if percent > 50 then "Healthy"
-        elseif percent > 25 then "Wounded"
-        elseif percent > 0 then "Critical"
-        else "Dead"
-    return percent, status
+-- TODO 2: Return a percent number (0-100)
+local function percent(value: number, total: number): number
+    return 0
 end
 
 function init(self: Exercise2): boolean
-    -- Test formatCurrency
-    print(formatCurrency(99.99, "$"))   -- $99.99
-    print(formatCurrency(1250, "G"))    -- G1250 (gold)
+    local label = formatCurrency(99.99, "$")
+    local p = percent(50, 200)
 
-    -- Test percentage
-    print(`50/200 = {percentage(50, 200)}%`)  -- 25%
-    print(`75/100 = {percentage(75, 100)}%`)  -- 75%
-
-    -- Test getStats (multiple returns)
-    local pct, status = getStats(75, 100)
-    print(`Health: {pct}% - {status}`)  -- Health: 75% - Healthy
-
-    local pct2, status2 = getStats(20, 100)
-    print(`Health: {pct2}% - {status2}`)  -- Health: 20% - Critical
-
+    print(`ANSWER: {label},{p}`)
     return true
 end
 
@@ -603,68 +629,95 @@ end
 
 ---
 
-### Exercise 3: Closures - Counter Factory ⭐⭐
+### Assignment
 
-**Goal:** Create closures that maintain private state.
+Complete these tasks:
 
-**Why this matters:** Closures let you create functions with "memory" — essential for tracking state, creating reusable utilities, and implementing callbacks.
-
-**Rive setup:** Create a Node Script named "Exercise3_Closures", attach it to any node, and run the animation.
-
-**Expected result:** The Console logs multiple counter sequences, showing that each closure keeps its own independent state.
+1. Implement `formatCurrency` using string interpolation
+2. Implement `percent` with division and multiplication
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display two values separated by a comma:
+- A formatted currency string with the symbol prefix
+- A percentage value (value divided by total, multiplied by 100)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-2"
+    expectedAnswer="ANSWER: $99.99,25"
+/>
+
+---
+
+### Checklist
+
+- [ ] Both functions return the correct types
+- [ ] Percent uses total as the denominator
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 3: Closure Counter ⭐⭐
+
+### Premise
+
+Closures let functions remember data after they are created. This is useful for counters, timers, and reusable helpers.
+
+:::info Goal
+By the end of this exercise, you will build a counter closure that keeps its own internal state.
+:::
+
+### Use Case
+
+You need a counter for animation steps or event triggers that increments each time it is called. Closures keep this logic isolated without exposing state globally.
+
+**Example scenarios:**
+- Counting clicks or triggers
+- Simple timer steps
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_ClosureCounter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise3 = {}
 
--- Factory function that creates counter closures
-local function makeCounter(start: number?, step: number?)
-    local count = start or 0
-    local increment = step or 1
-
-    return {
-        -- Get current count
-        get = function(): number
-            return count
-        end,
-        -- Increment and return new count
-        tick = function(): number
-            count += increment
-            return count
-        end,
-        -- Reset to starting value
-        reset = function()
-            count = start or 0
-        end,
-    }
+local function makeCounter(start: number): () -> number
+    local count = start
+    return function(): number
+        -- TODO: increment count by 1 and return it
+        return count
+    end
 end
 
 function init(self: Exercise3): boolean
-    print("=== Counter 1 (default) ===")
-    local counter1 = makeCounter()
-    print(counter1.tick())  -- 1
-    print(counter1.tick())  -- 2
-    print(counter1.tick())  -- 3
+    local counter = makeCounter(0)
+    local a = counter()
+    local b = counter()
+    local c = counter()
 
-    print("\n=== Counter 2 (start at 100, step by 5) ===")
-    local counter2 = makeCounter(100, 5)
-    print(counter2.tick())  -- 105
-    print(counter2.tick())  -- 110
-    print(counter2.tick())  -- 115
-
-    print("\n=== Independent counters ===")
-    print(`Counter1: {counter1.get()}`)  -- Still 3
-    print(`Counter2: {counter2.get()}`)  -- 115
-
-    print("\n=== Reset ===")
-    counter2.reset()
-    print(`Counter2 after reset: {counter2.get()}`)  -- 100
-
+    print(`ANSWER: {a},{b},{c}`)
     return true
 end
 
@@ -681,132 +734,194 @@ end
 
 ---
 
-### Exercise 4: Persisting State Across Frames ⭐⭐
+### Assignment
 
-**Goal:** Understand the difference between local variables and `self` for state that persists across frames.
+Complete these tasks:
 
-**Why this matters:** This is a critical distinction in Rive scripts! Local variables in `init()` disappear when `init()` ends. Only `self` persists.
-
-**Rive setup:** Create a Node Script named "Exercise4_PersistentState", attach it to any node, and keep the animation playing for a few seconds.
-
-**Expected result:** The Console prints a message every ~60 frames, proving that `self` survives across `advance()` calls while locals do not.
+1. Increment `count` inside the closure
+2. Return the incremented value
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display three incrementing values separated by commas. Each call to the counter function should return the next number in sequence, demonstrating that the closure maintains its internal state between calls.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-3"
+    expectedAnswer="ANSWER: 1,2,3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Closure updates internal state
+- [ ] Output increments each call
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 4: Update Helper ⭐⭐
+
+### Premise
+
+Functions are also used to update shared state cleanly. This is the same pattern used in many Rive scripts for advancing values.
+
+:::info Goal
+By the end of this exercise, you will write a function that updates `self` state and verify it with repeated calls.
+:::
+
+### Use Case
+
+You have a progress value that advances when events happen. By wrapping the update logic in a function, you can reuse it in multiple places without copy-paste.
+
+**Example scenarios:**
+- Progress bars that tick forward
+- Score increments
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_UpdateHelper`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise4 = {
-    frameCount: number,
-    elapsed: number,
+    progress: number,
 }
 
-function init(self: Exercise4): boolean
-    -- Initialize state that will persist
-    self.frameCount = 0
-    self.elapsed = 0
-
-    -- This local variable ONLY exists during init()
-    local initMessage = "Script initialized!"
-    print(initMessage)
-
-    -- After init() returns, initMessage is GONE
-    -- But self.frameCount persists because it's on self
-
-    return true
+local function addProgress(state: Exercise4, amount: number)
+    -- TODO: add amount to state.progress
 end
 
-function advance(self: Exercise4, seconds: number): boolean
-    self.frameCount += 1
-    self.elapsed += seconds
+function init(self: Exercise4): boolean
+    self.progress = 0
 
-    -- Log every second (approximately 60 frames)
-    if self.frameCount % 60 == 0 then
-        print(`Frame {self.frameCount}: {self.elapsed // 1} seconds elapsed`)
-    end
+    addProgress(self, 0.25)
+    addProgress(self, 0.25)
+    addProgress(self, 0.5)
 
+    print(`ANSWER: {self.progress}`)
     return true
 end
 
 function draw(self: Exercise4, renderer: Renderer)
-    -- self.frameCount is available here too!
 end
 
 return function(): Node<Exercise4>
     return {
         init = init,
-        advance = advance,
         draw = draw,
-        frameCount = late(),
-        elapsed = late(),
+        progress = 0,
     }
 end
 ```
 
 ---
 
-### Exercise 5: Factory Functions for Easing ⭐⭐
+### Assignment
 
-**Goal:** Create factory functions that return customized easing functions.
+Complete these tasks:
 
-**Why this matters:** Animation relies heavily on easing functions. Creating factories lets you generate different easings with different parameters.
-
-**Rive setup:** Create a Node Script named "Exercise5_EasingFactories" and attach it to any node.
-
-**Expected result:** The Console prints a table of eased values. You can plug these curves into any animation progress value later.
+1. Implement `addProgress` to update `state.progress`
+2. Ensure the final progress is 1.0
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display the final progress value after all three `addProgress` calls have been applied. The sum of all added amounts should equal the displayed value.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-4"
+    expectedAnswer="ANSWER: 1"
+/>
+
+---
+
+### Checklist
+
+- [ ] `addProgress` updates self state
+- [ ] Final progress equals 1
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 5: Lerp Factory ⭐⭐
+
+### Premise
+
+Factory functions return other functions customized with parameters. This is a common pattern for easing and interpolation.
+
+:::info Goal
+By the end of this exercise, you will build a lerp factory and test it with sample inputs.
+:::
+
+### Use Case
+
+You want to interpolate between two values for animation. A factory makes it easy to reuse that interpolation for different ranges.
+
+**Example scenarios:**
+- Position interpolation
+- Color channel interpolation
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_LerpFactory`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise5 = {}
 
--- Factory for linear interpolation
-local function makeLerp(start: number, finish: number)
+local function makeLerp(startValue: number, endValue: number)
+    -- TODO: return a function that interpolates from startValue to endValue
     return function(t: number): number
-        return start + (finish - start) * t
-    end
-end
-
--- Factory for exponential easing
-local function makeEaseIn(power: number)
-    return function(t: number): number
-        return t ^ power
-    end
-end
-
-local function makeEaseOut(power: number)
-    return function(t: number): number
-        return 1 - (1 - t) ^ power
+        return 0
     end
 end
 
 function init(self: Exercise5): boolean
-    print("=== Linear Interpolation ===")
-    local posLerp = makeLerp(0, 100)
-    local colorLerp = makeLerp(0, 255)
+    local lerpPos = makeLerp(0, 100)
+    local a = lerpPos(0.25)
+    local b = lerpPos(0.5)
 
-    for t = 0, 10, 2 do
-        local progress = t / 10
-        print(`t={progress}: pos={posLerp(progress)}, color={colorLerp(progress)}`)
-    end
-
-    print("\n=== Easing Functions ===")
-    local easeIn2 = makeEaseIn(2)   -- Quadratic ease in
-    local easeIn3 = makeEaseIn(3)   -- Cubic ease in
-    local easeOut2 = makeEaseOut(2) -- Quadratic ease out
-
-    print("Progress | EaseIn2 | EaseIn3 | EaseOut2")
-    for t = 0, 4 do
-        local progress = t / 4
-        print(`{progress}       | {easeIn2(progress) // 0.01 / 100}     | {easeIn3(progress) // 0.01 / 100}     | {easeOut2(progress) // 0.01 / 100}`)
-    end
-
+    print(`ANSWER: {a},{b}`)
     return true
 end
 
@@ -823,89 +938,98 @@ end
 
 ---
 
-### Exercise 6: Utility Functions Library ⭐⭐⭐
+### Assignment
 
-**Goal:** Build a collection of reusable utility functions.
+Complete these tasks:
 
-**Why this matters:** Real projects need utility functions for clamping, mapping, rounding, and other common operations.
-
-**Rive setup:** Create a Node Script named "Exercise6_UtilityLibrary", attach it to any node, and run it.
-
-**Expected result:** The Console prints sample outputs for clamp, mapRange, round, lerp, inverseLerp, and smoothstep.
+1. Implement the returned interpolation function
+2. Use the formula start + (end - start) * t
 
 ---
 
-#### Code
+### Expected Output
+
+Your console output should display two interpolated values separated by a comma:
+- The first value at t=0.25 (25% of the way from start to end)
+- The second value at t=0.5 (halfway from start to end)
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-5"
+    expectedAnswer="ANSWER: 25,50"
+/>
+
+---
+
+### Checklist
+
+- [ ] Interpolation uses the correct formula
+- [ ] Output matches 25 and 50
+- [ ] Output matches the expected line
+
+---
+
+### Exercise 6: Clamp Utility ⭐⭐
+
+### Premise
+
+Utility functions like clamp and mapRange appear in nearly every Rive script. They keep values within safe bounds.
+
+:::info Goal
+By the end of this exercise, you will implement clamp and mapRange helpers.
+:::
+
+### Use Case
+
+You are limiting user input values and remapping ranges for UI animations. Clamping prevents invalid values, and mapping lets you translate ranges cleanly.
+
+**Example scenarios:**
+- Constraining slider input
+- Mapping progress to opacity
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_ClampUtility`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+---
+
+### Starter Code
 
 ```lua
 --!strict
 
 export type Exercise6 = {}
 
--- Clamp a value between min and max
-local function clamp(value: number, min: number, max: number): number
-    if value < min then return min end
-    if value > max then return max end
-    return value
+local function clamp(value: number, minValue: number, maxValue: number): number
+    -- TODO: return minValue if value < minValue
+    -- TODO: return maxValue if value > maxValue
+    -- TODO: otherwise return value
+    return 0
 end
 
--- Map a value from one range to another
 local function mapRange(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number
-    local normalized = (value - inMin) / (inMax - inMin)
-    return outMin + normalized * (outMax - outMin)
-end
-
--- Round to specified decimal places
-local function round(value: number, decimals: number?): number
-    local mult = 10 ^ (decimals or 0)
-    return math.floor(value * mult + 0.5) / mult
-end
-
--- Linear interpolation
-local function lerp(a: number, b: number, t: number): number
-    return a + (b - a) * clamp(t, 0, 1)
-end
-
--- Inverse lerp (find t given value)
-local function inverseLerp(a: number, b: number, value: number): number
-    if a == b then return 0 end
-    return clamp((value - a) / (b - a), 0, 1)
-end
-
--- Smoothstep (smooth interpolation)
-local function smoothstep(t: number): number
-    t = clamp(t, 0, 1)
-    return t * t * (3 - 2 * t)
+    -- TODO: map value from input range to output range
+    return 0
 end
 
 function init(self: Exercise6): boolean
-    print("=== clamp ===")
-    print(`clamp(150, 0, 100) = {clamp(150, 0, 100)}`)  -- 100
-    print(`clamp(-50, 0, 100) = {clamp(-50, 0, 100)}`)  -- 0
-    print(`clamp(50, 0, 100) = {clamp(50, 0, 100)}`)    -- 50
+    local c1 = clamp(150, 0, 100)
+    local c2 = clamp(-10, 0, 100)
+    local m1 = mapRange(50, 0, 100, 0, 1)
 
-    print("\n=== mapRange ===")
-    print(`mapRange(50, 0, 100, 0, 1) = {mapRange(50, 0, 100, 0, 1)}`)  -- 0.5
-    print(`mapRange(0.5, 0, 1, 0, 255) = {mapRange(0.5, 0, 1, 0, 255)}`)  -- 127.5
-
-    print("\n=== round ===")
-    print(`round(3.14159) = {round(3.14159)}`)        -- 3
-    print(`round(3.14159, 2) = {round(3.14159, 2)}`)  -- 3.14
-
-    print("\n=== lerp ===")
-    print(`lerp(0, 100, 0.25) = {lerp(0, 100, 0.25)}`)  -- 25
-    print(`lerp(0, 100, 0.5) = {lerp(0, 100, 0.5)}`)    -- 50
-
-    print("\n=== inverseLerp ===")
-    print(`inverseLerp(0, 100, 25) = {inverseLerp(0, 100, 25)}`)  -- 0.25
-    print(`inverseLerp(0, 100, 50) = {inverseLerp(0, 100, 50)}`)  -- 0.5
-
-    print("\n=== smoothstep ===")
-    for t = 0, 4 do
-        local progress = t / 4
-        print(`smoothstep({progress}) = {round(smoothstep(progress), 2)}`)
-    end
-
+    print(`ANSWER: {c1},{c2},{m1}`)
     return true
 end
 
@@ -922,6 +1046,40 @@ end
 
 ---
 
+### Assignment
+
+Complete these tasks:
+
+1. Implement `clamp`
+2. Implement `mapRange`
+
+---
+
+### Expected Output
+
+Your console output should display three values:
+- First clamp result: value clamped to max when exceeding upper bound
+- Second clamp result: value clamped to min when below lower bound
+- Map result: input value mapped from one range to another range
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="fundamentals-functions-6"
+    expectedAnswer="ANSWER: 100,0,0.5"
+/>
+
+---
+
+### Checklist
+
+- [ ] clamp enforces min and max bounds
+- [ ] mapRange returns 0.5 for the test
+- [ ] Output matches the expected line
+
+---
 ## Knowledge Check
 
 <Quiz
