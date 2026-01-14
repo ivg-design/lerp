@@ -1,8 +1,348 @@
 ---
 sidebar_position: 2
 title: Protocols Overview
+description: Understand the Node script lifecycle and when each callback runs in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Protocols Overview
 
-*Content being migrated...*
+## Rive Context: When Your Code Runs
+
+Rive calls your script functions in a specific order. Understanding this lets you put logic in the right place and avoid unnecessary work every frame.
+
+**Lifecycle order:**
+1. `init(self, context)` - runs once at startup
+2. `update(self, context)` - runs when any input changes
+3. `advance(self, seconds, context)` - runs every frame (logic)
+4. `draw(self, renderer)` - runs every frame after `advance` (rendering)
+
+Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user interacts with the script node.
+
+---
+
+## What Goes Where
+
+| Callback | Purpose | Frequency |
+|----------|---------|-----------|
+| **init** | Create paths, paints, listeners, long-lived objects | Once |
+| **update** | Respond to input changes; rebuild paths or cached values | On input change |
+| **advance** | Update time-based state (movement, physics, timers) | Every frame |
+| **draw** | Issue renderer commands only | Every frame |
+
+:::tip Performance Rule
+Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry every frame wastes resources if inputs haven't changed.
+:::
+
+---
+
+## Lifecycle Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Script Attached                       │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    init(self, context)                   │
+│         • Create paths, paints, listeners                │
+│         • Initialize state on self                       │
+│         • Return true to continue, false to disable      │
+└─────────────────────────────────────────────────────────┘
+                           │
+           ┌───────────────┴───────────────┐
+           │                               │
+           ▼                               ▼
+┌──────────────────────┐       ┌──────────────────────────┐
+│  Input Changed?      │       │   Frame Loop             │
+│                      │       │                          │
+│  update(self, ctx)   │       │  advance(self, dt, ctx)  │
+│  • Rebuild geometry  │       │  • Update timers         │
+│  • Recalc values     │       │  • Physics/movement      │
+└──────────────────────┘       │                          │
+                               │  draw(self, renderer)    │
+                               │  • Render commands only  │
+                               └──────────────────────────┘
+```
+
+---
+
+## Exercises
+
+### Exercise 1: Lifecycle Probe
+
+**Goal**: See when each callback runs. This helps you understand the lifecycle.
+
+```lua
+--!strict
+
+export type LifecycleProbe = {
+    speed: Input<number>,
+    elapsed: number,
+}
+
+function init(self: LifecycleProbe, context: Context): boolean
+    print("init")
+    self.elapsed = 0
+    return true
+end
+
+function update(self: LifecycleProbe, context: Context)
+    print(`update -> speed is now {self.speed.value}`)
+end
+
+function advance(self: LifecycleProbe, seconds: number, context: Context): boolean
+    self.elapsed += seconds
+    if self.elapsed > 1 then
+        print("advance tick")
+        self.elapsed = 0
+    end
+    return true
+end
+
+function draw(self: LifecycleProbe, renderer: Renderer)
+end
+
+return function(): Node<LifecycleProbe>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        speed = 1,
+        elapsed = 0,
+    }
+end
+```
+
+**Try:** Change the `speed` input in the sidebar and watch `update` fire. Notice that `advance` runs continuously while `update` only fires on changes.
+
+---
+
+### Exercise 2: Rebuild Only on Updates
+
+**Goal**: Recompute geometry only when inputs change, not every frame.
+
+```lua
+--!strict
+
+export type OnDemandShape = {
+    width: Input<number>,
+    height: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+local function rebuild(self: OnDemandShape)
+    local halfW = self.width.value / 2
+    local halfH = self.height.value / 2
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, halfH))
+    self.path:lineTo(Vector.xy(-halfW, halfH))
+    self.path:close()
+end
+
+function init(self: OnDemandShape): boolean
+    rebuild(self)
+    return true
+end
+
+function update(self: OnDemandShape)
+    rebuild(self)
+end
+
+function draw(self: OnDemandShape, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<OnDemandShape>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        width = 120,
+        height = 80,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(120, 220, 140) }),
+    }
+end
+```
+
+**Key insight:** The `rebuild` function is called in both `init` and `update`, but NOT in `draw`. This means geometry is only rebuilt when needed.
+
+---
+
+### Exercise 3: Combining Lifecycle Callbacks
+
+**Goal**: Create a shape that responds to inputs AND animates over time.
+
+```lua
+--!strict
+
+export type AnimatedShape = {
+    baseSize: Input<number>,
+    pulseSpeed: Input<number>,
+    color: Input<Color>,
+    time: number,
+    path: Path,
+    paint: Paint,
+}
+
+local function rebuildPath(self: AnimatedShape, size: number)
+    local half = size / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-half, -half))
+    self.path:lineTo(Vector.xy(half, -half))
+    self.path:lineTo(Vector.xy(half, half))
+    self.path:lineTo(Vector.xy(-half, half))
+    self.path:close()
+end
+
+function init(self: AnimatedShape): boolean
+    self.time = 0
+    rebuildPath(self, self.baseSize.value)
+    self.paint.color = self.color.value
+    return true
+end
+
+function update(self: AnimatedShape)
+    -- Only update color here; size is handled in advance
+    self.paint.color = self.color.value
+end
+
+function advance(self: AnimatedShape, seconds: number): boolean
+    self.time += seconds
+
+    -- Pulse the size based on time
+    local pulse = math.sin(self.time * self.pulseSpeed.value) * 0.2 + 1
+    local currentSize = self.baseSize.value * pulse
+    rebuildPath(self, currentSize)
+
+    return true
+end
+
+function draw(self: AnimatedShape, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<AnimatedShape>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        baseSize = 60,
+        pulseSpeed = 2,
+        color = Color.rgb(255, 120, 80),
+        time = 0,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(255, 120, 80) }),
+    }
+end
+```
+
+**Notice:** In this example, we rebuild the path in `advance` because the size changes every frame due to animation. Color only changes when the input changes, so we handle it in `update`.
+
+---
+
+## Pointer Events
+
+Node scripts can also respond to pointer interactions:
+
+```lua
+function pointerDown(self: MyNode, position: Vector): boolean
+    print(`Clicked at {position.x}, {position.y}`)
+    return true  -- Return true to consume the event
+end
+
+function pointerMove(self: MyNode, position: Vector): boolean
+    return false  -- Return false to let the event propagate
+end
+
+function pointerUp(self: MyNode, position: Vector): boolean
+    return true
+end
+```
+
+Include these in your factory return table to enable them:
+
+```lua
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        pointerDown = pointerDown,
+        pointerMove = pointerMove,
+        pointerUp = pointerUp,
+    }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="In what order do the main lifecycle callbacks run?"
+  id="lifecycle-q1"
+  options={[
+    { text: "draw, init, advance, update" },
+    { text: "init, update, advance, draw", correct: true },
+    { text: "init, advance, update, draw" },
+    { text: "update, init, draw, advance" },
+  ]}
+  explanation="The lifecycle runs: init (once), then update (on input change), advance (every frame), and draw (every frame after advance)."
+/>
+
+<Quiz
+  question="When should you rebuild geometry in a Node script?"
+  id="lifecycle-q2"
+  options={[
+    { text: "In draw, every frame" },
+    { text: "In advance, every frame" },
+    { text: "In update, when inputs change", correct: true },
+    { text: "Never, geometry is immutable" },
+  ]}
+  explanation="Rebuild geometry in update when inputs change to avoid unnecessary work every frame. Only rebuild in advance if the geometry is animated."
+/>
+
+<Quiz
+  question="What is the purpose of the draw function?"
+  id="lifecycle-q3"
+  options={[
+    { text: "Create Path and Paint objects" },
+    { text: "Update game logic and physics" },
+    { text: "Issue renderer commands only", correct: true },
+    { text: "Handle user input" },
+  ]}
+  explanation="draw should only issue renderer commands (drawPath, drawImage, etc.). All logic and object creation should happen in other callbacks."
+/>
+
+<Quiz
+  question="What does returning false from a pointer event handler do?"
+  id="lifecycle-q4"
+  options={[
+    { text: "Disables future pointer events" },
+    { text: "Lets the event propagate to other handlers", correct: true },
+    { text: "Cancels the current animation" },
+    { text: "Throws an error" },
+  ]}
+  explanation="Returning false from a pointer event handler allows the event to propagate to other nodes. Returning true consumes the event."
+/>
+
+---
+
+## Rive Takeaway
+
+Put expensive work in `update`, not in `draw` or `advance`. Understanding the lifecycle helps you write efficient scripts that only do work when necessary.
+
+---
+
+## Next Up
+
+**[Node Protocol →](./node-protocol)**

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: "2.3 Generics & Advanced Types"
 description: Create flexible, reusable type definitions with generics
 ---
@@ -14,6 +14,17 @@ import Quiz from '@site/src/components/Quiz';
 - Define generic type aliases
 - Use Rive's generic types (`Input<T>`, `Node<T>`)
 - Apply intersection types for composition
+
+---
+
+## Rive Context
+
+Rive uses generics heavily throughout its API:
+- `Node<T>` wraps your script type
+- `Input<T>` exposes values to the editor
+- `Artboard<Data.X>` and `Input<Artboard<Data.X>>` are used for dynamic instantiation
+
+Understanding generics is essential for working with Rive's type system effectively.
 
 ---
 

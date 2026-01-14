@@ -1,0 +1,200 @@
+---
+sidebar_position: 3
+title: Catch the Stars
+description: Build a tiny interactive game with clicking stars and score tracking
+---
+
+# Project: Catch the Stars
+
+Build a tiny interactive game: click stars to increase a score stored in the ViewModel.
+
+---
+
+## Rive Setup
+
+1. Create a ViewModel named `GameVM` with a number property `score`
+2. Bind `score` to a text field or UI element
+3. Attach this Node script to a group on your artboard
+
+---
+
+## Node Script
+
+```lua
+--!strict
+
+type Star = {
+    position: Vector,
+    velocity: Vector,
+    radius: number,
+    path: Path,
+}
+
+export type StarGame = {
+    stars: {Star},
+    paint: Paint,
+    score: Property<number>?,
+}
+
+local function buildStarPath(path: Path, radius: number)
+    path:reset()
+    path:moveTo(Vector.xy(0, -radius))
+    path:lineTo(Vector.xy(radius * 0.4, -radius * 0.2))
+    path:lineTo(Vector.xy(radius, 0))
+    path:lineTo(Vector.xy(radius * 0.4, radius * 0.2))
+    path:lineTo(Vector.xy(0, radius))
+    path:lineTo(Vector.xy(-radius * 0.4, radius * 0.2))
+    path:lineTo(Vector.xy(-radius, 0))
+    path:lineTo(Vector.xy(-radius * 0.4, -radius * 0.2))
+    path:close()
+end
+
+local function spawnStar(): Star
+    local radius = math.random(10, 18)
+    local path = Path.new()
+    buildStarPath(path, radius)
+
+    return {
+        position = Vector.xy(math.random(-150, 150), math.random(-90, 90)),
+        velocity = Vector.xy(math.random(-40, 40), math.random(-20, 20)),
+        radius = radius,
+        path = path,
+    }
+end
+
+function init(self: StarGame, context: Context): boolean
+    self.stars = {}
+    for _ = 1, 6 do
+        table.insert(self.stars, spawnStar())
+    end
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 220, 90) })
+
+    local vm = context:viewModel()
+    if vm then
+        self.score = vm:getNumber("score")
+        if self.score then
+            self.score.value = 0
+        end
+    end
+
+    return true
+end
+
+function advance(self: StarGame, seconds: number): boolean
+    for _, star in self.stars do
+        star.position = Vector.xy(
+            star.position.x + star.velocity.x * seconds,
+            star.position.y + star.velocity.y * seconds
+        )
+
+        if star.position.x > 180 then star.position = Vector.xy(-180, star.position.y) end
+        if star.position.x < -180 then star.position = Vector.xy(180, star.position.y) end
+        if star.position.y > 120 then star.position = Vector.xy(star.position.x, -120) end
+        if star.position.y < -120 then star.position = Vector.xy(star.position.x, 120) end
+    end
+
+    return true
+end
+
+function pointerDown(self: StarGame, event: PointerEvent)
+    for i = #self.stars, 1, -1 do
+        local star = self.stars[i]
+        local dx = event.position.x - star.position.x
+        local dy = event.position.y - star.position.y
+        if (dx * dx + dy * dy) <= (star.radius * star.radius) then
+            table.remove(self.stars, i)
+            table.insert(self.stars, spawnStar())
+            if self.score then
+                self.score.value += 1
+            end
+            event:hit()
+            return
+        end
+    end
+end
+
+function draw(self: StarGame, renderer: Renderer)
+    for _, star in self.stars do
+        renderer:save()
+        renderer:transform(Mat2D.withTranslation(star.position))
+        renderer:drawPath(star.path, self.paint)
+        renderer:restore()
+    end
+end
+
+return function(): Node<StarGame>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        pointerDown = pointerDown,
+        stars = {},
+        paint = Paint.new(),
+        score = nil,
+    }
+end
+```
+
+---
+
+## How It Works
+
+### Star Entity
+Each star is a table containing:
+- `position`: Current Vector location
+- `velocity`: Movement direction and speed
+- `radius`: Size for hit detection and rendering
+- `path`: Pre-built star shape path
+
+### Movement System
+The `advance` function updates each star's position using delta time:
+
+```lua
+star.position = Vector.xy(
+    star.position.x + star.velocity.x * seconds,
+    star.position.y + star.velocity.y * seconds
+)
+```
+
+### Screen Wrapping
+Stars wrap around when they leave the play area, creating continuous movement:
+
+```lua
+if star.position.x > 180 then star.position = Vector.xy(-180, star.position.y) end
+```
+
+### Hit Detection
+Uses distance-squared comparison for efficient circular hit testing:
+
+```lua
+if (dx * dx + dy * dy) <= (star.radius * star.radius) then
+```
+
+### Score Integration
+When a star is caught:
+1. Remove it from the array
+2. Spawn a new star
+3. Increment the ViewModel score
+
+### Rendering with Transforms
+Each star is drawn by saving renderer state, translating to position, drawing, then restoring:
+
+```lua
+renderer:save()
+renderer:transform(Mat2D.withTranslation(star.position))
+renderer:drawPath(star.path, self.paint)
+renderer:restore()
+```
+
+---
+
+## Extension Ideas
+
+- Increase speed as score rises
+- Add a timer with a ViewModel property
+- Swap stars for artboard instances
+- Add particle effects when catching stars
+- Implement different star types worth different points
+- Add a high score tracker
+- Create a game over state after missing too many stars

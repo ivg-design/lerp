@@ -1,8 +1,456 @@
 ---
 sidebar_position: 5
 title: Util Protocol
+description: Learn how to create reusable Util scripts for sharing code across Node scripts in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Util Protocol
 
-*Content being migrated...*
+## Rive Context: Where Reusable Logic Lives
+
+Util scripts are Rive's way to share code across Node scripts. They have **no lifecycle** and simply return a table of functions and types.
+
+Use Util scripts for:
+- Math helpers and easing functions
+- Geometry builders
+- Reusable data structures (springs, timers, palettes)
+- Constants and configuration
+
+:::note Key Difference
+Unlike Node scripts, Util scripts have no `init`, `draw`, or `advance` functions. They are pure modules that export functions and types.
+:::
+
+---
+
+## Util Script Template
+
+```lua
+--!strict
+
+local MyUtil = {}
+
+export type Range = {
+    min: number,
+    max: number,
+}
+
+function MyUtil.clamp(value: number, range: Range): number
+    return math.max(range.min, math.min(range.max, value))
+end
+
+return MyUtil
+```
+
+**Usage in a Node script:**
+```lua
+local MyUtil = require("MyUtil")
+local value = MyUtil.clamp(120, { min = 0, max = 100 })
+```
+
+---
+
+## Creating a Util Script
+
+1. Assets panel → **+** → Script → **Util**
+2. Name your script (e.g., "MathUtils")
+3. Define your module table and functions
+4. Return the module table
+
+---
+
+## Exercises
+
+### Exercise 1: MathUtils Module
+
+**Goal**: Create a utility module with common math functions.
+
+**File: `MathUtils` (Util Script)**
+
+```lua
+--!strict
+
+local MathUtils = {}
+
+function MathUtils.clamp(value: number, min: number, max: number): number
+    return math.max(min, math.min(max, value))
+end
+
+function MathUtils.lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
+end
+
+function MathUtils.smoothstep(a: number, b: number, t: number): number
+    t = MathUtils.clamp(t, 0, 1)
+    t = t * t * (3 - 2 * t)
+    return MathUtils.lerp(a, b, t)
+end
+
+return MathUtils
+```
+
+**Node Script using MathUtils:**
+
+```lua
+--!strict
+
+local MathUtils = require("MathUtils")
+
+export type EaseDemo = {
+    time: number,
+    x: number,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: EaseDemo): boolean
+    self.time = 0
+    self.x = 0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 160, 80) })
+    return true
+end
+
+function advance(self: EaseDemo, seconds: number): boolean
+    self.time += seconds
+    local t = (math.sin(self.time) + 1) / 2
+    self.x = MathUtils.smoothstep(-120, 120, t)
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.x - 10, -10))
+    self.path:lineTo(Vector.xy(self.x + 10, -10))
+    self.path:lineTo(Vector.xy(self.x + 10, 10))
+    self.path:lineTo(Vector.xy(self.x - 10, 10))
+    self.path:close()
+    return true
+end
+
+function draw(self: EaseDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<EaseDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        time = 0,
+        x = 0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `require("MathUtils")` loads the Util script by name
+- The Util script is loaded once and cached
+- Functions are called with dot notation: `MathUtils.smoothstep(...)`
+
+---
+
+### Exercise 2: Exported Types from Util Scripts
+
+**Goal**: Share type definitions across multiple Node scripts.
+
+**File: `Palette` (Util Script)**
+
+```lua
+--!strict
+
+local Palette = {}
+
+export type Swatch = {
+    primary: Color,
+    accent: Color,
+    neutral: Color,
+}
+
+function Palette.warm(): Swatch
+    return {
+        primary = Color.rgb(255, 120, 80),
+        accent = Color.rgb(255, 210, 120),
+        neutral = Color.rgb(60, 60, 60),
+    }
+end
+
+function Palette.cool(): Swatch
+    return {
+        primary = Color.rgb(80, 160, 255),
+        accent = Color.rgb(120, 220, 200),
+        neutral = Color.rgb(50, 50, 60),
+    }
+end
+
+function Palette.dark(): Swatch
+    return {
+        primary = Color.rgb(40, 40, 50),
+        accent = Color.rgb(200, 80, 120),
+        neutral = Color.rgb(30, 30, 35),
+    }
+end
+
+return Palette
+```
+
+**Node Script using Palette:**
+
+```lua
+--!strict
+
+local Palette = require("Palette")
+
+export type PaletteDemo = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: PaletteDemo): boolean
+    local swatch = Palette.warm()
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-60, -30))
+    self.path:lineTo(Vector.xy(60, -30))
+    self.path:lineTo(Vector.xy(60, 30))
+    self.path:lineTo(Vector.xy(-60, 30))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = swatch.primary })
+
+    return true
+end
+
+function draw(self: PaletteDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<PaletteDemo>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `export type` makes types available to other scripts
+- Factory functions like `Palette.warm()` return configured objects
+- Multiple Node scripts can share the same palette definitions
+
+---
+
+### Exercise 3: Spring Animation Util
+
+**Goal**: Create a reusable spring physics utility.
+
+**File: `Spring` (Util Script)**
+
+```lua
+--!strict
+
+local Spring = {}
+
+export type SpringState = {
+    position: number,
+    velocity: number,
+    target: number,
+    stiffness: number,
+    damping: number,
+}
+
+function Spring.new(initial: number, stiffness: number?, damping: number?): SpringState
+    return {
+        position = initial,
+        velocity = 0,
+        target = initial,
+        stiffness = stiffness or 150,
+        damping = damping or 10,
+    }
+end
+
+function Spring.setTarget(spring: SpringState, target: number)
+    spring.target = target
+end
+
+function Spring.update(spring: SpringState, dt: number): number
+    local displacement = spring.target - spring.position
+    local springForce = displacement * spring.stiffness
+    local dampingForce = spring.velocity * spring.damping
+    local acceleration = springForce - dampingForce
+
+    spring.velocity += acceleration * dt
+    spring.position += spring.velocity * dt
+
+    return spring.position
+end
+
+return Spring
+```
+
+**Node Script using Spring:**
+
+```lua
+--!strict
+
+local Spring = require("Spring")
+
+export type SpringDemo = {
+    targetX: Input<number>,
+    spring: Spring.SpringState,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: SpringDemo): boolean
+    self.spring = Spring.new(0, 200, 15)
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(120, 200, 255) })
+    return true
+end
+
+function update(self: SpringDemo)
+    Spring.setTarget(self.spring, self.targetX.value)
+end
+
+function advance(self: SpringDemo, seconds: number): boolean
+    local x = Spring.update(self.spring, seconds)
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(x - 20, -20))
+    self.path:lineTo(Vector.xy(x + 20, -20))
+    self.path:lineTo(Vector.xy(x + 20, 20))
+    self.path:lineTo(Vector.xy(x - 20, 20))
+    self.path:close()
+
+    return true
+end
+
+function draw(self: SpringDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<SpringDemo>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        targetX = 0,
+        spring = Spring.new(0),
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Try:** Change `targetX` in the inspector and watch the shape spring smoothly to the new position.
+
+---
+
+## Best Practices
+
+### Keep Util Scripts Focused
+
+Each Util script should do one thing well:
+- `MathUtils` - math helpers
+- `Palette` - color schemes
+- `Spring` - spring physics
+- `EasingFunctions` - easing curves
+
+### Avoid Global State
+
+```lua
+-- BAD: Global state is shared across ALL script instances
+local counter = 0
+function MyUtil.increment()
+    counter += 1
+    return counter
+end
+
+-- GOOD: State is passed in and returned
+function MyUtil.increment(counter: number): number
+    return counter + 1
+end
+```
+
+### Export Types for Type Safety
+
+```lua
+-- Types are available to importing scripts
+export type Vec2 = { x: number, y: number }
+
+function MyUtil.add(a: Vec2, b: Vec2): Vec2
+    return { x = a.x + b.x, y = a.y + b.y }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What is the main difference between a Util script and a Node script?"
+  id="util-q1"
+  options={[
+    { text: "Util scripts run faster" },
+    { text: "Util scripts have no lifecycle functions", correct: true },
+    { text: "Util scripts can only contain types" },
+    { text: "Util scripts are optional" },
+  ]}
+  explanation="Util scripts have no init, draw, or advance functions. They simply return a table of functions and types for other scripts to use."
+/>
+
+<Quiz
+  question="How do you import a Util script in a Node script?"
+  id="util-q2"
+  options={[
+    { text: "import('MathUtils')" },
+    { text: "require('MathUtils')", correct: true },
+    { text: "include('MathUtils')" },
+    { text: "use('MathUtils')" },
+  ]}
+  explanation="Use require() to import Util scripts. The script is loaded once and cached for subsequent require() calls."
+/>
+
+<Quiz
+  question="Why should you avoid global state in Util scripts?"
+  id="util-q3"
+  options={[
+    { text: "It causes syntax errors" },
+    { text: "Global state is shared across all script instances", correct: true },
+    { text: "Rive doesn't support global variables" },
+    { text: "It makes the script slower" },
+  ]}
+  explanation="Global state in a Util script is shared across ALL Node script instances that use it, which can cause unexpected behavior. Pass state as parameters instead."
+/>
+
+<Quiz
+  question="What does 'export type' do in a Util script?"
+  id="util-q4"
+  options={[
+    { text: "Makes the type public to other scripts", correct: true },
+    { text: "Creates a new instance of the type" },
+    { text: "Validates the type at runtime" },
+    { text: "Converts the type to a string" },
+  ]}
+  explanation="export type makes a type definition available to other scripts that require() the Util module, enabling type-safe code sharing."
+/>
+
+---
+
+## Summary
+
+- Util scripts are modules that export functions and types
+- They have no lifecycle - just `return` a table
+- Use `require()` to import them in Node scripts
+- Keep them focused and avoid global state
+- Export types for better type safety across scripts
+
+---
+
+## Next Up
+
+**[Other Protocols →](./other-protocols)**

@@ -91,6 +91,15 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'category',
+      label: '🛠️ Part 8: Projects',
+      items: [
+        'projects/interactive-button',
+        'projects/data-visualization',
+        'projects/catch-the-stars',
+      ],
+    },
+    {
       type: 'doc',
       id: 'api-reference',
       label: '📚 API Reference',

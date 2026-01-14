@@ -1,8 +1,264 @@
 ---
 sidebar_position: 4
 title: Node Protocol
+description: Learn the Node script protocol structure required for Rive animations
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Node Protocol
 
-*Content being migrated...*
+## Rive Context: A Node Script Is Not a Normal Luau File
+
+Node scripts run **inside Rive** and must follow a protocol. The editor only lists scripts that return a factory function with at least `init` and `draw`.
+
+**Minimum requirements:**
+1. `--!strict` at the top
+2. Exported type for script state
+3. `init(self)` and `draw(self, renderer)` functions
+4. `return function(): Node<YourType>`
+
+:::warning Important
+If `draw` is missing, the script will not appear in the add-to-scene menu. This is a common source of confusion for beginners.
+:::
+
+---
+
+## Standard Node Script Template
+
+```lua
+--!strict
+
+export type MyNode = {
+    -- Persistent fields live here
+}
+
+function init(self: MyNode): boolean
+    return true
+end
+
+function draw(self: MyNode, renderer: Renderer)
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+Every Node script you write will follow this structure. The exported type defines what data your script instance holds, the lifecycle functions define behavior, and the factory function creates new instances.
+
+---
+
+## How to Run Any Node Script
+
+1. Assets panel → **+** → Script → **Node**
+2. Paste the script
+3. Drag it onto a Node in the artboard
+4. Open the Console panel
+5. Press Play
+
+:::tip Console Output
+`print()` statements in your script appear in Rive's Console panel, not your browser's developer console.
+:::
+
+---
+
+## Exercises
+
+### Exercise 1: Hello Rive
+
+**Goal**: Create a minimal Node script that prints to the console.
+
+```lua
+--!strict
+
+export type HelloRive = {}
+
+function init(self: HelloRive): boolean
+    print("Hello from a Node Script!")
+    print("This runs once at startup.")
+    return true
+end
+
+function draw(self: HelloRive, renderer: Renderer)
+end
+
+return function(): Node<HelloRive>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Expected Console Output:**
+```
+Hello from a Node Script!
+This runs once at startup.
+```
+
+---
+
+### Exercise 2: Frame Timer
+
+**Goal**: Use `advance` for per-frame updates. This demonstrates how to track time across frames.
+
+```lua
+--!strict
+
+export type FrameTimer = {
+    elapsed: number,
+    tick: number,
+}
+
+function init(self: FrameTimer): boolean
+    self.elapsed = 0
+    self.tick = 0
+    return true
+end
+
+function advance(self: FrameTimer, seconds: number): boolean
+    self.elapsed += seconds
+    self.tick += 1
+
+    if self.tick % 60 == 0 then
+        print(`Time: {self.elapsed:.2f}s`)  -- ~once per second at 60fps
+    end
+
+    return true
+end
+
+function draw(self: FrameTimer, renderer: Renderer)
+end
+
+return function(): Node<FrameTimer>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        elapsed = 0,
+        tick = 0,
+    }
+end
+```
+
+**Key points:**
+- `advance` runs every frame and receives the delta time in seconds
+- Store persistent state in `self` fields
+- The return value controls whether the node continues advancing
+
+---
+
+### Exercise 3: Draw a Simple Shape
+
+**Goal**: Build a path in `init` and draw it each frame. This is the foundation for procedural graphics.
+
+```lua
+--!strict
+
+export type DrawSquare = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: DrawSquare): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-40, -40))
+    self.path:lineTo(Vector.xy(40, -40))
+    self.path:lineTo(Vector.xy(40, 40))
+    self.path:lineTo(Vector.xy(-40, 40))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(80, 180, 255),
+    })
+
+    return true
+end
+
+function draw(self: DrawSquare, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<DrawSquare>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- Create paths and paints in `init`, not in `draw`
+- `draw` should only issue renderer commands
+- The factory return table provides default values for typed fields
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What is the minimum set of functions required for a Node script to appear in Rive's add-to-scene menu?"
+  id="node-protocol-q1"
+  options={[
+    { text: "init only" },
+    { text: "draw only" },
+    { text: "init and draw", correct: true },
+    { text: "init, advance, and draw" },
+  ]}
+  explanation="A Node script must have at least init and draw functions to be recognized by Rive. The draw function is specifically required for the script to appear in the add-to-scene menu."
+/>
+
+<Quiz
+  question="Where should you create Path and Paint objects in a Node script?"
+  id="node-protocol-q2"
+  options={[
+    { text: "In the draw function each frame" },
+    { text: "In the init function", correct: true },
+    { text: "In the advance function" },
+    { text: "In the factory return table only" },
+  ]}
+  explanation="Create long-lived objects like Path and Paint in init. Creating them in draw would waste resources by recreating them every frame."
+/>
+
+<Quiz
+  question="What does the advance function's 'seconds' parameter represent?"
+  id="node-protocol-q3"
+  options={[
+    { text: "Total time since init" },
+    { text: "Time since the last frame (delta time)", correct: true },
+    { text: "Fixed timestep (always 1/60)" },
+    { text: "Time until next frame" },
+  ]}
+  explanation="The seconds parameter is the delta time - the time elapsed since the last frame. This varies based on frame rate."
+/>
+
+<Quiz
+  question="What happens if you return false from the init function?"
+  id="node-protocol-q4"
+  options={[
+    { text: "The script continues normally" },
+    { text: "The script is disabled and won't run", correct: true },
+    { text: "An error is thrown" },
+    { text: "The script restarts" },
+  ]}
+  explanation="Returning false from init signals that initialization failed, and the script instance will be disabled."
+/>
+
+---
+
+## Key Takeaway
+
+Every Node script follows the same protocol. Once that structure is correct, you can focus on logic, inputs, and rendering. The protocol ensures Rive knows how to instantiate and run your script.
+
+---
+
+## Next Up
+
+**[Inputs and Data Binding →](./inputs)**

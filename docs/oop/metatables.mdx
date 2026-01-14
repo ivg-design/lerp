@@ -12,7 +12,18 @@ import Quiz from '@site/src/components/Quiz';
 - Understand what metatables are and how they work
 - Use `setmetatable()` to attach behavior to tables
 - Master the `__index` metamethod for property lookup
-- Implement basic object-like behavior
+- Implement prototype patterns for reusable behavior
+
+---
+
+## Rive Context
+
+Rive scripts are not classes. When you need reusable behavior (drawing helpers, physics helpers, layout logic), you build **prototype tables** with metatables. This lets Node scripts share methods and data structures without leaving the Rive scripting environment.
+
+**Typical Rive pattern:**
+- Put reusable logic in a Util script or a local prototype table
+- Create instances with `setmetatable`
+- Call shared methods from `advance` and `draw`
 
 ---
 
@@ -26,293 +37,327 @@ Think of a metatable as a "behavior manual" for a table. When Luau doesn't know 
 
 ---
 
-## Basic Metatable Syntax
+## Standard Rive Pattern (Prototype + Node Script)
 
 ```lua
--- Metatable basics
-local metatable = { ... }       -- A table with special keys
-setmetatable(target, metatable) -- Attach the "manual"
+--!strict
 
--- The __index metamethod: "What to do when a key isn't found"
-local meta = {
-    __index = fallbackTable  -- Look in this table
+-- Prototype table
+local Thing = {}
+Thing.__index = Thing
+
+export type Thing = {
+    x: number,
+    y: number,
+    update: (Thing, number) -> (),
 }
 
--- Or use a function for computed values
-local meta = {
-    __index = function(self, key)
-        return "default value for " .. key
+function Thing.new(x: number, y: number): Thing
+    local self = setmetatable({}, Thing)
+    self.x = x
+    self.y = y
+    return (self :: any) :: Thing
+end
+
+function Thing:update(dt: number)
+    self.x += dt
+end
+
+-- Node script
+export type Demo = {
+    items: {Thing},
+}
+
+function init(self: Demo): boolean
+    self.items = {
+        Thing.new(0, 0),
+        Thing.new(100, 50),
+    }
+    return true
+end
+
+function advance(self: Demo, seconds: number): boolean
+    for _, item in self.items do
+        item:update(seconds)
     end
-}
+    return true
+end
+
+function draw(self: Demo, renderer: Renderer)
+end
+
+return function(): Node<Demo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        items = {},
+    }
+end
 ```
 
 ---
 
 ## Practice Exercises
 
-### Exercise 1: Your First Metatable
+### Exercise 1: Shared Drawing Methods with __index
 
-**Task**: Observe how metatables intercept operations:
+**Goal**: Use a prototype table to share `draw()` across multiple instances.
 
 ```lua
 --!strict
 
-export type MetatableBasics = {}
+local BoxProto = {}
+BoxProto.__index = BoxProto
 
-function init(self: MetatableBasics): boolean
-    -- A regular table
-    local person = { name = "Alice" }
+export type Box = {
+    position: Vector,
+    width: number,
+    height: number,
+    path: Path,
+    paint: Paint,
+    rebuild: (Box) -> (),
+    draw: (Box, Renderer) -> (),
+}
 
-    -- Accessing existing key works
-    print(`Name: {person.name}`)
+function BoxProto.new(position: Vector, width: number, height: number, color: Color): Box
+    local self = setmetatable({}, BoxProto)
+    self.position = position
+    self.width = width
+    self.height = height
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = color })
+    BoxProto.rebuild(self)
+    return (self :: any) :: Box
+end
 
-    -- Accessing missing key returns nil
-    print(`Age: {person.age}`)  -- nil
+function BoxProto:rebuild()
+    local halfW = self.width / 2
+    local halfH = self.height / 2
 
-    -- Now let's add a metatable
-    local meta = {
-        __index = function(tbl, key)
-            print(`Looking up missing key: {key}`)
-            return "unknown"
-        end
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.position.x - halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y + halfH))
+    self.path:lineTo(Vector.xy(self.position.x - halfW, self.position.y + halfH))
+    self.path:close()
+end
+
+function BoxProto:draw(renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+export type BoxDemo = {
+    boxes: {Box},
+}
+
+function init(self: BoxDemo): boolean
+    self.boxes = {
+        BoxProto.new(Vector.xy(-80, 0), 120, 80, Color.rgb(255, 80, 90)),
+        BoxProto.new(Vector.xy(90, 20), 160, 60, Color.rgb(80, 170, 255)),
     }
-
-    setmetatable(person, meta)
-
-    -- Now missing keys trigger the __index function
-    print(`Age (with metatable): {person.age}`)
-    print(`City (with metatable): {person.city}`)
-
-    -- Existing keys STILL work directly (no __index called)
-    print(`Name (still direct): {person.name}`)
-
     return true
 end
 
-function draw(self: MetatableBasics, renderer: Renderer)
-end
-
-return function(): Node<MetatableBasics>
-    return { init = init, draw = draw }
-end
-```
-
-**Expected Output:**
-```
-Name: Alice
-Age: nil
-Looking up missing key: age
-Age (with metatable): unknown
-Looking up missing key: city
-City (with metatable): unknown
-Name (still direct): Alice
-```
-
-**Key Insight**: `__index` is ONLY called when the key doesn't exist in the table itself.
-
----
-
-### Exercise 2: __index with a Fallback Table
-
-**Task**: Create a prototype pattern:
-
-```lua
---!strict
-
-export type FallbackDemo = {}
-
-function init(self: FallbackDemo): boolean
-    -- The "Prototype" - contains shared default values
-    local CharacterDefaults = {
-        health = 100,
-        damage = 10,
-        speed = 5,
-
-        attack = function(selfChar)
-            print(`Attacking for {selfChar.damage} damage!`)
-        end
-    }
-
-    -- Create an "instance" that uses the defaults
-    local warrior = {
-        name = "Warrior",
-        damage = 25  -- Override the default
-    }
-
-    -- Link the instance to the defaults via __index
-    setmetatable(warrior, { __index = CharacterDefaults })
-
-    -- Now warrior can access CharacterDefaults properties
-    print(`{warrior.name}:`)
-    print(`  Health: {warrior.health}`)  -- From CharacterDefaults
-    print(`  Damage: {warrior.damage}`)  -- From warrior (overridden)
-    print(`  Speed: {warrior.speed}`)    -- From CharacterDefaults
-
-    -- Methods work too!
-    warrior.attack(warrior)
-
-    -- Create another instance with different overrides
-    local mage = {
-        name = "Mage",
-        health = 60,  -- Lower health
-        damage = 40   -- Higher damage
-    }
-    setmetatable(mage, { __index = CharacterDefaults })
-
-    print(`\n{mage.name}:`)
-    print(`  Health: {mage.health}`)  -- Overridden
-    print(`  Damage: {mage.damage}`)  -- Overridden
-    print(`  Speed: {mage.speed}`)    -- From defaults
-
-    return true
-end
-
-function draw(self: FallbackDemo, renderer: Renderer)
-end
-
-return function(): Node<FallbackDemo>
-    return { init = init, draw = draw }
-end
-```
-
----
-
-### Exercise 3: The Lookup Chain
-
-**Task**: Trace the lookup process:
-
-```lua
---!strict
-
-export type LookupChain = {}
-
-local lookupLog: {string} = {}
-
-local function log(msg: string)
-    table.insert(lookupLog, msg)
-end
-
-function init(self: LookupChain): boolean
-    -- Level 1: Grandparent (base defaults)
-    local Grandparent = {
-        a = "grandparent-a",
-        b = "grandparent-b",
-        c = "grandparent-c",
-    }
-
-    -- Level 2: Parent (overrides some)
-    local Parent = {
-        b = "parent-b",  -- Override grandparent
-    }
-    setmetatable(Parent, {
-        __index = function(t, k)
-            log(`Parent.__index looking for '{k}'`)
-            return Grandparent[k]
-        end
-    })
-
-    -- Level 3: Child (overrides more)
-    local Child = {
-        c = "child-c",  -- Override parent (and grandparent)
-    }
-    setmetatable(Child, {
-        __index = function(t, k)
-            log(`Child.__index looking for '{k}'`)
-            return Parent[k]
-        end
-    })
-
-    lookupLog = {}
-
-    -- Access 'a' - not in Child or Parent, found in Grandparent
-    log("=== Looking up 'a' ===")
-    local a = Child.a
-    log(`Result: {a}`)
-
-    -- Access 'b' - not in Child, found in Parent
-    log("\n=== Looking up 'b' ===")
-    local b = Child.b
-    log(`Result: {b}`)
-
-    -- Access 'c' - found directly in Child
-    log("\n=== Looking up 'c' ===")
-    local c = Child.c
-    log(`Result: {c}`)
-
-    for _, entry in lookupLog do
-        print(entry)
+function draw(self: BoxDemo, renderer: Renderer)
+    for _, box in self.boxes do
+        box:draw(renderer)
     end
+end
+
+return function(): Node<BoxDemo>
+    return {
+        init = init,
+        draw = draw,
+        boxes = {},
+    }
+end
+```
+
+**Why this is Rive-specific:** In a Node script, you often want a list of drawables that share logic but store their own `Path` and `Paint`. Metatables give you that without classes.
+
+---
+
+### Exercise 2: Default Styles with __index
+
+**Goal**: Use `__index` fallback to keep style defaults in one place.
+
+```lua
+--!strict
+
+export type StrokeDemo = {
+    lineA: Path,
+    lineB: Path,
+    paintA: Paint,
+    paintB: Paint,
+}
+
+function init(self: StrokeDemo): boolean
+    local defaults = {
+        thickness = 6,
+        cap = "round",
+        join = "round",
+        color = Color.rgb(40, 180, 255),
+    }
+
+    local warm = setmetatable({ color = Color.rgb(255, 120, 60) }, { __index = defaults })
+    local cool = setmetatable({ thickness = 10 }, { __index = defaults })
+
+    self.paintA = Paint.with({
+        style = "stroke",
+        thickness = warm.thickness,
+        cap = warm.cap,
+        join = warm.join,
+        color = warm.color,
+    })
+
+    self.paintB = Paint.with({
+        style = "stroke",
+        thickness = cool.thickness,
+        cap = cool.cap,
+        join = cool.join,
+        color = cool.color,
+    })
+
+    self.lineA = Path.new()
+    self.lineA:moveTo(Vector.xy(-140, -20))
+    self.lineA:lineTo(Vector.xy(140, -20))
+
+    self.lineB = Path.new()
+    self.lineB:moveTo(Vector.xy(-120, 40))
+    self.lineB:lineTo(Vector.xy(120, 40))
 
     return true
 end
 
-function draw(self: LookupChain, renderer: Renderer)
+function draw(self: StrokeDemo, renderer: Renderer)
+    renderer:drawPath(self.lineA, self.paintA)
+    renderer:drawPath(self.lineB, self.paintB)
 end
 
-return function(): Node<LookupChain>
-    return { init = init, draw = draw }
+return function(): Node<StrokeDemo>
+    return {
+        init = init,
+        draw = draw,
+        lineA = Path.new(),
+        lineB = Path.new(),
+        paintA = Paint.new(),
+        paintB = Paint.new(),
+    }
 end
 ```
 
-**Key Insight**: The chain stops as soon as a value is found!
+**Rive takeaway:** Default styles help you keep a consistent look across procedural drawings.
+
+---
+
+### Exercise 3: Computed Lookups with __index
+
+**Goal**: Use `__index` as a function to compute derived values for hit-testing.
+
+```lua
+--!strict
+
+export type HitDemo = {
+    center: Vector,
+    radius: number,
+}
+
+function init(self: HitDemo): boolean
+    self.center = Vector.xy(0, 0)
+    self.radius = 80
+
+    local hitbox = setmetatable({ center = self.center, radius = self.radius }, {
+        __index = function(tbl, key)
+            if key == "min" then
+                return Vector.xy(tbl.center.x - tbl.radius, tbl.center.y - tbl.radius)
+            elseif key == "max" then
+                return Vector.xy(tbl.center.x + tbl.radius, tbl.center.y + tbl.radius)
+            end
+            return nil
+        end
+    })
+
+    print(`Hitbox min: ({hitbox.min.x}, {hitbox.min.y})`)
+    print(`Hitbox max: ({hitbox.max.x}, {hitbox.max.y})`)
+
+    return true
+end
+
+function draw(self: HitDemo, renderer: Renderer)
+end
+
+return function(): Node<HitDemo>
+    return {
+        init = init,
+        draw = draw,
+        center = Vector.xy(0, 0),
+        radius = 0,
+    }
+end
+```
+
+**Rive takeaway:** Use computed lookups to keep derived geometry centralized and consistent.
 
 ---
 
 ### Exercise 4: The Self-Referential Pattern
 
-**Task**: Implement the canonical OOP pattern:
+**Task**: Implement the canonical OOP pattern in a complete Node script.
 
 ```lua
 --!strict
 
-export type SelfReferential = {}
+-- The "Class" table
+local Enemy = {}
+Enemy.__index = Enemy
+
+export type EnemyType = {
+    name: string,
+    health: number,
+}
+
+function Enemy.new(name: string, health: number): EnemyType
+    local instance = setmetatable({}, Enemy)
+    instance.name = name
+    instance.health = health
+    return (instance :: any) :: EnemyType
+end
+
+function Enemy:takeDamage(amount: number)
+    self.health -= amount
+    print(`{self.name} takes {amount} damage! HP: {self.health}`)
+end
+
+function Enemy:isAlive(): boolean
+    return self.health > 0
+end
+
+function Enemy:describe()
+    local status = if self:isAlive() then "alive" else "dead"
+    print(`{self.name}: {self.health} HP ({status})`)
+end
+
+export type SelfReferential = {
+    goblin: EnemyType,
+    orc: EnemyType,
+}
 
 function init(self: SelfReferential): boolean
-    -- The "Class" table
-    local Enemy = {}
-    Enemy.__index = Enemy  -- Key pattern! Point __index to itself
+    self.goblin = Enemy.new("Goblin", 30)
+    self.orc = Enemy.new("Orc", 100)
 
-    -- "Constructor" function
-    function Enemy.new(name: string, health: number)
-        local instance = {
-            name = name,
-            health = health,
-        }
-        setmetatable(instance, Enemy)  -- Instance uses Enemy as metatable
-        return instance
-    end
+    self.goblin:describe()
+    self.orc:describe()
 
-    -- Methods defined on Enemy are shared by all instances
-    function Enemy:takeDamage(amount: number)
-        self.health -= amount
-        print(`{self.name} takes {amount} damage! HP: {self.health}`)
-    end
+    self.goblin:takeDamage(15)
+    self.orc:takeDamage(30)
 
-    function Enemy:isAlive(): boolean
-        return self.health > 0
-    end
+    self.goblin:takeDamage(20)
+    self.goblin:describe()
 
-    function Enemy:describe()
-        local status = if self:isAlive() then "alive" else "dead"
-        print(`{self.name}: {self.health} HP ({status})`)
-    end
-
-    -- Create instances
-    local goblin = Enemy.new("Goblin", 30)
-    local orc = Enemy.new("Orc", 100)
-
-    -- Both share the same methods
-    goblin:describe()
-    orc:describe()
-
-    goblin:takeDamage(15)
-    orc:takeDamage(30)
-
-    goblin:takeDamage(20)  -- Fatal!
-    goblin:describe()
-
-    print(`\nGoblin health: {goblin.health}`)
-    print(`Orc health: {orc.health}`)
+    print(`\nGoblin health: {self.goblin.health}`)
+    print(`Orc health: {self.orc.health}`)
 
     return true
 end
@@ -321,7 +366,12 @@ function draw(self: SelfReferential, renderer: Renderer)
 end
 
 return function(): Node<SelfReferential>
-    return { init = init, draw = draw }
+    return {
+        init = init,
+        draw = draw,
+        goblin = Enemy.new("", 0),
+        orc = Enemy.new("", 0),
+    }
 end
 ```
 
@@ -336,42 +386,42 @@ end
 
 ### Exercise 5: Other Metamethods
 
-**Task**: Explore other common metamethods:
+**Task**: Explore other common metamethods in a complete Node script.
 
 ```lua
 --!strict
 
+local VectorMeta = {
+    __tostring = function(v): string
+        return `Vector({v.x}, {v.y})`
+    end,
+    __add = function(a, b)
+        return setmetatable({x = a.x + b.x, y = a.y + b.y}, VectorMeta)
+    end,
+    __mul = function(v, scalar)
+        if type(scalar) == "number" then
+            return setmetatable({x = v.x * scalar, y = v.y * scalar}, VectorMeta)
+        end
+        error("Can only multiply Vector by number")
+    end,
+    __eq = function(a, b): boolean
+        return a.x == b.x and a.y == b.y
+    end,
+    __len = function(v): number
+        return math.sqrt(v.x * v.x + v.y * v.y)
+    end,
+}
+VectorMeta.__index = VectorMeta
+
+local function newVector(x: number, y: number)
+    return setmetatable({x = x, y = y}, VectorMeta)
+end
+
 export type OtherMetamethods = {}
 
 function init(self: OtherMetamethods): boolean
-    local Vector = {
-        __tostring = function(v)
-            return `Vector({v.x}, {v.y})`
-        end,
-        __add = function(a, b)
-            return setmetatable({x = a.x + b.x, y = a.y + b.y}, Vector)
-        end,
-        __mul = function(v, scalar)
-            if type(scalar) == "number" then
-                return setmetatable({x = v.x * scalar, y = v.y * scalar}, Vector)
-            end
-            error("Can only multiply Vector by number")
-        end,
-        __eq = function(a, b)
-            return a.x == b.x and a.y == b.y
-        end,
-        __len = function(v)
-            return math.sqrt(v.x * v.x + v.y * v.y)
-        end,
-    }
-    Vector.__index = Vector
-
-    local function newVector(x: number, y: number)
-        return setmetatable({x = x, y = y}, Vector)
-    end
-
     local v1 = newVector(3, 4)
-    print(`v1 = {v1}`)  -- Uses __tostring
+    print(`v1 = {v1}`)
 
     local v2 = newVector(1, 2)
     local v3 = v1 + v2
@@ -383,7 +433,7 @@ function init(self: OtherMetamethods): boolean
     local v5 = newVector(3, 4)
     print(`v1 == v5? {v1 == v5}`)
 
-    print(`Length of v1: {#v1}`)  -- 5 (3-4-5 triangle)
+    print(`Length of v1: {#v1}`)
 
     return true
 end
@@ -392,7 +442,10 @@ function draw(self: OtherMetamethods, renderer: Renderer)
 end
 
 return function(): Node<OtherMetamethods>
-    return { init = init, draw = draw }
+    return {
+        init = init,
+        draw = draw,
+    }
 end
 ```
 

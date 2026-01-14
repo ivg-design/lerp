@@ -1,108 +1,58 @@
 ---
 sidebar_position: 3
 title: "1.3 Functions & Closures"
-description: Define functions, use return values, and create closures
+description: Define functions, understand scope, and use closures in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
 
 # Lesson 1.3: Functions & Closures
 
-## Learning Objectives
-- Define and call functions with parameters
-- Use return values (including multiple returns)
-- Understand scope and upvalues
-- Create closures for stateful behavior
-- Use variadic functions
+## Rive Context
+
+Functions and closures are used inside lifecycle functions. If you need persistent data across frames, store it on `self`, not in a local variable inside `init`.
 
 ---
 
-## Basic Functions
+## Function Basics
+
+### Defining Functions
 
 ```lua
--- Function with type annotations
+-- Local function (preferred)
 local function add(a: number, b: number): number
     return a + b
 end
 
--- Calling the function
-local result = add(5, 3)  -- 8
+-- Anonymous function
+local multiply = function(a: number, b: number): number
+    return a * b
+end
 ```
 
 ### Multiple Return Values
 
-Luau functions can return multiple values:
-
 ```lua
 local function minMax(a: number, b: number): (number, number)
-    return math.min(a, b), math.max(a, b)
-end
-
-local min, max = minMax(5, 10)
-print(min, max)  -- 5, 10
-```
-
-### Anonymous Functions
-
-```lua
-local greet = function(name: string): string
-    return `Hello, {name}!`
-end
-
--- Often used for callbacks
-table.sort(items, function(a, b)
-    return a.score > b.score
-end)
-```
-
----
-
-## Scope and Upvalues
-
-### Module-Level Variables
-
-```lua
-local globalCounter = 0  -- Module scope
-
-local function incrementGlobal(): number
-    globalCounter += 1
-    return globalCounter
-end
-
-print(incrementGlobal())  -- 1
-print(incrementGlobal())  -- 2
-print(incrementGlobal())  -- 3
-```
-
-### Upvalues
-
-Inner functions can access variables from outer scopes:
-
-```lua
-local function outer()
-    local outerValue = "outer"
-
-    local function inner()
-        -- 'outerValue' is an upvalue here
-        return outerValue .. " + inner"
+    if a < b then
+        return a, b
+    else
+        return b, a
     end
-
-    return inner()
 end
 
-print(outer())  -- "outer + inner"
+local min, max = minMax(5, 3)  -- min = 3, max = 5
 ```
 
 ---
 
 ## Closures
 
-A closure is a function that captures variables from its surrounding scope:
+A **closure** is a function that captures variables from its surrounding scope. These captured variables are called **upvalues**.
 
 ```lua
 local function makeCounter()
-    local count = 0  -- Captured by the returned function
-
+    local count = 0  -- This is captured by the inner function
     return function()
         count += 1
         return count
@@ -113,207 +63,165 @@ local counter = makeCounter()
 print(counter())  -- 1
 print(counter())  -- 2
 print(counter())  -- 3
-
--- Each call to makeCounter creates independent state
-local counter2 = makeCounter()
-print(counter2())  -- 1 (independent!)
 ```
 
-### Factory Functions
+:::tip Closures in Rive
+Closures are especially useful in Rive for:
+- Input listeners (`input:addListener(function() ... end)`)
+- Callbacks
+- Factory functions for parameterized behavior
+:::
 
-Closures enable the factory pattern:
+---
+
+## Exercises
+
+### Exercise 1: Basic Functions ⭐
 
 ```lua
-local function createMultiplier(factor: number)
-    return function(x: number): number
-        return x * factor
-    end
+--!strict
+
+export type Exercise1 = {}
+
+local function add(a: number, b: number): number
+    return a + b
 end
 
-local double = createMultiplier(2)
-local triple = createMultiplier(3)
-
-print(double(5))   -- 10
-print(triple(5))   -- 15
-print(double(10))  -- 20
-```
-
-### Practical Patterns
-
-**Timer Factory:**
-```lua
-local function createTimer(duration: number)
-    local elapsed = 0
-    return function(dt: number): boolean
-        elapsed += dt
-        return elapsed >= duration
-    end
+function init(self: Exercise1): boolean
+    print(add(2, 3))
+    print(add(10, -4))
+    return true
 end
 
-local timer = createTimer(2.0)  -- 2 second timer
--- In advance():
-if timer(seconds) then
-    print("Timer finished!")
+function draw(self: Exercise1, renderer: Renderer)
+end
+
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
 ```
 
-**Memoization:**
+---
+
+### Exercise 2: Closures Inside `init` ⭐⭐
+
+This shows how closures work in Rive scripts when executed inside `init`.
+
 ```lua
-local function memoize(fn)
-    local cache = {}
-    return function(x)
-        if cache[x] == nil then
-            cache[x] = fn(x)
+--!strict
+
+export type ClosureDemo = {}
+
+function init(self: ClosureDemo): boolean
+    local function makeCounter()
+        local count = 0
+        return function()
+            count += 1
+            return count
         end
-        return cache[x]
     end
+
+    local counter = makeCounter()
+    print(counter())  -- 1
+    print(counter())  -- 2
+    print(counter())  -- 3
+
+    return true
 end
 
-local expensiveCalc = memoize(function(n)
-    -- Only calculated once per unique n
-    return n * n * n
-end)
+function draw(self: ClosureDemo, renderer: Renderer)
+end
+
+return function(): Node<ClosureDemo>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
 
 ---
 
-## Variadic Functions
+### Exercise 3: Persisting State Across Frames ⭐⭐
 
-Functions that accept variable numbers of arguments:
+If you need the counter to tick every frame, store the count on `self` and update in `advance`.
 
 ```lua
-local function sum(...): number
-    local args = {...}
-    local total = 0
-    for _, v in args do
-        total += v
+--!strict
+
+export type FrameCounter = {
+    count: number,
+}
+
+function init(self: FrameCounter): boolean
+    self.count = 0
+    return true
+end
+
+function advance(self: FrameCounter, seconds: number): boolean
+    self.count += 1
+    if self.count % 60 == 0 then
+        print(`Frames: {self.count}`)
     end
-    return total
+    return true
 end
 
-print(sum(1, 2, 3))        -- 6
-print(sum(10, 20, 30, 40)) -- 100
-```
-
-### Using `select()`
-
-```lua
-local function average(...): number
-    local count = select("#", ...)  -- Get argument count
-    local total = sum(...)
-    return total / count
+function draw(self: FrameCounter, renderer: Renderer)
 end
 
-print(average(10, 20, 30))  -- 20
+return function(): Node<FrameCounter>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        count = late(),
+    }
+end
 ```
+
+:::info Key Insight
+Local variables in `init` only exist during that function call. To persist data across frames, use `self.property`.
+:::
 
 ---
 
-## Practice Exercises
+### Exercise 4: Functions That Return Functions ⭐⭐
 
-### Exercise 1: Basic Functions
-
-```lua
--- Create these utility functions:
-
--- 1. calculateDamage(base, multiplier, reduction)
--- Returns: (base * multiplier) - reduction
--- If result < 0, return 0
-local function calculateDamage(base, multiplier, reduction)
-    local result = (base * multiplier) - reduction
-    return if result < 0 then 0 else result
-end
-
--- 2. isInRange(value, min, max)
--- Returns: true if value is between min and max (inclusive)
-local function isInRange(value, min, max)
-    return value >= min and value <= max
-end
-
--- Test:
-print(calculateDamage(50, 2, 30))  -- 70
-print(calculateDamage(10, 1, 50))  -- 0
-print(isInRange(5, 1, 10))         -- true
-print(isInRange(15, 1, 10))        -- false
-```
-
-### Exercise 2: Multiple Returns
+Use a factory to create parameterized behavior inside `init`.
 
 ```lua
--- divmod(dividend, divisor) -> quotient, remainder
-local function divmod(dividend, divisor)
-    return dividend // divisor, dividend % divisor
-end
+--!strict
 
-local q, r = divmod(17, 5)
-print(`17 / 5 = {q} remainder {r}`)  -- 3 remainder 2
+export type Exercise4 = {}
 
--- getStats(values) -> min, max, sum, average
-local function getStats(values)
-    local min, max = values[1], values[1]
-    local sum = 0
-    for _, v in values do
-        if v < min then min = v end
-        if v > max then max = v end
-        sum += v
-    end
-    return min, max, sum, sum / #values
-end
-
-local min, max, sum, avg = getStats({10, 20, 30, 40, 50})
-print(`Min: {min}, Max: {max}, Sum: {sum}, Avg: {avg}`)
-```
-
-### Exercise 3: Closures
-
-```lua
--- makeAccumulator: adds to running total
-local function makeAccumulator()
-    local total = 0
-    return function(n)
-        total += n
-        return total
+local function makeMultiplier(factor: number)
+    return function(value: number): number
+        return value * factor
     end
 end
 
-local acc = makeAccumulator()
-print(acc(10))  -- 10
-print(acc(5))   -- 15
-print(acc(25))  -- 40
+function init(self: Exercise4): boolean
+    local double = makeMultiplier(2)
+    local triple = makeMultiplier(3)
 
--- makeToggle: toggles boolean state
-local function makeToggle(initial)
-    local state = initial
-    return function()
-        state = not state
-        return state
-    end
+    print(double(5)) -- 10
+    print(triple(5)) -- 15
+
+    return true
 end
 
-local toggle = makeToggle(false)
-print(toggle())  -- true
-print(toggle())  -- false
-print(toggle())  -- true
-```
-
-### Challenge: Function Composition
-
-```lua
--- compose(f, g) returns a function where compose(f,g)(x) = f(g(x))
-local function compose(f, g)
-    return function(x)
-        return f(g(x))
-    end
+function draw(self: Exercise4, renderer: Renderer)
 end
 
-local function addOne(x) return x + 1 end
-local function double(x) return x * 2 end
-
-local addThenDouble = compose(double, addOne)
-print(addThenDouble(5))  -- double(addOne(5)) = double(6) = 12
-
-local doubleThenAdd = compose(addOne, double)
-print(doubleThenAdd(5))  -- addOne(double(5)) = addOne(10) = 11
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
 
 ---
@@ -321,62 +229,43 @@ print(doubleThenAdd(5))  -- addOne(double(5)) = addOne(10) = 11
 ## Knowledge Check
 
 <Quiz
-  question="How do you return multiple values from a function?"
+  question="What is a closure?"
   id="fn-q1"
   options={[
-    { text: "return [a, b]" },
-    { text: "return {a, b}" },
-    { text: "return a, b", correct: true },
-    { text: "return (a, b)" },
+    { text: "A function that takes no arguments" },
+    { text: "A function that captures variables from its surrounding scope", correct: true },
+    { text: "A function that returns nothing" },
+    { text: "A function defined inside a class" },
   ]}
-  explanation="Luau allows multiple return values separated by commas: return a, b"
+  explanation="A closure is a function that 'closes over' variables from its enclosing scope, keeping them alive even after the outer function returns."
 />
 
 <Quiz
-  question="What is an upvalue?"
+  question="Where should you store data that needs to persist across frames in a Rive Node Script?"
   id="fn-q2"
   options={[
-    { text: "A global variable" },
-    { text: "A variable from an outer scope captured by an inner function", correct: true },
-    { text: "A constant value" },
-    { text: "A function parameter" },
+    { text: "In a local variable inside init" },
+    { text: "In a global variable" },
+    { text: "On self (e.g., self.count)", correct: true },
+    { text: "In the draw function" },
   ]}
-  explanation="Upvalues are variables from an outer scope that are captured by an inner function, enabling closures."
+  explanation="Data stored on 'self' persists because the Node instance lives across frames. Local variables in init disappear when init returns."
 />
 
 <Quiz
-  question="What does ... represent in a function parameter list?"
+  question="Which lifecycle function runs every frame for logic updates?"
   id="fn-q3"
   options={[
-    { text: "An error" },
-    { text: "A comment" },
-    { text: "Variable arguments (variadic)", correct: true },
-    { text: "Default values" },
+    { text: "init" },
+    { text: "advance", correct: true },
+    { text: "draw" },
+    { text: "update" },
   ]}
-  explanation="The ... syntax allows functions to accept any number of arguments."
+  explanation="advance(self, seconds) runs every frame and receives the delta time. Use it for per-frame logic updates."
 />
-
----
-
-## Key Patterns to Remember
-
-1. **Factory Pattern**: Functions that return configured functions
-2. **Closure State**: Captured variables persist across calls
-3. **Multiple Returns**: Luau's elegant way to return related values
-4. **Variadic Functions**: Use `...` for flexible argument counts
-
----
-
-## Self-Assessment Checklist
-
-- [ ] I can define functions with typed parameters and return types
-- [ ] I can return multiple values from a function
-- [ ] I understand how closures capture variables from outer scope
-- [ ] I can create factory functions that return other functions
-- [ ] I can use `...` for variadic functions
 
 ---
 
 ## Next Up
 
-**[1.4 Tables Deep Dive →](./tables)**
+**[1.4 Tables →](./tables)**

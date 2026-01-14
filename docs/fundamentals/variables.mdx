@@ -1,65 +1,77 @@
 ---
 sidebar_position: 1
 title: "1.1 Variables, Types & Operators"
-description: Declare variables, understand data types, and use operators
+description: Declare variables, understand data types, and use operators in Rive Node Scripts
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import Term from '@site/src/components/Term';
-import Exercise from '@site/src/components/Exercise';
 
 # Lesson 1.1: Variables, Types & Operators
 
-## Learning Objectives
+## Rive Context: How Your Code Actually Runs
 
-By the end of this lesson, you will be able to:
-- Declare local variables correctly
-- Understand Luau's basic data types
-- Use arithmetic, comparison, and logical operators
-- Apply string interpolation and compound assignments
+Rive does not execute standalone Luau files. Scripts must follow a protocol and run inside lifecycle functions.
+
+Rive Node scripts must:
+1. Define an exported type for the script instance
+2. Implement lifecycle functions (`init`, `draw`, optionally `advance`)
+3. Return a factory function that returns `Node<YourType>`
+4. Be attached to a Node in your Rive file
+
+**Where code goes:**
+- Put one-time setup and prints in `init(self)`.
+- Use `self` for data that must persist across frames.
+- `draw(self, renderer)` is required for the script to appear in the add-to-scene list, even if empty.
+
+**Where output appears:** `print()` goes to Rive's Console panel, not your browser console.
 
 ---
 
-## Comments
+## Standard Node Script Template
+
+Use this structure for every exercise in this course:
 
 ```lua
--- This is a single-line comment
+--!strict
 
---[[
-This is a
-multi-line comment
-]]
+export type MyScript = {
+    -- Persistent fields go here
+}
+
+function init(self: MyScript): boolean
+    -- Put one-time code here
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+end
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
 
-## Variable Declaration
-
-In Luau, the concept of **scope** is critical. Scope determines where a variable is accessible.
-
-```lua
--- Global variable (AVOID THIS!)
-gravity = 9.8
-
--- Local variable (PREFERRED)
-local speed = 50
-
--- With type annotation
-local health: number = 100
-```
-
-### Global vs Local Variables
-
-| Type | Declaration | Scope | Recommendation |
-|------|-------------|-------|----------------|
-| **Global** | `name = value` | Everywhere | Avoid |
-| **Local** | `local name = value` | Current block | Always use |
-
-:::danger Avoid Global Variables
-Global variables can lead to naming collisions and make code harder to trace and debug. Always use `local` unless you have a very specific reason not to.
+:::tip How to Run Any Exercise
+1. Create a **Node Script** in Rive (Assets panel → + → Script → Node)
+2. Paste the exercise script (full Node script, not just the snippet)
+3. Attach the script to a Node (drag onto a shape/group)
+4. Open the Console panel
+5. Press Play in the State Machine
 :::
 
-## Basic Types
+---
 
-Luau has these fundamental types:
+## Variables in Rive Scripts
+
+- **Local variables** inside `init` exist only while `init` runs.
+- **Persistent state** must be stored on `self` if you need it later (e.g., `self.score = 0`).
+- **Strict typing** applies to `self` fields; define them in the exported type.
+
+### Basic Types
 
 | Type | Example | Description |
 |------|---------|-------------|
@@ -70,12 +82,13 @@ Luau has these fundamental types:
 | `table` | `{}`, `{1,2,3}` | Arrays and dictionaries |
 | `function` | `function() end` | Callable code |
 
+---
+
 ## Operators
 
 ### Arithmetic Operators
 
 ```lua
--- Basic arithmetic
 local sum = 10 + 5      -- 15
 local diff = 10 - 5     -- 5
 local product = 10 * 5  -- 50
@@ -131,53 +144,11 @@ local msg = `Welcome, {name}!`  -- "Welcome, Player!"
 
 ---
 
-## Block Scope
+## Exercises
 
-Variables are scoped to the **block** where they are defined:
+### Exercise 1: Variable Declaration ⭐
 
-```lua
-local function calculate()
-    local result = 10  -- Only exists inside this function
-
-    if result > 5 then
-        local message = "High"  -- Only exists inside this if block
-        print(message)
-    end
-
-    -- print(message)  -- Error: 'message' is out of scope here
-end
-```
-
-## Closures and Upvalues
-
-Functions capture variables from their surrounding scope (**upvalues**). This enables **closures**:
-
-```lua
-local function makeCounter()
-    local count = 0
-    return function()
-        count += 1
-        return count
-    end
-end
-
-local nextCount = makeCounter()
-print(nextCount())  -- 1
-print(nextCount())  -- 2
-print(nextCount())  -- 3
-```
-
-:::tip Closures in Rive
-Closures are especially useful in Rive for callbacks, stateful helpers, and maintaining state between frames.
-:::
-
----
-
-## Practice Exercises
-
-### Exercise 1: Variable Declaration
-
-**Task**: Declare variables for a game character and print them.
+**Goal**: Declare local variables and print them from `init`.
 
 ```lua
 --!strict
@@ -185,13 +156,15 @@ Closures are especially useful in Rive for callbacks, stateful helpers, and main
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
-    -- Declare these variables:
-    -- 1. characterName (string) = "Warrior"
-    -- 2. level (number) = 5
-    -- 3. experience (number) = 1250.5
-    -- 4. hasShield (boolean) = true
+    local characterName = "Warrior"
+    local level = 5
+    local experience = 1250.5
+    local hasShield = true
 
-    -- Print all variables
+    print(characterName)
+    print(level)
+    print(experience)
+    print(hasShield)
 
     return true
 end
@@ -207,7 +180,7 @@ return function(): Node<Exercise1>
 end
 ```
 
-**Expected Output:**
+**Expected Console Output:**
 ```
 Warrior
 5
@@ -215,92 +188,146 @@ Warrior
 true
 ```
 
-### Exercise 2: Arithmetic Operations
+---
 
-**Task**: Calculate damage with various modifiers.
+### Exercise 2: Arithmetic Operations ⭐
+
+**Goal**: Do math inside `init` and print results.
 
 ```lua
+--!strict
+
+export type Exercise2 = {}
+
 function init(self: Exercise2): boolean
     local baseDamage = 50
     local critMultiplier = 2.5
     local armorReduction = 15
 
-    -- Calculate: (baseDamage * critMultiplier) - armorReduction
-    -- Store in: finalDamage
-
-    -- Calculate percentage blocked:
-    -- armorReduction / (baseDamage * critMultiplier) * 100
-    -- Store in: percentBlocked
+    local finalDamage = (baseDamage * critMultiplier) - armorReduction
+    local percentBlocked = armorReduction / (baseDamage * critMultiplier) * 100
 
     print(`Final damage: {finalDamage}`)
     print(`Percent blocked: {percentBlocked}%`)
 
     return true
 end
-```
 
-**Expected Output:**
-```
-Final damage: 110
-Percent blocked: 12%
-```
+function draw(self: Exercise2, renderer: Renderer)
+end
 
-### Exercise 3: Compound Assignments
-
-**Task**: Use compound operators to modify a score.
-
-```lua
-function init(self: Exercise3): boolean
-    local score = 100
-
-    -- 1. Add 50 to score (use +=)
-    -- 2. Multiply score by 2 (use *=)
-    -- 3. Subtract 75 from score (use -=)
-    -- 4. Floor divide score by 3 (use //=)
-
-    -- Print the score after EACH operation
-
-    return true
+return function(): Node<Exercise2>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
 ```
 
-**Expected Output:**
-```
-After +50: 150
-After *2: 300
-After -75: 225
-After //3: 75
-```
+---
 
-### Exercise 4: Logical Operators
-
-**Task**: Determine game states using logical operators.
+### Exercise 3: Compound Assignments ⭐
 
 ```lua
-function init(self: Exercise4): boolean
-    local health = 25
-    local hasPotion = true
-    local inCombat = false
-    local level = 10
+--!strict
 
-    -- 1. Is the player low on health? (health < 30)
-    local isLowHealth = health < 30
+export type Exercise3 = {}
 
-    -- 2. Can the player heal? (low health AND has potion AND NOT in combat)
-    local canHeal = isLowHealth and hasPotion and not inCombat
+function init(self: Exercise3): boolean
+    local score = 100
 
-    -- 3. Is the player a veteran? (level >= 10)
-    local isVeteran = level >= 10
+    score += 50
+    print(`After +50: {score}`)
 
-    -- 4. Should show health warning? (low health AND (in combat OR NOT has potion))
-    local showWarning = isLowHealth and (inCombat or not hasPotion)
+    score *= 2
+    print(`After *2: {score}`)
 
-    print(`Low health: {isLowHealth}`)   -- true
-    print(`Can heal: {canHeal}`)         -- true
-    print(`Is veteran: {isVeteran}`)     -- true
-    print(`Show warning: {showWarning}`) -- false
+    score -= 75
+    print(`After -75: {score}`)
+
+    score //= 3
+    print(`After //3: {score}`)
 
     return true
+end
+
+function draw(self: Exercise3, renderer: Renderer)
+end
+
+return function(): Node<Exercise3>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Exercise 4: String Interpolation ⭐⭐
+
+```lua
+--!strict
+
+export type Exercise4 = {}
+
+function init(self: Exercise4): boolean
+    local playerName = "Shadowblade"
+    local goldCollected = 250
+    local enemiesDefeated = 12
+    local timePlayed = 45.7
+
+    print(`Player: {playerName}`)
+    print(`Gold: {goldCollected} | Enemies: {enemiesDefeated}`)
+    print(`Time: {timePlayed} minutes ({timePlayed / 60} hours)`)
+
+    return true
+end
+
+function draw(self: Exercise4, renderer: Renderer)
+end
+
+return function(): Node<Exercise4>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Exercise 5: Logical Operators ⭐⭐
+
+```lua
+--!strict
+
+export type Exercise5 = {}
+
+function init(self: Exercise5): boolean
+    local health = 25
+    local maxHealth = 100
+    local hasPotion = true
+
+    local isLowHealth = health <= 30
+    local canHeal = isLowHealth and hasPotion
+    local isCritical = health <= 10 or (health / maxHealth) <= 0.1
+
+    print(`Low health: {isLowHealth}`)
+    print(`Can heal: {canHeal}`)
+    print(`Critical: {isCritical}`)
+
+    return true
+end
+
+function draw(self: Exercise5, renderer: Renderer)
+end
+
+return function(): Node<Exercise5>
+    return {
+        init = init,
+        draw = draw,
+    }
 end
 ```
 
@@ -309,11 +336,11 @@ end
 ## Knowledge Check
 
 <Quiz
-  question="What keyword should you always use when declaring variables?"
+  question="What keyword should you always use when declaring variables inside a function?"
   id="vars-q1"
   type="code"
   answer="local"
-  explanation="Always use 'local' to avoid global namespace pollution."
+  explanation="Always use 'local' to avoid global namespace pollution. Variables without 'local' become globals."
 />
 
 <Quiz
@@ -337,36 +364,29 @@ end
 />
 
 <Quiz
-  question="What does a closure capture?"
+  question="Where do print() statements appear in Rive?"
   id="vars-q4"
   options={[
-    { text: "Only function arguments" },
-    { text: "Variables from the surrounding scope (upvalues)", correct: true },
-    { text: "Global variables only" },
-    { text: "Nothing - closures are stateless" },
+    { text: "Browser developer console" },
+    { text: "Rive Console panel", correct: true },
+    { text: "System terminal" },
+    { text: "They don't appear anywhere" },
   ]}
-  explanation="Closures capture variables from their surrounding scope, called upvalues. This allows them to maintain state."
+  explanation="print() output goes to Rive's Console panel, not your browser's developer console."
 />
 
 ---
 
 ## Common Mistakes to Avoid
 
+:::danger Avoid Global Variables
+Global variables (declared without `local`) can lead to naming collisions and make code harder to trace and debug. Always use `local` unless you have a very specific reason not to.
+:::
+
 1. **Forgetting `local`**: Always declare with `local`
 2. **Using `!=`**: Luau uses `~=` for not-equal
 3. **String concat in interpolation**: Inside `{}` you don't need `..`
 4. **Division precision**: `/` gives float, `//` gives floor integer
-
----
-
-## Self-Assessment Checklist
-
-- [ ] I can declare local variables with explicit types
-- [ ] I understand the difference between `=` and `==`
-- [ ] I can use `~=` for "not equal" (not `!=`)
-- [ ] I can use compound assignments like `+=` and `*=`
-- [ ] I can use string interpolation with backticks
-- [ ] I understand `and`, `or`, `not` logical operators
 
 ---
 

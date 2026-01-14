@@ -16,6 +16,17 @@ import Quiz from '@site/src/components/Quiz';
 
 ---
 
+## Rive Context
+
+Rive scripts run in `--!strict` mode by default. That means your script must define types for persistent state and inputs, and the engine enforces them.
+
+Key rules in Rive:
+- Use `export type` to describe your script instance (`self`)
+- Use `Input<T>` for values exposed to the editor
+- Use `late()` when a value is provided by the engine after creation
+
+---
+
 ## Why Types Matter
 
 In Module 1, you wrote code that worked—but how do you know it won't break when you change something? Types act as guardrails:
@@ -430,4 +441,4 @@ end
 
 ## Next Up
 
-**[2.2 Custom Types & Unions →](./custom-types)**
+**[Type Annotations Deep Dive ->](./annotations)**

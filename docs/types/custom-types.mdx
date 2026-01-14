@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: "2.2 Custom Types & Unions"
 description: Define custom type aliases, table types, and union types
 ---
@@ -14,6 +14,18 @@ import Quiz from '@site/src/components/Quiz';
 - Use union types for flexible values
 - Understand and use optional types (`?`)
 - Implement discriminated unions for state management
+
+---
+
+## Rive Context
+
+In Rive scripts, your `export type` defines the shape of `self`. Custom types help keep complex Rive data (inputs, paths, runtime state) clean and safe.
+
+Common Rive use cases for custom types:
+- Nested state objects for complex animations
+- Union types for state machine states
+- Optional types for late-bound references
+- Type aliases for domain-specific values (angles, pixels, etc.)
 
 ---
 

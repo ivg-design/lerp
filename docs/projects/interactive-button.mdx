@@ -1,0 +1,154 @@
+---
+sidebar_position: 1
+title: Interactive Button
+description: Build a button that reacts to pointer input and fires ViewModel triggers
+---
+
+# Project: Interactive Button
+
+Build a button that reacts to pointer input and fires a ViewModel trigger when clicked.
+
+---
+
+## Rive Setup
+
+1. Create a ViewModel named `ButtonVM` with:
+   - `pressed` (Boolean)
+   - `click` (Trigger)
+2. Bind `pressed` to a state machine input or a shape color
+3. Attach this Node script to a group on your artboard
+
+---
+
+## Node Script
+
+```lua
+--!strict
+
+export type ButtonScript = {
+    width: Input<number>,
+    height: Input<number>,
+    isPressed: boolean,
+    fill: Paint,
+    stroke: Paint,
+    path: Path,
+    pressedProp: Property<boolean>?,
+    clickTrigger: PropertyTrigger?,
+}
+
+local function inBounds(self: ButtonScript, pos: Vector): boolean
+    local halfW = self.width.value / 2
+    local halfH = self.height.value / 2
+    return pos.x >= -halfW and pos.x <= halfW and pos.y >= -halfH and pos.y <= halfH
+end
+
+local function rebuild(self: ButtonScript)
+    local halfW = self.width.value / 2
+    local halfH = self.height.value / 2
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, halfH))
+    self.path:lineTo(Vector.xy(-halfW, halfH))
+    self.path:close()
+end
+
+function init(self: ButtonScript, context: Context): boolean
+    self.isPressed = false
+
+    self.fill = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
+    self.stroke = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(40, 70, 120) })
+    self.path = Path.new()
+
+    local vm = context:viewModel()
+    if vm then
+        self.pressedProp = vm:getBoolean("pressed")
+        self.clickTrigger = vm:getTrigger("click")
+    end
+
+    rebuild(self)
+    return true
+end
+
+function update(self: ButtonScript)
+    rebuild(self)
+end
+
+function pointerDown(self: ButtonScript, event: PointerEvent)
+    if inBounds(self, event.position) then
+        self.isPressed = true
+        self.fill.color = Color.rgb(255, 140, 90)
+        if self.pressedProp then
+            self.pressedProp.value = true
+        end
+        event:hit()
+    end
+end
+
+function pointerUp(self: ButtonScript, event: PointerEvent)
+    if self.isPressed then
+        self.isPressed = false
+        self.fill.color = Color.rgb(80, 170, 255)
+        if self.pressedProp then
+            self.pressedProp.value = false
+        end
+        if inBounds(self, event.position) and self.clickTrigger then
+            self.clickTrigger:fire()
+        end
+        event:hit()
+    end
+end
+
+function draw(self: ButtonScript, renderer: Renderer)
+    renderer:drawPath(self.path, self.fill)
+    renderer:drawPath(self.path, self.stroke)
+end
+
+return function(): Node<ButtonScript>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        pointerDown = pointerDown,
+        pointerUp = pointerUp,
+        width = 180,
+        height = 80,
+        isPressed = false,
+        path = Path.new(),
+        fill = Paint.new(),
+        stroke = Paint.new(),
+        pressedProp = nil,
+        clickTrigger = nil,
+    }
+end
+```
+
+---
+
+## How It Works
+
+### State Management
+- `isPressed` tracks whether the button is currently being pressed
+- `pressedProp` syncs with the ViewModel's `pressed` boolean for visual feedback
+- `clickTrigger` fires the ViewModel trigger when a complete click occurs
+
+### Hit Detection
+The `inBounds` helper checks if a pointer position is within the button's rectangular bounds, calculated from `width` and `height` inputs.
+
+### Pointer Events
+- **pointerDown**: Changes color to pressed state, updates ViewModel
+- **pointerUp**: Restores color, fires trigger only if released within bounds
+
+### Visual Feedback
+The button draws itself using the Drawing API with a fill and stroke. Colors change based on the `isPressed` state.
+
+---
+
+## Extension Ideas
+
+- Add a hover state with `pointerMove`
+- Animate the button depth using `advance`
+- Use a `Sound` trigger via ViewModel
+- Add rounded corners using `path:roundedRect()`
+- Implement a disabled state controlled by ViewModel boolean

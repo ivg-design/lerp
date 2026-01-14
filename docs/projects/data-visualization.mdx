@@ -1,0 +1,159 @@
+---
+sidebar_position: 2
+title: Data Visualization
+description: Build a simple bar chart driven by ViewModel data
+---
+
+# Project: Data Visualization
+
+Build a simple bar chart driven by ViewModel data.
+
+---
+
+## Rive Setup
+
+1. Create a ViewModel named `ChartVM` with numbers `a`, `b`, and `c`
+2. Bind those properties to any external data source or animate them in the editor
+3. Attach this Node script to a group on your artboard
+
+---
+
+## Node Script
+
+```lua
+--!strict
+
+export type BarChart = {
+    barWidth: Input<number>,
+    maxHeight: Input<number>,
+    paths: {Path},
+    paints: {Paint},
+    a: Property<number>?,
+    b: Property<number>?,
+    c: Property<number>?,
+}
+
+local function clamp(value: number, minValue: number, maxValue: number): number
+    return math.max(minValue, math.min(maxValue, value))
+end
+
+local function rebuild(self: BarChart)
+    local values = {
+        self.a and self.a.value or 0,
+        self.b and self.b.value or 0,
+        self.c and self.c.value or 0,
+    }
+
+    for i, value in ipairs(values) do
+        local height = (clamp(value, 0, 100) / 100) * self.maxHeight.value
+        local x = (i - 2) * (self.barWidth.value + 20)
+        local halfW = self.barWidth.value / 2
+
+        local path = self.paths[i]
+        path:reset()
+        path:moveTo(Vector.xy(x - halfW, 0))
+        path:lineTo(Vector.xy(x + halfW, 0))
+        path:lineTo(Vector.xy(x + halfW, -height))
+        path:lineTo(Vector.xy(x - halfW, -height))
+        path:close()
+    end
+end
+
+function init(self: BarChart, context: Context): boolean
+    self.paths = { Path.new(), Path.new(), Path.new() }
+    self.paints = {
+        Paint.with({ style = "fill", color = Color.rgb(255, 120, 90) }),
+        Paint.with({ style = "fill", color = Color.rgb(90, 180, 255) }),
+        Paint.with({ style = "fill", color = Color.rgb(120, 220, 140) }),
+    }
+
+    local vm = context:viewModel()
+    if vm then
+        self.a = vm:getNumber("a")
+        self.b = vm:getNumber("b")
+        self.c = vm:getNumber("c")
+    end
+
+    local function bind(prop: Property<number>?)
+        if prop then
+            prop:addListener(function()
+                rebuild(self)
+                context:markNeedsUpdate()
+            end)
+        end
+    end
+
+    bind(self.a)
+    bind(self.b)
+    bind(self.c)
+
+    rebuild(self)
+    return true
+end
+
+function update(self: BarChart, context: Context)
+    rebuild(self)
+    context:markNeedsUpdate()
+end
+
+function draw(self: BarChart, renderer: Renderer)
+    for i = 1, #self.paths do
+        renderer:drawPath(self.paths[i], self.paints[i])
+    end
+end
+
+return function(): Node<BarChart>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        barWidth = 50,
+        maxHeight = 140,
+        paths = {},
+        paints = {},
+        a = nil,
+        b = nil,
+        c = nil,
+    }
+end
+```
+
+---
+
+## How It Works
+
+### Data Binding
+The chart binds to three ViewModel number properties (`a`, `b`, `c`). Each property represents a bar's value from 0-100.
+
+### Reactive Updates
+Property listeners automatically rebuild the chart when ViewModel values change:
+
+```lua
+prop:addListener(function()
+    rebuild(self)
+    context:markNeedsUpdate()
+end)
+```
+
+### Bar Calculation
+Each bar's height is calculated as a percentage of `maxHeight`:
+
+```lua
+local height = (clamp(value, 0, 100) / 100) * self.maxHeight.value
+```
+
+Bars are positioned horizontally using the index to calculate x-offset.
+
+### Visual Design
+Each bar has its own color from the `paints` array, giving visual distinction to the data series.
+
+---
+
+## Extension Ideas
+
+- Add labels with text components bound to the same ViewModel
+- Animate bars in `advance` for easing transitions
+- Use gradients instead of flat colors
+- Add a baseline and axis labels
+- Support dynamic number of bars with a ViewModel list
+- Add tooltips that show values on hover

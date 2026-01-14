@@ -11,177 +11,266 @@ import Quiz from '@site/src/components/Quiz';
 ## Learning Objectives
 - Implement inheritance between classes
 - Use intersection types for typed inheritance
-- Apply common design patterns (Singleton, Factory, Observer)
-- Build a complete class hierarchy for game objects
+- Override methods while calling parent implementations
+- Build a complete class hierarchy for drawable objects
 
 ---
 
-## Inheritance in Luau
+## Rive Context
+
+In Rive, inheritance is most useful when multiple drawable objects share common behavior (`draw`, `move`, `update`) but differ in geometry or styling. This helps keep Node scripts clean while still producing complex procedural visuals.
+
+**When to use inheritance in Rive:**
+- Multiple drawables share a base `draw` or `update` function
+- You want different rendering styles for the same geometry
+- You need to override behavior without duplicating setup logic
+
+For anything simpler, prefer composition with plain tables.
+
+---
+
+## Prototype Inheritance (Rive Pattern)
 
 Since Luau uses prototype-based OOP, inheritance means linking one prototype to another. When a method isn't found on the child, it looks in the parent.
 
-**Key concept**: Inheritance creates a chain of `__index` lookups.
-
 ```
-Child instance → Child prototype → Parent prototype
+Child instance -> Child prototype -> Parent prototype
 ```
 
----
-
-## Basic Inheritance Pattern
-
-```lua
--- Parent class
-local Animal = {}
-Animal.__index = Animal
-
-function Animal.new(name)
-    return setmetatable({ name = name }, Animal)
-end
-
-function Animal:speak()
-    print("...")
-end
-
--- Child class inherits from Parent
-local Dog = {}
-Dog.__index = Dog
-setmetatable(Dog, { __index = Animal })  -- Dog looks in Animal for missing keys
-
-function Dog.new(name, breed)
-    local self = Animal.new(name)  -- Create base instance
-    self.breed = breed
-    return setmetatable(self, Dog)  -- Re-attach to Dog's metatable
-end
-
-function Dog:speak()  -- Override parent method
-    print("Woof!")
-end
-```
+If a method isn't found on the child, Luau looks it up on the parent via `__index`.
 
 ---
 
 ## Practice Exercises
 
-### Exercise 1: Basic Inheritance
+### Exercise 1: Drawable Base + Two Shapes
 
-**Task**: Create a Shape class hierarchy:
+**Goal**: Create a base `Shape` class and derive `Rect` and `Triangle` from it.
 
 ```lua
 --!strict
 
--- Base class: Shape
 local Shape = {}
 Shape.__index = Shape
 
-type ShapeBase = {
-    x: number,
-    y: number,
-    color: Color,
+export type Shape = {
+    position: Vector,
+    path: Path,
+    paint: Paint,
+    draw: (Shape, Renderer) -> (),
 }
 
-function Shape.new(x: number, y: number, color: Color): ShapeBase
-    local self = setmetatable({}, Shape)
-    self.x = x
-    self.y = y
-    self.color = color
-    return (self :: any) :: ShapeBase
+function Shape:draw(renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
 end
 
-function Shape:moveTo(newX: number, newY: number)
-    self.x = newX
-    self.y = newY
-end
+local Rect = {}
+Rect.__index = Rect
+setmetatable(Rect, { __index = Shape })
 
-function Shape:describe()
-    print(`Shape at ({self.x}, {self.y})`)
-end
-
--- Derived class: Circle
-local Circle = {}
-Circle.__index = Circle
-setmetatable(Circle, { __index = Shape })  -- Inherit from Shape
-
--- Extend the base type with circle-specific properties
-type CircleType = ShapeBase & {
-    radius: number,
-}
-
-function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
-    local base = Shape.new(x, y, color)
-    base.radius = radius
-    return setmetatable(base, Circle) :: any :: CircleType
-end
-
-function Circle:describe()
-    print(`Circle at ({self.x}, {self.y}) with radius {self.radius}`)
-end
-
-function Circle:area(): number
-    return math.pi * self.radius * self.radius
-end
-
--- Rectangle inherits from Shape
-local Rectangle = {}
-Rectangle.__index = Rectangle
-setmetatable(Rectangle, { __index = Shape })
-
-type RectangleType = ShapeBase & {
+type Rect = Shape & {
     width: number,
     height: number,
+    rebuild: (Rect) -> (),
 }
 
-function Rectangle.new(x: number, y: number, width: number, height: number, color: Color): RectangleType
-    local base = Shape.new(x, y, color)
-    base.width = width
-    base.height = height
-    return setmetatable(base, Rectangle) :: any :: RectangleType
+function Rect.new(position: Vector, width: number, height: number, color: Color): Rect
+    local self = setmetatable({}, Rect)
+    self.position = position
+    self.width = width
+    self.height = height
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = color })
+    Rect.rebuild(self)
+    return (self :: any) :: Rect
 end
 
-function Rectangle:describe()
-    print(`Rectangle at ({self.x}, {self.y}) size {self.width}x{self.height}`)
+function Rect:rebuild()
+    local halfW = self.width / 2
+    local halfH = self.height / 2
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.position.x - halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y + halfH))
+    self.path:lineTo(Vector.xy(self.position.x - halfW, self.position.y + halfH))
+    self.path:close()
 end
 
-function Rectangle:area(): number
-    return self.width * self.height
+local Triangle = {}
+Triangle.__index = Triangle
+setmetatable(Triangle, { __index = Shape })
+
+type Triangle = Shape & {
+    size: number,
+    rebuild: (Triangle) -> (),
+}
+
+function Triangle.new(position: Vector, size: number, color: Color): Triangle
+    local self = setmetatable({}, Triangle)
+    self.position = position
+    self.size = size
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = color })
+    Triangle.rebuild(self)
+    return (self :: any) :: Triangle
 end
 
--- Test
-export type InheritanceDemo = {}
+function Triangle:rebuild()
+    local half = self.size / 2
 
-function init(self: InheritanceDemo): boolean
-    local circle = Circle.new(100, 100, 25, Color.rgb(255, 0, 0))
-    local rect = Rectangle.new(200, 100, 50, 30, Color.rgb(0, 255, 0))
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.position.x, self.position.y - half))
+    self.path:lineTo(Vector.xy(self.position.x + half, self.position.y + half))
+    self.path:lineTo(Vector.xy(self.position.x - half, self.position.y + half))
+    self.path:close()
+end
 
-    circle:describe()
-    rect:describe()
+export type ShapeDemo = {
+    shapes: {Shape},
+}
 
-    print(`Circle area: {circle:area():.2f}`)
-    print(`Rectangle area: {rect:area()}`)
-
-    -- Both inherit moveTo from Shape
-    circle:moveTo(150, 150)
-    rect:moveTo(250, 150)
-
-    circle:describe()
-    rect:describe()
-
+function init(self: ShapeDemo): boolean
+    self.shapes = {
+        Rect.new(Vector.xy(-90, 0), 120, 70, Color.rgb(255, 120, 90)),
+        Triangle.new(Vector.xy(110, 0), 90, Color.rgb(80, 180, 255)),
+    }
     return true
 end
 
-function draw(self: InheritanceDemo, renderer: Renderer)
+function draw(self: ShapeDemo, renderer: Renderer)
+    for _, shape in self.shapes do
+        shape:draw(renderer)
+    end
 end
 
-return function(): Node<InheritanceDemo>
-    return { init = init, draw = draw }
+return function(): Node<ShapeDemo>
+    return {
+        init = init,
+        draw = draw,
+        shapes = {},
+    }
 end
 ```
 
+**Key Pattern**: Both `Rect` and `Triangle` inherit the `draw` method from `Shape`, but each defines its own `rebuild` for geometry.
+
 ---
 
-### Exercise 2: Calling Parent Methods
+### Exercise 2: Override a Method
 
-**Task**: Extend parent methods rather than completely replacing them:
+**Goal**: Add a stroke outline by overriding `draw` on a child class.
+
+This example extends Exercise 1 by adding an `OutlineRect` that draws both fill and stroke.
+
+```lua
+--!strict
+
+-- Base Shape class (same as Exercise 1)
+local Shape = {}
+Shape.__index = Shape
+
+export type Shape = {
+    position: Vector,
+    path: Path,
+    paint: Paint,
+    draw: (Shape, Renderer) -> (),
+}
+
+function Shape:draw(renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+-- Rect class (same as Exercise 1)
+local Rect = {}
+Rect.__index = Rect
+setmetatable(Rect, { __index = Shape })
+
+type Rect = Shape & {
+    width: number,
+    height: number,
+    rebuild: (Rect) -> (),
+}
+
+function Rect.new(position: Vector, width: number, height: number, color: Color): Rect
+    local self = setmetatable({}, Rect)
+    self.position = position
+    self.width = width
+    self.height = height
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = color })
+    Rect.rebuild(self)
+    return (self :: any) :: Rect
+end
+
+function Rect:rebuild()
+    local halfW = self.width / 2
+    local halfH = self.height / 2
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(self.position.x - halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y - halfH))
+    self.path:lineTo(Vector.xy(self.position.x + halfW, self.position.y + halfH))
+    self.path:lineTo(Vector.xy(self.position.x - halfW, self.position.y + halfH))
+    self.path:close()
+end
+
+-- OutlineRect extends Rect with an additional stroke
+local OutlineRect = {}
+OutlineRect.__index = OutlineRect
+setmetatable(OutlineRect, { __index = Rect })
+
+type OutlineRect = Rect & {
+    stroke: Paint,
+    draw: (OutlineRect, Renderer) -> (),
+}
+
+function OutlineRect.new(position: Vector, width: number, height: number, fill: Color, stroke: Color): OutlineRect
+    local base = Rect.new(position, width, height, fill)
+    local self = setmetatable(base, OutlineRect) :: any
+    self.stroke = Paint.with({ style = "stroke", thickness = 5, color = stroke })
+    return self
+end
+
+function OutlineRect:draw(renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+    renderer:drawPath(self.path, self.stroke)
+end
+
+export type OutlineDemo = {
+    shapes: {Shape},
+}
+
+function init(self: OutlineDemo): boolean
+    self.shapes = {
+        Rect.new(Vector.xy(-100, 0), 80, 60, Color.rgb(255, 120, 90)),
+        OutlineRect.new(Vector.xy(100, 0), 80, 60, Color.rgb(80, 180, 255), Color.rgb(40, 80, 120)),
+    }
+    return true
+end
+
+function draw(self: OutlineDemo, renderer: Renderer)
+    for _, shape in self.shapes do
+        shape:draw(renderer)
+    end
+end
+
+return function(): Node<OutlineDemo>
+    return {
+        init = init,
+        draw = draw,
+        shapes = {},
+    }
+end
+```
+
+**Rive takeaway:** Inheritance is most useful when you need to tweak the drawing behavior while keeping shared geometry logic intact.
+
+---
+
+### Exercise 3: Calling Parent Methods
+
+**Goal**: Extend parent methods rather than completely replacing them.
 
 ```lua
 --!strict
@@ -247,20 +336,22 @@ function Boss:nextPhase()
     print(`{self.name} enters phase {self.phase}!`)
 end
 
-export type BossDemo = {}
+export type BossDemo = {
+    boss: BossType,
+}
 
 function init(self: BossDemo): boolean
-    local boss = Boss.new("Dragon", 500, 25, "Fire Breath")
+    self.boss = Boss.new("Dragon", 500, 25, "Fire Breath")
 
-    boss:describe()
+    self.boss:describe()
 
     print("\n--- Phase 1 Attack ---")
-    boss:attack()
+    self.boss:attack()
 
-    boss:nextPhase()
+    self.boss:nextPhase()
 
     print("\n--- Phase 2 Attack ---")
-    boss:attack()
+    self.boss:attack()
 
     return true
 end
@@ -269,7 +360,11 @@ function draw(self: BossDemo, renderer: Renderer)
 end
 
 return function(): Node<BossDemo>
-    return { init = init, draw = draw }
+    return {
+        init = init,
+        draw = draw,
+        boss = Boss.new("", 0, 0, ""),
+    }
 end
 ```
 
@@ -277,186 +372,9 @@ end
 
 ---
 
-### Exercise 3: The Singleton Pattern
+### Exercise 4: Complete Drawable Hierarchy
 
-**Task**: Ensure only one instance exists (useful for GameManager, AudioManager):
-
-```lua
---!strict
-
-local GameManager = {}
-GameManager.__index = GameManager
-
-type GameManagerType = {
-    score: number,
-    level: number,
-    isPaused: boolean,
-    playerName: string,
-}
-
-local instance: GameManagerType? = nil
-
-function GameManager.getInstance(): GameManagerType
-    if instance == nil then
-        local self = setmetatable({}, GameManager)
-        self.score = 0
-        self.level = 1
-        self.isPaused = false
-        self.playerName = "Player"
-        instance = (self :: any) :: GameManagerType
-    end
-    return instance :: GameManagerType
-end
-
-function GameManager.new()
-    error("Use GameManager.getInstance() instead!")
-end
-
-function GameManager:addScore(points: number)
-    self.score += points
-    print(`Score: {self.score}`)
-end
-
-function GameManager:nextLevel()
-    self.level += 1
-    print(`Level up! Now on level {self.level}`)
-end
-
-function GameManager:togglePause()
-    self.isPaused = not self.isPaused
-    print(if self.isPaused then "Game Paused" else "Game Resumed")
-end
-
-export type SingletonDemo = {}
-
-function init(self: SingletonDemo): boolean
-    local game1 = GameManager.getInstance()
-    local game2 = GameManager.getInstance()
-
-    print(`Same instance? {game1 == game2}`)  -- true
-
-    game1:addScore(100)
-    game2:addScore(50)  -- Same instance!
-
-    print(`Final score: {game1.score}`)  -- 150
-
-    return true
-end
-
-function draw(self: SingletonDemo, renderer: Renderer)
-end
-
-return function(): Node<SingletonDemo>
-    return { init = init, draw = draw }
-end
-```
-
----
-
-### Exercise 4: The Observer Pattern (Signals)
-
-**Task**: Build a Signal class for decoupled event handling:
-
-```lua
---!strict
-
-local Signal = {}
-Signal.__index = Signal
-
-type Connection = {
-    callback: (...any) -> (),
-    connected: boolean,
-}
-
-type SignalType = {
-    _connections: {Connection},
-}
-
-function Signal.new(): SignalType
-    local self = setmetatable({}, Signal)
-    self._connections = {}
-    return (self :: any) :: SignalType
-end
-
-function Signal:connect(callback: (...any) -> ()): Connection
-    local connection: Connection = {
-        callback = callback,
-        connected = true,
-    }
-    table.insert(self._connections, connection)
-    return connection
-end
-
-function Signal:disconnect(connection: Connection)
-    connection.connected = false
-    for i = #self._connections, 1, -1 do
-        if self._connections[i] == connection then
-            table.remove(self._connections, i)
-            break
-        end
-    end
-end
-
-function Signal:fire(...)
-    for _, conn in self._connections do
-        if conn.connected then
-            conn.callback(...)
-        end
-    end
-end
-
-function Signal:disconnectAll()
-    for _, conn in self._connections do
-        conn.connected = false
-    end
-    self._connections = {}
-end
-
--- Example: Game Events
-local GameEvents = {
-    onScoreChanged = Signal.new(),
-    onPlayerDied = Signal.new(),
-    onLevelComplete = Signal.new(),
-}
-
-export type SignalDemo = {}
-
-function init(self: SignalDemo): boolean
-    local scoreConn = GameEvents.onScoreChanged:connect(function(newScore: number)
-        print(`[UI] Score updated to: {newScore}`)
-    end)
-
-    GameEvents.onScoreChanged:connect(function(newScore: number)
-        print(`[Audio] Playing score sound`)
-    end)
-
-    GameEvents.onPlayerDied:connect(function()
-        print("[UI] Showing death screen")
-    end)
-
-    print("--- Firing events ---")
-    GameEvents.onScoreChanged:fire(100)
-    GameEvents.onScoreChanged:fire(250)
-    GameEvents.onPlayerDied:fire()
-
-    print("\n--- After disconnecting first listener ---")
-    GameEvents.onScoreChanged:disconnect(scoreConn)
-    GameEvents.onScoreChanged:fire(500)
-
-    return true
-end
-
-function draw(self: SignalDemo, renderer: Renderer)
-end
-
-return function(): Node<SignalDemo>
-    return { init = init, draw = draw }
-end
-```
-
----
-
-### Exercise 5: Complete Game Object Hierarchy
+**Goal**: Build a full game object hierarchy with drawing support.
 
 ```lua
 --!strict
@@ -491,123 +409,150 @@ function GameObject:destroy()
     self.active = false
 end
 
--- Character extends GameObject
-local Character = {}
-Character.__index = Character
-setmetatable(Character, { __index = GameObject })
+-- DrawableObject extends GameObject with path and paint
+local DrawableObject = {}
+DrawableObject.__index = DrawableObject
+setmetatable(DrawableObject, { __index = GameObject })
 
-type CharacterType = GameObjectBase & {
-    name: string,
-    health: number,
-    maxHealth: number,
-    speed: number,
+type DrawableType = GameObjectBase & {
+    path: Path,
+    paint: Paint,
 }
 
-function Character.new(name: string, x: number, y: number, maxHealth: number): CharacterType
+function DrawableObject.new(x: number, y: number, color: Color): DrawableType
     local base = GameObject.new(x, y)
-    base.name = name
-    base.maxHealth = maxHealth
-    base.health = maxHealth
-    base.speed = 100
-    return setmetatable(base, Character) :: any :: CharacterType
+    base.path = Path.new()
+    base.paint = Paint.with({ style = "fill", color = color })
+    return setmetatable(base, DrawableObject) :: any :: DrawableType
 end
 
-function Character:takeDamage(amount: number)
-    self.health = math.max(0, self.health - amount)
-    if self.health <= 0 then
-        self:destroy()
+function DrawableObject:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+-- Box extends DrawableObject
+local Box = {}
+Box.__index = Box
+setmetatable(Box, { __index = DrawableObject })
+
+type BoxType = DrawableType & {
+    width: number,
+    height: number,
+}
+
+function Box.new(x: number, y: number, width: number, height: number, color: Color): BoxType
+    local base = DrawableObject.new(x, y, color)
+    base.width = width
+    base.height = height
+
+    local hw = width / 2
+    local hh = height / 2
+    base.path:moveTo(Vector.xy(-hw, -hh))
+    base.path:lineTo(Vector.xy(hw, -hh))
+    base.path:lineTo(Vector.xy(hw, hh))
+    base.path:lineTo(Vector.xy(-hw, hh))
+    base.path:close()
+
+    return setmetatable(base, Box) :: any :: BoxType
+end
+
+-- Circle extends DrawableObject
+local Circle = {}
+Circle.__index = Circle
+setmetatable(Circle, { __index = DrawableObject })
+
+type CircleType = DrawableType & {
+    radius: number,
+}
+
+function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
+    local base = DrawableObject.new(x, y, color)
+    base.radius = radius
+
+    local segments = 32
+    for i = 0, segments - 1 do
+        local angle = (i / segments) * math.pi * 2
+        local px = math.cos(angle) * radius
+        local py = math.sin(angle) * radius
+        if i == 0 then
+            base.path:moveTo(Vector.xy(px, py))
+        else
+            base.path:lineTo(Vector.xy(px, py))
+        end
     end
-end
+    base.path:close()
 
--- Player extends Character
-local Player = {}
-Player.__index = Player
-setmetatable(Player, { __index = Character })
-
-type PlayerType = CharacterType & {
-    score: number,
-    inventory: {string},
-}
-
-function Player.new(name: string, x: number, y: number): PlayerType
-    local base = Character.new(name, x, y, 100)
-    base.score = 0
-    base.inventory = {}
-    return setmetatable(base, Player) :: any :: PlayerType
-end
-
-function Player:addItem(item: string)
-    table.insert(self.inventory, item)
-    print(`{self.name} picked up: {item}`)
-end
-
-function Player:addScore(points: number)
-    self.score += points
-    print(`Score: {self.score}`)
-end
-
--- Enemy extends Character
-local Enemy = {}
-Enemy.__index = Enemy
-setmetatable(Enemy, { __index = Character })
-
-type EnemyType = CharacterType & {
-    damage: number,
-    targetX: number,
-    targetY: number,
-}
-
-function Enemy.new(name: string, x: number, y: number, health: number, damage: number): EnemyType
-    local base = Character.new(name, x, y, health)
-    base.damage = damage
-    base.speed = 50
-    base.targetX = x
-    base.targetY = y
-    return setmetatable(base, Enemy) :: any :: EnemyType
-end
-
-function Enemy:setTarget(x: number, y: number)
-    self.targetX = x
-    self.targetY = y
+    return setmetatable(base, Circle) :: any :: CircleType
 end
 
 export type HierarchyDemo = {
-    player: PlayerType,
-    enemies: {EnemyType},
+    objects: {DrawableType},
+    elapsed: number,
 }
 
 function init(self: HierarchyDemo): boolean
-    self.player = Player.new("Hero", 100, 100)
-    self.enemies = {
-        Enemy.new("Goblin", 200, 100, 30, 5),
-        Enemy.new("Orc", 300, 150, 50, 10),
+    self.objects = {
+        Box.new(-80, -30, 60, 40, Color.rgb(255, 100, 100)),
+        Box.new(80, 30, 40, 60, Color.rgb(100, 255, 100)),
+        Circle.new(0, 0, 35, Color.rgb(100, 100, 255)),
     }
+    self.elapsed = 0
+    return true
+end
 
-    self.player:addItem("Sword")
-    self.player:addScore(50)
-
-    print(`\nPlayer: {self.player.name} at ({self.player.x}, {self.player.y})`)
-
-    for _, enemy in self.enemies do
-        enemy:setTarget(self.player.x, self.player.y)
-        print(`Enemy: {enemy.name} at ({enemy.x}, {enemy.y})`)
+function advance(self: HierarchyDemo, seconds: number): boolean
+    self.elapsed += seconds
+    for i, obj in self.objects do
+        obj.y = math.sin(self.elapsed * 2 + i) * 20
     end
-
     return true
 end
 
 function draw(self: HierarchyDemo, renderer: Renderer)
+    for _, obj in self.objects do
+        if obj.active then
+            obj:draw(renderer)
+        end
+    end
 end
 
 return function(): Node<HierarchyDemo>
     return {
         init = init,
+        advance = advance,
         draw = draw,
-        player = late(),
-        enemies = late(),
+        objects = {},
+        elapsed = 0,
     }
 end
 ```
+
+**Inheritance chain:**
+```
+Circle/Box -> DrawableObject -> GameObject
+```
+
+Each level adds functionality:
+- `GameObject`: position, active state, destroy
+- `DrawableObject`: path, paint, basic draw
+- `Circle`/`Box`: specific geometry
+
+---
+
+## When to Use Inheritance in Rive
+
+**Good use cases:**
+- Multiple drawables share a base `draw` or `update` function
+- You want different rendering styles for the same geometry
+- You need to override behavior without duplicating setup logic
+
+**Prefer composition when:**
+- Objects don't share meaningful behavior
+- The relationship is "has-a" rather than "is-a"
+- You need more flexibility than single inheritance provides
 
 ---
 
@@ -638,27 +583,15 @@ end
 />
 
 <Quiz
-  question="What's the purpose of the Singleton pattern?"
+  question="What type syntax extends a parent type with additional properties?"
   id="inherit-q3"
   options={[
-    { text: "To create multiple instances efficiently" },
-    { text: "To ensure only one instance exists globally", correct: true },
-    { text: "To enable inheritance" },
-    { text: "To improve performance" },
+    { text: "type Child = Parent + { ... }" },
+    { text: "type Child = Parent & { ... }", correct: true },
+    { text: "type Child extends Parent { ... }" },
+    { text: "type Child : Parent = { ... }" },
   ]}
-  explanation="Singletons ensure a single instance exists, useful for managers (GameManager, AudioManager) that should be unique."
-/>
-
-<Quiz
-  question="When would you use the Observer/Signal pattern?"
-  id="inherit-q4"
-  options={[
-    { text: "For faster method calls" },
-    { text: "For decoupled event-driven communication", correct: true },
-    { text: "For inheritance hierarchies" },
-    { text: "For memory optimization" },
-  ]}
-  explanation="The Observer pattern allows objects to subscribe to events without tight coupling, making systems more modular."
+  explanation="The intersection type operator & combines the parent type with additional child properties."
 />
 
 ---
@@ -667,8 +600,8 @@ end
 
 1. **Forgetting to link prototypes**: Both the instance AND class need metatable setup
 2. **Wrong syntax for parent calls**: Use `Parent.method(self)` not `Parent:method()`
-3. **Singleton returning new instances**: Check if instance exists first
-4. **Memory leaks with signals**: Disconnect when objects are destroyed
+3. **Not using intersection types**: Use `type Child = Parent & { ... }` for proper typing
+4. **Deep hierarchies**: Keep inheritance shallow - Rive scripts work best with 2-3 levels max
 
 ---
 
@@ -677,14 +610,18 @@ end
 - [ ] I can implement class inheritance with setmetatable
 - [ ] I can use intersection types for typed inheritance
 - [ ] I can call parent methods from child classes
-- [ ] I can implement the Singleton pattern
-- [ ] I can implement the Observer/Signal pattern
-- [ ] I can build complete class hierarchies
+- [ ] I can override methods while extending parent behavior
+- [ ] I can build complete drawable hierarchies
+- [ ] I know when to use inheritance vs composition
 
 ---
 
 ## Module 3 Complete!
 
-You've finished the OOP module. Next, we'll connect Luau to the Rive environment.
+You've finished the OOP module. You now understand how to build reusable classes and inheritance hierarchies for Rive Node scripts.
 
-**→ Module 4: Rive Integration** *(Coming soon)*
+**Key takeaways:**
+- Use metatables and `__index` for prototype-based OOP
+- The double-cast pattern `(self :: any) :: Type` satisfies strict mode
+- Intersection types (`Parent & { ... }`) enable typed inheritance
+- Keep hierarchies shallow and focused on shared drawing behavior

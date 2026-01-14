@@ -2,7 +2,7 @@
   margin: 1.5rem 0;
   padding: 1.5rem;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--ifm-color-primary-lightest, rgba(99, 102, 241, 0.05)), transparent);
+  background: var(--ifm-color-primary-lightest);
   border: 1px solid var(--ifm-color-primary-light);
 }
 
@@ -20,7 +20,7 @@
 .title {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--ifm-color-primary-darkest);
+  color: var(--ifm-color-primary);
 }
 
 .description {
@@ -58,29 +58,31 @@
 }
 
 .hintBtn:hover {
-  background: var(--ifm-color-warning-lightest, rgba(255, 193, 7, 0.1));
+  background: var(--ifm-color-warning-lightest);
   border-color: var(--ifm-color-warning);
 }
 
 .solutionBtn:hover {
-  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
+  background: var(--ifm-color-success-lightest);
   border-color: var(--ifm-color-success);
 }
 
 .hintBox {
   margin-top: 1rem;
   padding: 1rem;
-  background: var(--ifm-color-warning-lightest, rgba(255, 193, 7, 0.1));
+  background: var(--ifm-color-warning-lightest);
   border-radius: 6px;
   border-left: 4px solid var(--ifm-color-warning);
+  color: var(--ifm-color-warning-contrast-foreground);
 }
 
 .solutionBox {
   margin-top: 1rem;
   padding: 1rem;
-  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
+  background: var(--ifm-color-success-lightest);
   border-radius: 6px;
   border-left: 4px solid var(--ifm-color-success);
+  color: var(--ifm-color-success-contrast-foreground);
 }
 
 .solutionBox pre {

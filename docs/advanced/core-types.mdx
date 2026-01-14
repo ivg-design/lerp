@@ -1,8 +1,376 @@
 ---
 sidebar_position: 1
 title: Core Types
+description: Understanding Path, Paint, and other core drawing types in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Core Types
 
-*Content being migrated...*
+## Rive Context: The Drawing Pipeline
+
+Rive's drawing system follows a simple pipeline:
+
+1. **Path** = geometry (what shape to draw)
+2. **Paint** = styling (how it looks)
+3. **Renderer** = draw command (where it goes)
+
+Understanding these core types is essential for procedural graphics in Rive. Create paths and paints in `init`, then use them in `draw`.
+
+---
+
+## Path
+
+A `Path` defines geometry using move, line, and curve commands. Think of it as a pen that you move around to trace shapes.
+
+### Path Methods
+
+| Method | Description |
+|--------|-------------|
+| `Path.new()` | Create an empty path |
+| `path:moveTo(vec)` | Move pen to position without drawing |
+| `path:lineTo(vec)` | Draw a line from current position to target |
+| `path:close()` | Connect back to the starting point |
+| `path:reset()` | Clear all path data |
+
+### Exercise 1: Draw a Line
+
+**Goal**: Create a simple line using `moveTo` and `lineTo`.
+
+```lua
+--!strict
+
+export type DrawLine = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: DrawLine): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-120, -40))
+    self.path:lineTo(Vector.xy(120, 40))
+
+    self.paint = Paint.with({
+        style = "stroke",
+        thickness = 4,
+        color = Color.rgb(255, 80, 120),
+        cap = "round",
+    })
+
+    return true
+end
+
+function draw(self: DrawLine, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<DrawLine>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `moveTo` sets the starting position without drawing
+- `lineTo` draws a line from the current position to the target
+- The path is built in `init`, then drawn each frame in `draw`
+
+---
+
+### Exercise 2: Filled Rectangle with Outline
+
+**Goal**: Build a closed rectangle path and render it with both fill and stroke.
+
+```lua
+--!strict
+
+export type DrawRect = {
+    path: Path,
+    fill: Paint,
+    stroke: Paint,
+}
+
+function init(self: DrawRect): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-80, -50))
+    self.path:lineTo(Vector.xy(80, -50))
+    self.path:lineTo(Vector.xy(80, 50))
+    self.path:lineTo(Vector.xy(-80, 50))
+    self.path:close()
+
+    self.fill = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
+    self.stroke = Paint.with({ style = "stroke", thickness = 6, color = Color.rgb(20, 60, 120) })
+
+    return true
+end
+
+function draw(self: DrawRect, renderer: Renderer)
+    renderer:drawPath(self.path, self.fill)
+    renderer:drawPath(self.path, self.stroke)
+end
+
+return function(): Node<DrawRect>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        fill = Paint.new(),
+        stroke = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `close()` connects the last point back to the first
+- Draw fill first, then stroke on top
+- One path can be drawn multiple times with different paints
+
+---
+
+## Paint
+
+`Paint` defines how a path renders: fill vs stroke, color, thickness, gradients, and more.
+
+### Paint Properties
+
+| Property | Values | Description |
+|----------|--------|-------------|
+| `style` | `"fill"`, `"stroke"` | Fill interior or stroke outline |
+| `color` | `Color` | Solid color |
+| `thickness` | `number` | Stroke width (stroke only) |
+| `cap` | `"butt"`, `"round"`, `"square"` | Line ending style |
+| `join` | `"miter"`, `"round"`, `"bevel"` | Corner style |
+| `gradient` | `Gradient` | Linear or radial gradient |
+
+### Exercise 3: Fill vs Stroke
+
+**Goal**: Understand the visual difference between fill and stroke styles.
+
+```lua
+--!strict
+
+export type PaintBasics = {
+    path: Path,
+    fill: Paint,
+    stroke: Paint,
+}
+
+function init(self: PaintBasics): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-70, -40))
+    self.path:lineTo(Vector.xy(70, -40))
+    self.path:lineTo(Vector.xy(70, 40))
+    self.path:lineTo(Vector.xy(-70, 40))
+    self.path:close()
+
+    self.fill = Paint.with({
+        style = "fill",
+        color = Color.rgb(255, 160, 80),
+    })
+
+    self.stroke = Paint.with({
+        style = "stroke",
+        thickness = 6,
+        cap = "round",
+        join = "round",
+        color = Color.rgb(70, 40, 20),
+    })
+
+    return true
+end
+
+function draw(self: PaintBasics, renderer: Renderer)
+    renderer:drawPath(self.path, self.fill)
+    renderer:drawPath(self.path, self.stroke)
+end
+
+return function(): Node<PaintBasics>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        fill = Paint.new(),
+        stroke = Paint.new(),
+    }
+end
+```
+
+---
+
+### Exercise 4: Gradient Fill
+
+**Goal**: Apply a linear gradient to a filled path.
+
+```lua
+--!strict
+
+export type GradientDemo = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: GradientDemo): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-90, -50))
+    self.path:lineTo(Vector.xy(90, -50))
+    self.path:lineTo(Vector.xy(90, 50))
+    self.path:lineTo(Vector.xy(-90, 50))
+    self.path:close()
+
+    local gradient = Gradient.linear(
+        Vector.xy(-90, 0),
+        Vector.xy(90, 0),
+        {
+            { position = 0, color = Color.rgb(255, 80, 80) },
+            { position = 1, color = Color.rgb(80, 120, 255) },
+        }
+    )
+
+    self.paint = Paint.with({
+        style = "fill",
+        gradient = gradient,
+    })
+
+    return true
+end
+
+function draw(self: GradientDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<GradientDemo>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `Gradient.linear` takes start point, end point, and color stops
+- Color stops use `position` (0-1) and `color`
+- When using a gradient, the `color` property is ignored
+
+---
+
+### Exercise 5: Paint Variations with copy()
+
+**Goal**: Create paint variations efficiently using `copy()`.
+
+```lua
+--!strict
+
+export type PaintCopyDemo = {
+    path: Path,
+    base: Paint,
+    highlight: Paint,
+}
+
+function init(self: PaintCopyDemo): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-60, -60))
+    self.path:lineTo(Vector.xy(60, -60))
+    self.path:lineTo(Vector.xy(60, 60))
+    self.path:lineTo(Vector.xy(-60, 60))
+    self.path:close()
+
+    self.base = Paint.with({ style = "fill", color = Color.rgb(40, 140, 200) })
+    self.highlight = self.base:copy({ color = Color.rgb(120, 220, 255) })
+
+    return true
+end
+
+function draw(self: PaintCopyDemo, renderer: Renderer)
+    renderer:drawPath(self.path, self.base)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(12, -12))
+    renderer:drawPath(self.path, self.highlight)
+    renderer:restore()
+end
+
+return function(): Node<PaintCopyDemo>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        base = Paint.new(),
+        highlight = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `paint:copy({ ... })` creates a new paint with overridden properties
+- Useful for creating variations without duplicating all settings
+- This example also demonstrates basic transform usage (covered in Drawing API)
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What is the purpose of path:close()?"
+  id="core-types-q1"
+  options={[
+    { text: "Deletes the path" },
+    { text: "Connects the last point back to the first point", correct: true },
+    { text: "Ends the draw function" },
+    { text: "Resets all path data" },
+  ]}
+  explanation="path:close() draws a line from the current position back to the starting point, creating a closed shape."
+/>
+
+<Quiz
+  question="What is the difference between 'fill' and 'stroke' paint styles?"
+  id="core-types-q2"
+  options={[
+    { text: "Fill draws the outline, stroke fills the interior" },
+    { text: "Fill colors the interior, stroke draws the outline", correct: true },
+    { text: "They are the same" },
+    { text: "Fill is for circles, stroke is for rectangles" },
+  ]}
+  explanation="Fill style colors the interior of a closed path, while stroke draws the outline/edge of the path."
+/>
+
+<Quiz
+  question="When should you call path:reset()?"
+  id="core-types-q3"
+  options={[
+    { text: "Inside the draw function" },
+    { text: "Never, paths are immutable" },
+    { text: "In advance when you need to rebuild the path geometry", correct: true },
+    { text: "Only in the factory function" },
+  ]}
+  explanation="Call path:reset() in advance (not draw) when you need to rebuild dynamic path geometry. Never call it inside draw as it can cause rendering issues."
+/>
+
+<Quiz
+  question="What happens when you set both 'color' and 'gradient' on a Paint?"
+  id="core-types-q4"
+  options={[
+    { text: "They blend together" },
+    { text: "The gradient takes precedence", correct: true },
+    { text: "An error is thrown" },
+    { text: "The color takes precedence" },
+  ]}
+  explanation="When a gradient is specified, it overrides the solid color property."
+/>
+
+---
+
+## Key Takeaway
+
+Path and Paint are the foundation of Rive's drawing system. Create them once in `init`, then use them efficiently in `draw`. This separation keeps your code clean and performant.
+
+---
+
+## Next Up
+
+**[Drawing API (Transforms & Renderer) →](./drawing-api)**

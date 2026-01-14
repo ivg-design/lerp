@@ -1,8 +1,288 @@
 ---
 sidebar_position: 3
 title: Inputs and Data Binding
+description: Learn how to use script inputs and data binding in Rive Node Scripts
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Inputs and Data Binding
 
-*Content being migrated...*
+## Rive Context: Inputs Are Your Editor Controls
+
+Script inputs are how designers control your script from the Rive UI. You define them in the script type and provide defaults in the factory return table.
+
+**Key rules:**
+- Inputs are **read-only** in scripts (use `.value` to read)
+- Use `update(self)` or `input:addListener(...)` to respond to changes
+- Use `late()` for inputs that are assigned in the editor (ViewModel or Artboard inputs)
+
+---
+
+## Input Definition Pattern
+
+```lua
+--!strict
+
+type MyNode = {
+    size: Input<number>,
+    tint: Input<Color>,
+}
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        size = 80,
+        tint = Color.rgb(255, 80, 120),
+    }
+end
+```
+
+When you define an `Input<T>` type in your script, Rive automatically creates a control in the inspector panel. The factory return value provides the default.
+
+---
+
+## Supported Input Types
+
+| Type | Example Default | Description |
+|------|-----------------|-------------|
+| `Input<number>` | `42` | Numeric slider/field |
+| `Input<boolean>` | `true` | Checkbox |
+| `Input<string>` | `"hello"` | Text field |
+| `Input<Color>` | `Color.rgb(255, 0, 0)` | Color picker |
+| `Input<Data.X>` | `late()` | ViewModel reference |
+
+---
+
+## Exercises
+
+### Exercise 1: Size + Color Inputs
+
+**Goal**: Use inputs to drive a shape. The shape rebuilds when inputs change.
+
+```lua
+--!strict
+
+export type InputSquare = {
+    size: Input<number>,
+    tint: Input<Color>,
+    path: Path,
+    paint: Paint,
+}
+
+local function rebuild(self: InputSquare)
+    local half = self.size.value / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-half, -half))
+    self.path:lineTo(Vector.xy(half, -half))
+    self.path:lineTo(Vector.xy(half, half))
+    self.path:lineTo(Vector.xy(-half, half))
+    self.path:close()
+    self.paint.color = self.tint.value
+end
+
+function init(self: InputSquare): boolean
+    rebuild(self)
+    return true
+end
+
+function update(self: InputSquare)
+    rebuild(self)
+end
+
+function draw(self: InputSquare, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<InputSquare>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        size = 80,
+        tint = Color.rgb(90, 180, 255),
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(90, 180, 255) }),
+    }
+end
+```
+
+**Try:** Change `size` and `tint` in the inputs panel and watch the shape update in real-time.
+
+:::tip The update Function
+The `update` function is called whenever any input changes. This is where you should rebuild geometry or recalculate values that depend on inputs.
+:::
+
+---
+
+### Exercise 2: ViewModel Inputs
+
+**Goal**: Bind a script to a nested ViewModel. This is how scripts drive animated properties.
+
+```lua
+--!strict
+
+export type CharacterDriver = {
+    character: Input<Data.Character>,
+    speed: Input<number>,
+    time: number,
+}
+
+function init(self: CharacterDriver): boolean
+    self.time = 0
+    return true
+end
+
+function advance(self: CharacterDriver, seconds: number): boolean
+    self.time += seconds
+
+    local offset = math.sin(self.time * self.speed.value) * 60
+    self.character.x.value = offset
+    self.character.y.value = 0
+
+    return true
+end
+
+function draw(self: CharacterDriver, renderer: Renderer)
+end
+
+return function(): Node<CharacterDriver>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        character = late(),
+        speed = 1.5,
+        time = 0,
+    }
+end
+```
+
+**Editor setup:**
+1. Create a `Character` ViewModel with `x` and `y` number properties
+2. Add a `character` input to the Node script by selecting the ViewModel property in the input dropdown
+3. Bind the ViewModel properties to a node's translation or a state machine parameter
+
+:::note The late() Function
+Use `late()` for inputs that will be assigned in the editor. This tells the type system that the value won't exist at construction time but will be provided before `init` runs.
+:::
+
+---
+
+### Exercise 3: Access the Main ViewModel via Context
+
+**Goal**: Read and listen to the artboard's main ViewModel directly.
+
+```lua
+--!strict
+
+export type MainVMReader = {}
+
+function init(self: MainVMReader, context: Context): boolean
+    local vm = context:viewModel()
+    if not vm then
+        print("No ViewModel bound to the main artboard.")
+        return true
+    end
+
+    local score = vm:getNumber("score")
+    if score then
+        print(`Score: {score.value}`)
+        score:addListener(function()
+            print(`Score changed: {score.value}`)
+        end)
+    end
+
+    return true
+end
+
+function draw(self: MainVMReader, renderer: Renderer)
+end
+
+return function(): Node<MainVMReader>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Key points:**
+- `context:viewModel()` returns the ViewModel bound to the artboard
+- Use `getNumber()`, `getString()`, `getBoolean()`, etc. to access properties
+- `addListener()` lets you react to external changes
+
+---
+
+## When to Use Each Approach
+
+| Approach | Use When |
+|----------|----------|
+| Script Inputs | Per-instance configuration (each script instance can have different values) |
+| `context:viewModel()` | Global data shared across all scripts |
+| `late()` | Editor-assigned references (ViewModels, other nodes) |
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="How do you read the value of an Input in a Node script?"
+  id="inputs-q1"
+  options={[
+    { text: "self.size" },
+    { text: "self.size.value", correct: true },
+    { text: "self.size()" },
+    { text: "self.size:get()" },
+  ]}
+  explanation="Inputs wrap their value in a container. Access the actual value using the .value property."
+/>
+
+<Quiz
+  question="When is the update() function called?"
+  id="inputs-q2"
+  options={[
+    { text: "Every frame" },
+    { text: "When any input changes", correct: true },
+    { text: "Only on initialization" },
+    { text: "When the script is attached to a node" },
+  ]}
+  explanation="update() is called whenever any of the script's inputs change, making it the ideal place to rebuild geometry or recalculate dependent values."
+/>
+
+<Quiz
+  question="What does late() indicate for an input?"
+  id="inputs-q3"
+  options={[
+    { text: "The input is optional" },
+    { text: "The input will be assigned in the editor", correct: true },
+    { text: "The input updates slowly" },
+    { text: "The input is deprecated" },
+  ]}
+  explanation="late() tells the type system that this input doesn't have a value at construction time but will be assigned in the Rive editor before init runs."
+/>
+
+<Quiz
+  question="How do you listen for changes to a ViewModel property?"
+  id="inputs-q4"
+  options={[
+    { text: "property.onChange(callback)" },
+    { text: "property:addListener(callback)", correct: true },
+    { text: "property:watch(callback)" },
+    { text: "property.subscribe(callback)" },
+  ]}
+  explanation="Use addListener() to register a callback that fires whenever the property value changes."
+/>
+
+---
+
+## Rive Takeaway
+
+Use **inputs** for per-instance tuning (each script instance can have different values) and use **`context:viewModel()`** for global data shared across all scripts in the artboard.
+
+---
+
+## Next Up
+
+**[Protocols Overview (Lifecycle) →](./protocols)**

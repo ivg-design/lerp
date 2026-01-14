@@ -1,8 +1,407 @@
 ---
 sidebar_position: 2
 title: Drawing API
+description: Transforms, renderer state, and advanced drawing techniques in Rive
 ---
+
+import Quiz from '@site/src/components/Quiz';
 
 # Drawing API
 
-*Content being migrated...*
+## Rive Context: The Renderer Is a State Machine
+
+The `Renderer` maintains a transform stack and clip state. Think of it as a canvas with layers of transformations. Always pair `save()` with `restore()` so transforms and clips don't leak into later draws.
+
+**The golden rule:** Every `save()` needs a matching `restore()`.
+
+---
+
+## Renderer Methods
+
+| Method | Description |
+|--------|-------------|
+| `renderer:save()` | Push current state onto the stack |
+| `renderer:restore()` | Pop state from the stack |
+| `renderer:transform(mat)` | Apply a transformation matrix |
+| `renderer:clipPath(path)` | Restrict drawing to inside the path |
+| `renderer:drawPath(path, paint)` | Draw a path with the given paint |
+
+---
+
+## Mat2D Transforms
+
+`Mat2D` provides 2D transformation matrices for translation, rotation, and scale.
+
+| Method | Description |
+|--------|-------------|
+| `Mat2D.withTranslation(x, y)` | Move position |
+| `Mat2D.withRotation(radians)` | Rotate around origin |
+| `Mat2D.withScale(sx, sy)` | Scale horizontally and vertically |
+
+Transforms are applied in order and accumulate. The order matters: translate-then-rotate produces different results than rotate-then-translate.
+
+---
+
+## Exercise 1: Translate and Rotate a Shape
+
+**Goal**: Apply translation and rotation transforms to a shape.
+
+```lua
+--!strict
+
+export type TransformDemo = {
+    path: Path,
+    paint: Paint,
+    angle: number,
+}
+
+function init(self: TransformDemo): boolean
+    self.angle = 0
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-40, -20))
+    self.path:lineTo(Vector.xy(40, -20))
+    self.path:lineTo(Vector.xy(40, 20))
+    self.path:lineTo(Vector.xy(-40, 20))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 140, 80) })
+
+    return true
+end
+
+function advance(self: TransformDemo, seconds: number): boolean
+    self.angle += seconds
+    return true
+end
+
+function draw(self: TransformDemo, renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(0, 0))
+    renderer:transform(Mat2D.withRotation(self.angle))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<TransformDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+        angle = 0,
+    }
+end
+```
+
+**Key points:**
+- `save()` preserves the current renderer state
+- Multiple `transform()` calls accumulate
+- `restore()` returns to the saved state
+- Animate values in `advance`, apply them in `draw`
+
+---
+
+## Exercise 2: Multiple Instances with save/restore
+
+**Goal**: Draw the same path multiple times with different transforms.
+
+```lua
+--!strict
+
+export type CloneDemo = {
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: CloneDemo): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-20, -20))
+    self.path:lineTo(Vector.xy(20, -20))
+    self.path:lineTo(Vector.xy(20, 20))
+    self.path:lineTo(Vector.xy(-20, 20))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(90, 200, 255) })
+
+    return true
+end
+
+function draw(self: CloneDemo, renderer: Renderer)
+    for i = 1, 5 do
+        renderer:save()
+        renderer:transform(Mat2D.withTranslation(-120 + i * 60, 0))
+        renderer:transform(Mat2D.withRotation(i * 0.4))
+        renderer:drawPath(self.path, self.paint)
+        renderer:restore()
+    end
+end
+
+return function(): Node<CloneDemo>
+    return {
+        init = init,
+        draw = draw,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- Each loop iteration gets its own save/restore pair
+- Without restore, transforms would accumulate incorrectly
+- One path object can render multiple times with different transforms
+
+---
+
+## Exercise 3: Animated Polyline
+
+**Goal**: Update path data dynamically in `advance`.
+
+```lua
+--!strict
+
+export type WavyLine = {
+    path: Path,
+    paint: Paint,
+    time: number,
+}
+
+function init(self: WavyLine): boolean
+    self.time = 0
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(255, 220, 80) })
+    return true
+end
+
+function advance(self: WavyLine, seconds: number): boolean
+    self.time += seconds
+
+    self.path:reset()
+    for i = 0, 12 do
+        local x = -150 + i * 25
+        local y = math.sin(self.time * 2 + i) * 20
+        if i == 0 then
+            self.path:moveTo(Vector.xy(x, y))
+        else
+            self.path:lineTo(Vector.xy(x, y))
+        end
+    end
+
+    return true
+end
+
+function draw(self: WavyLine, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<WavyLine>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        time = 0,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+:::warning Important
+`path:reset()` should only be called in `advance`, never in `draw`. Calling reset in draw can cause rendering artifacts because the path data changes during the render pass.
+:::
+
+**Key points:**
+- Rebuild path geometry in `advance`, not in `draw`
+- `path:reset()` clears all existing path commands
+- Use conditionals to handle the first point (moveTo) vs subsequent points (lineTo)
+
+---
+
+## Exercise 4: Clipping a Region
+
+**Goal**: Use `clipPath` to restrict drawing to a specific area.
+
+```lua
+--!strict
+
+export type ClipDemo = {
+    clipPath: Path,
+    contentPath: Path,
+    fill: Paint,
+    stroke: Paint,
+}
+
+function init(self: ClipDemo): boolean
+    self.clipPath = Path.new()
+    self.clipPath:moveTo(Vector.xy(-80, -80))
+    self.clipPath:lineTo(Vector.xy(80, -80))
+    self.clipPath:lineTo(Vector.xy(80, 80))
+    self.clipPath:lineTo(Vector.xy(-80, 80))
+    self.clipPath:close()
+
+    self.contentPath = Path.new()
+    self.contentPath:moveTo(Vector.xy(-140, -20))
+    self.contentPath:lineTo(Vector.xy(140, -20))
+    self.contentPath:lineTo(Vector.xy(140, 20))
+    self.contentPath:lineTo(Vector.xy(-140, 20))
+    self.contentPath:close()
+
+    self.fill = Paint.with({ style = "fill", color = Color.rgb(255, 200, 60) })
+    self.stroke = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(60, 60, 60) })
+
+    return true
+end
+
+function draw(self: ClipDemo, renderer: Renderer)
+    renderer:save()
+    renderer:clipPath(self.clipPath)
+    renderer:drawPath(self.contentPath, self.fill)
+    renderer:restore()
+
+    renderer:drawPath(self.clipPath, self.stroke)
+end
+
+return function(): Node<ClipDemo>
+    return {
+        init = init,
+        draw = draw,
+        clipPath = Path.new(),
+        contentPath = Path.new(),
+        fill = Paint.new(),
+        stroke = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `clipPath` restricts all subsequent drawing to the clipped area
+- The clip is part of the renderer state and is cleared by `restore()`
+- Draw the clip boundary stroke outside the save/restore to show the frame
+
+---
+
+## Transform Order Matters
+
+Transforms apply in the order you call them. Consider these two approaches:
+
+```lua
+-- Approach 1: Translate, then rotate
+renderer:transform(Mat2D.withTranslation(100, 0))
+renderer:transform(Mat2D.withRotation(math.pi / 4))
+-- Shape moves right 100px, THEN rotates around its new position
+
+-- Approach 2: Rotate, then translate
+renderer:transform(Mat2D.withRotation(math.pi / 4))
+renderer:transform(Mat2D.withTranslation(100, 0))
+-- Shape rotates first, THEN moves in the rotated direction
+```
+
+These produce very different results. When in doubt, use save/restore to isolate transform groups.
+
+---
+
+## Common Patterns
+
+### Center-Rotate Pattern
+
+To rotate around a shape's center:
+
+```lua
+renderer:save()
+renderer:transform(Mat2D.withTranslation(centerX, centerY))
+renderer:transform(Mat2D.withRotation(angle))
+renderer:transform(Mat2D.withTranslation(-centerX, -centerY))
+renderer:drawPath(self.path, self.paint)
+renderer:restore()
+```
+
+### Scale from Center Pattern
+
+To scale from a shape's center:
+
+```lua
+renderer:save()
+renderer:transform(Mat2D.withTranslation(centerX, centerY))
+renderer:transform(Mat2D.withScale(scaleX, scaleY))
+renderer:transform(Mat2D.withTranslation(-centerX, -centerY))
+renderer:drawPath(self.path, self.paint)
+renderer:restore()
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What happens if you forget to call renderer:restore() after renderer:save()?"
+  id="drawing-api-q1"
+  options={[
+    { text: "Nothing, it auto-restores" },
+    { text: "Transforms and clips leak into subsequent draw calls", correct: true },
+    { text: "An error is thrown" },
+    { text: "The path is not drawn" },
+  ]}
+  explanation="Without restore(), the transforms and clips accumulate and affect all subsequent drawing in the current frame. Always pair save() with restore()."
+/>
+
+<Quiz
+  question="Where should you call path:reset() for dynamic paths?"
+  id="drawing-api-q2"
+  options={[
+    { text: "In the draw function" },
+    { text: "In the init function" },
+    { text: "In the advance function", correct: true },
+    { text: "In the factory return" },
+  ]}
+  explanation="Path modifications including reset() should happen in advance, not draw. Modifying paths during draw can cause rendering artifacts."
+/>
+
+<Quiz
+  question="What is the purpose of renderer:clipPath()?"
+  id="drawing-api-q3"
+  options={[
+    { text: "Delete part of a path" },
+    { text: "Restrict drawing to inside the clip path", correct: true },
+    { text: "Merge two paths together" },
+    { text: "Create a shadow effect" },
+  ]}
+  explanation="clipPath() creates a clipping mask - only pixels inside the clip path are drawn. The clip is part of the renderer state and is cleared by restore()."
+/>
+
+<Quiz
+  question="If you apply translate(100, 0) then rotate(PI/4), where does the shape end up?"
+  id="drawing-api-q4"
+  options={[
+    { text: "Rotated at the origin, then moved right" },
+    { text: "Moved right 100px, then rotated around that position", correct: true },
+    { text: "Both transforms cancel out" },
+    { text: "The shape doesn't move" },
+  ]}
+  explanation="Transforms apply in order. First the shape moves right 100px (translation), then it rotates around its new position (rotation)."
+/>
+
+<Quiz
+  question="How do you draw the same path 5 times with different rotations?"
+  id="drawing-api-q5"
+  options={[
+    { text: "Create 5 different paths" },
+    { text: "Use a loop with save/restore around each draw", correct: true },
+    { text: "Call drawPath 5 times without any transforms" },
+    { text: "Modify the path in place 5 times" },
+  ]}
+  explanation="Use a loop with save() at the start, apply unique transforms, draw, then restore(). This lets you reuse one path with different transformations."
+/>
+
+---
+
+## Key Takeaway
+
+Use `save()` and `restore()` for every isolated transform or clip. It keeps your rendering predictable and clean. Build paths in `init` or `advance`, and keep `draw` focused solely on issuing renderer commands.
+
+---
+
+## Next Up
+
+**[ViewModels →](./viewmodels)**

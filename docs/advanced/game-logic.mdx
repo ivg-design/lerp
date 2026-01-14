@@ -1,8 +1,158 @@
 ---
 sidebar_position: 4
-title: Game Logic
+title: Pointer Events
 ---
 
-# Game Logic
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Pointer Events
+
+Build interactive controls, buttons, and gesture-driven interfaces using pointer event handlers.
+
+## Rive Context
+
+Pointer handlers (`pointerDown`, `pointerMove`, `pointerUp`, `pointerExit`) are only called if you return them in the Node factory table. These events are local to the script's node, making them ideal for building self-contained interactive components.
+
+**Key concept:** Use `event:hit()` to consume the event and stop propagation to nodes below.
+
+---
+
+## Exercise 1: Press to Toggle Color
+
+Create a button that toggles between two colors when pressed.
+
+```lua
+--!strict
+
+export type ToggleButton = {
+    path: Path,
+    paint: Paint,
+    isPressed: boolean,
+}
+
+function init(self: ToggleButton): boolean
+    self.isPressed = false
+
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-60, -30))
+    self.path:lineTo(Vector.xy(60, -30))
+    self.path:lineTo(Vector.xy(60, 30))
+    self.path:lineTo(Vector.xy(-60, 30))
+    self.path:close()
+
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
+
+    return true
+end
+
+function pointerDown(self: ToggleButton, event: PointerEvent)
+    self.isPressed = not self.isPressed
+    self.paint.color = self.isPressed and Color.rgb(255, 120, 80) or Color.rgb(80, 170, 255)
+    event:hit()
+end
+
+function draw(self: ToggleButton, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<ToggleButton>
+    return {
+        init = init,
+        draw = draw,
+        pointerDown = pointerDown,
+        path = Path.new(),
+        paint = Paint.new(),
+        isPressed = false,
+    }
+end
+```
+
+**How it works:**
+1. The `pointerDown` handler toggles `isPressed` state
+2. The paint color updates based on the current state
+3. `event:hit()` consumes the event to prevent it from propagating
+
+---
+
+## Exercise 2: Track Multiple Pointers
+
+Handle multi-touch by tracking each pointer independently using its unique ID.
+
+```lua
+--!strict
+
+type PointerState = {
+    position: Vector,
+}
+
+export type MultiTouch = {
+    pointers: { [number]: PointerState },
+}
+
+function init(self: MultiTouch): boolean
+    self.pointers = {}
+    return true
+end
+
+function pointerDown(self: MultiTouch, event: PointerEvent)
+    self.pointers[event.id] = { position = event.position }
+    event:hit()
+end
+
+function pointerMove(self: MultiTouch, event: PointerEvent)
+    local pointer = self.pointers[event.id]
+    if pointer then
+        pointer.position = event.position
+    end
+    event:hit()
+end
+
+function pointerUp(self: MultiTouch, event: PointerEvent)
+    self.pointers[event.id] = nil
+    event:hit()
+end
+
+function draw(self: MultiTouch, renderer: Renderer)
+    -- Use pointer positions to drive visuals or logic
+end
+
+return function(): Node<MultiTouch>
+    return {
+        init = init,
+        draw = draw,
+        pointerDown = pointerDown,
+        pointerMove = pointerMove,
+        pointerUp = pointerUp,
+        pointers = {},
+    }
+end
+```
+
+**How it works:**
+1. Each pointer has a unique `event.id`
+2. `pointerDown` creates a new entry in the `pointers` table
+3. `pointerMove` updates the position for that specific pointer
+4. `pointerUp` removes the pointer from tracking
+
+---
+
+## Key Takeaways
+
+- Pointer events are local to the script's node
+- Return handler functions in the factory table to receive events
+- Use `event:hit()` to consume events and stop propagation
+- Track pointers by their unique `event.id` for multi-touch support
+
+---
+
+<Quiz
+  question="What does event:hit() do in a pointer handler?"
+  options={[
+    "Triggers a hit animation",
+    "Consumes the event and stops propagation",
+    "Detects if the pointer hit the node",
+    "Resets the pointer position"
+  ]}
+  correctIndex={1}
+  explanation="event:hit() marks the event as handled, preventing it from propagating to nodes below in the hierarchy."
+/>

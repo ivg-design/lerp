@@ -53,12 +53,12 @@
 
 .option.correct {
   border-color: var(--ifm-color-success);
-  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
+  background: var(--ifm-color-success-lightest);
 }
 
 .option.incorrect {
   border-color: var(--ifm-color-danger);
-  background: var(--ifm-color-danger-lightest, rgba(255, 68, 68, 0.1));
+  background: var(--ifm-color-danger-lightest);
 }
 
 .option:disabled {
@@ -159,13 +159,13 @@
 }
 
 .correctFeedback {
-  background: var(--ifm-color-success-lightest, rgba(0, 200, 83, 0.1));
-  color: var(--ifm-color-success-darkest, #00c853);
+  background: var(--ifm-color-success-lightest);
+  color: var(--ifm-color-success-contrast-foreground);
 }
 
 .incorrectFeedback {
-  background: var(--ifm-color-danger-lightest, rgba(255, 68, 68, 0.1));
-  color: var(--ifm-color-danger-darkest, #ff4444);
+  background: var(--ifm-color-danger-lightest);
+  color: var(--ifm-color-danger-contrast-foreground);
 }
 
 .feedbackIcon {

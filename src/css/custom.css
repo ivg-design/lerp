@@ -17,6 +17,43 @@
 
   --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
   --ifm-heading-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Custom colors for success/warning/danger with better contrast */
+  --ifm-color-success: #10b981;
+  --ifm-color-success-dark: #059669;
+  --ifm-color-success-darker: #047857;
+  --ifm-color-success-darkest: #065f46;
+  --ifm-color-success-light: #34d399;
+  --ifm-color-success-lighter: #6ee7b7;
+  --ifm-color-success-lightest: rgba(16, 185, 129, 0.1);
+  --ifm-color-success-contrast-foreground: #065f46;
+
+  --ifm-color-warning: #f59e0b;
+  --ifm-color-warning-dark: #d97706;
+  --ifm-color-warning-darker: #b45309;
+  --ifm-color-warning-darkest: #92400e;
+  --ifm-color-warning-light: #fbbf24;
+  --ifm-color-warning-lighter: #fcd34d;
+  --ifm-color-warning-lightest: rgba(245, 158, 11, 0.1);
+  --ifm-color-warning-contrast-foreground: #92400e;
+
+  --ifm-color-danger: #ef4444;
+  --ifm-color-danger-dark: #dc2626;
+  --ifm-color-danger-darker: #b91c1c;
+  --ifm-color-danger-darkest: #991b1b;
+  --ifm-color-danger-light: #f87171;
+  --ifm-color-danger-lighter: #fca5a5;
+  --ifm-color-danger-lightest: rgba(239, 68, 68, 0.1);
+  --ifm-color-danger-contrast-foreground: #991b1b;
+
+  --ifm-color-info: #3b82f6;
+  --ifm-color-info-dark: #2563eb;
+  --ifm-color-info-darker: #1d4ed8;
+  --ifm-color-info-darkest: #1e40af;
+  --ifm-color-info-light: #60a5fa;
+  --ifm-color-info-lighter: #93c5fd;
+  --ifm-color-info-lightest: rgba(59, 130, 246, 0.1);
+  --ifm-color-info-contrast-foreground: #1e40af;
 }
 
 [data-theme='dark'] {
@@ -26,12 +63,29 @@
   --ifm-color-primary-darkest: #4338ca;
   --ifm-color-primary-light: #a5b4fc;
   --ifm-color-primary-lighter: #c7d2fe;
-  --ifm-color-primary-lightest: #e0e7ff;
+  --ifm-color-primary-lightest: rgba(129, 140, 248, 0.15);
 
   --ifm-background-color: #0f0f23;
   --ifm-background-surface-color: #1a1a2e;
 
   --docusaurus-highlighted-code-line-bg: rgba(129, 140, 248, 0.2);
+
+  /* Dark mode success/warning/danger - lighter text colors for contrast */
+  --ifm-color-success: #34d399;
+  --ifm-color-success-lightest: rgba(52, 211, 153, 0.15);
+  --ifm-color-success-contrast-foreground: #a7f3d0;
+
+  --ifm-color-warning: #fbbf24;
+  --ifm-color-warning-lightest: rgba(251, 191, 36, 0.15);
+  --ifm-color-warning-contrast-foreground: #fef3c7;
+
+  --ifm-color-danger: #f87171;
+  --ifm-color-danger-lightest: rgba(248, 113, 113, 0.15);
+  --ifm-color-danger-contrast-foreground: #fecaca;
+
+  --ifm-color-info: #60a5fa;
+  --ifm-color-info-lightest: rgba(96, 165, 250, 0.15);
+  --ifm-color-info-contrast-foreground: #bfdbfe;
 }
 
 /* Navbar styling */
@@ -63,9 +117,72 @@
   border-radius: 8px;
 }
 
-/* Admonitions */
+/* Admonitions - Improved dark mode support */
 .alert {
   border-radius: 8px;
+}
+
+/* Tip admonition */
+.alert--success {
+  --ifm-alert-background-color: var(--ifm-color-success-lightest);
+  --ifm-alert-border-color: var(--ifm-color-success);
+  --ifm-alert-foreground-color: var(--ifm-color-success-contrast-foreground);
+}
+
+/* Info admonition */
+.alert--info {
+  --ifm-alert-background-color: var(--ifm-color-info-lightest);
+  --ifm-alert-border-color: var(--ifm-color-info);
+  --ifm-alert-foreground-color: var(--ifm-color-info-contrast-foreground);
+}
+
+/* Warning/Caution admonition */
+.alert--warning {
+  --ifm-alert-background-color: var(--ifm-color-warning-lightest);
+  --ifm-alert-border-color: var(--ifm-color-warning);
+  --ifm-alert-foreground-color: var(--ifm-color-warning-contrast-foreground);
+}
+
+/* Danger admonition */
+.alert--danger {
+  --ifm-alert-background-color: var(--ifm-color-danger-lightest);
+  --ifm-alert-border-color: var(--ifm-color-danger);
+  --ifm-alert-foreground-color: var(--ifm-color-danger-contrast-foreground);
+}
+
+/* Secondary/Note admonition */
+.alert--secondary {
+  --ifm-alert-background-color: var(--ifm-color-emphasis-100);
+  --ifm-alert-border-color: var(--ifm-color-emphasis-400);
+}
+
+/* Dark mode admonition overrides */
+[data-theme='dark'] .alert--success {
+  --ifm-alert-foreground-color: var(--ifm-color-success-contrast-foreground);
+}
+
+[data-theme='dark'] .alert--info {
+  --ifm-alert-foreground-color: var(--ifm-color-info-contrast-foreground);
+}
+
+[data-theme='dark'] .alert--warning {
+  --ifm-alert-foreground-color: var(--ifm-color-warning-contrast-foreground);
+}
+
+[data-theme='dark'] .alert--danger {
+  --ifm-alert-foreground-color: var(--ifm-color-danger-contrast-foreground);
+}
+
+[data-theme='dark'] .alert--secondary {
+  --ifm-alert-background-color: rgba(255, 255, 255, 0.05);
+  --ifm-alert-foreground-color: var(--ifm-font-color-base);
+}
+
+/* Admonition title styling */
+.admonitionHeading_node_modules-\\@docusaurus-theme-classic-lib-theme-Admonition-Layout-styles-module {
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
 }
 
 /* Tables */

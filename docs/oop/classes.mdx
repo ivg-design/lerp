@@ -13,11 +13,22 @@ import Quiz from '@site/src/components/Quiz';
 - Type your classes correctly with `--!strict`
 - Use the double-cast pattern for type safety
 - Implement methods with proper `self` handling
-- Build reusable game object classes
+- Build reusable simulation and drawing classes
 
 ---
 
-## The Class Pattern in Luau
+## Rive Context
+
+Rive does not have built-in classes, so you build your own with metatables. In real Rive projects, **class-like objects belong in Util scripts** and are **instantiated by Node scripts**.
+
+Use classes when you need:
+- Reusable simulation objects (springs, timers, particles)
+- Consistent drawing logic across multiple elements
+- Clean separation between math/logic and rendering
+
+---
+
+## The Strict Class Pattern (Rive-Friendly)
 
 In Lesson 3.1, we learned how `__index` enables shared behavior. Now we'll formalize this into a reusable class pattern that:
 
@@ -26,107 +37,257 @@ In Lesson 3.1, we learned how `__index` enables shared behavior. Now we'll forma
 3. Defines a proper type for instances
 4. Supports methods with the colon syntax
 
----
-
-## The Standard Class Pattern
-
 ```lua
 --!strict
 
--- 1. Create the class table
 local MyClass = {}
 MyClass.__index = MyClass
 
--- 2. Define the instance type
-export type MyClassType = {
-    property: number,
-    -- Methods are NOT in the type (they're on the prototype)
+export type MyClass = {
+    value: number,
+    step: (MyClass, number) -> (),
 }
 
--- 3. Create the constructor
-function MyClass.new(): MyClassType
+function MyClass.new(value: number): MyClass
     local self = setmetatable({}, MyClass)
-    self.property = 0
-    return (self :: any) :: MyClassType  -- Double cast for strict mode
+    self.value = value
+    return (self :: any) :: MyClass
 end
 
--- 4. Define methods on the class table
-function MyClass:methodName()
-    print(self.property)
+function MyClass:step(dt: number)
+    self.value += dt
 end
+
+return MyClass
 ```
+
+**Key detail:** In `--!strict`, the double cast `(self :: any) :: MyClass` is required so Luau accepts the metatable instance.
 
 ---
 
 ## Practice Exercises
 
-### Exercise 1: Your First Typed Class
+### Exercise 1: Build a Spring Class in a Util Script
 
-**Task**: Build a properly typed `Counter` class:
+This is a Util Script that can be imported by Node scripts.
+
+**File: `Spring.luau` (Util Script)**
 
 ```lua
 --!strict
 
-local Counter = {}
-Counter.__index = Counter
+local Spring = {}
+Spring.__index = Spring
 
-export type CounterType = {
-    value: number,
-    step: number,
+export type Spring = {
+    position: number,
+    velocity: number,
+    target: number,
+    stiffness: number,
+    damping: number,
+    step: (Spring, number) -> (),
+    snap: (Spring, number) -> (),
 }
 
-function Counter.new(startValue: number?, stepAmount: number?): CounterType
-    local self = setmetatable({}, Counter)
-    self.value = startValue or 0
-    self.step = stepAmount or 1
-    return (self :: any) :: CounterType
+function Spring.new(position: number, stiffness: number, damping: number): Spring
+    local self = setmetatable({}, Spring)
+    self.position = position
+    self.velocity = 0
+    self.target = position
+    self.stiffness = stiffness
+    self.damping = damping
+    return (self :: any) :: Spring
 end
 
-function Counter:increment()
-    self.value += self.step
+function Spring:step(dt: number)
+    local displacement = self.target - self.position
+    self.velocity += displacement * self.stiffness * dt
+    self.velocity *= math.max(0, 1 - self.damping * dt)
+    self.position += self.velocity * dt
 end
 
-function Counter:decrement()
-    self.value -= self.step
+function Spring:snap(value: number)
+    self.position = value
+    self.target = value
+    self.velocity = 0
 end
 
-function Counter:reset()
-    self.value = 0
-end
+return Spring
+```
 
-function Counter:getValue(): number
-    return self.value
-end
+---
 
-export type CounterDemo = {}
+### Exercise 2: Use the Class in a Node Script
 
-function init(self: CounterDemo): boolean
-    local counter1 = Counter.new()
-    local counter2 = Counter.new(100, 10)
+**Goal**: Animate a square using the Spring class and a script input.
 
-    print(`Counter 1: {counter1:getValue()}`)
-    counter1:increment()
-    counter1:increment()
-    print(`After 2 increments: {counter1:getValue()}`)
+```lua
+--!strict
 
-    print(`\nCounter 2: {counter2:getValue()}`)
-    counter2:increment()
-    print(`After increment: {counter2:getValue()}`)
+local SpringLib = require("Spring")
+
+export type SpringDemo = {
+    target: Input<number>,
+    spring: SpringLib.Spring,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: SpringDemo): boolean
+    self.path = Path.new()
+    self.path:moveTo(Vector.xy(-12, -12))
+    self.path:lineTo(Vector.xy(12, -12))
+    self.path:lineTo(Vector.xy(12, 12))
+    self.path:lineTo(Vector.xy(-12, 12))
+    self.path:close()
+
+    self.paint = Paint.with({
+        style = "fill",
+        color = Color.rgb(255, 200, 0),
+    })
 
     return true
 end
 
-function draw(self: CounterDemo, renderer: Renderer)
+function update(self: SpringDemo)
+    self.spring.target = self.target.value
 end
 
-return function(): Node<CounterDemo>
-    return { init = init, draw = draw }
+function advance(self: SpringDemo, seconds: number): boolean
+    self.spring:step(seconds)
+    return true
+end
+
+function draw(self: SpringDemo, renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.spring.position, 0))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+return function(): Node<SpringDemo>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        draw = draw,
+        target = 160,
+        spring = SpringLib.new(0, 30, 6),
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Rive workflow:**
+1. Create a Util Script named `Spring` and paste Exercise 1.
+2. Create a Node Script for Exercise 2 and attach it to a Node.
+3. Adjust the `target` input in the sidebar and observe the spring motion.
+
+**Note:** The `Spring` type is exported by the Util script and can be used directly in this Node script.
+
+---
+
+### Exercise 3: Complete Drawable Sprite Class
+
+**Goal**: Build a sprite class that handles its own path, paint, and drawing.
+
+```lua
+--!strict
+
+local Sprite = {}
+Sprite.__index = Sprite
+
+export type SpriteType = {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: Color,
+    path: Path,
+    paint: Paint,
+}
+
+function Sprite.new(x: number, y: number, width: number, height: number, color: Color): SpriteType
+    local self = setmetatable({}, Sprite)
+    self.x = x
+    self.y = y
+    self.width = width
+    self.height = height
+    self.color = color
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.paint.style = "fill"
+    self.paint.color = color
+    Sprite._rebuildPath(self)
+    return (self :: any) :: SpriteType
+end
+
+function Sprite:_rebuildPath()
+    local hw = self.width / 2
+    local hh = self.height / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-hw, -hh))
+    self.path:lineTo(Vector.xy(hw, -hh))
+    self.path:lineTo(Vector.xy(hw, hh))
+    self.path:lineTo(Vector.xy(-hw, hh))
+    self.path:close()
+end
+
+function Sprite:setColor(color: Color)
+    self.color = color
+    self.paint.color = color
+end
+
+function Sprite:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+export type SpriteDemo = {
+    sprites: {SpriteType},
+    elapsed: number,
+}
+
+function init(self: SpriteDemo): boolean
+    self.sprites = {
+        Sprite.new(-60, 0, 50, 50, Color.rgb(255, 0, 0)),
+        Sprite.new(60, 0, 30, 60, Color.rgb(0, 255, 0)),
+    }
+    self.elapsed = 0
+    return true
+end
+
+function advance(self: SpriteDemo, seconds: number): boolean
+    self.elapsed += seconds
+    for i, sprite in self.sprites do
+        sprite.x += math.sin(self.elapsed + i) * 50 * seconds
+    end
+    return true
+end
+
+function draw(self: SpriteDemo, renderer: Renderer)
+    for _, sprite in self.sprites do
+        sprite:draw(renderer)
+    end
+end
+
+return function(): Node<SpriteDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        sprites = {},
+        elapsed = 0,
+    }
 end
 ```
 
 ---
 
-### Exercise 2: The Double Cast Pattern
+### Exercise 4: The Double Cast Pattern
 
 **Understanding why `(self :: any) :: MyType` is necessary:**
 
@@ -156,200 +317,9 @@ end
 
 ---
 
-### Exercise 3: Complete Entity Class
-
-```lua
---!strict
-
-local Entity = {}
-Entity.__index = Entity
-
-export type EntityType = {
-    id: number,
-    name: string,
-    x: number,
-    y: number,
-    health: number,
-    maxHealth: number,
-    active: boolean,
-}
-
-local nextId = 1
-
-function Entity.new(name: string, x: number, y: number, maxHealth: number): EntityType
-    local self = setmetatable({}, Entity)
-    self.id = nextId
-    nextId += 1
-    self.name = name
-    self.x = x
-    self.y = y
-    self.maxHealth = maxHealth
-    self.health = maxHealth
-    self.active = true
-    return (self :: any) :: EntityType
-end
-
-function Entity:moveTo(newX: number, newY: number)
-    self.x = newX
-    self.y = newY
-end
-
-function Entity:moveBy(dx: number, dy: number)
-    self.x += dx
-    self.y += dy
-end
-
-function Entity:takeDamage(amount: number)
-    self.health = math.max(0, self.health - amount)
-    if self.health <= 0 then
-        self.active = false
-    end
-end
-
-function Entity:heal(amount: number)
-    self.health = math.min(self.maxHealth, self.health + amount)
-end
-
-function Entity:isAlive(): boolean
-    return self.health > 0
-end
-
-function Entity:distanceTo(other: EntityType): number
-    local dx = self.x - other.x
-    local dy = self.y - other.y
-    return math.sqrt(dx * dx + dy * dy)
-end
-
-Entity.__tostring = function(e: EntityType): string
-    local status = if e.health > 0 then "alive" else "dead"
-    return `Entity#{e.id} "{e.name}" at ({e.x},{e.y}) HP:{e.health}/{e.maxHealth} [{status}]`
-end
-
-export type EntityDemo = {}
-
-function init(self: EntityDemo): boolean
-    local player = Entity.new("Player", 0, 0, 100)
-    local enemy = Entity.new("Goblin", 50, 50, 30)
-
-    print(player)
-    print(enemy)
-    print(`\nDistance: {player:distanceTo(enemy):.2f}`)
-
-    player:moveBy(10, 10)
-    print(`\nAfter move: {player}`)
-
-    enemy:takeDamage(15)
-    print(`\nAfter damage: {enemy}`)
-
-    enemy:takeDamage(20)
-    print(`After fatal: {enemy}`)
-
-    return true
-end
-
-function draw(self: EntityDemo, renderer: Renderer)
-end
-
-return function(): Node<EntityDemo>
-    return { init = init, draw = draw }
-end
-```
-
----
-
-### Exercise 4: Drawable Sprite Class
-
-```lua
---!strict
-
-local Sprite = {}
-Sprite.__index = Sprite
-
-export type SpriteType = {
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    color: Color,
-    path: Path,
-    paint: Paint,
-}
-
-function Sprite.new(x: number, y: number, width: number, height: number, color: Color): SpriteType
-    local self = setmetatable({}, Sprite)
-    self.x = x
-    self.y = y
-    self.width = width
-    self.height = height
-    self.color = color
-    self.path = Path.new()
-    self.paint = Paint.new()
-    self.paint.style = "fill"
-    self.paint.color = color
-    self:_rebuildPath()
-    return (self :: any) :: SpriteType
-end
-
-function Sprite:_rebuildPath()
-    local hw = self.width / 2
-    local hh = self.height / 2
-    self.path:reset()
-    self.path:moveTo(Vector.xy(-hw, -hh))
-    self.path:lineTo(Vector.xy(hw, -hh))
-    self.path:lineTo(Vector.xy(hw, hh))
-    self.path:lineTo(Vector.xy(-hw, hh))
-    self.path:close()
-end
-
-function Sprite:setColor(color: Color)
-    self.color = color
-    self.paint.color = color
-end
-
-function Sprite:draw(renderer: Renderer)
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(self.x, self.y))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end
-
-export type SpriteDemo = {
-    sprites: {SpriteType},
-}
-
-function init(self: SpriteDemo): boolean
-    self.sprites = {}
-    table.insert(self.sprites, Sprite.new(100, 100, 50, 50, Color.rgb(255, 0, 0)))
-    table.insert(self.sprites, Sprite.new(200, 100, 30, 60, Color.rgb(0, 255, 0)))
-    return true
-end
-
-function advance(self: SpriteDemo, seconds: number): boolean
-    for i, sprite in self.sprites do
-        sprite.x += math.sin(os.clock() + i) * 50 * seconds
-    end
-    return true
-end
-
-function draw(self: SpriteDemo, renderer: Renderer)
-    for _, sprite in self.sprites do
-        sprite:draw(renderer)
-    end
-end
-
-return function(): Node<SpriteDemo>
-    return {
-        init = init,
-        advance = advance,
-        draw = draw,
-        sprites = late(),
-    }
-end
-```
-
----
-
 ### Exercise 5: Factory Functions
+
+**Goal**: Create multiple constructor variants for flexible object creation.
 
 ```lua
 --!strict
@@ -397,7 +367,51 @@ end
 Rectangle.__tostring = function(r: RectangleType): string
     return `Rect({r.x}, {r.y}, {r.width}x{r.height})`
 end
+
+export type FactoryDemo = {}
+
+function init(self: FactoryDemo): boolean
+    local r1 = Rectangle.new(0, 0, 100, 50)
+    local r2 = Rectangle.fromCorners(-50, -25, 50, 25)
+    local r3 = Rectangle.centered(0, 0, 80, 40)
+    local r4 = Rectangle.square(-20, -20, 40)
+
+    print(`r1: {r1}  area: {r1:area()}`)
+    print(`r2: {r2}  area: {r2:area()}`)
+    print(`r3: {r3}  area: {r3:area()}`)
+    print(`r4: {r4}  area: {r4:area()}`)
+
+    print(`\nr1 contains (10, 10)? {r1:contains(10, 10)}`)
+    print(`r1 contains (200, 200)? {r1:contains(200, 200)}`)
+
+    return true
+end
+
+function draw(self: FactoryDemo, renderer: Renderer)
+end
+
+return function(): Node<FactoryDemo>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
 ```
+
+---
+
+### Exercise 6: When to Use Classes vs. Plain Tables
+
+**Use classes for:**
+- Objects with behavior (`step`, `draw`, `reset`)
+- Complex state updates across frames
+- Multiple instances that share the same logic
+
+**Use plain tables for:**
+- Static configuration (`style`, `palette`, `layout`)
+- One-off data passed into a function
+
+In Rive, this keeps your Node scripts lean and your Util scripts reusable.
 
 ---
 

@@ -1,8 +1,436 @@
 ---
 sidebar_position: 2
-title: Type Annotations
+title: "Type Annotations Deep Dive"
+description: Master type annotations for Rive Node Scripts with practical patterns
 ---
 
-# Type Annotations
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Type Annotations Deep Dive
+
+## Learning Objectives
+- Annotate script state with `export type`
+- Use `Input<T>` for editor-exposed values
+- Apply `late()` for engine-provided values
+- Balance explicit vs. inferred types
+
+---
+
+## Rive Context
+
+Rive scripts run in `--!strict` mode by default. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
+
+Key rules in Rive:
+- Use `export type` to describe your script instance (`self`)
+- Use `Input<T>` for values exposed to the editor
+- Use `late()` when a value is provided by the engine after creation
+
+---
+
+## The Standard Node Script Template
+
+Every Rive Node Script follows this pattern:
+
+```lua
+--!strict
+
+export type MyScript = {}
+
+function init(self: MyScript): boolean
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+end
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Key elements:**
+1. `--!strict` - Enables type checking
+2. `export type` - Defines the shape of `self`
+3. `function init(self: MyScript)` - The `self` parameter is annotated
+4. `Node<MyScript>` - The factory return type uses your script type
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Annotate Script State
+
+**Task**: Create a character stats script with properly typed state.
+
+```lua
+--!strict
+
+export type CharacterStats = {
+    health: number,
+    stamina: number,
+    name: string,
+}
+
+function init(self: CharacterStats): boolean
+    self.health = 100
+    self.stamina = 50
+    self.name = "Astra"
+
+    print(`{self.name}: {self.health} HP, {self.stamina} STA`)
+    return true
+end
+
+function draw(self: CharacterStats, renderer: Renderer)
+end
+
+return function(): Node<CharacterStats>
+    return {
+        init = init,
+        draw = draw,
+        health = late(),
+        stamina = late(),
+        name = late(),
+    }
+end
+```
+
+**Why `late()`?** These values are set in `init()`, not when the Node is created. The `late()` placeholder tells the type system "this will be provided later."
+
+---
+
+### Exercise 2: Function Annotations in Rive Scripts
+
+**Task**: Add complete type annotations to helper functions.
+
+```lua
+--!strict
+
+export type FunctionTypes = {}
+
+-- Helper function with full annotations
+local function clamp(value: number, minVal: number, maxVal: number): number
+    if value < minVal then return minVal end
+    if value > maxVal then return maxVal end
+    return value
+end
+
+-- Function that processes damage
+local function calculateDamage(base: number, armor: number): number
+    local reduced = base - armor
+    if reduced < 0 then return 0 end
+    return reduced
+end
+
+-- Function returning multiple values
+local function getStats(): (number, number, string)
+    return 100, 50, "Warrior"
+end
+
+function init(self: FunctionTypes): boolean
+    print(clamp(120, 0, 100))           -- 100
+    print(calculateDamage(50, 20))       -- 30
+
+    local hp, mp, class = getStats()
+    print(`{class}: {hp} HP, {mp} MP`)
+
+    return true
+end
+
+function draw(self: FunctionTypes, renderer: Renderer)
+end
+
+return function(): Node<FunctionTypes>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Exercise 3: Inputs Are Typed (Rive-Specific)
+
+**Context**: `Input<T>` is Rive's way of exposing values to the editor. The `T` determines what type of value the input holds.
+
+```lua
+--!strict
+
+export type InputDemo = {
+    speed: Input<number>,
+    label: Input<string>,
+    enabled: Input<boolean>,
+    tint: Input<Color>,
+}
+
+function init(self: InputDemo): boolean
+    -- Access the value with .value
+    print(`Speed: {self.speed.value}`)
+    print(`Label: {self.label.value}`)
+    print(`Enabled: {self.enabled.value}`)
+
+    -- Color inputs work the same way
+    local r = Color.red(self.tint.value)
+    print(`Tint red channel: {r}`)
+
+    return true
+end
+
+function draw(self: InputDemo, renderer: Renderer)
+end
+
+return function(): Node<InputDemo>
+    return {
+        init = init,
+        draw = draw,
+        -- Default values for inputs
+        speed = 10,
+        label = "Runner",
+        enabled = true,
+        tint = Color.rgba(255, 128, 0, 255),
+    }
+end
+```
+
+**Key insight**: `Input<number>` is not the same as `number`. You must access `.value` to get the actual number.
+
+---
+
+### Exercise 4: Type Inference vs. Explicit Types
+
+**Guideline**: Use explicit types for `self` and function signatures. Let locals infer unless unclear.
+
+```lua
+--!strict
+
+export type InferenceDemo = {
+    count: number,
+    items: {string},
+}
+
+function init(self: InferenceDemo): boolean
+    -- self.count is explicitly typed in export type
+    self.count = 0
+    self.items = {}
+
+    -- Local variables can often infer their type
+    local nextCount = self.count + 1     -- Inferred as number
+    local greeting = "Hello"              -- Inferred as string
+    local scores = {10, 20, 30}          -- Inferred as {number}
+
+    -- Empty tables NEED explicit types (Luau can't infer element type)
+    local names: {string} = {}            -- Must annotate!
+    local coords: {x: number, y: number} = {x = 0, y = 0}
+
+    print(`Next count: {nextCount}`)
+    print(`Scores: {#scores}`)
+
+    return true
+end
+
+function draw(self: InferenceDemo, renderer: Renderer)
+end
+
+return function(): Node<InferenceDemo>
+    return {
+        init = init,
+        draw = draw,
+        count = late(),
+        items = late(),
+    }
+end
+```
+
+---
+
+### Exercise 5: Annotating Complex State
+
+**Task**: Build a more complex script with nested types.
+
+```lua
+--!strict
+
+type Position = {
+    x: number,
+    y: number,
+}
+
+type Velocity = {
+    dx: number,
+    dy: number,
+}
+
+export type PhysicsObject = {
+    position: Position,
+    velocity: Velocity,
+    mass: number,
+    friction: number,
+}
+
+function init(self: PhysicsObject): boolean
+    self.position = { x = 100, y = 50 }
+    self.velocity = { dx = 0, dy = 0 }
+    self.mass = 1.0
+    self.friction = 0.98
+
+    print(`Spawned at ({self.position.x}, {self.position.y})`)
+    return true
+end
+
+function advance(self: PhysicsObject, elapsed: number): boolean
+    -- Update position based on velocity
+    self.position.x += self.velocity.dx * elapsed
+    self.position.y += self.velocity.dy * elapsed
+
+    -- Apply friction
+    self.velocity.dx *= self.friction
+    self.velocity.dy *= self.friction
+
+    return true
+end
+
+function draw(self: PhysicsObject, renderer: Renderer)
+end
+
+return function(): Node<PhysicsObject>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        position = late(),
+        velocity = late(),
+        mass = late(),
+        friction = late(),
+    }
+end
+```
+
+---
+
+### Exercise 6: Working with Rive Types
+
+**Task**: Use Rive's built-in types correctly.
+
+```lua
+--!strict
+
+export type RiveTypesDemo = {
+    position: Vector,
+    color: Color,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: RiveTypesDemo): boolean
+    -- CORRECT way to create Rive types:
+    self.position = Vector.xy(100, 50)           -- Not {x = 100, y = 50}
+    self.color = Color.rgba(255, 0, 0, 255)      -- Not "#FF0000"
+    self.path = Path.new()
+    self.paint = Paint.new()
+
+    -- Set paint properties
+    self.paint.color = self.color
+    self.paint.thickness = 2
+    self.paint.style = PaintStyle.stroke
+
+    print("Position:", self.position.x, self.position.y)
+    print("Color red:", Color.red(self.color))
+
+    return true
+end
+
+function draw(self: RiveTypesDemo, renderer: Renderer)
+    -- Draw a circle at position
+    self.path:reset()
+    self.path:circle(self.position, 25)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<RiveTypesDemo>
+    return {
+        init = init,
+        draw = draw,
+        position = late(),
+        color = late(),
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="When should you use late() in the factory function?"
+  id="anno-q1"
+  options={[
+    { text: "For all properties" },
+    { text: "For properties that are initialized in init() rather than at creation time", correct: true },
+    { text: "Only for numbers" },
+    { text: "Never, it's deprecated" },
+  ]}
+  explanation="Use late() for properties that you set in init() or other lifecycle functions. Use direct values for Inputs with defaults."
+/>
+
+<Quiz
+  question="What's the difference between Input<number> and number?"
+  id="anno-q2"
+  options={[
+    { text: "They're the same thing" },
+    { text: "Input<number> is a wrapper with .value property and editor integration", correct: true },
+    { text: "Input<number> is faster" },
+    { text: "number can't be used in strict mode" },
+  ]}
+  explanation="Input<T> is a Rive wrapper that provides editor-exposed values. Access the actual number with .value property."
+/>
+
+<Quiz
+  question="Why do empty tables need explicit type annotations in strict mode?"
+  id="anno-q3"
+  options={[
+    { text: "It's a Rive requirement" },
+    { text: "Luau can't infer what type of elements the table will contain", correct: true },
+    { text: "Empty tables are not allowed" },
+    { text: "For performance reasons" },
+  ]}
+  explanation="When you write local t = {}, Luau has no way to know if you'll put strings, numbers, or something else in it. You must specify: local t: {string} = {}"
+/>
+
+<Quiz
+  question="What annotation syntax is used for optional (nilable) types?"
+  id="anno-q4"
+  type="code"
+  answer="string?"
+  explanation="Add ? after the type name to make it optional (nilable). string? is shorthand for string | nil."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting `--!strict`**: Always add it as the first line
+2. **Using plain tables for Rive types**: Use `Vector.xy()` not `{x = 100, y = 50}`
+3. **Missing `late()`**: Properties set in `init()` need `late()` in the factory
+4. **Accessing Input without `.value`**: `self.speed.value` not `self.speed`
+5. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can write the standard Node Script template from memory
+- [ ] I understand when to use `late()` vs direct values
+- [ ] I can annotate helper functions with parameters and return types
+- [ ] I know the difference between `Input<T>` and `T`
+- [ ] I use Rive's built-in types correctly (Vector, Color, Path, Paint)
+
+---
+
+## Next Up
+
+**[Custom Types & Unions ->](./custom-types)**

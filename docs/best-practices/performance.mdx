@@ -3,6 +3,203 @@ sidebar_position: 2
 title: Performance
 ---
 
-# Performance
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Performance Optimization
+
+Write efficient Rive scripts by understanding when and where to do work.
+
+## Rive Context
+
+Rive scripts run every frame. The biggest performance wins come from:
+- **Reusing objects** (Path, Paint, tables)
+- **Doing heavy work in `update`** instead of `draw`
+- **Avoiding per-frame allocations** in hot loops
+
+---
+
+## Optimization Checklist
+
+- Build `Path` and `Paint` once in `init`
+- Use `advance` to update numbers, not to allocate objects
+- Rebuild geometry in `update` when inputs change
+- Avoid `print()` in tight loops
+- Limit per-frame loops (especially if you spawn many instances)
+
+---
+
+## Exercise 1: Cache and Reuse Objects
+
+Create paths and paints once, then reuse them every frame.
+
+```lua
+--!strict
+
+export type CachedCircle = {
+    radius: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: CachedCircle): boolean
+    self.path = Path.new()
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+    return true
+end
+
+function update(self: CachedCircle)
+    local r = self.radius.value
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-r, 0))
+    self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
+    self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
+    self.path:close()
+end
+
+function draw(self: CachedCircle, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<CachedCircle>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        radius = 50,
+        path = Path.new(),
+        paint = Paint.new(),
+    }
+end
+```
+
+**Key points:**
+- `Path` and `Paint` are created once in `init`
+- Geometry is rebuilt in `update` using `path:reset()`
+- `draw` only renders, no allocations
+
+---
+
+## Exercise 2: Update-Driven Rendering
+
+Only rebuild geometry when inputs actually change.
+
+```lua
+--!strict
+
+export type EfficientRect = {
+    width: Input<number>,
+    height: Input<number>,
+    path: Path,
+    paint: Paint,
+}
+
+local function rebuild(self: EfficientRect)
+    local halfW = self.width.value / 2
+    local halfH = self.height.value / 2
+
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, -halfH))
+    self.path:lineTo(Vector.xy(halfW, halfH))
+    self.path:lineTo(Vector.xy(-halfW, halfH))
+    self.path:close()
+end
+
+function init(self: EfficientRect): boolean
+    rebuild(self)
+    return true
+end
+
+function update(self: EfficientRect, context: Context)
+    rebuild(self)
+    context:markNeedsUpdate()
+end
+
+function draw(self: EfficientRect, renderer: Renderer)
+    renderer:drawPath(self.path, self.paint)
+end
+
+return function(): Node<EfficientRect>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        width = 140,
+        height = 80,
+        path = Path.new(),
+        paint = Paint.with({ style = "fill", color = Color.rgb(120, 160, 255) }),
+    }
+end
+```
+
+**How it works:**
+1. `rebuild` is a helper that reconstructs the path geometry
+2. `init` calls `rebuild` once for the initial state
+3. `update` is called when inputs change and rebuilds the geometry
+4. `draw` remains lightweight, only rendering the cached path
+
+---
+
+## Performance Anti-Patterns
+
+### Avoid: Creating objects in draw
+
+```lua
+-- BAD: Creates new Path every frame
+function draw(self, renderer: Renderer)
+    local path = Path.new()  -- Allocation every frame!
+    path:moveTo(Vector.xy(0, 0))
+    -- ...
+end
+```
+
+### Avoid: Printing in loops
+
+```lua
+-- BAD: Console output every frame
+function advance(self, seconds: number): boolean
+    for i, item in self.items do
+        print("Processing item " .. i)  -- Slow!
+    end
+    return true
+end
+```
+
+### Prefer: Batch operations
+
+```lua
+-- GOOD: Single loop, minimal work
+function advance(self, seconds: number): boolean
+    local dt = seconds
+    for _, item in self.items do
+        item.x = item.x + item.vx * dt
+        item.y = item.y + item.vy * dt
+    end
+    return true
+end
+```
+
+---
+
+## Key Takeaways
+
+- Fast scripts are about *when* and *where* you do work
+- Cache objects in `init`, rebuild on demand in `update`
+- Keep `draw` as lightweight as possible
+- Avoid allocations in hot loops
+- Use `context:markNeedsUpdate()` to signal the system when redraw is needed
+
+---
+
+<Quiz
+  question="Where should you create Path and Paint objects for best performance?"
+  options={[
+    "In the draw function",
+    "In the advance function",
+    "In the init function",
+    "In the factory return table"
+  ]}
+  correctIndex={2}
+  explanation="Creating Path and Paint objects in init ensures they are allocated once and reused every frame, avoiding per-frame allocations."
+/>

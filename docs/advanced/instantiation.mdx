@@ -3,6 +3,182 @@ sidebar_position: 5
 title: Dynamic Instantiation
 ---
 
+import Quiz from '@site/src/components/Quiz';
+
 # Dynamic Instantiation
 
-*Content being migrated...*
+Spawn and manage Rive components at runtime to build particle systems, object pools, and procedural content.
+
+## Rive Context
+
+Rive lets you instance Artboards from script inputs. This is how you build reusable components (particles, enemies, cards, etc.) with real Rive visuals that can be spawned and controlled from code.
+
+**Core steps:**
+1. Add an `Input<Artboard<Data.YourVM>>` to reference a component artboard
+2. Call `self.yourInput:instance()` to create a new instance
+3. Store instances and call `advance()` and `draw()` on them each frame
+
+---
+
+## Exercise 1: Spawn Multiple Instances
+
+Create a system that spawns multiple star instances and animates them across the screen.
+
+```lua
+--!strict
+
+type Spawned = {
+    artboard: Artboard<Data.Star>,
+    position: Vector,
+    speed: number,
+}
+
+export type SpawnDemo = {
+    star: Input<Artboard<Data.Star>>,
+    count: Input<number>,
+    items: {Spawned},
+}
+
+local function spawn(self: SpawnDemo)
+    local instance = self.star:instance()
+    local entry: Spawned = {
+        artboard = instance,
+        position = Vector.xy(math.random(-140, 140), math.random(-80, 80)),
+        speed = math.random(30, 90),
+    }
+    table.insert(self.items, entry)
+end
+
+function init(self: SpawnDemo): boolean
+    self.items = {}
+    for _ = 1, self.count.value do
+        spawn(self)
+    end
+    return true
+end
+
+function advance(self: SpawnDemo, seconds: number): boolean
+    for _, item in self.items do
+        item.position = Vector.xy(item.position.x + item.speed * seconds, item.position.y)
+        if item.position.x > 160 then
+            item.position = Vector.xy(-160, item.position.y)
+        end
+        item.artboard:advance(seconds)
+    end
+    return true
+end
+
+function draw(self: SpawnDemo, renderer: Renderer)
+    for _, item in self.items do
+        renderer:save()
+        renderer:transform(Mat2D.withTranslation(item.position))
+        item.artboard:draw(renderer)
+        renderer:restore()
+    end
+end
+
+return function(): Node<SpawnDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        star = late(),
+        count = 5,
+        items = {},
+    }
+end
+```
+
+**Editor setup:**
+1. Create a component artboard named `Star` with a `Star` ViewModel
+2. Select the Node script and assign the `star` input to the component artboard
+
+**How it works:**
+1. `init` spawns the initial set of instances based on `count`
+2. `advance` moves each instance and wraps it when it goes off-screen
+3. `draw` renders each instance at its current position using transform save/restore
+
+---
+
+## Common Patterns
+
+### Object Pooling
+
+For frequently spawned/despawned objects, maintain a pool:
+
+```lua
+--!strict
+
+export type ObjectPool = {
+    template: Input<Artboard<Data.Bullet>>,
+    active: {Artboard<Data.Bullet>},
+    inactive: {Artboard<Data.Bullet>},
+}
+
+local function acquire(self: ObjectPool): Artboard<Data.Bullet>
+    if #self.inactive > 0 then
+        local instance = table.remove(self.inactive)
+        table.insert(self.active, instance)
+        return instance
+    end
+    local instance = self.template:instance()
+    table.insert(self.active, instance)
+    return instance
+end
+
+local function release(self: ObjectPool, instance: Artboard<Data.Bullet>)
+    for i, active in self.active do
+        if active == instance then
+            table.remove(self.active, i)
+            table.insert(self.inactive, instance)
+            break
+        end
+    end
+end
+
+function init(self: ObjectPool): boolean
+    self.active = {}
+    self.inactive = {}
+    return true
+end
+
+function draw(self: ObjectPool, renderer: Renderer)
+    for _, instance in self.active do
+        instance:draw(renderer)
+    end
+end
+
+return function(): Node<ObjectPool>
+    return {
+        init = init,
+        draw = draw,
+        template = late(),
+        active = {},
+        inactive = {},
+    }
+end
+```
+
+---
+
+## Key Takeaways
+
+- Dynamic instantiation bridges designer-built visuals with procedural logic
+- Use `Input<Artboard<Data.YourVM>>` to reference component artboards
+- Call `:instance()` to create new instances at runtime
+- Remember to call `advance()` and `draw()` on each instance every frame
+- Use object pooling for frequently spawned/despawned objects
+
+---
+
+<Quiz
+  question="What method creates a new instance from an artboard input?"
+  options={[
+    "self.artboard:new()",
+    "self.artboard:clone()",
+    "self.artboard:instance()",
+    "self.artboard:spawn()"
+  ]}
+  correctIndex={2}
+  explanation="The :instance() method creates a new independent instance of the component artboard that you can position and animate separately."
+/>
