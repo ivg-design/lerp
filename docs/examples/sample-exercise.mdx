@@ -1,0 +1,167 @@
+---
+sidebar_position: 1
+title: Sample Exercise (Review)
+description: A complete exercise example demonstrating all features
+---
+
+import Exercise from '@site/src/components/Exercise';
+
+# Sample Exercise Demo
+
+This page demonstrates the new exercise system with all its features.
+
+---
+
+## Exercise 1: Character Stats
+
+### Premise
+
+Every interactive Rive animation needs to track state: health bars, scores, progress indicators, toggle states. Before you can animate or display these values, you need to store them in variables with the correct types. This exercise establishes the foundation: declaring typed variables and outputting them for verification.
+
+:::info Goal
+By the end of this exercise, you will be able to declare local variables of different types and print them to the Console.
+:::
+
+### Use Case
+
+Imagine you're building a character select screen for a game. Each character has stats: a name (string), level (number), experience points (decimal number), and whether they have a special ability unlocked (boolean). These values drive the UI: the name appears in a text field, the level shows as "Lv. 5", experience fills a progress bar, and the ability icon is either visible or hidden.
+
+Before you can bind these to UI elements, you must first declare them correctly. Type errors here cascade everywhere: a string where a number is expected breaks your progress bar math; a missing boolean crashes your conditional logic.
+
+**Example scenarios:**
+- Character selection screens with stats display
+- Settings panels with toggle states (sound on/off, dark mode)
+- Score displays that combine text and numbers
+
+---
+
+### Setup
+
+1. **Create the script:** Assets Panel, click +, select Script, then Node Script. Name it `Exercise1_CharacterStats`
+2. **Create required elements:** Draw any shape on the artboard (rectangle, ellipse, it doesn't matter). This gives the script a node to attach to
+3. **Attach the script:** Drag `Exercise1_CharacterStats` onto your shape
+4. **Prepare the Console:** View then Console. Clear previous output
+5. **Run:** Press Play and check Console for output
+
+---
+
+### Starter Code
+
+Copy this to your Rive script:
+
+```lua
+--!strict
+
+export type Exercise1 = {}
+
+function init(self: Exercise1): boolean
+    -- TODO 1: Declare a string variable 'characterName' set to "Warrior"
+    -- TODO 2: Declare a number variable 'level' set to 5
+    -- TODO 3: Declare a number variable 'experience' set to 1250.5
+    -- TODO 4: Declare a boolean variable 'hasUltimate' set to true
+
+    -- Validation (add this after your declarations):
+    print(`ANSWER: {characterName}, Lv.{level}, {experience}xp, ult={hasUltimate}`)
+
+    return true
+end
+
+function draw(self: Exercise1, renderer: Renderer)
+end
+
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. **Declare `characterName`** - Type: string, Value: `"Warrior"`
+2. **Declare `level`** - Type: number (integer), Value: `5`
+3. **Declare `experience`** - Type: number (decimal), Value: `1250.5`
+4. **Declare `hasUltimate`** - Type: boolean, Value: `true`
+5. **Keep the validation print unchanged** - The `ANSWER:` line uses your variable names. If you misname a variable, you'll get an error
+
+---
+
+### Expected Output
+
+When your code is correct, the Console will print a single line starting with `ANSWER:` that contains:
+- The character name
+- The level formatted as "Lv." followed by the number
+- The experience value followed by "xp"
+- The ultimate status as "ult=" followed by the boolean
+
+All values should appear on one line, separated by commas.
+
+:::warning Exact matching required
+The validator checks for an exact match. Whitespace and capitalization matter.
+:::
+
+---
+
+### Verify Your Answer
+
+<Exercise id="fundamentals-variables-1" />
+
+---
+
+### Checklist
+
+Before moving on, verify:
+- All 4 variables declared with `local`
+- Variable names match exactly (case-sensitive)
+- String uses quotes, number and boolean do not
+- Console shows the expected `ANSWER:` line
+- No type errors in the editor
+
+---
+
+## How the Validator Works
+
+The validator above uses `id="fundamentals-variables-1"` which loads from the registry:
+- Expected answer (hidden until revealed or correct)
+- Progressive hints on failures
+- Explanation shown when correct
+- Review links to relevant guide sections
+
+**Key behaviors:**
+1. Wrong answers show only your answer, not the expected one
+2. "Reveal Answer" button shows the solution if you're stuck
+3. Correct answers show an explanation of why it works
+4. Review links help you go back to the relevant sections
+
+---
+
+## Alternative: Inline Props
+
+You can also use the Exercise component with inline props:
+
+```jsx
+<Exercise
+  title="Inline Example"
+  difficulty={2}
+  expectedAnswer="ANSWER: 42"
+  explanation="42 is the answer to everything."
+  reviewLinks={[{ label: "Variables", href: "/fundamentals/variables" }]}
+>
+  Description goes here.
+</Exercise>
+```
+
+This renders:
+
+<Exercise
+  title="Inline Example"
+  difficulty={2}
+  expectedAnswer="ANSWER: 42"
+  explanation="The answer is 42 because that's what the exercise requires you to output."
+  reviewLinks={[{ label: "Variables", href: "/fundamentals/variables" }]}
+>
+  This exercise uses inline props. Try pasting `ANSWER: 42` to see the success state with explanation.
+</Exercise>

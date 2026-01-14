@@ -25,6 +25,19 @@ const config: Config = {
     locales: ['en'],
   },
 
+  themes: [
+    [
+      require.resolve('@easyops-cn/docusaurus-search-local'),
+      {
+        hashed: true,
+        language: ['en'],
+        highlightSearchTermsOnTargetPage: true,
+        explicitSearchResultPath: true,
+        docsRouteBasePath: '/',
+      },
+    ],
+  ],
+
   presets: [
     [
       'classic',
@@ -48,6 +61,12 @@ const config: Config = {
       defaultMode: 'dark',
       respectPrefersColorScheme: true,
     },
+    docs: {
+      sidebar: {
+        hideable: true,
+        autoCollapseCategories: true,
+      },
+    },
     navbar: {
       title: 'LERP',
       logo: {
@@ -62,7 +81,7 @@ const config: Config = {
           label: 'Course',
         },
         {
-          to: '/api-reference',
+          to: '/api/core-types',
           label: 'API Reference',
           position: 'left',
         },
@@ -73,12 +92,13 @@ const config: Config = {
         },
         {
           href: 'https://forge.mograph.life',
-          label: '← Forge',
+          label: 'Forge',
           position: 'right',
         },
         {
           href: 'https://github.com/ivg-design/lerp',
-          label: 'GitHub',
+          label: ' ',
+          'aria-label': 'GitHub repository',
           position: 'right',
         },
       ],
@@ -98,7 +118,7 @@ const config: Config = {
         {
           title: 'Reference',
           items: [
-            { label: 'API Reference', to: '/api-reference' },
+            { label: 'API Reference', to: '/api/core-types' },
             { label: 'Quick Reference', to: '/quick-reference' },
             { label: 'Glossary', to: '/glossary' },
           ],

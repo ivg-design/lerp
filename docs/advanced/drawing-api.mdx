@@ -46,6 +46,10 @@ Transforms are applied in order and accumulate. The order matters: translate-the
 
 **Goal**: Apply translation and rotation transforms to a shape.
 
+:::note Rive Result
+Attach to any node and press Play. You should see a rectangle rotating around the origin as the angle updates.
+:::
+
 ```lua
 --!strict
 
@@ -107,6 +111,10 @@ end
 
 **Goal**: Draw the same path multiple times with different transforms.
 
+:::note Rive Result
+You should see several copies of the same shape, each placed at a different position or scale.
+:::
+
 ```lua
 --!strict
 
@@ -158,6 +166,10 @@ end
 ## Exercise 3: Animated Polyline
 
 **Goal**: Update path data dynamically in `advance`.
+
+:::note Rive Result
+You should see a wavy line that animates over time as the points move.
+:::
 
 ```lua
 --!strict
@@ -222,6 +234,10 @@ end
 ## Exercise 4: Clipping a Region
 
 **Goal**: Use `clipPath` to restrict drawing to a specific area.
+
+:::note Rive Result
+You should see content drawn only inside the clipping shape; anything outside is masked.
+:::
 
 ```lua
 --!strict

@@ -37,14 +37,14 @@ export type ButtonScript = {
 }
 
 local function inBounds(self: ButtonScript, pos: Vector): boolean
-    local halfW = self.width.value / 2
-    local halfH = self.height.value / 2
+    local halfW = self.width / 2
+    local halfH = self.height / 2
     return pos.x >= -halfW and pos.x <= halfW and pos.y >= -halfH and pos.y <= halfH
 end
 
 local function rebuild(self: ButtonScript)
-    local halfW = self.width.value / 2
-    local halfH = self.height.value / 2
+    local halfW = self.width / 2
+    local halfH = self.height / 2
 
     self.path:reset()
     self.path:moveTo(Vector.xy(-halfW, -halfH))
@@ -150,5 +150,5 @@ The button draws itself using the Drawing API with a fill and stroke. Colors cha
 - Add a hover state with `pointerMove`
 - Animate the button depth using `advance`
 - Use a `Sound` trigger via ViewModel
-- Add rounded corners using `path:roundedRect()`
+- Add rounded corners by building a rounded-rect path manually (cubic beziers)
 - Implement a disabled state controlled by ViewModel boolean

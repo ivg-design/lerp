@@ -266,7 +266,7 @@ end
 
 function draw(self: ShapeDemo, renderer: Renderer)
     -- Polymorphism: each shape draws itself correctly
-    for _, shape in self.shapes do
+    for _, shape in ipairs(self.shapes) do
         shape:draw(renderer)
     end
 end
@@ -421,7 +421,7 @@ function init(self: OutlineDemo): boolean
 end
 
 function draw(self: OutlineDemo, renderer: Renderer)
-    for _, shape in self.shapes do
+    for _, shape in ipairs(self.shapes) do
         shape:draw(renderer)
     end
 end
@@ -821,14 +821,14 @@ end
 function advance(self: HierarchyDemo, seconds: number): boolean
     self.elapsed += seconds
     -- Animate each object with a different phase
-    for i, obj in self.objects do
+    for i, obj in ipairs(self.objects) do
         obj.y = math.sin(self.elapsed * 2 + i) * 20
     end
     return true
 end
 
 function draw(self: HierarchyDemo, renderer: Renderer)
-    for _, obj in self.objects do
+    for _, obj in ipairs(self.objects) do
         if obj.active then
             obj:draw(renderer)
         end

@@ -147,6 +147,10 @@ class ShapeFactory {
 3. **Create the Node Script** with the code below
 4. **What to expect**: Two rows of shapes - configured shapes on top, random shapes below
 
+**Rive setup:** Attach the script to the "FactoryDemo" node and press Play.
+
+**Expected result:** Two rows of shapes render (configured and random), demonstrating the factory output.
+
 ```lua
 --!strict
 
@@ -163,6 +167,20 @@ export type ShapeType = {
     draw: (ShapeType, Renderer) -> (),
 }
 
+local function addEllipse(path: Path, center: Vector, rx: number, ry: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local ox = rx * k
+    local oy = ry * k
+
+    path:moveTo(Vector.xy(cx, cy - ry))
+    path:cubicTo(Vector.xy(cx + ox, cy - ry), Vector.xy(cx + rx, cy - oy), Vector.xy(cx + rx, cy))
+    path:cubicTo(Vector.xy(cx + rx, cy + oy), Vector.xy(cx + ox, cy + ry), Vector.xy(cx, cy + ry))
+    path:cubicTo(Vector.xy(cx - ox, cy + ry), Vector.xy(cx - rx, cy + oy), Vector.xy(cx - rx, cy))
+    path:cubicTo(Vector.xy(cx - rx, cy - oy), Vector.xy(cx - ox, cy - ry), Vector.xy(cx, cy - ry))
+    path:close()
+end
+
 -- Circle implementation
 local Circle = {}
 Circle.__index = Circle
@@ -172,7 +190,7 @@ function Circle.new(x: number, y: number, radius: number, color: Color): ShapeTy
     self.x = x
     self.y = y
     self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), radius, radius)
+    addEllipse(self.path, Vector.xy(0, 0), radius, radius)
     self.paint = Paint.with({ style = "fill", color = color })
     return (self :: any) :: ShapeType
 end
@@ -298,7 +316,7 @@ function init(self: FactoryDemo): boolean
         { type = "triangle", x = 80, y = -40, size = 50, color = Color.rgb(100, 100, 255) },
     }
 
-    for _, config in configs do
+    for _, config in ipairs(configs) do
         local shape = ShapeFactory.create(config)
         if shape then
             table.insert(self.shapes, shape)
@@ -315,7 +333,7 @@ function init(self: FactoryDemo): boolean
 end
 
 function draw(self: FactoryDemo, renderer: Renderer)
-    for _, shape in self.shapes do
+    for _, shape in ipairs(self.shapes) do
         shape:draw(renderer)
     end
 end
@@ -383,6 +401,10 @@ const SpriteRegistry = {
 2. **Add a Node** named "PrototypeDemo"
 3. **Create the Node Script** with the code below
 4. **What to expect**: Multiple spinning star shapes - expensive templates created once, cheap clones spawned many times
+
+**Rive setup:** Attach the script to the "PrototypeDemo" node and press Play.
+
+**Expected result:** Multiple spinning stars appear, demonstrating template creation plus cloning.
 
 ```lua
 --!strict
@@ -536,14 +558,14 @@ end
 
 function advance(self: PrototypeDemo, seconds: number): boolean
     self.elapsed += seconds
-    for i, sprite in self.sprites do
+    for i, sprite in ipairs(self.sprites) do
         sprite.rotation = self.elapsed + i * 0.5
     end
     return true
 end
 
 function draw(self: PrototypeDemo, renderer: Renderer)
-    for _, sprite in self.sprites do
+    for _, sprite in ipairs(self.sprites) do
         sprite:draw(renderer)
     end
 end
@@ -606,6 +628,10 @@ const Animate = (() => {
 2. **Add a Node** named "ModuleDemo"
 3. **Create the Node Script** with the code below
 4. **What to expect**: A circle that animates with various easing functions
+
+**Rive setup:** Attach the script to the "ModuleDemo" node and press Play.
+
+**Expected result:** The circle animates smoothly with different easing curves over time.
 
 ```lua
 --!strict
@@ -751,7 +777,7 @@ local Animate = (function()
         -- Update all active tweens
         updateAll = function(dt: number)
             local stillActive: {TweenType} = {}
-            for _, tween in activeTweens do
+            for _, tween in ipairs(activeTweens) do
                 if tween.update(dt) then
                     table.insert(stillActive, tween)
                 end
@@ -790,6 +816,20 @@ export type ModuleDemo = {
     cycleTimer: number,
 }
 
+local function addEllipse(path: Path, center: Vector, rx: number, ry: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local ox = rx * k
+    local oy = ry * k
+
+    path:moveTo(Vector.xy(cx, cy - ry))
+    path:cubicTo(Vector.xy(cx + ox, cy - ry), Vector.xy(cx + rx, cy - oy), Vector.xy(cx + rx, cy))
+    path:cubicTo(Vector.xy(cx + rx, cy + oy), Vector.xy(cx + ox, cy + ry), Vector.xy(cx, cy + ry))
+    path:cubicTo(Vector.xy(cx - ox, cy + ry), Vector.xy(cx - rx, cy + oy), Vector.xy(cx - rx, cy))
+    path:cubicTo(Vector.xy(cx - rx, cy - oy), Vector.xy(cx - ox, cy - ry), Vector.xy(cx, cy - ry))
+    path:close()
+end
+
 function init(self: ModuleDemo): boolean
     -- Create tweens using the module's clean API
     self.xTween = Animate.tween(-80, 80, 2, Easing.easeInOutQuad)
@@ -797,7 +837,7 @@ function init(self: ModuleDemo): boolean
     self.scaleTween = Animate.tween(0.5, 1.5, 1, Easing.easeOutElastic)
 
     self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), 20, 20)
+    addEllipse(self.path, Vector.xy(0, 0), 20, 20)
 
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 200, 255) })
     self.cycleTimer = 0
@@ -892,6 +932,10 @@ EventBus.getInstance().publish('ball_bounced', { id: 1 });
 3. **Create the Node Script** with the code below
 4. **What to expect**: Bouncing balls that publish events when they hit walls, demonstrating global event system
 
+**Rive setup:** Attach the script to the "SingletonDemo" node and press Play.
+
+**Expected result:** Multiple balls bounce and the Console logs event bus messages for collisions.
+
 ```lua
 --!strict
 
@@ -917,7 +961,7 @@ local EventBus = (function()
             return function()
                 local list = listeners[event]
                 if list then
-                    for i, cb in list do
+                    for i, cb in ipairs(list) do
                         if cb == callback then
                             table.remove(list, i)
                             break
@@ -941,7 +985,7 @@ local EventBus = (function()
             -- Notify listeners
             local list = listeners[event]
             if list then
-                for _, callback in list do
+                for _, callback in ipairs(list) do
                     callback(data)
                 end
             end
@@ -992,7 +1036,7 @@ local AssetCache = (function()
 
         getStats = function(): { hits: number, misses: number, size: number }
             local size = 0
-            for _ in cache do size += 1 end
+            for _ in pairs(cache) do size += 1 end
             return { hits = hitCount, misses = missCount, size = size }
         end,
     }
@@ -1017,6 +1061,20 @@ export type BallType = {
 
 local ballIdCounter = 0
 
+local function addEllipse(path: Path, center: Vector, rx: number, ry: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local ox = rx * k
+    local oy = ry * k
+
+    path:moveTo(Vector.xy(cx, cy - ry))
+    path:cubicTo(Vector.xy(cx + ox, cy - ry), Vector.xy(cx + rx, cy - oy), Vector.xy(cx + rx, cy))
+    path:cubicTo(Vector.xy(cx + rx, cy + oy), Vector.xy(cx + ox, cy + ry), Vector.xy(cx, cy + ry))
+    path:cubicTo(Vector.xy(cx - ox, cy + ry), Vector.xy(cx - rx, cy + oy), Vector.xy(cx - rx, cy))
+    path:cubicTo(Vector.xy(cx - rx, cy - oy), Vector.xy(cx - ox, cy - ry), Vector.xy(cx, cy - ry))
+    path:close()
+end
+
 function Ball.new(x: number, y: number): BallType
     local self = setmetatable({}, Ball)
     ballIdCounter += 1
@@ -1030,7 +1088,7 @@ function Ball.new(x: number, y: number): BallType
     -- Use cached path (singleton pattern benefit!)
     self.path = AssetCache.get("ball_path", function()
         local p = Path.new()
-        p:addEllipse(Vector.xy(0, 0), 15, 15)
+        addEllipse(p, Vector.xy(0, 0), 15, 15)
         return p
     end)
 
@@ -1108,14 +1166,14 @@ end
 
 function advance(self: SingletonDemo, seconds: number): boolean
     local bounds = { width = 200, height = 120 }
-    for _, ball in self.balls do
+    for _, ball in ipairs(self.balls) do
         ball:update(seconds, bounds)
     end
     return true
 end
 
 function draw(self: SingletonDemo, renderer: Renderer)
-    for _, ball in self.balls do
+    for _, ball in ipairs(self.balls) do
         ball:draw(renderer)
     end
 end
@@ -1190,6 +1248,10 @@ health.set(80);  // Automatically logs and updates health bar!
 3. **Create the Node Script** with the code below
 4. **What to expect**: A health bar that automatically updates and changes color as health decreases
 
+**Rive setup:** Attach the script to the "ObserverDemo" node and press Play.
+
+**Expected result:** The health bar shrinks and changes color as the observable value updates.
+
 ```lua
 --!strict
 
@@ -1210,7 +1272,7 @@ local function createObservable<T>(initial: T)
                 local oldValue = value
                 value = newValue
                 -- Notify all observers
-                for _, observer in observers do
+                for _, observer in ipairs(observers) do
                     observer(newValue, oldValue)
                 end
             end
@@ -1220,7 +1282,7 @@ local function createObservable<T>(initial: T)
             table.insert(observers, callback)
             -- Return unsubscribe function
             return function()
-                for i, cb in observers do
+                for i, cb in ipairs(observers) do
                     if cb == callback then
                         table.remove(observers, i)
                         break

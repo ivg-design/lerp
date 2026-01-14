@@ -841,7 +841,7 @@ const isCritical = health <= 10 || healthPercent <= 0.1;
 2. **Using `!=` instead of `~=`** — Luau uses `~=` for not-equal
 3. **Using `+` for strings** — Use `..` for concatenation: `"a" .. "b"`
 4. **Expecting 0 to be falsy** — In Luau, `0` is truthy!
-5. **Forgetting `.value` on Inputs** — `self.speed.value`, not `self.speed`
+5. **Using `.value` on Inputs** — `self.speed`, not `self.speed.value`
 :::
 
 ---

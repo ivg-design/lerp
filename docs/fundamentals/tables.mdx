@@ -267,7 +267,7 @@ inventory.gems = nil
 
 ## Iterating Over Tables
 
-### Arrays: Use `ipairs` or Direct Loop
+### Arrays: Use `ipairs` or Numeric Loop
 
 ```lua
 local items = {"Sword", "Shield", "Potion"}
@@ -277,12 +277,7 @@ for i, item in ipairs(items) do
     print(`{i}: {item}`)
 end
 
--- Method 2: direct iteration (Luau shortcut)
-for i, item in items do
-    print(`{i}: {item}`)
-end
-
--- Method 3: numeric loop (most control)
+-- Method 2: numeric loop (most control)
 for i = 1, #items do
     print(`{i}: {items[i]}`)
 end
@@ -319,11 +314,6 @@ for i, item in ipairs(items) do
     print(`{i}: {item}`)  -- 1: Sword, 2: Shield...
 end
 
--- Luau direct
-for i, item in items do
-    print(item)
-end
-
 -- Luau numeric
 for i = 1, #items do
     print(items[i])
@@ -331,7 +321,7 @@ end
 ```
 :::
 
-### Dictionaries: Use `pairs` or Direct Loop
+### Dictionaries: Use `pairs`
 
 ```lua
 local stats = { health = 100, mana = 50, stamina = 75 }
@@ -341,10 +331,6 @@ for key, value in pairs(stats) do
     print(`{key}: {value}`)
 end
 
--- Method 2: direct iteration (Luau shortcut)
-for key, value in stats do
-    print(`{key}: {value}`)
-end
 ```
 
 **Output** (order may vary):
@@ -374,11 +360,6 @@ for (const key in stats) {
 ```lua
 -- Luau pairs
 for key, value in pairs(stats) do
-    print(`{key}: {value}`)
-end
-
--- Luau direct
-for key, value in stats do
     print(`{key}: {value}`)
 end
 ```
@@ -487,6 +468,10 @@ local copy = table.clone(original)
 
 2. **Copy and paste:**
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs inventory changes as items are added, removed, and searched.
+
 ```lua
 --!strict
 
@@ -587,6 +572,10 @@ Bow is at index: not found
 
 **Real-world use:** Player stats, configuration objects, named properties, settings.
 
+**Rive setup:** Create a Node Script named "Exercise2_PlayerStats", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console logs stat changes, a level-up check, and a final dump of all stats.
+
 ---
 
 #### Code
@@ -643,7 +632,7 @@ function init(self: Exercise2): boolean
     print(`Added strength: {player.strength}`)
 
     print("\n=== All Stats ===")
-    for stat, value in player do
+    for stat, value in pairs(player) do
         print(`  {stat}: {value}`)
     end
 
@@ -668,6 +657,10 @@ end
 **Goal:** Work with tables inside tables.
 
 **Why this matters:** Real data is often hierarchical — players have inventories, inventories have items with properties.
+
+**Rive setup:** Create a Node Script named "Exercise3_NestedTables", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console prints player info, inventory totals, and an equipment update.
 
 ---
 
@@ -779,6 +772,10 @@ end
 
 **Why this matters:** Animation state, game entities, and accumulated data need to persist.
 
+**Rive setup:** Create a Node Script named "Exercise4_PersistentTables", attach it to any node, and let it run for a few seconds.
+
+**Expected result:** The Console logs particle counts and positions every second as the system updates.
+
 ---
 
 #### Code
@@ -871,6 +868,14 @@ end
 
 **Goal:** Use common table operations to manipulate data.
 
+**Why this matters:** Sorting, clearing, and cloning tables are core operations when you manage lists of nodes, scores, or dynamic elements in a Rive script.
+
+**Real-world use:** Leaderboards, ordering draw calls, reusing cached data, resetting arrays safely.
+
+**Rive setup:** Create a Node Script named "Exercise5_TableUtilities", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console prints sorted values, cleared tables, cloned arrays, and a leaderboard order.
+
 ---
 
 #### Code
@@ -953,6 +958,14 @@ end
 
 **Goal:** Combine arrays and dictionaries for a practical lookup system.
 
+**Why this matters:** Rive scripts often combine fast lookup tables (by name or ID) with ordered arrays (for waves, lists, or draw order).
+
+**Real-world use:** Mapping node names to data, spawning sequences, config tables keyed by ID.
+
+**Rive setup:** Create a Node Script named "Exercise6_Database", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console prints a lookup, a full list, filtered enemies, and spawn-wave totals.
+
 ---
 
 #### Code
@@ -992,14 +1005,14 @@ function init(self: Exercise6): boolean
 
     -- List all enemies
     print("\n=== All Enemies ===")
-    for id, data in enemyDB do
+    for id, data in pairs(enemyDB) do
         print(`{id}: {data.name} (HP: {data.health})`)
     end
 
     -- Find enemies by criteria
     print("\n=== Enemies with HP > 50 ===")
     local strongEnemies: {EnemyData} = {}
-    for _, data in enemyDB do
+    for _, data in pairs(enemyDB) do
         if data.health > 50 then
             table.insert(strongEnemies, data)
         end
@@ -1140,7 +1153,7 @@ dict.a = nil              -- Remove
 -- Iteration
 for i, v in ipairs(arr) do ... end   -- Array
 for k, v in pairs(dict) do ... end   -- Dictionary
-for k, v in tbl do ... end           -- Both (Luau)
+for k, v in pairs(tbl) do ... end
 
 -- Utilities
 table.sort(arr)           -- Sort ascending

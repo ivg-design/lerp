@@ -148,6 +148,12 @@ Build a component system where objects can have multiple behaviors using interse
 
 </details>
 
+**Rive setup:** Attach the script to any node (a rectangle or group is fine). This exercise is data modeling only; you will see Console output, not shapes. To visualize later, map these objects to drawing code in `draw()` or to inputs on real nodes.
+
+:::note Rive Result
+This exercise is logic-only (no drawing). Attach the script to any node, press Play, and check the Console. You should see render/move logs and a `Button clicked!` line when the simulated click fires.
+:::
+
 ```lua
 --!strict
 
@@ -329,6 +335,10 @@ Model different animation states using discriminated union types.
 4. Try adding a new state type (like "jumping") and handle it
 
 </details>
+
+:::note Rive Result
+This is a console-only exercise. Attach the script to any node and press Play. You should see a sequence of state descriptions (idle, walking, attacking, combo, dead) and `Can move:` lines in the Console.
+:::
 
 ```lua
 --!strict
@@ -512,6 +522,10 @@ Use literal unions to constrain string and number values to specific allowed val
 
 </details>
 
+:::note Rive Result
+Attach the script to any node and run it. You’ll see log output for direction and rarity checks. If you intentionally use an invalid literal (like `"up"`), the Rive editor will flag it before you run.
+:::
+
 ```lua
 --!strict
 
@@ -575,7 +589,7 @@ function init(self: LiteralUnionDemo): boolean
 
     -- Log level examples
     local levels: {LogLevel} = {"debug", "info", "warn", "error"}
-    for _, level in levels do
+    for _, level in ipairs(levels) do
         local color = getLogColor(level)
         print(`{level}: R={Color.red(color)}`)
     end
@@ -587,7 +601,7 @@ function init(self: LiteralUnionDemo): boolean
         {name = "Dragon Slayer", rarity = "legendary", baseValue = 100},
     }
 
-    for _, item in items do
+    for _, item in ipairs(items) do
         print(`{item.name} ({item.rarity}): {getItemValue(item)} gold`)
     end
 
@@ -651,6 +665,10 @@ Handle optional values safely using `T?` syntax.
 
 </details>
 
+:::note Rive Result
+Console-only exercise. Run the script and you’ll see formatted profile output and a search result. Use this pattern any time your script reads optional ViewModel properties or nullable inputs.
+:::
+
 ```lua
 --!strict
 
@@ -696,7 +714,7 @@ end
 
 -- Function returning optional value
 local function findPlayerByEmail(players: {PlayerProfile}, email: string): PlayerProfile?
-    for _, player in players do
+    for _, player in ipairs(players) do
         if player.email == email then
             return player
         end
@@ -731,7 +749,7 @@ function init(self: OptionalDemo): boolean
     }
 
     -- Process all players
-    for _, player in players do
+    for _, player in ipairs(players) do
         print(`\n=== {player.username} ===`)
         print(`Display: {getDisplayName(player)}`)
         print(`Guild: {getGuildTag(player)}`)
@@ -827,6 +845,10 @@ Define and use function types for callbacks and higher-order functions.
 
 </details>
 
+:::note Rive Result
+Attach the script and run it. The Console will print the results of `applyTwice`, `filter`, `map`, and `reduce`. Use these function types when you build reusable animation helpers or pass callbacks into input listeners.
+:::
+
 ```lua
 --!strict
 
@@ -858,7 +880,7 @@ end
 -- Higher-order function: filter
 local function filter<T>(items: {T}, predicate: Predicate<T>): {T}
     local result: {T} = {}
-    for _, item in items do
+    for _, item in ipairs(items) do
         if predicate(item) then
             table.insert(result, item)
         end
@@ -869,7 +891,7 @@ end
 -- Higher-order function: map
 local function map<T, U>(items: {T}, transform: (T) -> U): {U}
     local result: {U} = {}
-    for _, item in items do
+    for _, item in ipairs(items) do
         table.insert(result, transform(item))
     end
     return result
@@ -878,7 +900,7 @@ end
 -- Higher-order function: reduce
 local function reduce<T, U>(items: {T}, initial: U, folder: (U, T) -> U): U
     local acc = initial
-    for _, item in items do
+    for _, item in ipairs(items) do
         acc = folder(acc, item)
     end
     return acc
@@ -984,6 +1006,10 @@ Use function types for Rive-style event handling with a generic event emitter.
 4. Try adding a new event type (like keyboard events)
 
 </details>
+
+:::note Rive Result
+Console-only exercise. When you run it, you’ll see simulated click events and animation event logs. This mirrors how you can centralize callbacks for pointer events or ViewModel changes in larger Rive systems.
+:::
 
 ```lua
 --!strict

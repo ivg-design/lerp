@@ -237,7 +237,7 @@ local function createStateMachine(initialState: string)
         transition = function(to: string): boolean
             local allowed = transitions[currentState]
             if allowed then
-                for _, state in allowed do
+                for _, state in ipairs(allowed) do
                     if state == to then
                         currentState = to
                         table.insert(history, to)
@@ -257,7 +257,7 @@ local function createStateMachine(initialState: string)
         -- Get history (returns a COPY, not the original!)
         getHistory = function(): {string}
             local copy = {}
-            for _, s in history do
+            for _, s in ipairs(history) do
                 table.insert(copy, s)
             end
             return copy
@@ -736,7 +736,7 @@ function ParticleSystem.create(maxParticles: number): ParticleSystemType
 
         update = function(dt: number)
             local alive: {Particle} = {}
-            for _, p in particles do
+            for _, p in ipairs(particles) do
                 if updateParticle(p, dt) then
                     table.insert(alive, p)
                 end
@@ -745,7 +745,7 @@ function ParticleSystem.create(maxParticles: number): ParticleSystemType
         end,
 
         draw = function(renderer: Renderer, path: Path, paint: Paint)
-            for _, p in particles do
+            for _, p in ipairs(particles) do
                 local alpha = math.min(1, p.life)
                 paint.color = Color.rgba(255, 200, 100, alpha)
                 path:reset()

@@ -301,7 +301,7 @@ function init(self: Demo): boolean
 end
 
 function advance(self: Demo, seconds: number): boolean
-    for _, item in self.items do
+    for _, item in ipairs(self.items) do
         item:update(seconds)  -- Calls shared method
     end
     return true
@@ -448,7 +448,7 @@ function init(self: BoxDemo): boolean
 end
 
 function draw(self: BoxDemo, renderer: Renderer)
-    for _, box in self.boxes do
+    for _, box in ipairs(self.boxes) do
         box:draw(renderer)  -- Same method called on each, but different self
     end
 end

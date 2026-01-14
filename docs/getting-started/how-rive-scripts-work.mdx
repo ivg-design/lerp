@@ -381,6 +381,19 @@ export type GameScript = {
     speed: Input<number>,     -- Editor-editable input
 }
 
+local function addCircle(path: Path, center: Vector, radius: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local r = radius
+
+    path:moveTo(Vector.xy(cx, cy - r))
+    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
+    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
+    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
+    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
+    path:close()
+end
+
 -- ③ Initialization (runs once)
 function init(self: GameScript): boolean
     -- Create Rive objects
@@ -404,7 +417,7 @@ end
 -- ⑤ Drawing (runs every frame)
 function draw(self: GameScript, renderer: Renderer)
     self.path:reset()
-    self.path:circle(Vector.xy(100, 100), 50)
+    addCircle(self.path, Vector.xy(100, 100), 50)
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -504,7 +517,7 @@ end
 | Object | `{a: 1}` | `{a = 1}` |
 | Array length | `arr.length` | `#arr` |
 | For loop | `for (let i = 0; i < 10; i++)` | `for i = 0, 9 do ... end` |
-| For-each | `for (const item of arr)` | `for _, item in arr do ... end` |
+| For-each | `for (const item of arr)` | `for _, item in ipairs(arr) do ... end` |
 | If | `if (x) { }` | `if x then ... end` |
 | Else | `else { }` | `else ... end` |
 | Null | `null` / `undefined` | `nil` |

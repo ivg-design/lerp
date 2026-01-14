@@ -86,13 +86,13 @@ artboard:addToPath(path: Path, transform?: Mat2D)
 Used to forward pointer events to nested/instantiated artboards. Returns hit-test result (0 = miss, non-zero = hit).
 
 ```lua
-artboard:pointerDown(x: number, y: number): number
-artboard:pointerUp(x: number, y: number): number
-artboard:pointerMove(x: number, y: number): number
-artboard:pointerExit(x: number, y: number): number
+artboard:pointerDown(event: PointerEvent): number
+artboard:pointerUp(event: PointerEvent): number
+artboard:pointerMove(event: PointerEvent): number
+artboard:pointerExit(event: PointerEvent): number
 ```
 
-> **Note:** These methods take raw coordinates for event forwarding. Node script handlers receive `PointerEvent` objects instead. See [PointerEvent](./events#pointerevent).
+> **Note:** Use these methods to forward `PointerEvent` objects to nested artboards. Node script handlers already receive `PointerEvent` objects. See [PointerEvent](./events#pointerevent).
 
 **See Also:** [Animation](#animation), [PointerEvent](./events#pointerevent)
 
@@ -243,7 +243,7 @@ animation:setTimePercentage(percent: number)
 ```lua
 function update(self)
     local anim = self.artboard:animation("Idle")
-    anim:setTimePercentage(self.progress.value)
+    anim:setTimePercentage(self.progress)
 end
 ```
 

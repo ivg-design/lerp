@@ -82,7 +82,7 @@ function init(self: StarGame, context: Context): boolean
 end
 
 function advance(self: StarGame, seconds: number): boolean
-    for _, star in self.stars do
+    for _, star in ipairs(self.stars) do
         star.position = Vector.xy(
             star.position.x + star.velocity.x * seconds,
             star.position.y + star.velocity.y * seconds
@@ -115,7 +115,7 @@ function pointerDown(self: StarGame, event: PointerEvent)
 end
 
 function draw(self: StarGame, renderer: Renderer)
-    for _, star in self.stars do
+    for _, star in ipairs(self.stars) do
         renderer:save()
         renderer:transform(Mat2D.withTranslation(star.position))
         renderer:drawPath(star.path, self.paint)

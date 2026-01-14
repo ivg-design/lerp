@@ -1,0 +1,80 @@
+---
+sidebar_position: 7
+title: Test Script Protocol
+description: Unit testing for Util Scripts in the Rive editor
+---
+
+# Test Script Protocol
+
+:::caution Coming Soon
+This section is under development. See the [Script Types Overview](../script-types) for a summary of Test Scripts.
+:::
+
+## Overview
+
+Test Scripts enable **unit testing for Util Scripts** directly in the Rive editor. They provide a simple testing framework with assertions.
+
+## Template
+
+```lua
+--!strict
+
+local MyUtil = require('MyUtil')
+
+function setup(test: Tester)
+    local case = test.case
+    local group = test.group
+
+    case('Basic test', function(expect)
+        local result = MyUtil.add(2, 3)
+        expect(result).is(5)
+    end)
+
+    group('Math operations', function()
+        case('Multiplication', function(expect)
+            expect(MyUtil.multiply(3, 4)).is(12)
+        end)
+    end)
+end
+
+return function(): Tests
+    return setup
+end
+```
+
+## Tester API
+
+| Method | Purpose |
+|--------|---------|
+| `test.case(name, fn)` | Define a single test case |
+| `test.group(name, fn)` | Group related tests |
+
+## Expect Matchers
+
+```lua
+expect(value).is(expected)              -- Equality
+expect(value).greaterThan(n)            -- value > n
+expect(value).greaterThanOrEqual(n)     -- value >= n
+expect(value).lessThan(n)               -- value < n
+expect(value).lessThanOrEqual(n)        -- value <= n
+
+-- Invert with .never
+expect(value).never.is(wrong)           -- value ~= wrong
+```
+
+## Running Tests
+
+1. Right-click Test script in Assets panel
+2. Select **"Run Tests"**
+3. Results show passing/failing cases
+
+## Use Cases
+
+- Verify math utilities
+- Test edge cases
+- Regression testing
+- Document expected behavior
+
+---
+
+*Full documentation coming soon.*

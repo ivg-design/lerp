@@ -217,7 +217,7 @@ local display = if count == 0 then "no count" else count
 
 ## Compound Assignment Operators
 
-These combine an operation with assignment for cleaner code.
+These combine an operation with assignment for cleaner code. The key insight: **they modify the variable in place and update it immediately**.
 
 | Operator | Equivalent | Example |
 |----------|------------|---------|
@@ -229,6 +229,52 @@ These combine an operation with assignment for cleaner code.
 | `%=` | `x = x % y` | `angle %= 360` |
 | `^=` | `x = x ^ y` | `value ^= 2` |
 | `..=` | `x = x .. y` | `text ..= "!"` |
+
+### How Sequential Operations Work
+
+:::warning Critical Concept: Each Line Updates the Variable
+When you chain compound assignments, **each operation uses the NEW value** from the previous line, not the original:
+
+```lua
+local x = 10
+x += 5   -- x = 10 + 5 = 15 (x is NOW 15)
+x -= 3   -- x = 15 - 3 = 12 (NOT 10 - 3! Using updated x)
+x *= 2   -- x = 12 * 2 = 24 (using x = 12)
+x /= 4   -- x = 24 / 4 = 6  (using x = 24)
+x //= 2  -- x = 6 // 2 = 3  (floor division, using x = 6)
+print(x) -- Output: 3
+```
+
+**Step-by-step breakdown:**
+| Line | Before | Operation | After |
+|------|--------|-----------|-------|
+| `x += 5` | x = 10 | 10 + 5 | x = 15 |
+| `x -= 3` | x = 15 | 15 - 3 | x = 12 |
+| `x *= 2` | x = 12 | 12 × 2 | x = 24 |
+| `x /= 4` | x = 24 | 24 ÷ 4 | x = 6 |
+| `x //= 2` | x = 6 | 6 // 2 | x = 3 |
+:::
+
+### Common Animation Pattern
+
+This sequential nature is perfect for animation where values change incrementally each frame:
+
+```lua
+function advance(self: Player, seconds: number): boolean
+    -- Each frame, rotation increases from its current value
+    self.rotation += 45 * seconds  -- Add 45° per second
+    self.rotation %= 360           -- Keep in 0-360 range
+
+    -- Scale pulses: grows then shrinks
+    if self.growing then
+        self.scale *= 1.01  -- Grow 1% from current scale
+    else
+        self.scale /= 1.01  -- Shrink 1% from current scale
+    end
+
+    return true
+end
+```
 
 :::info No `++` or `--` in Luau
 Unlike JavaScript, Luau does not have increment (`++`) or decrement (`--`) operators. Use `+= 1` and `-= 1` instead.

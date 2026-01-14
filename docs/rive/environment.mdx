@@ -201,6 +201,10 @@ Use the Console to understand script execution order and debug output.
 
 </details>
 
+**Rive setup:** Keep the Console panel visible while the animation runs.
+
+**Expected result:** The Console prints init logs once and a frame-count tick every second.
+
 ```lua
 --!strict
 
@@ -306,6 +310,10 @@ Discover what is available in the Rive environment vs. what's restricted.
 
 </details>
 
+**Rive setup:** Open the Console panel before running the script.
+
+**Expected result:** The Console prints which globals are present and which are restricted in the sandbox.
+
 ```lua
 --!strict
 
@@ -384,6 +392,10 @@ Understand how strict mode helps catch errors at compile time rather than runtim
 4. Notice how the editor shows errors inline
 
 </details>
+
+**Rive setup:** Keep the Problems panel open while editing.
+
+**Expected result:** Uncommenting invalid assignments triggers strict-mode errors before you run.
 
 ```lua
 --!strict
@@ -474,6 +486,10 @@ Use available APIs effectively while respecting sandbox constraints.
 3. Run and observe what works within the sandbox
 
 </details>
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs successful operations and highlights where restricted APIs would fail if you uncomment them.
 
 ```lua
 --!strict

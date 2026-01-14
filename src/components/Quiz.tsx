@@ -12,6 +12,9 @@ interface QuizProps {
   type?: 'multiple' | 'text' | 'code';
   answer?: string;
   explanation?: string;
+  hint?: string;
+  reviewLink?: string;
+  reviewText?: string;
   id?: string;
 }
 
@@ -21,12 +24,17 @@ export default function Quiz({
   type = 'multiple',
   answer,
   explanation,
+  hint,
+  reviewLink,
+  reviewText = 'Review this section',
   id
 }: QuizProps) {
   const [selected, setSelected] = useState<number | null>(null);
   const [textAnswer, setTextAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [showHint, setShowHint] = useState(false);
 
   const storageKey = id ? `lerp-quiz-${id}` : null;
 
@@ -37,15 +45,16 @@ export default function Quiz({
         const data = JSON.parse(saved);
         setSubmitted(data.submitted);
         setIsCorrect(data.isCorrect);
+        setAttempts(data.attempts || 0);
         if (data.selected !== undefined) setSelected(data.selected);
         if (data.textAnswer) setTextAnswer(data.textAnswer);
       }
     }
   }, [storageKey]);
 
-  const saveState = (submitted: boolean, isCorrect: boolean, selected?: number, textAnswer?: string) => {
+  const saveState = (submitted: boolean, isCorrect: boolean, attempts: number, selected?: number, textAnswer?: string) => {
     if (storageKey) {
-      localStorage.setItem(storageKey, JSON.stringify({ submitted, isCorrect, selected, textAnswer }));
+      localStorage.setItem(storageKey, JSON.stringify({ submitted, isCorrect, attempts, selected, textAnswer }));
     }
   };
 
@@ -58,9 +67,11 @@ export default function Quiz({
       correct = textAnswer.trim().toLowerCase() === answer.trim().toLowerCase();
     }
 
+    const newAttempts = attempts + 1;
+    setAttempts(newAttempts);
     setIsCorrect(correct);
     setSubmitted(true);
-    saveState(true, correct, selected ?? undefined, textAnswer);
+    saveState(true, correct, newAttempts, selected ?? undefined, textAnswer);
   };
 
   const handleReset = () => {
@@ -68,16 +79,19 @@ export default function Quiz({
     setTextAnswer('');
     setSubmitted(false);
     setIsCorrect(false);
-    if (storageKey) {
-      localStorage.removeItem(storageKey);
-    }
+    setShowHint(false);
+    // Don't reset attempts - we want to track total tries
+  };
+
+  const handleShowHint = () => {
+    setShowHint(true);
   };
 
   return (
     <div className={styles.quiz}>
       <div className={styles.question}>
-        <span className={styles.questionIcon}>❓</span>
-        {question}
+        <span className={styles.questionIcon}>Q:</span>
+        <span>{question}</span>
       </div>
 
       {type === 'multiple' && options && (
@@ -86,13 +100,15 @@ export default function Quiz({
             <button
               key={index}
               className={`${styles.option} ${selected === index ? styles.selected : ''} ${
-                submitted ? (option.correct ? styles.correct : selected === index ? styles.incorrect : '') : ''
+                submitted && isCorrect && option.correct ? styles.correct : ''
+              } ${
+                submitted && !isCorrect && selected === index ? styles.incorrect : ''
               }`}
               onClick={() => !submitted && setSelected(index)}
               disabled={submitted}
             >
               <span className={styles.optionLetter}>{String.fromCharCode(65 + index)}</span>
-              {option.text}
+              <span>{option.text}</span>
             </button>
           ))}
         </div>
@@ -104,7 +120,7 @@ export default function Quiz({
             type="text"
             value={textAnswer}
             onChange={(e) => setTextAnswer(e.target.value)}
-            placeholder={type === 'code' ? 'Type your answer...' : 'Your answer...'}
+            placeholder={type === 'code' ? 'Type your code answer...' : 'Your answer...'}
             className={`${styles.input} ${type === 'code' ? styles.codeInput : ''} ${
               submitted ? (isCorrect ? styles.correct : styles.incorrect) : ''
             }`}
@@ -116,13 +132,20 @@ export default function Quiz({
 
       <div className={styles.actions}>
         {!submitted ? (
-          <button
-            className={styles.submitBtn}
-            onClick={handleSubmit}
-            disabled={type === 'multiple' ? selected === null : !textAnswer.trim()}
-          >
-            Check Answer
-          </button>
+          <>
+            <button
+              className={styles.submitBtn}
+              onClick={handleSubmit}
+              disabled={type === 'multiple' ? selected === null : !textAnswer.trim()}
+            >
+              Check Answer
+            </button>
+            {hint && !showHint && (
+              <button className={styles.hintBtn} onClick={handleShowHint}>
+                Show Hint
+              </button>
+            )}
+          </>
         ) : (
           <button className={styles.resetBtn} onClick={handleReset}>
             Try Again
@@ -130,20 +153,50 @@ export default function Quiz({
         )}
       </div>
 
+      {showHint && hint && !submitted && (
+        <div className={styles.hintBox}>
+          <span className={styles.hintIcon}>Hint:</span>
+          <span>{hint}</span>
+        </div>
+      )}
+
       {submitted && (
         <div className={`${styles.feedback} ${isCorrect ? styles.correctFeedback : styles.incorrectFeedback}`}>
-          {isCorrect ? (
-            <>
-              <span className={styles.feedbackIcon}>✅</span>
-              <span>Correct!</span>
-            </>
-          ) : (
-            <>
-              <span className={styles.feedbackIcon}>❌</span>
-              <span>Not quite. {answer && type !== 'multiple' ? `The answer is: ${answer}` : 'Try again!'}</span>
-            </>
+          <div className={styles.feedbackHeader}>
+            {isCorrect ? (
+              <>
+                <span className={styles.feedbackTitle}>Correct</span>
+              </>
+            ) : (
+              <>
+                <span className={styles.feedbackTitle}>Not quite right</span>
+              </>
+            )}
+          </div>
+
+          {isCorrect && explanation && (
+            <p className={styles.explanation}>{explanation}</p>
           )}
-          {explanation && <p className={styles.explanation}>{explanation}</p>}
+
+          {!isCorrect && (
+            <div className={styles.wrongAnswerHelp}>
+              {attempts >= 2 && hint && (
+                <p className={styles.hintText}>
+                  <strong>Hint:</strong> {hint}
+                </p>
+              )}
+              {reviewLink && (
+                <a href={reviewLink} className={styles.reviewLink}>
+                  {reviewText}
+                </a>
+              )}
+              {!reviewLink && (
+                <p className={styles.tryAgainText}>
+                  Review the material above and try again.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -11,22 +11,31 @@ interface TermProps {
 // Mapping of common terms to their documentation pages
 const termMappings: Record<string, string> = {
   // Core Types
-  'vector': '/api-reference#vector',
-  'vec2d': '/api-reference#vector',
-  'color': '/api-reference#color',
-  'mat2d': '/api-reference#mat2d',
+  'vector': '/api/core-types#vector',
+  'vec2d': '/api/core-types#vector',
+  'color': '/api/core-types#color',
+  'mat2d': '/api/core-types#mat2d',
 
   // Drawing API
-  'path': '/api-reference#path',
-  'paint': '/api-reference#paint',
-  'renderer': '/api-reference#renderer',
-  'gradient': '/api-reference#gradient',
+  'path': '/api/drawing#path',
+  'paint': '/api/drawing#paint',
+  'renderer': '/api/drawing#renderer',
+  'gradient': '/api/drawing#gradient',
 
-  // Rive Concepts
-  'artboard': '/api-reference#artboard',
-  'node': '/api-reference#node-object',
-  'input': '/api-reference#input',
-  'viewmodel': '/api-reference#viewmodel',
+  // Scene Objects
+  'artboard': '/api/scene#artboard',
+  'node': '/api/scene#node',
+  'animation': '/api/scene#animation',
+
+  // Data & Input
+  'input': '/api/data-input#input',
+  'property': '/api/data-input#property',
+  'viewmodel': '/api/data-input#viewmodel',
+  'context': '/api/data-input#context',
+
+  // Events
+  'pointerevent': '/api/events#pointerevent',
+  'trigger': '/api/events#trigger',
 
   // Luau Concepts
   'metatable': '/oop/metatables',
@@ -40,7 +49,7 @@ const termMappings: Record<string, string> = {
   // Protocols
   'node protocol': '/rive/node-protocol',
   'util protocol': '/rive/util-protocol',
-  'converter protocol': '/rive/converter-protocol',
+  'converter protocol': '/rive/other-protocols',
 };
 
 export default function Term({ children, to, tooltip }: TermProps) {

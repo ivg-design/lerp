@@ -49,9 +49,9 @@ export type Polygon = {
 }
 
 local function buildPolygon(self: Polygon)
-    local n = math.floor(self.sides.value)
+    local n = math.floor(self.sides)
     if n < 3 then n = 3 end
-    local r = self.radius.value
+    local r = self.radius
 
     self.path:reset()
 
@@ -131,9 +131,9 @@ function advance(self: AnimatedStar, seconds: number): boolean
     self.time += seconds
     self.innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
 
-    local n = math.floor(self.points.value)
+    local n = math.floor(self.points)
     if n < 3 then n = 3 end
-    local outer = self.outerRadius.value
+    local outer = self.outerRadius
     local inner = outer * self.innerRatio
 
     self.path:reset()
@@ -205,9 +205,9 @@ end
 function advance(self: SineWave, seconds: number): boolean
     self.time += seconds
 
-    local amp = self.amplitude.value
-    local freq = self.frequency.value
-    local segs = math.floor(self.segments.value)
+    local amp = self.amplitude
+    local freq = self.frequency
+    local segs = math.floor(self.segments)
     local width = 300
 
     self.path:reset()
@@ -355,7 +355,7 @@ end
 
 function advance(self: ParticleSystem, seconds: number): boolean
     self.spawnTimer += seconds
-    local spawnInterval = 1 / self.spawnRate.value
+    local spawnInterval = 1 / self.spawnRate
 
     while self.spawnTimer >= spawnInterval do
         self.spawnTimer -= spawnInterval
@@ -365,7 +365,7 @@ function advance(self: ParticleSystem, seconds: number): boolean
     end
 
     local alive: { Particle } = {}
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         p.life += seconds
         if p.life < p.maxLife then
             p.x += p.vx * seconds
@@ -380,7 +380,7 @@ function advance(self: ParticleSystem, seconds: number): boolean
 end
 
 function draw(self: ParticleSystem, renderer: Renderer)
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         local alpha = 1 - (p.life / p.maxLife)
         local size = 4 * alpha
 
@@ -457,22 +457,22 @@ local function buildArc(path: Path, radius: number, startAngle: number, endAngle
 end
 
 function init(self: ProgressRing): boolean
-    local r = self.radius.value
+    local r = self.radius
     buildArc(self.bgPath, r, 0, math.pi * 2, 64)
     return true
 end
 
 function update(self: ProgressRing)
-    local r = self.radius.value
-    local prog = math.clamp(self.progress.value, 0, 1)
+    local r = self.radius
+    local prog = math.clamp(self.progress, 0, 1)
     local startAngle = -math.pi / 2
     local endAngle = startAngle + prog * math.pi * 2
 
     buildArc(self.bgPath, r, 0, math.pi * 2, 64)
     buildArc(self.fgPath, r, startAngle, endAngle, math.floor(64 * prog) + 1)
 
-    self.bgPaint.thickness = self.thickness.value
-    self.fgPaint.thickness = self.thickness.value
+    self.bgPaint.thickness = self.thickness
+    self.fgPaint.thickness = self.thickness
 end
 
 function draw(self: ProgressRing, renderer: Renderer)
@@ -527,7 +527,7 @@ end
 
 function advance(self: BarChart, seconds: number): boolean
     local speed = 3
-    for i, target in self.targetValues do
+    for i, target in ipairs(self.targetValues) do
         local current = self.values[i] or 0
         self.values[i] = current + (target - current) * math.min(1, seconds * speed)
     end
@@ -535,13 +535,13 @@ function advance(self: BarChart, seconds: number): boolean
 end
 
 function draw(self: BarChart, renderer: Renderer)
-    local barW = self.barWidth.value
-    local maxH = self.maxHeight.value
+    local barW = self.barWidth
+    local maxH = self.maxHeight
     local gap = 10
     local totalWidth = #self.values * (barW + gap) - gap
     local startX = -totalWidth / 2
 
-    for i, val in self.values do
+    for i, val in ipairs(self.values) do
         local height = (val / 100) * maxH
         local x = startX + (i - 1) * (barW + gap)
         local y = maxH / 2

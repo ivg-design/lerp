@@ -39,7 +39,7 @@ class MyComponent {
 
 In Rive Node Scripts:
 ```lua
--- Factory runs FIRST (limited context - no Rive APIs)
+-- Factory runs FIRST (keep it lightweight)
 return function(): Node<MyScript>
     return {
         path = late(),  -- Placeholder: "I'll set this later"
@@ -53,7 +53,7 @@ function init(self: MyScript): boolean
 end
 ```
 
-The factory function runs in a restricted environment where `Path.new()`, `Paint.new()`, etc. are NOT available. You must use `late()` as a placeholder and create these objects in `init()`.
+The factory function should stay lightweight and focus on defaults/inputs. In most scripts, you create `Path` and `Paint` objects in `init()` and use `late()` as a placeholder in the factory.
 :::
 
 ---
@@ -65,8 +65,8 @@ In Rive Node Scripts, objects are created in two phases:
 1. **Factory phase**: The factory function returns a table with property values
 2. **Init phase**: The `init()` function runs and can set up additional state
 
-The problem: Some values cannot be known at factory time. They are either:
-- **Engine-provided**: Values the Rive engine supplies (like `Path.new()` or `Paint.new()`)
+The problem: Some values are best created after the factory runs. They are either:
+- **Engine-provided**: Values the Rive engine supplies (like artboard-bound inputs)
 - **Init-created**: Values you create or compute in `init()`
 
 The `late()` function is a type-safe placeholder that tells the type system: "Trust me, this value will be provided later."
@@ -83,7 +83,7 @@ return function(): Node<MyScript>
     return {
         init = init,
         draw = draw,
-        -- These MUST use late() because Path.new() isn't available yet
+        -- Use late() for values created in init()
         path = late(),
         paint = late(),
     }
@@ -132,7 +132,7 @@ See why `late()` is necessary by understanding the two-phase object creation mod
 :::
 
 :::tip Why This Matters
-**After Effects comparison**: In AE expressions, everything runs in a single context—you can call any function at any time. In Rive, the factory function runs in a restricted sandbox where many APIs aren't available yet. Understanding this is KEY to avoiding frustration.
+**After Effects comparison**: In AE expressions, everything runs in a single context—you can call any function at any time. In Rive, the factory function runs first and should stay lightweight; heavier setup (like building paths/paints) typically happens in `init()`. Understanding this avoids subtle setup bugs.
 
 **Real-World Use**: Every Rive Node Script you write will use this pattern. Get this wrong and nothing works; get it right and you'll never think about it again. This is foundational knowledge.
 :::
@@ -147,6 +147,10 @@ See why `late()` is necessary by understanding the two-phase object creation mod
 
 </details>
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the created time and computed value; the script draws a shape each frame.
+
 ```lua
 --!strict
 
@@ -160,6 +164,19 @@ export type TwoPhaseDemo = {
     -- This is an Input with a default - NO late() needed
     speed: Input<number>,
 }
+
+local function addCircle(path: Path, center: Vector, radius: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local r = radius
+
+    path:moveTo(Vector.xy(cx, cy - r))
+    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
+    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
+    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
+    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
+    path:close()
+end
 
 -- Phase 2: init() runs AFTER the factory
 function init(self: TwoPhaseDemo): boolean
@@ -179,7 +196,7 @@ end
 
 function draw(self: TwoPhaseDemo, renderer: Renderer)
     self.path:reset()
-    self.path:circle(Vector.xy(100, 100), 50)
+    addCircle(self.path, Vector.xy(100, 100), 50)
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -222,7 +239,7 @@ class TwoPhaseDemo {
 }
 ```
 
-**Key insight**: The factory function runs first and must return immediately. It cannot call `Path.new()` or do complex calculations. Those happen in `init()`.
+**Key insight**: The factory function runs first and should return immediately. Keep complex setup in `init()` where you can build paths, paints, and computed state.
 
 ---
 
@@ -247,6 +264,10 @@ Understand the critical difference between `Input<T>` defaults and `late()`.
 4. Try changing `speed = 100` to `speed = late()` and see the error
 
 </details>
+
+**Rive setup:** Attach the script to any node and open the Console and Problems panels.
+
+**Expected result:** The Console prints input values and computed fields. Changing an Input default to `late()` triggers a type error.
 
 ```lua
 --!strict
@@ -352,6 +373,10 @@ Learn the standard patterns for using `late()` in different scenarios.
 4. The combined example at the end shows real-world usage
 
 </details>
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the computed pattern outputs; the combined example renders a shape using init-created objects.
 
 ```lua
 --!strict
@@ -469,7 +494,11 @@ end
 
 function draw(self: CombinedPatterns, renderer: Renderer)
     self.path:reset()
-    self.path:circle(Vector.xy(100, 100), 30)
+    self.path:moveTo(Vector.xy(70, 70))
+    self.path:lineTo(Vector.xy(130, 70))
+    self.path:lineTo(Vector.xy(130, 130))
+    self.path:lineTo(Vector.xy(70, 130))
+    self.path:close()
     renderer:drawPath(self.path, self.paint)
 end
 
@@ -528,7 +557,7 @@ Understand the errors that occur without proper `late()` usage.
 :::tip Why This Matters
 **After Effects comparison**: In AE, if you try to use an undefined variable, you get a runtime error when the expression runs. In Rive with strict mode, you get a COMPILE-TIME error that prevents the mistake entirely. But only if you use `late()` correctly!
 
-**Real-World Use**: When you see cryptic errors about "cannot call in factory context," this exercise helps you understand what went wrong. The error messages aren't always clear, so knowing the pattern is essential.
+**Real-World Use**: When something isn’t initialized when you expect it, this exercise helps you understand what to move into `init()` and what to leave in the factory. The error messages aren’t always clear, so knowing the pattern is essential.
 :::
 
 <details>
@@ -540,6 +569,10 @@ Understand the errors that occur without proper `late()` usage.
 4. The CORRECT version shows the proper approach
 
 </details>
+
+**Rive setup:** Attach the script to any node and open the Problems panel.
+
+**Expected result:** Uncommenting the wrong lines produces type errors; the corrected version runs without issues.
 
 ```lua
 --!strict
@@ -562,16 +595,15 @@ end
 function draw(self: WrongPatterns, renderer: Renderer)
 end
 
--- WRONG: This causes errors!
+-- AVOID: This mixes factory defaults with init-created values
 -- return function(): Node<WrongPatterns>
 --     return {
 --         init = init,
 --         draw = draw,
---         -- ERROR: Path.new() cannot be called here (factory context)
+--         -- Prefer init() for these allocations
 --         path = Path.new(),
---         -- ERROR: Paint.new() cannot be called here
 --         paint = Paint.new(),
---         -- This MIGHT work but is misleading - it's overwritten in init()
+--         -- This works but is misleading - it's overwritten in init()
 --         count = 0,
 --     }
 -- end
@@ -598,17 +630,17 @@ class MyClass {
     count = 0;
 }
 
-// But in Rive's factory function, it's like:
+// In Rive's factory function, it's more like:
 function factory() {
-    // This runs in a sandbox with NO access to Path, Paint, etc.
+    // This runs before init(), so heavy setup belongs in init()
     return {
-        path: ???,  // Can't call Path.new() here!
+        path: ???,  // Use late() if init will provide it
         paint: ???,
     };
 }
 
 // That's why late() exists - it's a placeholder saying
-// "this will be set in init() where the APIs are available"
+// "this will be set in init()"
 ```
 
 ---
@@ -634,6 +666,10 @@ Use `late()` with more complex type scenarios including custom types, nested obj
 4. All complex structures use `late()` in the factory
 
 </details>
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs enemy counts and game state; the draw loop renders particle dots each frame.
 
 ```lua
 --!strict
@@ -711,6 +747,19 @@ local function createParticleSystem(count: number): ParticleSystem
     }
 end
 
+local function addCircle(path: Path, center: Vector, radius: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local r = radius
+
+    path:moveTo(Vector.xy(cx, cy - r))
+    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
+    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
+    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
+    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
+    path:close()
+end
+
 function init(self: ComplexLateDemo): boolean
     -- Initialize game state
     self.gameState = {
@@ -749,7 +798,7 @@ function draw(self: ComplexLateDemo, renderer: Renderer)
     -- Draw particles
     for i, pos in self.particleSystem.particles do
         self.path:reset()
-        self.path:circle(pos, 3)
+        addCircle(self.path, pos, 3)
         self.paint.color = self.particleSystem.colors[i]
         renderer:drawPath(self.path, self.paint)
     end
@@ -821,7 +870,7 @@ Work with `Input<Artboard<T>>` types, which always need `late()` since they are 
 :::tip Why This Matters
 **After Effects comparison**: In AE, you might link to properties in other layers using `thisComp.layer("Other").effect(...)`. Rive's artboard inputs work similarly—you're referencing another artboard's ViewModel. But these references are set up by the ENGINE, not by your code.
 
-**Real-World Use**: When building multi-artboard systems (like a game with separate UI and game artboards), you use artboard inputs to communicate between them. The engine binds these connections, so they ALWAYS use `late()`.
+**Real-World Use**: When building multi-artboard systems (like a game with separate UI and game artboards), you use artboard inputs to communicate between them. The engine binds these connections, so you typically use `late()` for these inputs.
 :::
 
 <details>
@@ -834,6 +883,10 @@ Work with `Input<Artboard<T>>` types, which always need `late()` since they are 
 
 </details>
 
+**Rive setup:** Attach the script to a node on the main artboard and bind the artboard input in the editor.
+
+**Expected result:** The Console logs data pulled from the bound artboard ViewModel (once connected).
+
 ```lua
 --!strict
 
@@ -842,7 +895,7 @@ Work with `Input<Artboard<T>>` types, which always need `late()` since they are 
 
 export type ArtboardInputDemo = {
     -- Artboard inputs: these are bound by the Rive engine
-    -- They MUST use late() because they're set up after factory
+    -- They typically use late() because they're set up after factory
     enemyArtboard: Input<Artboard<Data.EnemyVM>?>,
 
     -- Regular inputs: direct defaults
@@ -962,15 +1015,15 @@ class ArtboardInputDemo {
 />
 
 <Quiz
-  question="What happens if you try to call Path.new() in the factory function?"
+  question="Why do we use late() for Path/Paint in these examples?"
   id="late-q3"
   options={[
-    { text: "It works normally" },
-    { text: "It creates the path but with a warning" },
-    { text: "Error - Rive objects cannot be created in factory context", correct: true },
-    { text: "It creates a nil path" },
+    { text: "Because these objects are typically created in init(), not in the factory", correct: true },
+    { text: "Because Input<T> values require late()" },
+    { text: "Because Path and Paint are optional types" },
+    { text: "Because Path.new() returns nil in Rive" },
   ]}
-  explanation="The factory function runs in a limited context where Rive API calls like Path.new() are not available. These must be called in init() instead."
+  explanation="late() marks values that will be created in init(). This keeps the factory focused on defaults and inputs, while Rive objects are allocated during initialization."
 />
 
 <Quiz
@@ -982,7 +1035,7 @@ class ArtboardInputDemo {
     { text: "speed = nil" },
     { text: "speed = Input.new(100)" },
   ]}
-  explanation="Input<T> properties receive direct default values in the factory. The Rive engine wraps these in the Input wrapper automatically."
+  explanation="Input<T> properties receive direct default values in the factory. Rive treats them as editor inputs, and you read them directly from self."
 />
 
 ---
@@ -1007,13 +1060,13 @@ return function(): Node<MyScript>
 end
 ```
 
-### 2. Not Using late() for Rive Objects
+### 2. Mixing Factory Defaults with init-created Objects
 
 ```lua
--- WRONG: Can't create Path in factory
+-- AVOID: Keep factory light; create objects in init()
 return function(): Node<MyScript>
     return {
-        path = Path.new(),  -- ERROR: Not in factory context!
+        path = Path.new(),  -- Prefer late() + init() in this pattern
     }
 end
 
@@ -1025,7 +1078,7 @@ return function(): Node<MyScript>
 end
 
 function init(self: MyScript): boolean
-    self.path = Path.new()  -- Works here!
+    self.path = Path.new()  -- Allocate here
     return true
 end
 ```

@@ -15,7 +15,7 @@ By the end of this lesson, you will be able to:
 - Use `while` and `repeat until` loops appropriately
 - Control loop execution with `break` and `continue`
 - Iterate over arrays with `ipairs` preserving order
-- Iterate over dictionaries with generalized iteration
+- Iterate over dictionaries with `pairs`
 - Write nested loops for multi-dimensional data
 - Implement per-frame iteration in `advance()` for animations
 
@@ -33,7 +33,7 @@ Here's how iteration differs between languages:
 | While loop | `while (x > 0) { }` | `while x > 0 do ... end` |
 | Do-while | `do { } while (x > 0)` | `repeat ... until x <= 0` |
 | Array iteration | `arr.forEach((v, i) => {})` | `for i, v in ipairs(arr) do` |
-| Object iteration | `for (const k in obj) {}` | `for k, v in obj do` |
+| Object iteration | `for (const k in obj) {}` | `for k, v in pairs(obj) do` |
 | Break | `break;` | `break` |
 | Continue | `continue;` | `continue` |
 
@@ -326,9 +326,9 @@ end
 
 ---
 
-## Iterating Over Dictionaries (Generalized Iteration)
+## Iterating Over Dictionaries (`pairs`)
 
-For key-value tables, use generalized iteration (or `pairs()`):
+For key-value tables, use `pairs()`:
 
 ```lua
 local stats = {
@@ -337,8 +337,8 @@ local stats = {
     speed = 12
 }
 
--- Generalized iteration (Luau style - preferred)
-for key, value in stats do
+-- Dictionary iteration with pairs
+for key, value in pairs(stats) do
     print(`{key}: {value}`)
 end
 -- Order is NOT guaranteed!
@@ -363,24 +363,14 @@ for (const [key, value] of Object.entries(stats)) {
 }
 ```
 
-### pairs vs Generalized Iteration
+### Why `pairs`?
 
-Luau supports both `pairs()` and generalized iteration (without `pairs`):
-
-```lua
--- Traditional (Lua style)
-for k, v in pairs(tbl) do ... end
-
--- Generalized (Luau style - preferred)
-for k, v in tbl do ... end
-```
-
-Both work identically. Generalized iteration is cleaner and preferred in modern Luau.
+`pairs()` is the standard, explicit way to iterate dictionaries in Luau. It makes it clear that the table is unordered and that you’re iterating key/value pairs.
 
 :::warning Dictionary Order is NOT Guaranteed
 ```lua
 local data = {a = 1, b = 2, c = 3}
-for k, v in data do
+for k, v in pairs(data) do
     print(k)  -- Could be a, b, c or c, a, b or any order!
 end
 ```
@@ -443,6 +433,10 @@ end
 1. Create a new Rive file with a Node Script
 2. Copy the code below into your script
 3. Run and verify each loop's output matches expectations
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints each loop pattern so you can verify counts, steps, and accumulator math.
 
 ```lua
 --!strict
@@ -589,6 +583,10 @@ for (let i = 0; i <= 10; i += 2) { }
 2. Copy the code below
 3. Trace through each while loop mentally before running
 4. Verify the loop count matches your expectation
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console shows ammo depletion, level-up progression, and health regeneration steps.
 
 ```lua
 --!strict
@@ -756,6 +754,10 @@ while (health < maxHealth) {
 3. Notice how repeat-until guarantees at least one execution
 4. Compare the condition logic to JavaScript's do-while
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints a dice roll loop, a retry sequence, and a validation pass that stops on the first valid value.
+
 ```lua
 --!strict
 
@@ -921,6 +923,10 @@ do {
 3. Trace through each example to understand flow control
 4. Notice how break exits completely while continue just skips
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs a search loop, a filtered average, and a safe exit from an infinite loop.
+
 ```lua
 --!strict
 
@@ -1082,6 +1088,10 @@ for (const score of scores) {
 3. Pay attention to the index values (start at 1!)
 4. Notice how ipairs preserves insertion order
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints enemy wave processing, inventory totals, and ordered array traversal.
+
 ```lua
 --!strict
 
@@ -1217,7 +1227,7 @@ for (const [index, enemy] of enemies.entries()) {
 
 ### Exercise 6: Iterating Over Dictionaries
 
-**Goal**: Process key-value data using generalized iteration.
+**Goal**: Process key-value data using `pairs()`.
 
 **Why This Matters**: Game configuration, player stats, and entity properties are often stored as dictionaries. Understanding unordered iteration is crucial.
 
@@ -1228,6 +1238,10 @@ for (const [index, enemy] of enemies.entries()) {
 2. Copy the code below
 3. Note that iteration order is NOT guaranteed for dictionaries
 4. Run multiple times - order may vary!
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs stats, buffs, and loot table entries, showing unordered dictionary traversal.
 
 ```lua
 --!strict
@@ -1249,7 +1263,7 @@ function init(self: DictIteration): boolean
     }
 
     print("Current stats (order may vary!):")
-    for stat, value in stats do  -- Generalized iteration
+    for stat, value in pairs(stats) do
         print(`  {stat}: {value}`)
     end
 
@@ -1263,7 +1277,7 @@ function init(self: DictIteration): boolean
     }
 
     print("Applying buffs:")
-    for stat, bonus in buffs do
+    for stat, bonus in pairs(buffs) do
         if stats[stat] then
             local oldValue = stats[stat]
             stats[stat] += bonus
@@ -1281,7 +1295,7 @@ function init(self: DictIteration): boolean
     }
 
     print("Possible drops:")
-    for item, range in lootTable do
+    for item, range in pairs(lootTable) do
         print(`  {item}: {range.min}-{range.max}`)
     end
 
@@ -1296,7 +1310,7 @@ function init(self: DictIteration): boolean
     }
 
     print("Validating numeric settings (0.0 - 1.0):")
-    for setting, value in config do
+    for setting, value in pairs(config) do
         if type(value) == "number" then
             if value >= 0 and value <= 1.0 then
                 print(`  {setting}: {value} ✓ valid`)
@@ -1371,6 +1385,10 @@ for (const [stat, value] of Object.entries(stats)) {
 2. Copy the code below
 3. Trace through the nested loops to understand row/column relationships
 4. Note how the inner loop completes fully for each outer iteration
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints a 3x3 grid, a 5x5 multiplication table, and a simple triangle pattern.
 
 ```lua
 --!strict
@@ -1543,6 +1561,10 @@ for (let row = 0; row < 3; row++) {
 3. This uses `advance()` which runs every frame
 4. Watch the particles move in the console output
 
+**Rive setup:** Attach the script to any node and let the animation run for a few seconds.
+
+**Expected result:** The Console logs particle positions every half-second, showing per-frame updates and bouncing behavior.
+
 ```lua
 --!strict
 
@@ -1713,7 +1735,7 @@ function update(deltaTime) {
 />
 
 <Quiz
-  question="In generalized iteration, what does `for k, v in tbl do` iterate over?"
+  question="When using `pairs(tbl)`, what does `for k, v in pairs(tbl) do` iterate over?"
   id="iter-q5"
   options={[
     { text: "Only numeric indices" },
@@ -1721,7 +1743,7 @@ function update(deltaTime) {
     { text: "All key-value pairs in the table", correct: true },
     { text: "Only the first element" },
   ]}
-  explanation="Generalized iteration (without pairs()) iterates over all key-value pairs in a table. The order for non-array tables is not guaranteed."
+  explanation="pairs() iterates over all key-value pairs in a table. The order for non-array tables is not guaranteed."
 />
 
 <Quiz
@@ -1770,7 +1792,7 @@ function update(deltaTime) {
 | `while condition do` | Unknown iteration count, may not run | `while x > 0 do` |
 | `repeat until condition` | Must run at least once | `repeat until done` |
 | `for i, v in ipairs(arr)` | Ordered array traversal | `for i, enemy in ipairs(enemies)` |
-| `for k, v in tbl do` | Dictionary traversal | `for name, value in config` |
+| `for k, v in pairs(tbl)` | Dictionary traversal | `for name, value in pairs(config)` |
 
 ---
 
@@ -1790,7 +1812,7 @@ repeat until condition     -- Runs at least once!
 for index, value in ipairs(array) do end
 
 -- Dictionary iteration (unordered!)
-for key, value in table do end
+for key, value in pairs(tbl) do end
 
 -- Loop control
 break      -- Exit loop immediately

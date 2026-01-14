@@ -93,6 +93,10 @@ The colon is just shorthand - nothing magical happens.
 2. Copy the code below
 3. Watch the console to see both calling styles produce identical results
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console shows identical counter values for colon and dot calls.
+
 ```lua
 --!strict
 
@@ -208,11 +212,29 @@ Counter.prototype.increment.call(counter);  // Explicit 'this' like Luau dot
 2. Copy the code below
 3. Notice how the same method produces different results for different objects
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs different positions for each sprite instance.
+
 ```lua
 --!strict
 
 local Sprite = {}
 Sprite.__index = Sprite
+
+local function addEllipse(path: Path, center: Vector, rx: number, ry: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local ox = rx * k
+    local oy = ry * k
+
+    path:moveTo(Vector.xy(cx, cy - ry))
+    path:cubicTo(Vector.xy(cx + ox, cy - ry), Vector.xy(cx + rx, cy - oy), Vector.xy(cx + rx, cy))
+    path:cubicTo(Vector.xy(cx + rx, cy + oy), Vector.xy(cx + ox, cy + ry), Vector.xy(cx, cy + ry))
+    path:cubicTo(Vector.xy(cx - ox, cy + ry), Vector.xy(cx - rx, cy + oy), Vector.xy(cx - rx, cy))
+    path:cubicTo(Vector.xy(cx - rx, cy - oy), Vector.xy(cx - ox, cy - ry), Vector.xy(cx, cy - ry))
+    path:close()
+end
 
 export type SpriteType = {
     id: string,
@@ -228,7 +250,7 @@ function Sprite.new(id: string, x: number, y: number, color: Color): SpriteType
     self.x = x
     self.y = y
     self.path = Path.new()
-    self.path:addEllipse(Vector.xy(0, 0), 25, 25)
+    addEllipse(self.path, Vector.xy(0, 0), 25, 25)
     self.paint = Paint.with({ style = "fill", color = color })
     return (self :: any) :: SpriteType
 end
@@ -325,6 +347,10 @@ reportFunc.call(spriteA);  // Works - like Luau's dot syntax
 1. Create a new Node Script
 2. Copy the code below
 3. Observe the debugging techniques for self-related errors
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console shows a nil-error example, then the corrected calls.
 
 ```lua
 --!strict
@@ -451,7 +477,7 @@ path:lineTo(point)
 
 ```lua
 local sprite = Sprite.new(0, 0)      -- Constructor
-local dist = Vector.distance(a, b)   -- Static utility
+local dist = Vector.distance(a, b)   -- Instance method
 MyClass.method(differentObj, args)   -- Explicit self
 ```
 
@@ -470,6 +496,10 @@ MyClass.method(differentObj, args)   -- Explicit self
 2. Copy the code below
 3. Study how static functions use dot and instance methods use colon
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs particle counts, and particles render as fading dots.
+
 ```lua
 --!strict
 
@@ -482,6 +512,20 @@ end
 
 function MathUtil.clamp(value: number, min: number, max: number): number
     return math.max(min, math.min(max, value))
+end
+
+local function addEllipse(path: Path, center: Vector, rx: number, ry: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local ox = rx * k
+    local oy = ry * k
+
+    path:moveTo(Vector.xy(cx, cy - ry))
+    path:cubicTo(Vector.xy(cx + ox, cy - ry), Vector.xy(cx + rx, cy - oy), Vector.xy(cx + rx, cy))
+    path:cubicTo(Vector.xy(cx + rx, cy + oy), Vector.xy(cx + ox, cy + ry), Vector.xy(cx, cy + ry))
+    path:cubicTo(Vector.xy(cx - ox, cy + ry), Vector.xy(cx - rx, cy + oy), Vector.xy(cx - rx, cy))
+    path:cubicTo(Vector.xy(cx - rx, cy - oy), Vector.xy(cx - ox, cy - ry), Vector.xy(cx, cy - ry))
+    path:close()
 end
 
 -- Class with instance methods
@@ -529,7 +573,7 @@ function Particle:draw(renderer: Renderer, path: Path, paint: Paint)
     paint.color = Color.rgba(255, 200, 100, alpha)
 
     path:reset()
-    path:addEllipse(Vector.xy(self.x, self.y), 5, 5)
+    addEllipse(path, Vector.xy(self.x, self.y), 5, 5)
     renderer:drawPath(path, paint)
 end
 
@@ -560,7 +604,7 @@ function advance(self: MethodPatternsDemo, seconds: number): boolean
 
     -- Update particles - colon syntax for instance methods
     local alive = {}
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         if p:update(seconds) then  -- Colon: p is self
             table.insert(alive, p)
         end
@@ -576,7 +620,7 @@ function advance(self: MethodPatternsDemo, seconds: number): boolean
 end
 
 function draw(self: MethodPatternsDemo, renderer: Renderer)
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         -- Colon: p needs to access its own properties
         p:draw(renderer, self.path, self.paint)
     end
@@ -646,6 +690,10 @@ class Particle {
 1. Create a new Node Script
 2. Copy the code below
 3. Notice how returning `self` enables the chain
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs the path command count after chaining.
 
 ```lua
 --!strict
@@ -761,6 +809,10 @@ const path = new Builder()
 1. Create a new Node Script
 2. Copy the code below
 3. See how closures preserve `self` for callbacks
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs click behavior for the bound vs unbound callbacks.
 
 ```lua
 --!strict

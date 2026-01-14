@@ -52,7 +52,7 @@ Control flow code can go in any lifecycle function:
 ```lua
 function init(self: MyScript): boolean
     -- One-time decision
-    if self.difficulty.value == "hard" then
+    if self.difficulty == "hard" then
         self.enemyHealth = 200
     else
         self.enemyHealth = 100
@@ -523,6 +523,10 @@ Check from most specific to least specific. If you check `health <= 90` first, i
 
 **Real-world use:** Grade calculations, status labels, default values, configuration.
 
+**Rive setup:** Create a Node Script named "Exercise2_InlineConditionals", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console prints the computed grade, discount, and title values.
+
 ---
 
 #### Code
@@ -620,6 +624,10 @@ Luau's `if/elseif/else` expressions are more readable for chains.
 
 **Real-world use:** Drawing grid lines, spawning enemies, creating particle effects, iterating through data.
 
+**Rive setup:** Create a Node Script named "Exercise3_ForLoops", attach it to any node, and run the animation.
+
+**Expected result:** The Console prints multiple counting sequences (count up, countdown, evens, sum, and a 5x table).
+
 ---
 
 #### Code
@@ -711,6 +719,10 @@ end
 
 **Real-world use:** Game loops, waiting for conditions, processing until empty, resource depletion.
 
+**Rive setup:** Create a Node Script named "Exercise4_WhileLoops", attach it to any node, and run the animation.
+
+**Expected result:** The Console prints ammo depletion, a factor search, and a power-of-two sequence.
+
 ---
 
 #### Code
@@ -769,6 +781,10 @@ end
 **Why this matters:** Sometimes you need to try something at least once before checking if you should continue.
 
 **Real-world use:** Retry mechanisms, input validation, initialization attempts.
+
+**Rive setup:** Create a Node Script named "Exercise5_RepeatUntil", attach it to any node, and run it.
+
+**Expected result:** The Console shows a retry loop that succeeds on the third attempt.
 
 ---
 
@@ -835,6 +851,10 @@ Total attempts: 3
 **Why this matters:** Break lets you exit early when you've found what you need. Continue lets you skip items you don't care about.
 
 **Real-world use:** Searching for items, filtering data, early exit optimization.
+
+**Rive setup:** Create a Node Script named "Exercise6_BreakContinue", attach it to any node, and run it.
+
+**Expected result:** The Console shows three examples: early break, skipping multiples of 3, and a search loop.
 
 ---
 
@@ -922,6 +942,10 @@ Checking 7...
 **Why this matters:** This is how real game logic works — updating state based on conditions every frame.
 
 **Real-world use:** Character state machines, animation transitions, game mechanics.
+
+**Rive setup:** Create a Node Script named "Exercise7_StateMachine", attach it to any node, and let it run for a few seconds.
+
+**Expected result:** The Console prints the current state every second as stamina regenerates and state rules flip.
 
 ---
 

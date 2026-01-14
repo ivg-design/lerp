@@ -125,6 +125,10 @@ type MaybeString = string | null;  // null instead of nil
 3. Define type aliases before your `export type`
 4. Use those aliases in variable declarations
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the screen size, progress, and color alias values.
+
 **Task**: Create type aliases and use them in your code:
 
 ```lua
@@ -178,6 +182,10 @@ end
 2. Define table types using `type Name = { ... }`
 3. Create variables that match those types
 4. Try removing a required property to see the error
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the enemy, weapon, and spawn values; missing required properties trigger editor errors.
 
 **Task**: Define and use table types:
 
@@ -275,6 +283,10 @@ const goblin: Enemy = {
 2. Compose them into larger types
 3. Create factory functions that return properly typed objects
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the character's stats, inventory, and position based on the composed types.
+
 **Task**: Build a character system with nested types:
 
 ```lua
@@ -371,6 +383,10 @@ end
 2. Use `type()` to check which type you have
 3. Handle each case appropriately
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints different output depending on whether each value is a number, string, or movement table.
+
 **Task**: Work with union types:
 
 ```lua
@@ -462,6 +478,10 @@ function printID(id: ID) {
 1. Add `?` after a type to make it optional
 2. Always check for nil before using the value
 3. Use fallback values when appropriate
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints different output depending on which optional fields are present.
 
 **Task**: Handle optional values safely:
 
@@ -586,6 +606,10 @@ end
 2. Create a union of all states
 3. Check `kind` to determine which state you're in
 4. Luau automatically narrows the type based on the `kind` check
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints state transitions with messages for idle, fetching, success, and error.
 
 **Context**: A powerful pattern for state machines. Add a `kind` field to distinguish between states.
 
@@ -712,6 +736,10 @@ function renderState(state: AppState) {
 **Why This Matters:** Some values should never change—configuration constants, version numbers, IDs. Read-only properties enforce this at the type level.
 
 **Real-World Use:** Game configuration, entity IDs, immutable settings.
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints config values; attempts to mutate read-only fields should be flagged by the editor.
 
 **Task**: Prevent modification of certain properties:
 

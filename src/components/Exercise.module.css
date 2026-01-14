@@ -89,3 +89,115 @@
   margin-top: 0.5rem;
   margin-bottom: 0;
 }
+
+/* Difficulty indicator */
+.difficulty {
+  margin-left: auto;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Prerequisites section */
+.prerequisites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.prereqLabel {
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.prereqLink {
+  padding: 0.2rem 0.5rem;
+  background: var(--ifm-color-primary-lightest);
+  border-radius: 4px;
+  color: var(--ifm-color-primary-dark);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.prereqLink:hover {
+  background: var(--ifm-color-primary-light);
+  color: var(--ifm-color-primary-darker);
+  text-decoration: none;
+}
+
+/* Expected output button and box */
+.outputBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  color: var(--ifm-font-color-base);
+}
+
+.outputBtn:hover {
+  background: var(--ifm-color-info-lightest);
+  border-color: var(--ifm-color-info);
+}
+
+.outputBox {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--ifm-color-info-lightest);
+  border-radius: 6px;
+  border-left: 4px solid var(--ifm-color-info);
+  color: var(--ifm-color-info-contrast-foreground);
+}
+
+.outputPre {
+  margin: 0.5rem 0 0 0;
+  padding: 0.75rem;
+  background: var(--ifm-background-color);
+  border-radius: 4px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+/* Related concepts section */
+.related {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 6px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.relatedLabel {
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.relatedLink {
+  padding: 0.2rem 0.5rem;
+  background: var(--ifm-color-secondary-lightest);
+  border-radius: 4px;
+  color: var(--ifm-color-secondary-dark);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.relatedLink:hover {
+  background: var(--ifm-color-secondary-light);
+  color: var(--ifm-color-secondary-darker);
+  text-decoration: none;
+}

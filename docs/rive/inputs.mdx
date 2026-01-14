@@ -123,6 +123,10 @@ Use inputs to drive a shape. The shape rebuilds when inputs change.
 
 </details>
 
+**Rive setup:** Attach the script to a node, then tweak `size` and `tint` in the inspector.
+
+**Expected result:** The square resizes and changes color immediately when inputs change.
+
 ```lua
 --!strict
 
@@ -244,6 +248,10 @@ Bind a script to a nested ViewModel. This is how scripts drive animated properti
 
 </details>
 
+**Rive setup:** Bind the `character` input to the ViewModel in the inspector, then press Play.
+
+**Expected result:** The script updates ViewModel `x`/`y` properties each frame; any bound elements move accordingly.
+
 ```lua
 --!strict
 
@@ -350,6 +358,10 @@ Read and listen to the artboard's main ViewModel directly using `context`.
 
 </details>
 
+**Rive setup:** Bind the ViewModel to the artboard, then attach the script to any node.
+
+**Expected result:** The Console prints the initial score and logs when the runtime updates it.
+
 ```lua
 --!strict
 
@@ -391,7 +403,8 @@ end
 ```
 
 ```typescript
-// JavaScript/TypeScript equivalent with observable pattern:
+// Pseudocode mental model (not Rive runtime API):
+// JavaScript/TypeScript-style observable pattern for comparison.
 
 class MainVMReader {
     constructor(viewModel: ViewModel) {
@@ -453,6 +466,10 @@ Build a script that uses both regular inputs AND ViewModel data.
 5. The `health` value comes from the shared ViewModel
 
 </details>
+
+**Rive setup:** Bind the ViewModel to the artboard and attach the script to a node.
+
+**Expected result:** The bar width and color follow the ViewModel health value while inputs control styling.
 
 ```lua
 --!strict

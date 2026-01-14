@@ -212,6 +212,10 @@ Default result: default
 Actual result: actual
 ```
 
+:::note Rive Result
+Attach the script to any node and press Play. The Console prints generic helper outputs so you can see type inference working with strings and numbers.
+:::
+
 **JavaScript/TypeScript Equivalent:**
 ```typescript
 function getFirst<T>(arr: T[]): T | undefined {
@@ -336,6 +340,10 @@ return function(): Node<GenericTypes>
 end
 ```
 
+:::note Rive Result
+Attach the script to any node and press Play. The Console prints example outputs from the Box, Pair, and Stack types, showing how generic structures behave.
+:::
+
 **JavaScript/TypeScript Equivalent:**
 ```typescript
 // TypeScript generic types
@@ -380,8 +388,8 @@ const stringBox: Box<string> = { value: "Hello", label: "Greeting" };
 ```lua
 --!strict
 
--- Rive's Input<T> is generic - it wraps any value type
--- The T parameter specifies what type of value the input holds
+-- Rive's Input<T> is generic - it declares an editor-exposed value
+-- The T parameter specifies what type you read directly from self
 
 export type RiveGenerics = {
     -- Different Input types
@@ -445,6 +453,10 @@ end
 | What is `self.speed.value`? | Not used in this course (inputs are read directly) |
 | Why `late()` for some properties? | They're created in `init()`, not the factory |
 | What does `Node<RiveGenerics>` mean? | The Node script has `RiveGenerics` properties |
+
+:::note Rive Result
+Attach the script to any node, then press Play. The Console prints the input values and a color channel read, confirming how `Input<T>` values are read directly.
+:::
 
 ---
 
@@ -534,6 +546,10 @@ return function(): Node<CacheDemo>
     return { init = init, draw = draw }
 end
 ```
+
+:::note Rive Result
+Attach the script to any node and press Play. The Console prints cached values and missing keys, showing how a typed cache would back animation data.
+:::
 
 ---
 
@@ -644,6 +660,10 @@ return function(): Node<IntersectionDemo>
     return { init = init, draw = draw }
 end
 ```
+
+:::note Rive Result
+Attach the script to any node and press Play. The Console logs names, positions, bounds, and colors, demonstrating how intersected types control which helpers can be called.
+:::
 
 **JavaScript/TypeScript Equivalent:**
 ```typescript
@@ -799,6 +819,10 @@ return function(): Node<EntitySystem>
     }
 end
 ```
+
+:::note Rive Result
+Attach the script to any node and press Play. The Console prints created entities and a retrieval log, showing how a typed registry can back animation logic.
+:::
 
 ---
 

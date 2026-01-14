@@ -12,7 +12,7 @@ APIs for script inputs, properties, runtime context, and data binding.
 
 ## Input
 
-Generic script input exposed to the editor. `Input<T>` wraps a value of type `T`.
+Generic script input exposed to the editor. `Input<T>` is read directly as a value of type `T` in scripts.
 
 ### Supported Types
 
@@ -22,32 +22,18 @@ Input<boolean>
 Input<string>
 Input<Color>
 Input<Data.ViewModelName>
-Input<Artboard<Data.ViewModelName|}|}
+Input<Artboard<Data.ViewModelName>>
 ```
 
-### Attributes
+### Access
 
-#### `input.value`
+Inputs are **read-only** from scripts and accessed directly (for example, `self.speed`, not `self.speed.value`).
 
-The wrapped value. **Type:** `T` (read-only from script)
+**Note:** ViewModel properties (`Property<T>`) use `.value`. Inputs do not.
 
-### Methods
+### Change Handling
 
-#### `input:addListener(callback)`
-
-Registers a callback for value changes.
-
-```lua
-input:addListener(callback: () -> ())
-```
-
-#### `input:addListener(current, callback)`
-
-Registers a callback that receives the updated value.
-
-```lua
-input:addListener(current: T, callback: (T) -> ())
-```
+Use `update(self)` to react to input changes, or cache the previous value on `self` and compare it each update.
 
 **Note:** Scripts cannot modify input values directly. Use ViewModel properties for two-way binding.
 

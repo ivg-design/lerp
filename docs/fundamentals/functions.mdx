@@ -377,28 +377,37 @@ print(triple(10))  -- 30
 
 ### Closures in Rive Scripts
 
-Closures are especially useful in Rive for callbacks and listeners:
+Closures are especially useful in Rive for pointer callbacks and reusable actions:
 
 ```lua
 export type ButtonScript = {
-    clickCount: number,
-    button: Input<Artboard<Data.ButtonVM>?>,
+    onClick: () -> (),
 }
 
-function init(self: ButtonScript): boolean
-    self.clickCount = 0
-
-    if self.button.value then
-        -- This closure captures 'self'
-        self.button.value:addListener(function(event: ButtonEvent)
-            if event.type == "click" then
-                self.clickCount += 1  -- Modifies self through closure
-                print(`Clicked {self.clickCount} times`)
-            end
-        end)
+local function makeClickHandler(label: string)
+    local count = 0
+    return function()
+        count += 1
+        print(`[${label}] Clicked {count} times`)
     end
+end
 
+function init(self: ButtonScript): boolean
+    self.onClick = makeClickHandler("Button A")
     return true
+end
+
+function pointerDown(self: ButtonScript, event: PointerEvent)
+    self.onClick()
+    event:hit()
+end
+
+return function(): Node<ButtonScript>
+    return {
+        init = init,
+        pointerDown = pointerDown,
+        onClick = late(),
+    }
 end
 ```
 
@@ -528,6 +537,10 @@ divide(10, 0) = 0
 
 **Why this matters:** Type annotations catch errors early and improve autocomplete in the Rive Editor.
 
+**Rive setup:** Create a Node Script named "Exercise2_FunctionAnnotations", attach it to any node, and open the Console panel.
+
+**Expected result:** The Console prints formatted currency and percentages. If you intentionally pass a wrong type, the editor flags it before you run.
+
 ---
 
 #### Code
@@ -595,6 +608,10 @@ end
 **Goal:** Create closures that maintain private state.
 
 **Why this matters:** Closures let you create functions with "memory" — essential for tracking state, creating reusable utilities, and implementing callbacks.
+
+**Rive setup:** Create a Node Script named "Exercise3_Closures", attach it to any node, and run the animation.
+
+**Expected result:** The Console logs multiple counter sequences, showing that each closure keeps its own independent state.
 
 ---
 
@@ -670,6 +687,10 @@ end
 
 **Why this matters:** This is a critical distinction in Rive scripts! Local variables in `init()` disappear when `init()` ends. Only `self` persists.
 
+**Rive setup:** Create a Node Script named "Exercise4_PersistentState", attach it to any node, and keep the animation playing for a few seconds.
+
+**Expected result:** The Console prints a message every ~60 frames, proving that `self` survives across `advance()` calls while locals do not.
+
 ---
 
 #### Code
@@ -731,6 +752,10 @@ end
 **Goal:** Create factory functions that return customized easing functions.
 
 **Why this matters:** Animation relies heavily on easing functions. Creating factories lets you generate different easings with different parameters.
+
+**Rive setup:** Create a Node Script named "Exercise5_EasingFactories" and attach it to any node.
+
+**Expected result:** The Console prints a table of eased values. You can plug these curves into any animation progress value later.
 
 ---
 
@@ -803,6 +828,10 @@ end
 **Goal:** Build a collection of reusable utility functions.
 
 **Why this matters:** Real projects need utility functions for clamping, mapping, rounding, and other common operations.
+
+**Rive setup:** Create a Node Script named "Exercise6_UtilityLibrary", attach it to any node, and run it.
+
+**Expected result:** The Console prints sample outputs for clamp, mapRange, round, lerp, inverseLerp, and smoothstep.
 
 ---
 

@@ -137,6 +137,10 @@ local items = {"a", "b"} -- Luau infers: {string}
 2. Start WITHOUT the strict directive to see what happens
 3. Then add `--!strict` to see the errors
 
+**Rive setup:** Attach the script to any node and open both the Console and Problems panels.
+
+**Expected result:** Without `--!strict`, the script runs and may produce a wrong value. With `--!strict`, the editor flags the type error before you run.
+
 **Part A - WITHOUT strict mode (DON'T DO THIS IN PRODUCTION):**
 
 ```lua
@@ -200,6 +204,10 @@ export type BuggyScript = {}
 3. Copy the code below
 4. Run to see the output
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints typed values for the player stats and inventory.
+
 **Task**: Add type annotations to ALL variables:
 
 ```lua
@@ -262,6 +270,10 @@ let position: { x: number, y: number } = { x: 100, y: 200 };
 3. Implement the functions with proper type annotations
 4. Test by calling them in `init()`
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the function outputs, and type errors surface if any signatures are wrong.
+
 **Task**: Add complete type annotations (parameters AND return types):
 
 ```lua
@@ -276,7 +288,7 @@ end
 local function average(numbers: {number}): number
     if #numbers == 0 then return 0 end
     local sum = 0
-    for _, n in numbers do
+    for _, n in ipairs(numbers) do
         sum += n
     end
     return sum / #numbers
@@ -348,6 +360,10 @@ function createGreeting(name: string): string {
 1. Create a new Node Script in Rive
 2. Add the `--!strict` directive
 3. Try uncommenting the problem lines to see errors
+
+**Rive setup:** Attach the script to any node and watch the Problems tab as you toggle the commented lines.
+
+**Expected result:** The editor flags inference failures (like empty tables) until you add explicit types.
 
 **Task**: For each variable, predict what type Luau infers:
 
@@ -423,6 +439,10 @@ let items: string[] = [];  // Must specify type
 1. Create a new Node Script in Rive
 2. Add the `--!strict` directive
 3. Study how the `if` checks affect what types Luau allows
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints messages based on optional values; type errors appear if you remove the nil checks.
 
 ```lua
 --!strict
@@ -532,6 +552,10 @@ function processValue(value: number | string): number {
 1. Create a new Node Script in Rive
 2. Add the `--!strict` directive
 3. Note the use of `late()` for values set in `init()`
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the constructed values. If you revert to plain tables, the editor raises type errors.
 
 **Task**: Fix the type errors in this Rive script:
 

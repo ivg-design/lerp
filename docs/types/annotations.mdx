@@ -42,6 +42,8 @@ Rive scripts run in `--!strict` mode by default. Your script must define types f
 
 **Why does this matter?** The Rive editor uses your `export type` to understand what properties your script has. This enables autocomplete, error checking, and proper input binding.
 
+**Why strict typing is enforced:** Rive scripts run inside an editor and runtime that must be safe and predictable. Strict typing prevents ambiguous state and catches errors before you hit Play, which is critical when scripts drive animation or user interaction.
+
 Key rules in Rive:
 - Use `export type` to describe your script instance (`self`)
 - Use `Input<T>` for values exposed to the editor
@@ -79,6 +81,10 @@ end
 3. `function init(self: MyScript)` - The `self` parameter is annotated
 4. `Node<MyScript>` - The factory return type uses your script type
 
+:::note Why the `init(self: T): boolean` syntax?
+Luau doesn’t use classes for scripts. The engine calls plain functions and passes the script instance in as `self`. The `: boolean` return type is required so Rive can enable/disable the script based on success (`return true` keeps it running). If you’re coming from JavaScript, read it as: `function init(self /*: MyScript */): boolean`.
+:::
+
 **JavaScript/TypeScript Equivalent (conceptually):**
 ```typescript
 // In TypeScript, you'd use a class:
@@ -114,6 +120,10 @@ class MyScript {
 3. Define your `export type` with the properties you need
 4. Set those properties in `init()`
 5. Use `late()` in the factory for properties set in `init()`
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints the character stats once on init.
 
 **Task**: Create a character stats script with properly typed state.
 
@@ -181,6 +191,10 @@ class CharacterStats {
 2. Add `--!strict` at the top
 3. Write helper functions ABOVE your main functions
 4. Annotate both parameters AND return types
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints clamped values and stats from the helper functions.
 
 **Task**: Add complete type annotations to helper functions.
 
@@ -270,6 +284,10 @@ function getStats(): [number, number, string] {
 
 **Context**: `Input<T>` is Rive's way of exposing values to the editor. The `T` determines what type of value the input holds.
 
+:::note Rive Result
+Attach the script to any node, set the input values in the inspector, then press Play. The Console prints the current input values so you can confirm they update when you change defaults.
+:::
+
 ```lua
 --!strict
 
@@ -337,6 +355,10 @@ computedSpeed = late(),
 1. Create a new Node Script
 2. Notice which variables need explicit types
 3. Notice which can be inferred
+
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console prints inferred values, and the editor flags missing types on empty tables if you remove annotations.
 
 **Guideline**: Use explicit types for `self` and function signatures. Let locals infer unless unclear.
 
@@ -406,6 +428,10 @@ end
 1. Define smaller types first (`Position`, `Velocity`)
 2. Compose them into a larger type (`PhysicsObject`)
 3. Use those types in your `export type`
+
+**Rive setup:** Attach the script to any node and let it run.
+
+**Expected result:** The Console prints the initial spawn position; the state updates silently each frame.
 
 **Task**: Build a more complex script with nested types.
 
@@ -506,6 +532,10 @@ interface PhysicsObject {
 3. Use `late()` in the factory
 4. Access properties and methods in `draw()`
 
+**Rive setup:** Attach the script to any node on the artboard (a group is fine). This exercise draws a circle using the `draw()` callback.
+
+**Expected result:** You should see a stroked circle drawn at the given position when you press Play.
+
 **Task**: Use Rive's built-in types correctly.
 
 ```lua
@@ -517,6 +547,19 @@ export type RiveTypesDemo = {
     path: Path,
     paint: Paint,
 }
+
+local function addCircle(path: Path, center: Vector, radius: number)
+    local k = 0.5522847498
+    local cx, cy = center.x, center.y
+    local r = radius
+
+    path:moveTo(Vector.xy(cx, cy - r))
+    path:cubicTo(Vector.xy(cx + r * k, cy - r), Vector.xy(cx + r, cy - r * k), Vector.xy(cx + r, cy))
+    path:cubicTo(Vector.xy(cx + r, cy + r * k), Vector.xy(cx + r * k, cy + r), Vector.xy(cx, cy + r))
+    path:cubicTo(Vector.xy(cx - r * k, cy + r), Vector.xy(cx - r, cy + r * k), Vector.xy(cx - r, cy))
+    path:cubicTo(Vector.xy(cx - r, cy - r * k), Vector.xy(cx - r * k, cy - r), Vector.xy(cx, cy - r))
+    path:close()
+end
 
 function init(self: RiveTypesDemo): boolean
     -- CORRECT way to create Rive types:
@@ -539,7 +582,7 @@ end
 function draw(self: RiveTypesDemo, renderer: Renderer)
     -- Draw a circle at position
     self.path:reset()
-    self.path:circle(self.position, 25)
+    addCircle(self.path, self.position, 25)
     renderer:drawPath(self.path, self.paint)
 end
 

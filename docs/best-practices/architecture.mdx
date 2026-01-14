@@ -101,7 +101,7 @@ end
 
 function advance(self: AnimatedSquare, seconds: number): boolean
     self.elapsed += seconds
-    local t = math.min(self.elapsed / self.duration.value, 1)
+    local t = math.min(self.elapsed / self.duration, 1)
     local eased = Easing.easeInOutQuad(t)
     self.x = Easing.lerp(self.startX, self.endX, eased)
 
@@ -344,7 +344,7 @@ function advance(self: ParticleSystem, seconds: number): boolean
 
     -- Update existing particles
     local alive = {}
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         if Particle.update(p, seconds, self.config.gravity) then
             table.insert(alive, p)
         end
@@ -355,7 +355,7 @@ function advance(self: ParticleSystem, seconds: number): boolean
 end
 
 function draw(self: ParticleSystem, renderer: Renderer)
-    for _, p in self.particles do
+    for _, p in ipairs(self.particles) do
         self.path:reset()
         local size = 4
         self.path:moveTo(Vector.xy(p.x - size, p.y - size))

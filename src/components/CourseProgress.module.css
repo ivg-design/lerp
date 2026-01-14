@@ -1,0 +1,255 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Section titles */
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--ifm-font-color-base);
+}
+
+/* Overall Progress Section */
+.overallSection {
+  padding: 1.5rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.overallStats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.statBox {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: var(--ifm-background-color);
+  border-radius: 8px;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-700);
+  margin-top: 0.25rem;
+}
+
+.overallBar {
+  height: 12px;
+  background: var(--ifm-color-emphasis-200);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.overallBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ifm-color-primary), var(--ifm-color-primary-light));
+  border-radius: 6px;
+  transition: width 0.3s ease;
+}
+
+.clearAllSection {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.clearAllBtn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ifm-color-danger);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ifm-color-danger);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearAllBtn:hover:not(:disabled) {
+  background: var(--ifm-color-danger);
+  color: white;
+}
+
+.clearAllBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Chapters Section */
+.chaptersSection {
+  margin-top: 2rem;
+}
+
+.chapterCard {
+  padding: 1.25rem;
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.chapterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.chapterTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--ifm-font-color-base);
+}
+
+.chapterStats {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  font-weight: 500;
+}
+
+.chapterBar {
+  height: 8px;
+  background: var(--ifm-color-emphasis-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.chapterBarFill {
+  height: 100%;
+  background: var(--ifm-color-success);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.chapterActions {
+  margin-bottom: 0.75rem;
+}
+
+.clearChapterBtn {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearChapterBtn:hover:not(:disabled) {
+  border-color: var(--ifm-color-danger);
+  color: var(--ifm-color-danger);
+}
+
+.clearChapterBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Confirmation box */
+.confirmBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--ifm-color-danger-lightest);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.confirmBtn {
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: var(--ifm-color-danger);
+  color: white;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.confirmBtn:hover {
+  background: var(--ifm-color-danger-dark);
+}
+
+.cancelBtn {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 4px;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+/* Exercise list */
+.exerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  padding-top: 0.75rem;
+}
+
+.exerciseItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--ifm-font-color-base);
+  transition: background 0.2s ease;
+}
+
+.exerciseItem:hover {
+  background: var(--ifm-color-emphasis-200);
+  text-decoration: none;
+}
+
+.exerciseItem.completed {
+  color: var(--ifm-color-success-dark);
+}
+
+.exerciseStatus {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.exerciseTitle {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.exerciseDifficulty {
+  font-size: 0.8rem;
+  color: var(--ifm-color-warning);
+  flex-shrink: 0;
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .statBox {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .exerciseItem.completed {
+  color: var(--ifm-color-success);
+}

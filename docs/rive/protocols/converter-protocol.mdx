@@ -1,0 +1,76 @@
+---
+sidebar_position: 3
+title: Converter Script Protocol
+description: Bidirectional data transformation for ViewModel bindings
+---
+
+# Converter Script Protocol
+
+:::caution Coming Soon
+This section is under development. See the [Script Types Overview](../script-types) for a summary of Converter Scripts.
+:::
+
+## Overview
+
+Converter Scripts enable custom data transformations within Rive's data binding system. They act as a bridge between source and target data with **bidirectional conversion**.
+
+## Template
+
+```lua
+--!strict
+
+type MyConverter = {}
+
+type DataInputs = DataValueNumber
+type DataOutput = DataValueNumber
+
+function init(self: MyConverter, context: Context): boolean
+    return true
+end
+
+-- SOURCE → TARGET
+function convert(self: MyConverter, input: DataInputs): DataOutput
+    local dv: DataValueNumber = DataValue.number()
+    if input:isNumber() then
+        dv.value = (input :: DataValueNumber).value + 1
+    end
+    return dv
+end
+
+-- TARGET → SOURCE (for two-way binding)
+function reverseConvert(self: MyConverter, input: DataOutput): DataInputs
+    local dv: DataValueNumber = DataValue.number()
+    if input:isNumber() then
+        dv.value = (input :: DataValueNumber).value - 1
+    end
+    return dv
+end
+
+return function(): Converter<MyConverter, DataInputs, DataOutput>
+    return {
+        init = init,
+        convert = convert,
+        reverseConvert = reverseConvert,
+    }
+end
+```
+
+## DataValue Types
+
+| Type | Constructor | Check |
+|------|-------------|-------|
+| `DataValueNumber` | `DataValue.number()` | `isNumber()` |
+| `DataValueString` | `DataValue.string()` | `isString()` |
+| `DataValueBoolean` | `DataValue.boolean()` | `isBoolean()` |
+| `DataValueColor` | `DataValue.color()` | `isColor()` |
+
+## Use Cases
+
+- Number formatting (units, decimals)
+- Temperature conversion
+- Color transformations
+- String parsing/formatting
+
+---
+
+*Full documentation coming soon.*

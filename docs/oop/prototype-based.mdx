@@ -81,6 +81,10 @@ Lua uses **prototype-based** OOP:
 3. Attach to any node
 4. Check the console for output explaining the lookup process
 
+**Rive setup:** Attach the script to any node and open the Console panel.
+
+**Expected result:** The Console logs which table provides each method in the chain.
+
 ```lua
 --!strict
 
@@ -200,14 +204,14 @@ end
 
 function advance(self: PrototypeDemo, seconds: number): boolean
     -- Both shapes share the same moveTo method via prototype
-    for i, shape in self.shapes do
+    for i, shape in ipairs(self.shapes) do
         shape:moveTo(shape.x + math.sin(os.clock() + i) * 30 * seconds, shape.y)
     end
     return true
 end
 
 function draw(self: PrototypeDemo, renderer: Renderer)
-    for _, shape in self.shapes do
+    for _, shape in ipairs(self.shapes) do
         shape:draw(renderer)  -- Shared draw method
     end
 end
@@ -506,7 +510,7 @@ function init(self: DynamicProtoDemo): boolean
     self.modified = false
 
     -- All items use the same getRadius method
-    for _, item in self.items do
+    for _, item in ipairs(self.items) do
         print(`Radius: {item:getRadius()}`)
     end
 
@@ -527,7 +531,7 @@ function advance(self: DynamicProtoDemo, seconds: number): boolean
 end
 
 function draw(self: DynamicProtoDemo, renderer: Renderer)
-    for _, item in self.items do
+    for _, item in ipairs(self.items) do
         self.path:reset()
         self.path:addEllipse(Vector.xy(item.x, item.y), item:getRadius(), item:getRadius())
         renderer:drawPath(self.path, self.paint)

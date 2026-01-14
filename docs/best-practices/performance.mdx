@@ -48,7 +48,7 @@ function init(self: CachedCircle): boolean
 end
 
 function update(self: CachedCircle)
-    local r = self.radius.value
+    local r = self.radius
 
     self.path:reset()
     self.path:moveTo(Vector.xy(-r, 0))
@@ -95,8 +95,8 @@ export type EfficientRect = {
 }
 
 local function rebuild(self: EfficientRect)
-    local halfW = self.width.value / 2
-    local halfH = self.height.value / 2
+    local halfW = self.width / 2
+    local halfH = self.height / 2
 
     self.path:reset()
     self.path:moveTo(Vector.xy(-halfW, -halfH))
@@ -159,7 +159,7 @@ end
 ```lua
 -- BAD: Console output every frame
 function advance(self, seconds: number): boolean
-    for i, item in self.items do
+    for i, item in ipairs(self.items) do
         print("Processing item " .. i)  -- Slow!
     end
     return true
@@ -172,7 +172,7 @@ end
 -- GOOD: Single loop, minimal work
 function advance(self, seconds: number): boolean
     local dt = seconds
-    for _, item in self.items do
+    for _, item in ipairs(self.items) do
         item.x = item.x + item.vx * dt
         item.y = item.y + item.vy * dt
     end

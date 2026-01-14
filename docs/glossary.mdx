@@ -73,11 +73,11 @@ Rive's RGBA color type for styling fills and strokes.
 ```lua
 -- Create colors
 local red = Color.rgba(255, 0, 0, 255)
-local blue = Color.hex("#0000FF")
+local blue = Color.rgb(0, 0, 255)
 local transparent = Color.rgba(255, 255, 255, 128)
 
 -- Access components
-print(red.r, red.g, red.b, red.a)
+print(Color.red(red), Color.green(red), Color.blue(red), Color.alpha(red))
 ```
 
 **Learn more:** [Core Types](/advanced/core-types)
@@ -106,7 +106,7 @@ The runtime context object passed to Node scripts, providing access to the ViewM
 function init(self: MyScript, context: Context): boolean
     local vm = context:viewModel()
     if vm then
-        self.scoreProp = vm:property("score")
+        self.scoreProp = vm:getNumber("score")
     end
     return true
 end
@@ -218,8 +218,8 @@ local gradient = Gradient.linear(
     Vector.xy(0, 0),      -- Start point
     Vector.xy(100, 0),    -- End point
     {
-        { offset = 0, color = Color.hex("#FF0000") },
-        { offset = 1, color = Color.hex("#0000FF") },
+        { offset = 0, color = Color.rgb(255, 0, 0) },
+        { offset = 1, color = Color.rgb(0, 0, 255) },
     }
 )
 ```
@@ -237,7 +237,7 @@ A lifecycle function that runs once when the script starts. Use it for setup, cr
 ```lua
 function init(self: MyScript): boolean
     self.path = Path.new()
-    self.paint = Paint.with({ style = "fill", color = Color.hex("#FF0000") })
+    self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 0, 0) })
     return true
 end
 ```
@@ -464,14 +464,14 @@ Rive's styling object for fills and strokes. Controls color, stroke width, cap s
 -- Fill paint
 local fill = Paint.with({
     style = "fill",
-    color = Color.hex("#FF0000"),
+    color = Color.rgb(255, 0, 0),
 })
 
 -- Stroke paint
 local stroke = Paint.with({
     style = "stroke",
     thickness = 3,
-    color = Color.hex("#0000FF"),
+    color = Color.rgb(0, 0, 255),
     cap = "round",
     join = "round",
 })
@@ -519,17 +519,17 @@ A mutable ViewModel property. Can be read, written, and listened to.
 
 ```lua
 -- Get property from ViewModel
-local scoreProp = vm:property("score")
+local scoreProp = vm:getNumber("score")
 
 -- Read value
-local score = scoreProp:get()
+local score = scoreProp.value
 
 -- Write value
-scoreProp:set(score + 10)
+scoreProp.value = score + 10
 
 -- Listen for changes
-scoreProp:addListener(function(newValue)
-    print(`Score changed to: {newValue}`)
+scoreProp:addListener(function()
+    print(`Score changed to: {scoreProp.value}`)
 end)
 ```
 
@@ -602,7 +602,7 @@ A ViewModel trigger that fires events without storing a value.
 
 ```lua
 -- Get trigger from ViewModel
-local clickTrigger = vm:trigger("onClick")
+local clickTrigger = vm:getTrigger("onClick")
 
 -- Fire the trigger
 clickTrigger:fire()
@@ -711,13 +711,13 @@ Rive's 2D vector type (alias: `Vec2D`). Used for positions, directions, and size
 ```lua
 -- Create vectors
 local pos = Vector.xy(100, 50)
-local zero = Vector.zero
+local zero = Vector.origin()
 
 -- Operations
 local sum = pos + Vector.xy(10, 20)
 local scaled = pos * 2
 local length = pos:length()
-local normalized = pos:normalize()
+local normalized = pos:normalized()
 ```
 
 **Learn more:** [Core Types](/advanced/core-types)
@@ -732,8 +732,8 @@ Rive's data binding container that allows properties to be shared between script
 function init(self: MyScript, context: Context): boolean
     local vm = context:viewModel()
     if vm then
-        self.scoreProp = vm:property("score")
-        self.nameProp = vm:property("playerName")
+        self.scoreProp = vm:getNumber("score")
+        self.nameProp = vm:getString("playerName")
     end
     return true
 end

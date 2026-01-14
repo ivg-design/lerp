@@ -89,7 +89,7 @@ export type LifecycleTracer = {
 }
 
 function init(self: LifecycleTracer): boolean
-    print(`[{self.name.value}] init called`)
+    print(`[{self.name}] init called`)
     self.frameCount = 0
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 150, 200) })
@@ -97,7 +97,7 @@ function init(self: LifecycleTracer): boolean
 end
 
 function update(self: LifecycleTracer, context: Context)
-    print(`[{self.name.value}] update called - input changed`)
+    print(`[{self.name}] update called - input changed`)
 end
 
 function advance(self: LifecycleTracer, seconds: number): boolean
@@ -105,7 +105,7 @@ function advance(self: LifecycleTracer, seconds: number): boolean
 
     -- Print only first 3 frames to avoid spam
     if self.frameCount <= 3 then
-        print(`[{self.name.value}] advance #{self.frameCount}, dt={seconds:.4f}`)
+        print(`[{self.name}] advance #{self.frameCount}, dt={seconds:.4f}`)
     end
 
     return true
@@ -167,7 +167,7 @@ export type StateDebugger = {
 }
 
 local function logState(label: string, self: StateDebugger)
-    print(`[{label}] target={self.targetX.value}, current={self.currentX:.2f}, vel={self.velocity:.2f}`)
+    print(`[{label}] target={self.targetX}, current={self.currentX:.2f}, vel={self.velocity:.2f}`)
 end
 
 function init(self: StateDebugger): boolean
@@ -186,7 +186,7 @@ function advance(self: StateDebugger, seconds: number): boolean
     local oldVel = self.velocity
 
     -- Spring physics
-    local displacement = self.targetX.value - self.currentX
+    local displacement = self.targetX - self.currentX
     local springForce = displacement * 100
     local dampingForce = self.velocity * 10
 
@@ -348,7 +348,7 @@ export type BuggyCircle = {
 function init(self: BuggyCircle): boolean
     -- Bug 1: Missing initialization
     self.path:reset()
-    self.path:moveTo(Vector.xy(-self.radius.value, 0))
+    self.path:moveTo(Vector.xy(-self.radius, 0))
 
     -- Bug 2: Wrong property name
     self.colour = Color.rgb(255, 100, 100)
@@ -358,7 +358,7 @@ end
 
 function advance(self: BuggyCircle, seconds: number): boolean
     -- Bug 3: Accessing wrong field
-    local r = self.rad.value
+    local r = self.rad
     print("Radius:", r)
     return true
 end
@@ -395,7 +395,7 @@ function init(self: FixedCircle): boolean
     self.path = Path.new()
     self.path:reset()
 
-    local r = self.radius.value
+    local r = self.radius
     self.path:moveTo(Vector.xy(-r, 0))
     self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
     self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
@@ -410,7 +410,7 @@ end
 
 function advance(self: FixedCircle, seconds: number): boolean
     -- Fix 3: Correct field name (radius, not rad)
-    local r = self.radius.value
+    local r = self.radius
     -- Only print when debugging
     -- print("Radius:", r)
     return true

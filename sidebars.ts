@@ -5,11 +5,16 @@ const sidebars: SidebarsConfig = {
     {
       type: 'doc',
       id: 'intro',
-      label: '🎓 Introduction',
+      label: 'Introduction',
+    },
+    {
+      type: 'doc',
+      id: 'progress',
+      label: 'My Progress',
     },
     {
       type: 'category',
-      label: '📘 Part 1: Getting Started',
+      label: 'Part 1: Getting Started',
       collapsed: false,
       items: [
         'getting-started/welcome',
@@ -19,7 +24,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📗 Part 2: Luau Fundamentals',
+      label: 'Part 2: Luau Fundamentals',
       items: [
         'fundamentals/variables',
         'fundamentals/data-types',
@@ -32,7 +37,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📙 Part 3: Type System',
+      label: 'Part 3: Type System',
       items: [
         'types/intro',
         'types/annotations',
@@ -45,7 +50,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📕 Part 4: OOP Deep Dive',
+      label: 'Part 4: OOP Deep Dive',
       items: [
         'oop/prototype-based',
         'oop/metatables',
@@ -59,19 +64,30 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📓 Part 5: Rive Integration',
+      label: 'Part 5: Rive Integration',
       items: [
         'rive/environment',
-        'rive/protocols',
+        'rive/script-types',
         'rive/inputs',
-        'rive/node-protocol',
-        'rive/util-protocol',
-        'rive/other-protocols',
+        {
+          type: 'category',
+          label: 'Protocols',
+          items: [
+            'rive/protocols/node-protocol',
+            'rive/protocols/node-lifecycle',
+            'rive/protocols/layout-protocol',
+            'rive/protocols/converter-protocol',
+            'rive/protocols/path-effect-protocol',
+            'rive/protocols/util-protocol',
+            'rive/protocols/listener-protocol',
+            'rive/protocols/test-protocol',
+          ],
+        },
       ],
     },
     {
       type: 'category',
-      label: '📔 Part 6: Advanced Techniques',
+      label: 'Part 6: Advanced Techniques',
       items: [
         'advanced/core-types',
         'advanced/drawing-api',
@@ -83,7 +99,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📒 Part 7: Best Practices',
+      label: 'Part 7: Best Practices',
       items: [
         'best-practices/architecture',
         'best-practices/performance',
@@ -93,7 +109,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '🛠️ Part 8: Projects',
+      label: 'Part 8: Projects',
       items: [
         'projects/interactive-button',
         'projects/data-visualization',
@@ -102,7 +118,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: '📚 API Reference',
+      label: 'API Reference',
       link: {
         type: 'generated-index',
         title: 'API Reference',
@@ -125,12 +141,20 @@ const sidebars: SidebarsConfig = {
     {
       type: 'doc',
       id: 'quick-reference',
-      label: '⚡ Quick Reference',
+      label: 'Quick Reference',
     },
     {
       type: 'doc',
       id: 'glossary',
-      label: '📖 Glossary',
+      label: 'Glossary',
+    },
+    {
+      type: 'category',
+      label: 'Examples (Dev)',
+      collapsed: true,
+      items: [
+        'examples/sample-exercise',
+      ],
     },
   ],
 };

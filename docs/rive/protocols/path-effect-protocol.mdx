@@ -1,0 +1,89 @@
+---
+sidebar_position: 4
+title: Path Effect Script Protocol
+description: Real-time manipulation of path geometry for stroke effects
+---
+
+# Path Effect Script Protocol
+
+:::caution Coming Soon
+This section is under development. See the [Script Types Overview](../script-types) for a summary of Path Effect Scripts.
+:::
+
+## Overview
+
+Path Effect Scripts enable **real-time manipulation of path geometry**. They give you programmatic control over the shape and structure of paths for effects like warping, distortion, and procedural modifications.
+
+## Template
+
+```lua
+--!strict
+
+type MyPathEffect = {
+    context: Context,
+}
+
+function init(self: MyPathEffect, context: Context): boolean
+    self.context = context
+    return true
+end
+
+-- Core transformation: receives original path, returns modified path
+function update(self: MyPathEffect, inPath: PathData): PathData
+    local path = Path.new()
+
+    for _, cmd in ipairs(inPath) do
+        -- Transform each command
+    end
+
+    return path
+end
+
+-- Optional: animated effects
+function advance(self: MyPathEffect, seconds: number): boolean
+    return true
+end
+
+return function(): PathEffect<MyPathEffect>
+    return {
+        init = init,
+        update = update,
+        advance = advance,
+        context = late(),
+    }
+end
+```
+
+## PathData API
+
+```lua
+-- Number of commands
+local count = #inPath
+
+-- Iterate commands
+for i, cmd in ipairs(inPath) do
+    local cmdType = cmd.type    -- CommandType enum
+    local pointCount = #cmd     -- Number of points
+end
+```
+
+## CommandType Values
+
+| Value | Points | Description |
+|-------|--------|-------------|
+| `moveTo` | 2 | Move cursor |
+| `lineTo` | 2 | Draw line |
+| `quadTo` | 4 | Quadratic bezier |
+| `cubicTo` | 6 | Cubic bezier |
+| `close` | 0 | Close path |
+
+## Use Cases
+
+- Wave/wobble distortion
+- Custom dash patterns
+- Procedural path generation
+- Animated stroke effects
+
+---
+
+*Full documentation coming soon.*

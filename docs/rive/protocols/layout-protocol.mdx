@@ -1,0 +1,78 @@
+---
+sidebar_position: 2
+title: Layout Script Protocol
+description: Programmatic control over Layout component sizing and positioning
+---
+
+# Layout Script Protocol
+
+:::caution Coming Soon
+This section is under development. See the [Script Types Overview](../script-types) for a summary of Layout Scripts.
+:::
+
+## Overview
+
+Layout Scripts extend Node Scripts to give you programmatic control over **Layout components**. They enable custom layout behaviors like masonry grids, carousels, and dynamic spacing logic.
+
+## Template
+
+```lua
+--!strict
+
+type MyLayout = {}
+
+function init(self: MyLayout, context: Context): boolean
+    return true
+end
+
+function advance(self: MyLayout, seconds: number): boolean
+    return true
+end
+
+function update(self: MyLayout) end
+
+function draw(self: MyLayout, renderer: Renderer) end
+
+-- Propose ideal size (only for "Hug" fit type)
+function measure(self: MyLayout): Vector
+    return Vector.xy(100, 100)
+end
+
+-- React to size changes
+function resize(self: MyLayout, size: Vector)
+    -- Position children here
+end
+
+return function(): Layout<MyLayout>
+    return {
+        init = init,
+        advance = advance,
+        update = update,
+        draw = draw,
+        measure = measure,
+        resize = resize,
+    }
+end
+```
+
+## Key Functions
+
+| Function | Required | Purpose |
+|----------|----------|---------|
+| `init` | Optional | Initialize state |
+| `advance` | Optional | Frame-by-frame updates |
+| `update` | Optional | React to input changes |
+| `draw` | Optional | Custom rendering |
+| `measure` | Optional | Propose ideal size (Hug fit only) |
+| `resize` | **Required** | React to size changes |
+
+## Use Cases
+
+- Masonry grids
+- Carousels with custom spacing
+- Responsive layouts
+- Data-driven positioning
+
+---
+
+*Full documentation coming soon.*

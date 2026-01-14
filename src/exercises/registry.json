@@ -1,0 +1,74 @@
+{
+  "$schema": "./registry.schema.json",
+  "version": "1.0.0",
+  "exercises": [
+    {
+      "id": "fundamentals-variables-1",
+      "title": "Character Stats",
+      "difficulty": 1,
+      "chapter": "fundamentals",
+      "topic": "variables",
+      "expectedAnswer": "ANSWER: Warrior, Lv.5, 1250.5xp, ult=true",
+      "docPath": "/examples/sample-exercise#exercise-1-character-stats",
+      "hints": [
+        "Check your variable names - they must match exactly (case-sensitive)",
+        "Strings need quotes, numbers and booleans don't",
+        "Make sure you declared ALL four variables: characterName, level, experience, hasUltimate"
+      ],
+      "explanation": "Each variable type serves a purpose: strings for text data, numbers for quantities and calculations, booleans for true/false states. The print statement uses string interpolation with curly braces {} to embed variable values directly in the output string.",
+      "reviewLinks": [
+        { "label": "Variables", "href": "/fundamentals/variables" },
+        { "label": "Data Types", "href": "/fundamentals/data-types" }
+      ],
+      "tags": ["variables", "types", "print"]
+    },
+    {
+      "id": "fundamentals-functions-2",
+      "title": "Damage Calculator",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "functions",
+      "expectedAnswer": "ANSWER: 100,150,200,200",
+      "docPath": "/fundamentals/functions#exercise-2-damage-calculator",
+      "hints": [
+        "The critical multiplier should be exactly 2, not 1.5 or 2.0",
+        "Use inline if: (if isCritical then 2 else 1)",
+        "Check that your function returns a value"
+      ],
+      "tags": ["functions", "parameters", "return-types", "conditionals"]
+    },
+    {
+      "id": "fundamentals-advance-3",
+      "title": "Pulse Animation",
+      "difficulty": 2,
+      "chapter": "fundamentals",
+      "topic": "advance",
+      "expectedAnswer": "ANSWER: time=2.0, scale=0.93",
+      "docPath": "/fundamentals/state#exercise-3-pulse-animation",
+      "hints": [
+        "Make sure you're accumulating time with += not =",
+        "The formula is: 1.0 + 0.2 * math.sin(self.time * 2)",
+        "Wait for the console to show time=2.0, then copy that line"
+      ],
+      "tags": ["advance", "state", "animation", "math.sin"]
+    }
+  ],
+  "chapters": {
+    "fundamentals": {
+      "title": "Part 2: Fundamentals",
+      "order": 2
+    },
+    "types": {
+      "title": "Part 3: Types & Structures",
+      "order": 3
+    },
+    "oop": {
+      "title": "Part 4: OOP & Patterns",
+      "order": 4
+    },
+    "rive": {
+      "title": "Part 5: Rive Integration",
+      "order": 5
+    }
+  }
+}

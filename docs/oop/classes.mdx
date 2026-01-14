@@ -221,7 +221,7 @@ function init(self: SpringDemo): boolean
 end
 
 function update(self: SpringDemo)
-    self.spring.target = self.target.value
+    self.spring.target = self.target
 end
 
 function advance(self: SpringDemo, seconds: number): boolean
@@ -369,14 +369,14 @@ end
 
 function advance(self: SpriteDemo, seconds: number): boolean
     self.elapsed += seconds
-    for i, sprite in self.sprites do
+    for i, sprite in ipairs(self.sprites) do
         sprite.x += math.sin(self.elapsed + i) * 50 * seconds
     end
     return true
 end
 
 function draw(self: SpriteDemo, renderer: Renderer)
-    for _, sprite in self.sprites do
+    for _, sprite in ipairs(self.sprites) do
         sprite:draw(renderer)
     end
 end

@@ -1,0 +1,233 @@
+.container {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.icon {
+  font-size: 1.2rem;
+}
+
+.title {
+  color: var(--ifm-color-primary);
+}
+
+.description {
+  color: var(--ifm-font-color-secondary);
+  margin-bottom: 1rem;
+}
+
+.instructions {
+  font-size: 0.9rem;
+  color: var(--ifm-font-color-secondary);
+  margin-bottom: 1rem;
+}
+
+.blocksContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--ifm-code-background);
+  border: 2px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.block:hover {
+  border-color: var(--ifm-color-primary);
+  background: var(--ifm-color-primary-lightest);
+}
+
+.block:active {
+  cursor: grabbing;
+}
+
+.block.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.block.dragOver {
+  border-color: var(--ifm-color-primary);
+  border-style: solid;
+  background: var(--ifm-color-primary-lightest);
+  transform: scale(1.02);
+}
+
+.block.correct {
+  border-color: var(--ifm-color-success);
+  background: var(--ifm-color-success-lightest);
+}
+
+.block.incorrect {
+  border-color: var(--ifm-color-danger);
+  background: var(--ifm-color-danger-lightest);
+}
+
+.dragHandle {
+  color: var(--ifm-color-emphasis-500);
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.blockCode {
+  flex: 1;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9rem;
+  background: transparent;
+  padding: 0;
+  white-space: pre-wrap;
+}
+
+.moveButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.moveBtn {
+  padding: 0.15rem 0.4rem;
+  font-size: 0.65rem;
+  background: var(--ifm-color-emphasis-200);
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--ifm-font-color-secondary);
+  transition: all 0.2s ease;
+}
+
+.moveBtn:hover:not(:disabled) {
+  background: var(--ifm-color-emphasis-300);
+  color: var(--ifm-font-color-base);
+}
+
+.moveBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.submitBtn,
+.resetBtn,
+.hintBtn {
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submitBtn {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.submitBtn:hover {
+  background: var(--ifm-color-primary-dark);
+}
+
+.resetBtn {
+  background: var(--ifm-color-emphasis-200);
+  color: var(--ifm-font-color-base);
+}
+
+.resetBtn:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+.hintBtn {
+  background: transparent;
+  border: 1px solid var(--ifm-color-warning);
+  color: var(--ifm-color-warning);
+}
+
+.hintBtn:hover {
+  background: var(--ifm-color-warning-lightest);
+}
+
+.hintBox {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--ifm-color-warning-lightest);
+  border-radius: 6px;
+  border-left: 4px solid var(--ifm-color-warning);
+  font-size: 0.9rem;
+}
+
+.feedback {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.correctFeedback {
+  background: var(--ifm-color-success-lightest);
+  color: var(--ifm-color-success-contrast-foreground);
+}
+
+.incorrectFeedback {
+  background: var(--ifm-color-danger-lightest);
+  color: var(--ifm-color-danger-contrast-foreground);
+}
+
+.feedbackIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.explanation {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .block {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .dragHandle {
+    display: none;
+  }
+
+  .moveButtons {
+    flex-direction: row;
+  }
+
+  .moveBtn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}

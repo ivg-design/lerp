@@ -377,9 +377,9 @@ end
 function advance(self: CharacterController, seconds: number): boolean
     self.time += seconds
 
-    local offset = math.sin(self.time * self.speed.value) * 80
+    local offset = math.sin(self.time * self.speed) * 80
     self.character.posX.value = offset
-    self.character.posY.value = math.cos(self.time * self.speed.value * 0.7) * 40
+    self.character.posY.value = math.cos(self.time * self.speed * 0.7) * 40
 
     return true
 end
