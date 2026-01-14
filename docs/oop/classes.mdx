@@ -1,8 +1,466 @@
 ---
-sidebar_position: 4
-title: Building Classes
+sidebar_position: 2
+title: "3.2 Building Classes"
+description: Create proper class constructors with typing and methods
 ---
 
-# Building Classes
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 3.2: Building Classes
+
+## Learning Objectives
+- Create proper class constructors using metatables
+- Type your classes correctly with `--!strict`
+- Use the double-cast pattern for type safety
+- Implement methods with proper `self` handling
+- Build reusable game object classes
+
+---
+
+## The Class Pattern in Luau
+
+In Lesson 3.1, we learned how `__index` enables shared behavior. Now we'll formalize this into a reusable class pattern that:
+
+1. Works with `--!strict` type checking
+2. Has a clear constructor (`new()`)
+3. Defines a proper type for instances
+4. Supports methods with the colon syntax
+
+---
+
+## The Standard Class Pattern
+
+```lua
+--!strict
+
+-- 1. Create the class table
+local MyClass = {}
+MyClass.__index = MyClass
+
+-- 2. Define the instance type
+export type MyClassType = {
+    property: number,
+    -- Methods are NOT in the type (they're on the prototype)
+}
+
+-- 3. Create the constructor
+function MyClass.new(): MyClassType
+    local self = setmetatable({}, MyClass)
+    self.property = 0
+    return (self :: any) :: MyClassType  -- Double cast for strict mode
+end
+
+-- 4. Define methods on the class table
+function MyClass:methodName()
+    print(self.property)
+end
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Your First Typed Class
+
+**Task**: Build a properly typed `Counter` class:
+
+```lua
+--!strict
+
+local Counter = {}
+Counter.__index = Counter
+
+export type CounterType = {
+    value: number,
+    step: number,
+}
+
+function Counter.new(startValue: number?, stepAmount: number?): CounterType
+    local self = setmetatable({}, Counter)
+    self.value = startValue or 0
+    self.step = stepAmount or 1
+    return (self :: any) :: CounterType
+end
+
+function Counter:increment()
+    self.value += self.step
+end
+
+function Counter:decrement()
+    self.value -= self.step
+end
+
+function Counter:reset()
+    self.value = 0
+end
+
+function Counter:getValue(): number
+    return self.value
+end
+
+export type CounterDemo = {}
+
+function init(self: CounterDemo): boolean
+    local counter1 = Counter.new()
+    local counter2 = Counter.new(100, 10)
+
+    print(`Counter 1: {counter1:getValue()}`)
+    counter1:increment()
+    counter1:increment()
+    print(`After 2 increments: {counter1:getValue()}`)
+
+    print(`\nCounter 2: {counter2:getValue()}`)
+    counter2:increment()
+    print(`After increment: {counter2:getValue()}`)
+
+    return true
+end
+
+function draw(self: CounterDemo, renderer: Renderer)
+end
+
+return function(): Node<CounterDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 2: The Double Cast Pattern
+
+**Understanding why `(self :: any) :: MyType` is necessary:**
+
+```lua
+--!strict
+
+local BadClass = {}
+BadClass.__index = BadClass
+
+type BadType = { name: string }
+
+function BadClass.new(): BadType
+    local self = setmetatable({}, BadClass)
+    self.name = "test"
+    -- return self  -- Error! Type is not compatible
+    return (self :: any) :: BadType  -- This works
+end
+
+-- Why?
+-- 1. setmetatable({}, BadClass) returns a table with metatable
+-- 2. Luau sees it as a generic table, not BadType
+-- 3. :: any tells Luau "trust me, forget the current type"
+-- 4. :: BadType tells Luau "treat this as BadType"
+```
+
+**Key Insight**: The double cast doesn't change runtime behavior - it only satisfies the type checker.
+
+---
+
+### Exercise 3: Complete Entity Class
+
+```lua
+--!strict
+
+local Entity = {}
+Entity.__index = Entity
+
+export type EntityType = {
+    id: number,
+    name: string,
+    x: number,
+    y: number,
+    health: number,
+    maxHealth: number,
+    active: boolean,
+}
+
+local nextId = 1
+
+function Entity.new(name: string, x: number, y: number, maxHealth: number): EntityType
+    local self = setmetatable({}, Entity)
+    self.id = nextId
+    nextId += 1
+    self.name = name
+    self.x = x
+    self.y = y
+    self.maxHealth = maxHealth
+    self.health = maxHealth
+    self.active = true
+    return (self :: any) :: EntityType
+end
+
+function Entity:moveTo(newX: number, newY: number)
+    self.x = newX
+    self.y = newY
+end
+
+function Entity:moveBy(dx: number, dy: number)
+    self.x += dx
+    self.y += dy
+end
+
+function Entity:takeDamage(amount: number)
+    self.health = math.max(0, self.health - amount)
+    if self.health <= 0 then
+        self.active = false
+    end
+end
+
+function Entity:heal(amount: number)
+    self.health = math.min(self.maxHealth, self.health + amount)
+end
+
+function Entity:isAlive(): boolean
+    return self.health > 0
+end
+
+function Entity:distanceTo(other: EntityType): number
+    local dx = self.x - other.x
+    local dy = self.y - other.y
+    return math.sqrt(dx * dx + dy * dy)
+end
+
+Entity.__tostring = function(e: EntityType): string
+    local status = if e.health > 0 then "alive" else "dead"
+    return `Entity#{e.id} "{e.name}" at ({e.x},{e.y}) HP:{e.health}/{e.maxHealth} [{status}]`
+end
+
+export type EntityDemo = {}
+
+function init(self: EntityDemo): boolean
+    local player = Entity.new("Player", 0, 0, 100)
+    local enemy = Entity.new("Goblin", 50, 50, 30)
+
+    print(player)
+    print(enemy)
+    print(`\nDistance: {player:distanceTo(enemy):.2f}`)
+
+    player:moveBy(10, 10)
+    print(`\nAfter move: {player}`)
+
+    enemy:takeDamage(15)
+    print(`\nAfter damage: {enemy}`)
+
+    enemy:takeDamage(20)
+    print(`After fatal: {enemy}`)
+
+    return true
+end
+
+function draw(self: EntityDemo, renderer: Renderer)
+end
+
+return function(): Node<EntityDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 4: Drawable Sprite Class
+
+```lua
+--!strict
+
+local Sprite = {}
+Sprite.__index = Sprite
+
+export type SpriteType = {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: Color,
+    path: Path,
+    paint: Paint,
+}
+
+function Sprite.new(x: number, y: number, width: number, height: number, color: Color): SpriteType
+    local self = setmetatable({}, Sprite)
+    self.x = x
+    self.y = y
+    self.width = width
+    self.height = height
+    self.color = color
+    self.path = Path.new()
+    self.paint = Paint.new()
+    self.paint.style = "fill"
+    self.paint.color = color
+    self:_rebuildPath()
+    return (self :: any) :: SpriteType
+end
+
+function Sprite:_rebuildPath()
+    local hw = self.width / 2
+    local hh = self.height / 2
+    self.path:reset()
+    self.path:moveTo(Vector.xy(-hw, -hh))
+    self.path:lineTo(Vector.xy(hw, -hh))
+    self.path:lineTo(Vector.xy(hw, hh))
+    self.path:lineTo(Vector.xy(-hw, hh))
+    self.path:close()
+end
+
+function Sprite:setColor(color: Color)
+    self.color = color
+    self.paint.color = color
+end
+
+function Sprite:draw(renderer: Renderer)
+    renderer:save()
+    renderer:transform(Mat2D.withTranslation(self.x, self.y))
+    renderer:drawPath(self.path, self.paint)
+    renderer:restore()
+end
+
+export type SpriteDemo = {
+    sprites: {SpriteType},
+}
+
+function init(self: SpriteDemo): boolean
+    self.sprites = {}
+    table.insert(self.sprites, Sprite.new(100, 100, 50, 50, Color.rgb(255, 0, 0)))
+    table.insert(self.sprites, Sprite.new(200, 100, 30, 60, Color.rgb(0, 255, 0)))
+    return true
+end
+
+function advance(self: SpriteDemo, seconds: number): boolean
+    for i, sprite in self.sprites do
+        sprite.x += math.sin(os.clock() + i) * 50 * seconds
+    end
+    return true
+end
+
+function draw(self: SpriteDemo, renderer: Renderer)
+    for _, sprite in self.sprites do
+        sprite:draw(renderer)
+    end
+end
+
+return function(): Node<SpriteDemo>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        sprites = late(),
+    }
+end
+```
+
+---
+
+### Exercise 5: Factory Functions
+
+```lua
+--!strict
+
+local Rectangle = {}
+Rectangle.__index = Rectangle
+
+export type RectangleType = {
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+}
+
+function Rectangle.new(x: number, y: number, width: number, height: number): RectangleType
+    local self = setmetatable({}, Rectangle)
+    self.x = x
+    self.y = y
+    self.width = width
+    self.height = height
+    return (self :: any) :: RectangleType
+end
+
+function Rectangle.fromCorners(x1: number, y1: number, x2: number, y2: number): RectangleType
+    return Rectangle.new(math.min(x1, x2), math.min(y1, y2), math.abs(x2 - x1), math.abs(y2 - y1))
+end
+
+function Rectangle.centered(centerX: number, centerY: number, width: number, height: number): RectangleType
+    return Rectangle.new(centerX - width / 2, centerY - height / 2, width, height)
+end
+
+function Rectangle.square(x: number, y: number, size: number): RectangleType
+    return Rectangle.new(x, y, size, size)
+end
+
+function Rectangle:area(): number
+    return self.width * self.height
+end
+
+function Rectangle:contains(px: number, py: number): boolean
+    return px >= self.x and px <= self.x + self.width
+       and py >= self.y and py <= self.y + self.height
+end
+
+Rectangle.__tostring = function(r: RectangleType): string
+    return `Rect({r.x}, {r.y}, {r.width}x{r.height})`
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Why do we need MyClass.__index = MyClass?"
+  id="class-q1"
+  options={[
+    { text: "It's required by Luau syntax" },
+    { text: "So instances can find methods defined on the class", correct: true },
+    { text: "To prevent memory leaks" },
+    { text: "To enable multiple inheritance" },
+  ]}
+  explanation="When you access a method on an instance, Luau checks the instance first. If not found, it uses __index to look in the class table where methods are defined."
+/>
+
+<Quiz
+  question="What does the double cast (self :: any) :: Type accomplish?"
+  id="class-q2"
+  options={[
+    { text: "Converts the object at runtime" },
+    { text: "Satisfies the type checker without changing runtime behavior", correct: true },
+    { text: "Makes the object immutable" },
+    { text: "Enables method chaining" },
+  ]}
+  explanation="The double cast is purely for the type checker. At runtime, the object is still a table with a metatable."
+/>
+
+<Quiz
+  question="Why are methods defined on the class table, not in the type definition?"
+  id="class-q3"
+  options={[
+    { text: "To save memory - methods are shared", correct: true },
+    { text: "Type definitions can't include functions" },
+    { text: "Methods must be defined first" },
+    { text: "It's a Rive requirement" },
+  ]}
+  explanation="Methods on the class table are shared by all instances via the metatable. If they were in each instance, you'd duplicate function objects."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting `__index`**: Methods won't be found without it
+2. **Methods in the type**: Only data properties go in the type definition
+3. **Using dot instead of colon**: `obj.method()` won't pass `self`
+4. **Missing double cast**: Strict mode will error on the return statement
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can create a class with `__index` self-reference
+- [ ] I can define a proper instance type
+- [ ] I understand and can use the double-cast pattern
+- [ ] I can implement methods using colon syntax
+- [ ] I can integrate classes with Rive's drawing system
+- [ ] I can create multiple factory functions
+
+---
+
+## Next Up
+
+**[3.3 Inheritance & Patterns →](./inheritance)**

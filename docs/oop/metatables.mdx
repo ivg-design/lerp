@@ -1,8 +1,477 @@
 ---
-sidebar_position: 2
-title: Metatables
+sidebar_position: 1
+title: "3.1 Metatables & __index"
+description: Understand metatables and the __index metamethod
 ---
 
-# Metatables
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 3.1: Metatables & __index
+
+## Learning Objectives
+- Understand what metatables are and how they work
+- Use `setmetatable()` to attach behavior to tables
+- Master the `__index` metamethod for property lookup
+- Implement basic object-like behavior
+
+---
+
+## Why Metatables?
+
+Luau doesn't have built-in classes like Java or C#. Instead, it uses **metatables** - special tables that define custom behavior for other tables.
+
+Think of a metatable as a "behavior manual" for a table. When Luau doesn't know how to perform an operation on a table, it consults the metatable for instructions.
+
+**Real-world analogy**: If you find a device you've never seen before, you'd look for an instruction manual. The metatable is that manual.
+
+---
+
+## Basic Metatable Syntax
+
+```lua
+-- Metatable basics
+local metatable = { ... }       -- A table with special keys
+setmetatable(target, metatable) -- Attach the "manual"
+
+-- The __index metamethod: "What to do when a key isn't found"
+local meta = {
+    __index = fallbackTable  -- Look in this table
+}
+
+-- Or use a function for computed values
+local meta = {
+    __index = function(self, key)
+        return "default value for " .. key
+    end
+}
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Your First Metatable
+
+**Task**: Observe how metatables intercept operations:
+
+```lua
+--!strict
+
+export type MetatableBasics = {}
+
+function init(self: MetatableBasics): boolean
+    -- A regular table
+    local person = { name = "Alice" }
+
+    -- Accessing existing key works
+    print(`Name: {person.name}`)
+
+    -- Accessing missing key returns nil
+    print(`Age: {person.age}`)  -- nil
+
+    -- Now let's add a metatable
+    local meta = {
+        __index = function(tbl, key)
+            print(`Looking up missing key: {key}`)
+            return "unknown"
+        end
+    }
+
+    setmetatable(person, meta)
+
+    -- Now missing keys trigger the __index function
+    print(`Age (with metatable): {person.age}`)
+    print(`City (with metatable): {person.city}`)
+
+    -- Existing keys STILL work directly (no __index called)
+    print(`Name (still direct): {person.name}`)
+
+    return true
+end
+
+function draw(self: MetatableBasics, renderer: Renderer)
+end
+
+return function(): Node<MetatableBasics>
+    return { init = init, draw = draw }
+end
+```
+
+**Expected Output:**
+```
+Name: Alice
+Age: nil
+Looking up missing key: age
+Age (with metatable): unknown
+Looking up missing key: city
+City (with metatable): unknown
+Name (still direct): Alice
+```
+
+**Key Insight**: `__index` is ONLY called when the key doesn't exist in the table itself.
+
+---
+
+### Exercise 2: __index with a Fallback Table
+
+**Task**: Create a prototype pattern:
+
+```lua
+--!strict
+
+export type FallbackDemo = {}
+
+function init(self: FallbackDemo): boolean
+    -- The "Prototype" - contains shared default values
+    local CharacterDefaults = {
+        health = 100,
+        damage = 10,
+        speed = 5,
+
+        attack = function(selfChar)
+            print(`Attacking for {selfChar.damage} damage!`)
+        end
+    }
+
+    -- Create an "instance" that uses the defaults
+    local warrior = {
+        name = "Warrior",
+        damage = 25  -- Override the default
+    }
+
+    -- Link the instance to the defaults via __index
+    setmetatable(warrior, { __index = CharacterDefaults })
+
+    -- Now warrior can access CharacterDefaults properties
+    print(`{warrior.name}:`)
+    print(`  Health: {warrior.health}`)  -- From CharacterDefaults
+    print(`  Damage: {warrior.damage}`)  -- From warrior (overridden)
+    print(`  Speed: {warrior.speed}`)    -- From CharacterDefaults
+
+    -- Methods work too!
+    warrior.attack(warrior)
+
+    -- Create another instance with different overrides
+    local mage = {
+        name = "Mage",
+        health = 60,  -- Lower health
+        damage = 40   -- Higher damage
+    }
+    setmetatable(mage, { __index = CharacterDefaults })
+
+    print(`\n{mage.name}:`)
+    print(`  Health: {mage.health}`)  -- Overridden
+    print(`  Damage: {mage.damage}`)  -- Overridden
+    print(`  Speed: {mage.speed}`)    -- From defaults
+
+    return true
+end
+
+function draw(self: FallbackDemo, renderer: Renderer)
+end
+
+return function(): Node<FallbackDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 3: The Lookup Chain
+
+**Task**: Trace the lookup process:
+
+```lua
+--!strict
+
+export type LookupChain = {}
+
+local lookupLog: {string} = {}
+
+local function log(msg: string)
+    table.insert(lookupLog, msg)
+end
+
+function init(self: LookupChain): boolean
+    -- Level 1: Grandparent (base defaults)
+    local Grandparent = {
+        a = "grandparent-a",
+        b = "grandparent-b",
+        c = "grandparent-c",
+    }
+
+    -- Level 2: Parent (overrides some)
+    local Parent = {
+        b = "parent-b",  -- Override grandparent
+    }
+    setmetatable(Parent, {
+        __index = function(t, k)
+            log(`Parent.__index looking for '{k}'`)
+            return Grandparent[k]
+        end
+    })
+
+    -- Level 3: Child (overrides more)
+    local Child = {
+        c = "child-c",  -- Override parent (and grandparent)
+    }
+    setmetatable(Child, {
+        __index = function(t, k)
+            log(`Child.__index looking for '{k}'`)
+            return Parent[k]
+        end
+    })
+
+    lookupLog = {}
+
+    -- Access 'a' - not in Child or Parent, found in Grandparent
+    log("=== Looking up 'a' ===")
+    local a = Child.a
+    log(`Result: {a}`)
+
+    -- Access 'b' - not in Child, found in Parent
+    log("\n=== Looking up 'b' ===")
+    local b = Child.b
+    log(`Result: {b}`)
+
+    -- Access 'c' - found directly in Child
+    log("\n=== Looking up 'c' ===")
+    local c = Child.c
+    log(`Result: {c}`)
+
+    for _, entry in lookupLog do
+        print(entry)
+    end
+
+    return true
+end
+
+function draw(self: LookupChain, renderer: Renderer)
+end
+
+return function(): Node<LookupChain>
+    return { init = init, draw = draw }
+end
+```
+
+**Key Insight**: The chain stops as soon as a value is found!
+
+---
+
+### Exercise 4: The Self-Referential Pattern
+
+**Task**: Implement the canonical OOP pattern:
+
+```lua
+--!strict
+
+export type SelfReferential = {}
+
+function init(self: SelfReferential): boolean
+    -- The "Class" table
+    local Enemy = {}
+    Enemy.__index = Enemy  -- Key pattern! Point __index to itself
+
+    -- "Constructor" function
+    function Enemy.new(name: string, health: number)
+        local instance = {
+            name = name,
+            health = health,
+        }
+        setmetatable(instance, Enemy)  -- Instance uses Enemy as metatable
+        return instance
+    end
+
+    -- Methods defined on Enemy are shared by all instances
+    function Enemy:takeDamage(amount: number)
+        self.health -= amount
+        print(`{self.name} takes {amount} damage! HP: {self.health}`)
+    end
+
+    function Enemy:isAlive(): boolean
+        return self.health > 0
+    end
+
+    function Enemy:describe()
+        local status = if self:isAlive() then "alive" else "dead"
+        print(`{self.name}: {self.health} HP ({status})`)
+    end
+
+    -- Create instances
+    local goblin = Enemy.new("Goblin", 30)
+    local orc = Enemy.new("Orc", 100)
+
+    -- Both share the same methods
+    goblin:describe()
+    orc:describe()
+
+    goblin:takeDamage(15)
+    orc:takeDamage(30)
+
+    goblin:takeDamage(20)  -- Fatal!
+    goblin:describe()
+
+    print(`\nGoblin health: {goblin.health}`)
+    print(`Orc health: {orc.health}`)
+
+    return true
+end
+
+function draw(self: SelfReferential, renderer: Renderer)
+end
+
+return function(): Node<SelfReferential>
+    return { init = init, draw = draw }
+end
+```
+
+**Trace the lookup for `goblin:takeDamage(15)`**:
+1. `goblin.takeDamage` - not in goblin table
+2. Check metatable - it's `Enemy`
+3. Check `Enemy.__index` - it's `Enemy` itself
+4. Check `Enemy.takeDamage` - found!
+5. Call with `goblin` as `self`
+
+---
+
+### Exercise 5: Other Metamethods
+
+**Task**: Explore other common metamethods:
+
+```lua
+--!strict
+
+export type OtherMetamethods = {}
+
+function init(self: OtherMetamethods): boolean
+    local Vector = {
+        __tostring = function(v)
+            return `Vector({v.x}, {v.y})`
+        end,
+        __add = function(a, b)
+            return setmetatable({x = a.x + b.x, y = a.y + b.y}, Vector)
+        end,
+        __mul = function(v, scalar)
+            if type(scalar) == "number" then
+                return setmetatable({x = v.x * scalar, y = v.y * scalar}, Vector)
+            end
+            error("Can only multiply Vector by number")
+        end,
+        __eq = function(a, b)
+            return a.x == b.x and a.y == b.y
+        end,
+        __len = function(v)
+            return math.sqrt(v.x * v.x + v.y * v.y)
+        end,
+    }
+    Vector.__index = Vector
+
+    local function newVector(x: number, y: number)
+        return setmetatable({x = x, y = y}, Vector)
+    end
+
+    local v1 = newVector(3, 4)
+    print(`v1 = {v1}`)  -- Uses __tostring
+
+    local v2 = newVector(1, 2)
+    local v3 = v1 + v2
+    print(`v1 + v2 = {v3}`)
+
+    local v4 = v1 * 2
+    print(`v1 * 2 = {v4}`)
+
+    local v5 = newVector(3, 4)
+    print(`v1 == v5? {v1 == v5}`)
+
+    print(`Length of v1: {#v1}`)  -- 5 (3-4-5 triangle)
+
+    return true
+end
+
+function draw(self: OtherMetamethods, renderer: Renderer)
+end
+
+return function(): Node<OtherMetamethods>
+    return { init = init, draw = draw }
+end
+```
+
+**Common Metamethods:**
+| Metamethod | Triggered By | Example |
+|------------|--------------|---------|
+| `__index` | Missing key lookup | `t.missingKey` |
+| `__newindex` | Assignment to missing key | `t.newKey = value` |
+| `__tostring` | `tostring()` or `print()` | `print(t)` |
+| `__add` | Addition operator | `t1 + t2` |
+| `__sub` | Subtraction operator | `t1 - t2` |
+| `__mul` | Multiplication operator | `t * n` |
+| `__eq` | Equality check | `t1 == t2` |
+| `__len` | Length operator | `#t` |
+| `__call` | Function call | `t()` |
+| `__iter` | For-loop iteration | `for k, v in t` |
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="When is __index consulted?"
+  id="meta-q1"
+  options={[
+    { text: "Every time you access a key" },
+    { text: "Only when the key doesn't exist in the table", correct: true },
+    { text: "Only for string keys" },
+    { text: "Never automatically" },
+  ]}
+  explanation="__index is only called when the key is not found in the table itself. Existing keys are returned directly."
+/>
+
+<Quiz
+  question="What does MyClass.__index = MyClass do?"
+  id="meta-q2"
+  options={[
+    { text: "Creates an infinite loop" },
+    { text: "Makes instances look up missing keys in the class table", correct: true },
+    { text: "Prevents method inheritance" },
+    { text: "Makes the class immutable" },
+  ]}
+  explanation="This pattern makes instances use the class table as their fallback for missing keys, enabling method sharing."
+/>
+
+<Quiz
+  question="If __index is a function, what arguments does it receive?"
+  id="meta-q3"
+  options={[
+    { text: "Just the key" },
+    { text: "The table and the key", correct: true },
+    { text: "The metatable and the key" },
+    { text: "No arguments" },
+  ]}
+  explanation="The __index function receives the table being accessed and the key that wasn't found."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting `setmetatable()`**: Creating a metatable but not attaching it
+2. **Wrong `__index` direction**: Remember, child uses parent as `__index`, not vice versa
+3. **Expecting `__index` for existing keys**: It ONLY fires for missing keys
+4. **Not setting `__index` to self**: `MyClass.__index = MyClass` is essential for methods
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can create a metatable and attach it with `setmetatable()`
+- [ ] I understand when `__index` is triggered
+- [ ] I can use `__index` with both tables and functions
+- [ ] I can trace the lookup chain through multiple levels
+- [ ] I can implement `__tostring` for better debugging
+- [ ] I understand the self-referential pattern (`T.__index = T`)
+
+---
+
+## Next Up
+
+**[3.2 Building Classes →](./classes)**

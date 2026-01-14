@@ -1,12 +1,467 @@
 ---
-sidebar_position: 6
-title: Tables
+sidebar_position: 4
+title: "1.4 Tables Deep Dive"
+description: Master Luau's most powerful data structure
 ---
 
-# Tables
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 1.4: Tables Deep Dive
+
+## Learning Objectives
+- Use tables as arrays and dictionaries
+- Master iteration with pairs, ipairs, and generalized iteration
+- Apply table library functions (create, insert, remove, find, etc.)
+- Understand table references and shallow copying
 
 ---
 
-**[← Back to Variables](/fundamentals/variables)**
+## Arrays
+
+Arrays are tables with sequential integer keys starting at 1:
+
+```lua
+local items = {"sword", "shield", "potion"}
+print(items[1])  -- "sword" (1-indexed!)
+print(#items)    -- 3 (length)
+
+-- Adding items
+table.insert(items, "helmet")        -- Add to end
+table.insert(items, 2, "boots")      -- Insert at position 2
+
+-- Removing items
+local removed = table.remove(items, 3)  -- Remove at position 3
+
+-- Finding items
+local index = table.find(items, "sword")  -- Returns index or nil
+```
+
+:::warning 1-Based Indexing
+Luau arrays start at index 1, not 0. This is different from most languages!
+:::
+
+---
+
+## Dictionaries
+
+Tables with string (or other) keys:
+
+```lua
+local player = {
+    name = "Hero",
+    health = 100,
+    level = 5
+}
+
+-- Access with dot notation
+print(player.name)      -- "Hero"
+
+-- Access with bracket notation
+print(player["health"]) -- 100
+
+-- Adding/modifying
+player.mana = 50
+player["gold"] = 100
+
+-- Removing (set to nil)
+player.level = nil
+```
+
+---
+
+## Mixed Tables & Nesting
+
+```lua
+local world = {
+    name = "Fantasy Realm",
+    level = 1,
+    characters = {
+        {
+            name = "Warrior",
+            class = "Fighter",
+            hp = 100,
+            skills = {"Slash", "Block", "Charge"}
+        },
+        {
+            name = "Mage",
+            class = "Wizard",
+            hp = 60,
+            skills = {"Fireball", "Ice Shard", "Teleport"}
+        }
+    }
+}
+
+-- Accessing nested data
+print(world.name)                      -- "Fantasy Realm"
+print(world.characters[1].name)        -- "Warrior"
+print(world.characters[2].skills[1])   -- "Fireball"
+```
+
+---
+
+## Iteration
+
+### Generalized For (Recommended)
+
+```lua
+-- Works for both arrays and dictionaries
+for key, value in myTable do
+    print(key, value)
+end
+```
+
+### ipairs (Arrays Only)
+
+Iterates sequential integer keys in order:
+
+```lua
+local items = {"a", "b", "c"}
+for i, v in ipairs(items) do
+    print(i, v)  -- 1 a, 2 b, 3 c
+end
+```
+
+### pairs (All Keys)
+
+Iterates all keys (order not guaranteed for non-integer keys):
+
+```lua
+local player = {name = "Hero", health = 100}
+for k, v in pairs(player) do
+    print(k, v)  -- Order may vary
+end
+```
+
+---
+
+## Table Library Functions
+
+### Creating Tables
+
+```lua
+-- Preallocate with default values
+local scores = table.create(5, 0)  -- {0, 0, 0, 0, 0}
+
+-- Empty table
+local data = {}
+```
+
+### Cloning Tables
+
+```lua
+-- Shallow copy
+local original = {a = 1, b = 2}
+local copy = table.clone(original)
+copy.a = 100
+print(original.a)  -- Still 1
+
+-- CAUTION: Nested tables are NOT copied!
+local nested = {inner = {x = 1}}
+local shallowCopy = table.clone(nested)
+shallowCopy.inner.x = 99
+print(nested.inner.x)  -- 99 (modified!)
+```
+
+### Freezing Tables
+
+```lua
+local config = {maxPlayers = 4, difficulty = "hard"}
+table.freeze(config)
+
+print(table.isfrozen(config))  -- true
+-- config.maxPlayers = 8  -- Would error!
+```
+
+---
+
+## Reference Semantics
+
+Tables are references, not values:
+
+```lua
+local original = {value = 10}
+local reference = original  -- NOT a copy!
+reference.value = 99
+print(original.value)  -- 99 (modified!)
+```
+
+### Deep Clone Pattern
+
+```lua
+local function deepClone(t)
+    local copy = {}
+    for k, v in t do
+        if type(v) == "table" then
+            copy[k] = deepClone(v)  -- Recursively clone
+        else
+            copy[k] = v
+        end
+    end
+    return copy
+end
+
+local data = {
+    level = 1,
+    stats = {str = 10, dex = 15}
+}
+
+local deepCopy = deepClone(data)
+deepCopy.stats.str = 100
+print(data.stats.str)  -- Still 10
+```
+
+---
+
+## Common Patterns
+
+### Entity List Management
+
+```lua
+local entities = {}
+
+-- Add entities
+table.insert(entities, {id = 1, active = true})
+table.insert(entities, {id = 2, active = false})
+table.insert(entities, {id = 3, active = true})
+
+-- Filter active entities
+for _, entity in entities do
+    if entity.active then
+        print(`Entity {entity.id} is active`)
+    end
+end
+
+-- Remove inactive (iterate backwards!)
+for i = #entities, 1, -1 do
+    if not entities[i].active then
+        table.remove(entities, i)
+    end
+end
+```
+
+:::tip Removing While Iterating
+When removing items from an array while iterating, go **backwards** to avoid skipping elements.
+:::
+
+### Lookup Table (Set)
+
+```lua
+local validCommands = {
+    jump = true,
+    attack = true,
+    defend = true,
+}
+
+local function isValidCommand(cmd)
+    return validCommands[cmd] or false
+end
+
+print(isValidCommand("jump"))    -- true
+print(isValidCommand("fly"))     -- false
+```
+
+### Remove Duplicates
+
+```lua
+local function removeDuplicates(arr)
+    local seen = {}
+    local result = {}
+
+    for _, v in arr do
+        if not seen[v] then
+            seen[v] = true
+            table.insert(result, v)
+        end
+    end
+
+    return result
+end
+
+local items = {"a", "b", "a", "c", "b", "d"}
+local unique = removeDuplicates(items)
+-- {"a", "b", "c", "d"}
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Array Operations
+
+```lua
+function init(self): boolean
+    local inventory = {"sword", "shield", "potion", "key"}
+
+    -- Print all items
+    for i, item in inventory do
+        print(`{i}: {item}`)
+    end
+
+    -- Add "helmet" to end
+    table.insert(inventory, "helmet")
+
+    -- Add "boots" at position 2
+    table.insert(inventory, 2, "boots")
+
+    -- Remove item at position 4
+    local removed = table.remove(inventory, 4)
+    print(`Removed: {removed}`)
+
+    -- Find "key"
+    local keyIndex = table.find(inventory, "key")
+    print(`Key is at index: {keyIndex}`)
+
+    return true
+end
+```
+
+### Exercise 2: Dictionary Operations
+
+```lua
+function init(self): boolean
+    local stats = {
+        strength = 10,
+        agility = 15,
+        intelligence = 12,
+        luck = 8
+    }
+
+    -- Calculate total
+    local total = 0
+    for _, value in stats do
+        total += value
+    end
+    print(`Total: {total}`)  -- 45
+
+    -- Add new stat
+    stats.endurance = 11
+
+    -- Increase all by 5
+    for stat, value in stats do
+        stats[stat] = value + 5
+    end
+
+    -- Remove luck
+    stats.luck = nil
+
+    -- Count stats (# doesn't work for dictionaries!)
+    local count = 0
+    for _ in stats do
+        count += 1
+    end
+    print(`Stats count: {count}`)
+
+    return true
+end
+```
+
+### Exercise 3: Nested Data
+
+```lua
+function init(self): boolean
+    local world = {
+        characters = {
+            {name = "Warrior", hp = 100, skills = {"Slash", "Block"}},
+            {name = "Mage", hp = 60, skills = {"Fireball", "Ice", "Teleport", "Shield"}},
+            {name = "Rogue", hp = 75, skills = {"Backstab", "Stealth"}}
+        }
+    }
+
+    -- Find character with most skills
+    local maxSkills = 0
+    local mostSkilled = nil
+    for _, char in world.characters do
+        if #char.skills > maxSkills then
+            maxSkills = #char.skills
+            mostSkilled = char.name
+        end
+    end
+    print(`Most skilled: {mostSkilled} ({maxSkills} skills)`)
+
+    -- Calculate total HP
+    local totalHP = 0
+    for _, char in world.characters do
+        totalHP += char.hp
+    end
+    print(`Total party HP: {totalHP}`)
+
+    return true
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What index does the first element of a Luau array have?"
+  id="tbl-q1"
+  type="code"
+  answer="1"
+  explanation="Luau arrays are 1-indexed, meaning the first element is at index 1, not 0."
+/>
+
+<Quiz
+  question="What does #table return for a dictionary?"
+  id="tbl-q2"
+  options={[
+    { text: "The number of keys" },
+    { text: "0 or unpredictable results", correct: true },
+    { text: "An error" },
+    { text: "The total memory size" },
+  ]}
+  explanation="The # operator only counts consecutive integer keys. For dictionaries, use a loop to count keys."
+/>
+
+<Quiz
+  question="What happens when you do: local copy = original (where original is a table)?"
+  id="tbl-q3"
+  options={[
+    { text: "Creates a deep copy" },
+    { text: "Creates a shallow copy" },
+    { text: "Creates a reference to the same table", correct: true },
+    { text: "Creates an empty table" },
+  ]}
+  explanation="Tables are references. Assignment creates another reference to the same table, not a copy."
+/>
+
+<Quiz
+  question="When removing items from an array while iterating, you should iterate:"
+  id="tbl-q4"
+  options={[
+    { text: "Forwards (1 to #array)" },
+    { text: "Backwards (#array to 1)", correct: true },
+    { text: "It doesn't matter" },
+    { text: "You can't remove while iterating" },
+  ]}
+  explanation="Iterating backwards prevents index shifting issues when removing elements."
+/>
+
+---
+
+## Key Takeaways
+
+1. **Arrays start at index 1** in Lua/Luau
+2. **#table** only counts consecutive integer keys
+3. **Tables are references** - assignment doesn't copy
+4. **table.clone** is shallow - nested tables are still shared
+5. **Remove while iterating** - go backwards!
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can create and manipulate arrays with table.insert/remove
+- [ ] I can use table.find to search arrays
+- [ ] I can iterate dictionaries with for k, v in table do
+- [ ] I understand that # only works reliably for arrays
+- [ ] I know the difference between shallow and deep cloning
+- [ ] I understand table reference semantics
+
+---
+
+## Module 1 Complete!
+
+You've finished the Fundamentals module! Next, we'll explore Luau's powerful type system.
+
+**[→ Module 2: Type System](../types/intro)**

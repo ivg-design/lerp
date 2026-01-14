@@ -1,8 +1,690 @@
 ---
-sidebar_position: 6
-title: Inheritance
+sidebar_position: 3
+title: "3.3 Inheritance & Patterns"
+description: Extend classes and implement design patterns
 ---
 
-# Inheritance
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 3.3: Inheritance & Patterns
+
+## Learning Objectives
+- Implement inheritance between classes
+- Use intersection types for typed inheritance
+- Apply common design patterns (Singleton, Factory, Observer)
+- Build a complete class hierarchy for game objects
+
+---
+
+## Inheritance in Luau
+
+Since Luau uses prototype-based OOP, inheritance means linking one prototype to another. When a method isn't found on the child, it looks in the parent.
+
+**Key concept**: Inheritance creates a chain of `__index` lookups.
+
+```
+Child instance → Child prototype → Parent prototype
+```
+
+---
+
+## Basic Inheritance Pattern
+
+```lua
+-- Parent class
+local Animal = {}
+Animal.__index = Animal
+
+function Animal.new(name)
+    return setmetatable({ name = name }, Animal)
+end
+
+function Animal:speak()
+    print("...")
+end
+
+-- Child class inherits from Parent
+local Dog = {}
+Dog.__index = Dog
+setmetatable(Dog, { __index = Animal })  -- Dog looks in Animal for missing keys
+
+function Dog.new(name, breed)
+    local self = Animal.new(name)  -- Create base instance
+    self.breed = breed
+    return setmetatable(self, Dog)  -- Re-attach to Dog's metatable
+end
+
+function Dog:speak()  -- Override parent method
+    print("Woof!")
+end
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Basic Inheritance
+
+**Task**: Create a Shape class hierarchy:
+
+```lua
+--!strict
+
+-- Base class: Shape
+local Shape = {}
+Shape.__index = Shape
+
+type ShapeBase = {
+    x: number,
+    y: number,
+    color: Color,
+}
+
+function Shape.new(x: number, y: number, color: Color): ShapeBase
+    local self = setmetatable({}, Shape)
+    self.x = x
+    self.y = y
+    self.color = color
+    return (self :: any) :: ShapeBase
+end
+
+function Shape:moveTo(newX: number, newY: number)
+    self.x = newX
+    self.y = newY
+end
+
+function Shape:describe()
+    print(`Shape at ({self.x}, {self.y})`)
+end
+
+-- Derived class: Circle
+local Circle = {}
+Circle.__index = Circle
+setmetatable(Circle, { __index = Shape })  -- Inherit from Shape
+
+-- Extend the base type with circle-specific properties
+type CircleType = ShapeBase & {
+    radius: number,
+}
+
+function Circle.new(x: number, y: number, radius: number, color: Color): CircleType
+    local base = Shape.new(x, y, color)
+    base.radius = radius
+    return setmetatable(base, Circle) :: any :: CircleType
+end
+
+function Circle:describe()
+    print(`Circle at ({self.x}, {self.y}) with radius {self.radius}`)
+end
+
+function Circle:area(): number
+    return math.pi * self.radius * self.radius
+end
+
+-- Rectangle inherits from Shape
+local Rectangle = {}
+Rectangle.__index = Rectangle
+setmetatable(Rectangle, { __index = Shape })
+
+type RectangleType = ShapeBase & {
+    width: number,
+    height: number,
+}
+
+function Rectangle.new(x: number, y: number, width: number, height: number, color: Color): RectangleType
+    local base = Shape.new(x, y, color)
+    base.width = width
+    base.height = height
+    return setmetatable(base, Rectangle) :: any :: RectangleType
+end
+
+function Rectangle:describe()
+    print(`Rectangle at ({self.x}, {self.y}) size {self.width}x{self.height}`)
+end
+
+function Rectangle:area(): number
+    return self.width * self.height
+end
+
+-- Test
+export type InheritanceDemo = {}
+
+function init(self: InheritanceDemo): boolean
+    local circle = Circle.new(100, 100, 25, Color.rgb(255, 0, 0))
+    local rect = Rectangle.new(200, 100, 50, 30, Color.rgb(0, 255, 0))
+
+    circle:describe()
+    rect:describe()
+
+    print(`Circle area: {circle:area():.2f}`)
+    print(`Rectangle area: {rect:area()}`)
+
+    -- Both inherit moveTo from Shape
+    circle:moveTo(150, 150)
+    rect:moveTo(250, 150)
+
+    circle:describe()
+    rect:describe()
+
+    return true
+end
+
+function draw(self: InheritanceDemo, renderer: Renderer)
+end
+
+return function(): Node<InheritanceDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 2: Calling Parent Methods
+
+**Task**: Extend parent methods rather than completely replacing them:
+
+```lua
+--!strict
+
+local Enemy = {}
+Enemy.__index = Enemy
+
+type EnemyBase = {
+    name: string,
+    health: number,
+    damage: number,
+}
+
+function Enemy.new(name: string, health: number, damage: number): EnemyBase
+    local self = setmetatable({}, Enemy)
+    self.name = name
+    self.health = health
+    self.damage = damage
+    return (self :: any) :: EnemyBase
+end
+
+function Enemy:attack()
+    print(`{self.name} attacks for {self.damage} damage!`)
+end
+
+function Enemy:describe()
+    print(`{self.name}: {self.health} HP, {self.damage} DMG`)
+end
+
+-- Boss extends Enemy
+local Boss = {}
+Boss.__index = Boss
+setmetatable(Boss, { __index = Enemy })
+
+type BossType = EnemyBase & {
+    phase: number,
+    specialAttackName: string,
+}
+
+function Boss.new(name: string, health: number, damage: number, specialAttackName: string): BossType
+    local base = Enemy.new(name, health, damage)
+    base.phase = 1
+    base.specialAttackName = specialAttackName
+    return setmetatable(base, Boss) :: any :: BossType
+end
+
+-- Override attack but also call parent's attack
+function Boss:attack()
+    Enemy.attack(self)  -- Call parent method with dot notation!
+    if self.phase >= 2 then
+        print(`{self.name} also uses {self.specialAttackName}!`)
+    end
+end
+
+function Boss:describe()
+    Enemy.describe(self)  -- Call parent
+    print(`  Phase: {self.phase}, Special: {self.specialAttackName}`)
+end
+
+function Boss:nextPhase()
+    self.phase += 1
+    self.damage += 10
+    print(`{self.name} enters phase {self.phase}!`)
+end
+
+export type BossDemo = {}
+
+function init(self: BossDemo): boolean
+    local boss = Boss.new("Dragon", 500, 25, "Fire Breath")
+
+    boss:describe()
+
+    print("\n--- Phase 1 Attack ---")
+    boss:attack()
+
+    boss:nextPhase()
+
+    print("\n--- Phase 2 Attack ---")
+    boss:attack()
+
+    return true
+end
+
+function draw(self: BossDemo, renderer: Renderer)
+end
+
+return function(): Node<BossDemo>
+    return { init = init, draw = draw }
+end
+```
+
+**Key Pattern**: To call a parent method, use `ParentClass.methodName(self)` with dot notation.
+
+---
+
+### Exercise 3: The Singleton Pattern
+
+**Task**: Ensure only one instance exists (useful for GameManager, AudioManager):
+
+```lua
+--!strict
+
+local GameManager = {}
+GameManager.__index = GameManager
+
+type GameManagerType = {
+    score: number,
+    level: number,
+    isPaused: boolean,
+    playerName: string,
+}
+
+local instance: GameManagerType? = nil
+
+function GameManager.getInstance(): GameManagerType
+    if instance == nil then
+        local self = setmetatable({}, GameManager)
+        self.score = 0
+        self.level = 1
+        self.isPaused = false
+        self.playerName = "Player"
+        instance = (self :: any) :: GameManagerType
+    end
+    return instance :: GameManagerType
+end
+
+function GameManager.new()
+    error("Use GameManager.getInstance() instead!")
+end
+
+function GameManager:addScore(points: number)
+    self.score += points
+    print(`Score: {self.score}`)
+end
+
+function GameManager:nextLevel()
+    self.level += 1
+    print(`Level up! Now on level {self.level}`)
+end
+
+function GameManager:togglePause()
+    self.isPaused = not self.isPaused
+    print(if self.isPaused then "Game Paused" else "Game Resumed")
+end
+
+export type SingletonDemo = {}
+
+function init(self: SingletonDemo): boolean
+    local game1 = GameManager.getInstance()
+    local game2 = GameManager.getInstance()
+
+    print(`Same instance? {game1 == game2}`)  -- true
+
+    game1:addScore(100)
+    game2:addScore(50)  -- Same instance!
+
+    print(`Final score: {game1.score}`)  -- 150
+
+    return true
+end
+
+function draw(self: SingletonDemo, renderer: Renderer)
+end
+
+return function(): Node<SingletonDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 4: The Observer Pattern (Signals)
+
+**Task**: Build a Signal class for decoupled event handling:
+
+```lua
+--!strict
+
+local Signal = {}
+Signal.__index = Signal
+
+type Connection = {
+    callback: (...any) -> (),
+    connected: boolean,
+}
+
+type SignalType = {
+    _connections: {Connection},
+}
+
+function Signal.new(): SignalType
+    local self = setmetatable({}, Signal)
+    self._connections = {}
+    return (self :: any) :: SignalType
+end
+
+function Signal:connect(callback: (...any) -> ()): Connection
+    local connection: Connection = {
+        callback = callback,
+        connected = true,
+    }
+    table.insert(self._connections, connection)
+    return connection
+end
+
+function Signal:disconnect(connection: Connection)
+    connection.connected = false
+    for i = #self._connections, 1, -1 do
+        if self._connections[i] == connection then
+            table.remove(self._connections, i)
+            break
+        end
+    end
+end
+
+function Signal:fire(...)
+    for _, conn in self._connections do
+        if conn.connected then
+            conn.callback(...)
+        end
+    end
+end
+
+function Signal:disconnectAll()
+    for _, conn in self._connections do
+        conn.connected = false
+    end
+    self._connections = {}
+end
+
+-- Example: Game Events
+local GameEvents = {
+    onScoreChanged = Signal.new(),
+    onPlayerDied = Signal.new(),
+    onLevelComplete = Signal.new(),
+}
+
+export type SignalDemo = {}
+
+function init(self: SignalDemo): boolean
+    local scoreConn = GameEvents.onScoreChanged:connect(function(newScore: number)
+        print(`[UI] Score updated to: {newScore}`)
+    end)
+
+    GameEvents.onScoreChanged:connect(function(newScore: number)
+        print(`[Audio] Playing score sound`)
+    end)
+
+    GameEvents.onPlayerDied:connect(function()
+        print("[UI] Showing death screen")
+    end)
+
+    print("--- Firing events ---")
+    GameEvents.onScoreChanged:fire(100)
+    GameEvents.onScoreChanged:fire(250)
+    GameEvents.onPlayerDied:fire()
+
+    print("\n--- After disconnecting first listener ---")
+    GameEvents.onScoreChanged:disconnect(scoreConn)
+    GameEvents.onScoreChanged:fire(500)
+
+    return true
+end
+
+function draw(self: SignalDemo, renderer: Renderer)
+end
+
+return function(): Node<SignalDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 5: Complete Game Object Hierarchy
+
+```lua
+--!strict
+
+-- Base GameObject
+local GameObject = {}
+GameObject.__index = GameObject
+
+type GameObjectBase = {
+    id: number,
+    x: number,
+    y: number,
+    active: boolean,
+}
+
+local nextId = 1
+
+function GameObject.new(x: number, y: number): GameObjectBase
+    local self = setmetatable({}, GameObject)
+    self.id = nextId
+    nextId += 1
+    self.x = x
+    self.y = y
+    self.active = true
+    return (self :: any) :: GameObjectBase
+end
+
+function GameObject:update(seconds: number) end
+function GameObject:draw(renderer: Renderer) end
+
+function GameObject:destroy()
+    self.active = false
+end
+
+-- Character extends GameObject
+local Character = {}
+Character.__index = Character
+setmetatable(Character, { __index = GameObject })
+
+type CharacterType = GameObjectBase & {
+    name: string,
+    health: number,
+    maxHealth: number,
+    speed: number,
+}
+
+function Character.new(name: string, x: number, y: number, maxHealth: number): CharacterType
+    local base = GameObject.new(x, y)
+    base.name = name
+    base.maxHealth = maxHealth
+    base.health = maxHealth
+    base.speed = 100
+    return setmetatable(base, Character) :: any :: CharacterType
+end
+
+function Character:takeDamage(amount: number)
+    self.health = math.max(0, self.health - amount)
+    if self.health <= 0 then
+        self:destroy()
+    end
+end
+
+-- Player extends Character
+local Player = {}
+Player.__index = Player
+setmetatable(Player, { __index = Character })
+
+type PlayerType = CharacterType & {
+    score: number,
+    inventory: {string},
+}
+
+function Player.new(name: string, x: number, y: number): PlayerType
+    local base = Character.new(name, x, y, 100)
+    base.score = 0
+    base.inventory = {}
+    return setmetatable(base, Player) :: any :: PlayerType
+end
+
+function Player:addItem(item: string)
+    table.insert(self.inventory, item)
+    print(`{self.name} picked up: {item}`)
+end
+
+function Player:addScore(points: number)
+    self.score += points
+    print(`Score: {self.score}`)
+end
+
+-- Enemy extends Character
+local Enemy = {}
+Enemy.__index = Enemy
+setmetatable(Enemy, { __index = Character })
+
+type EnemyType = CharacterType & {
+    damage: number,
+    targetX: number,
+    targetY: number,
+}
+
+function Enemy.new(name: string, x: number, y: number, health: number, damage: number): EnemyType
+    local base = Character.new(name, x, y, health)
+    base.damage = damage
+    base.speed = 50
+    base.targetX = x
+    base.targetY = y
+    return setmetatable(base, Enemy) :: any :: EnemyType
+end
+
+function Enemy:setTarget(x: number, y: number)
+    self.targetX = x
+    self.targetY = y
+end
+
+export type HierarchyDemo = {
+    player: PlayerType,
+    enemies: {EnemyType},
+}
+
+function init(self: HierarchyDemo): boolean
+    self.player = Player.new("Hero", 100, 100)
+    self.enemies = {
+        Enemy.new("Goblin", 200, 100, 30, 5),
+        Enemy.new("Orc", 300, 150, 50, 10),
+    }
+
+    self.player:addItem("Sword")
+    self.player:addScore(50)
+
+    print(`\nPlayer: {self.player.name} at ({self.player.x}, {self.player.y})`)
+
+    for _, enemy in self.enemies do
+        enemy:setTarget(self.player.x, self.player.y)
+        print(`Enemy: {enemy.name} at ({enemy.x}, {enemy.y})`)
+    end
+
+    return true
+end
+
+function draw(self: HierarchyDemo, renderer: Renderer)
+end
+
+return function(): Node<HierarchyDemo>
+    return {
+        init = init,
+        draw = draw,
+        player = late(),
+        enemies = late(),
+    }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="How does Luau's prototype chain implement inheritance?"
+  id="inherit-q1"
+  options={[
+    { text: "Using the 'extends' keyword" },
+    { text: "By linking class tables via setmetatable and __index", correct: true },
+    { text: "Through special compiler support" },
+    { text: "Using interfaces" },
+  ]}
+  explanation="Luau inheritance works by setting a child class's metatable's __index to point to the parent class."
+/>
+
+<Quiz
+  question="How do you call a parent's method from a child class?"
+  id="inherit-q2"
+  options={[
+    { text: "super:method()" },
+    { text: "Parent.method(self) with dot notation", correct: true },
+    { text: "self:parent:method()" },
+    { text: "base.method()" },
+  ]}
+  explanation="Use dot notation with explicit self: Parent.method(self). This bypasses the child's override."
+/>
+
+<Quiz
+  question="What's the purpose of the Singleton pattern?"
+  id="inherit-q3"
+  options={[
+    { text: "To create multiple instances efficiently" },
+    { text: "To ensure only one instance exists globally", correct: true },
+    { text: "To enable inheritance" },
+    { text: "To improve performance" },
+  ]}
+  explanation="Singletons ensure a single instance exists, useful for managers (GameManager, AudioManager) that should be unique."
+/>
+
+<Quiz
+  question="When would you use the Observer/Signal pattern?"
+  id="inherit-q4"
+  options={[
+    { text: "For faster method calls" },
+    { text: "For decoupled event-driven communication", correct: true },
+    { text: "For inheritance hierarchies" },
+    { text: "For memory optimization" },
+  ]}
+  explanation="The Observer pattern allows objects to subscribe to events without tight coupling, making systems more modular."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting to link prototypes**: Both the instance AND class need metatable setup
+2. **Wrong syntax for parent calls**: Use `Parent.method(self)` not `Parent:method()`
+3. **Singleton returning new instances**: Check if instance exists first
+4. **Memory leaks with signals**: Disconnect when objects are destroyed
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can implement class inheritance with setmetatable
+- [ ] I can use intersection types for typed inheritance
+- [ ] I can call parent methods from child classes
+- [ ] I can implement the Singleton pattern
+- [ ] I can implement the Observer/Signal pattern
+- [ ] I can build complete class hierarchies
+
+---
+
+## Module 3 Complete!
+
+You've finished the OOP module. Next, we'll connect Luau to the Rive environment.
+
+**→ Module 4: Rive Integration** *(Coming soon)*

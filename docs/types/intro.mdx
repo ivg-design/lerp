@@ -1,8 +1,433 @@
 ---
 sidebar_position: 1
-title: Type System Overview
+title: "2.1 Type Annotations & Inference"
+description: Enable strict mode, add type annotations, and understand type inference
 ---
 
-# Type System Overview
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 2.1: Type Annotations & Inference
+
+## Learning Objectives
+- Enable and understand `--!strict` mode
+- Add type annotations to variables and functions
+- Understand type inference and when to rely on it
+- Use type refinement with control flow
+
+---
+
+## Why Types Matter
+
+In Module 1, you wrote code that worked—but how do you know it won't break when you change something? Types act as guardrails:
+
+1. **Catch errors early**: Before your animation even runs
+2. **Better autocomplete**: The editor knows what methods are available
+3. **Self-documenting code**: Types explain what data flows where
+4. **Rive integration**: Rive generates types for its entire API
+
+---
+
+## Mode Directives
+
+```lua
+--!strict    -- Full type checking (recommended for Rive)
+--!nonstrict -- Partial checking, allows 'any' inference
+--!nocheck   -- No type checking (default if no directive)
+```
+
+:::tip Always Use Strict Mode
+Add `--!strict` as the first line of every Rive script. It catches bugs before they become runtime errors.
+:::
+
+## Basic Type Annotations
+
+```lua
+local age: number = 25
+local name: string = "Hero"
+local active: boolean = true
+
+local function greet(name: string): string
+    return `Hello, {name}!`
+end
+```
+
+## Type Inference
+
+Luau can often infer types automatically:
+
+```lua
+local score = 100        -- Luau infers: number
+local items = {"a", "b"} -- Luau infers: {string}
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Enable Strict Mode
+
+**Part A**: Create a Node Script with this buggy code (NO strict mode):
+
+```lua
+export type BuggyScript = {}
+
+function init(self: BuggyScript): boolean
+    local damage = "50"  -- Oops, string instead of number!
+    local health = 100
+
+    local result = health - damage  -- This should error...
+    print(`Result: {result}`)
+
+    return true
+end
+
+function draw(self: BuggyScript, renderer: Renderer)
+end
+
+return function(): Node<BuggyScript>
+    return { init = init, draw = draw }
+end
+```
+
+**Question 1**: What happens when you run this? Does it catch the bug?
+
+**Part B**: Now add `--!strict` at the very top:
+
+```lua
+--!strict
+
+export type BuggyScript = {}
+-- ... rest of code
+```
+
+**Question 2**: What error do you see in the Problems tab?
+
+**Part C**: Fix the bug by changing `"50"` to `50`.
+
+---
+
+### Exercise 2: Variable Type Annotations
+
+**Task**: Add type annotations to ALL variables:
+
+```lua
+--!strict
+
+export type CharacterStats = {}
+
+function init(self: CharacterStats): boolean
+    -- Add type annotations to each variable
+    local playerName: string = "Warrior"
+    local level: number = 15
+    local experience: number = 2500.75
+    local isAlive: boolean = true
+    local inventory: {string} = {"sword", "shield", "potion"}
+    local position: {x: number, y: number} = {x = 100, y = 200}
+
+    print(`Player: {playerName}`)
+    print(`Level {level} with {experience} XP`)
+    print(`Alive: {isAlive}`)
+    print(`Items: {#inventory}`)
+    print(`Position: ({position.x}, {position.y})`)
+
+    return true
+end
+
+function draw(self: CharacterStats, renderer: Renderer)
+end
+
+return function(): Node<CharacterStats>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 3: Function Type Annotations
+
+**Task**: Add complete type annotations (parameters AND return types):
+
+```lua
+--!strict
+
+-- 1. Takes two numbers, returns their sum
+local function add(a: number, b: number): number
+    return a + b
+end
+
+-- 2. Takes a number array, returns the average (or 0 if empty)
+local function average(numbers: {number}): number
+    if #numbers == 0 then return 0 end
+    local sum = 0
+    for _, n in numbers do
+        sum += n
+    end
+    return sum / #numbers
+end
+
+-- 3. Takes damage and armor, returns reduced damage (minimum 0)
+local function calculateDamage(baseDamage: number, armor: number): number
+    local reduced = baseDamage - armor
+    if reduced < 0 then return 0 end
+    return reduced
+end
+
+-- 4. Takes a name string, returns a greeting string
+local function createGreeting(name: string): string
+    return `Welcome, {name}!`
+end
+
+export type FunctionTypes = {}
+
+function init(self: FunctionTypes): boolean
+    print(add(10, 20))                        -- 30
+    print(average({10, 20, 30}))              -- 20
+    print(calculateDamage(50, 20))            -- 30
+    print(calculateDamage(10, 50))            -- 0
+    print(createGreeting("Hero"))             -- Welcome, Hero!
+    return true
+end
+
+function draw(self: FunctionTypes, renderer: Renderer)
+end
+
+return function(): Node<FunctionTypes>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 4: Type Inference Investigation
+
+**Task**: For each variable, predict what type Luau infers:
+
+```lua
+--!strict
+
+export type InferenceTest = {}
+
+function init(self: InferenceTest): boolean
+    -- Part A: What types does Luau infer?
+    local a = 42                              -- number
+    local b = "hello"                         -- string
+    local c = true                            -- boolean
+    local d = {1, 2, 3}                       -- {number}
+    local e = {name = "test", value = 10}    -- {name: string, value: number}
+    local f = function(x: number) return x * 2 end  -- (number) -> number
+
+    -- Part B: This empty table needs a type - Luau can't infer it!
+    -- local emptyArray = {}  -- Error in strict mode!
+
+    -- Fix it:
+    local emptyArray: {number} = {}
+
+    -- Part C: Mixed arrays
+    local mixed = {1, "two", 3}  -- {number | string}
+
+    return true
+end
+
+function draw(self: InferenceTest, renderer: Renderer)
+end
+
+return function(): Node<InferenceTest>
+    return { init = init, draw = draw }
+end
+```
+
+**Key insight**: Empty tables (`{}`) MUST have explicit type annotations in strict mode because Luau cannot infer what type of elements they will contain.
+
+---
+
+### Exercise 5: Type Refinement
+
+**Context**: Luau tracks types through control flow. This is called "type refinement" or "narrowing."
+
+```lua
+--!strict
+
+-- A user might or might not have an email
+type UserProfile = {
+    name: string,
+    email: string?  -- The ? means optional (string | nil)
+}
+
+local function sendEmail(email: string)
+    print(`Sending email to: {email}`)
+end
+
+local function processUser(user: UserProfile)
+    print(`Processing: {user.name}`)
+
+    -- This would ERROR without the check:
+    -- sendEmail(user.email)  -- Error: string? is not string
+
+    -- Type refinement: after the check, Luau knows email is string
+    if user.email then
+        sendEmail(user.email)  -- OK! Luau knows it's a string here
+    else
+        print("No email on file")
+    end
+end
+
+-- Function 1: Takes a value that might be number or string
+local function processValue(value: number | string): number
+    if type(value) == "number" then
+        return value * 2
+    else
+        return #value  -- string length
+    end
+end
+
+-- Function 2: Safely get the length of an optional array
+local function safeLength(arr: {number}?): number
+    if arr then
+        return #arr
+    else
+        return 0
+    end
+end
+
+export type RefinementTest = {}
+
+function init(self: RefinementTest): boolean
+    local user1: UserProfile = {name = "Alice", email = "alice@example.com"}
+    local user2: UserProfile = {name = "Bob"}  -- No email
+
+    processUser(user1)
+    processUser(user2)
+
+    print(processValue(10))         -- 20
+    print(processValue("hello"))    -- 5
+    print(safeLength({1, 2, 3}))    -- 3
+    print(safeLength(nil))          -- 0
+
+    return true
+end
+
+function draw(self: RefinementTest, renderer: Renderer)
+end
+
+return function(): Node<RefinementTest>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 6: Real-World Rive Types
+
+**Task**: Fix the type errors in this Rive script:
+
+```lua
+--!strict
+
+export type RiveTypesDemo = {
+    position: Vector,
+    color: Color,
+    path: Path,
+    paint: Paint,
+}
+
+function init(self: RiveTypesDemo): boolean
+    -- CORRECT way to create Rive types:
+    self.position = Vector.xy(100, 50)           -- Not {x = 100, y = 50}
+    self.color = Color.rgba(255, 0, 0, 255)      -- Not "#FF0000"
+    self.path = Path.new()
+    self.paint = Paint.new()
+
+    print("Position:", self.position.x, self.position.y)
+
+    return true
+end
+
+function draw(self: RiveTypesDemo, renderer: Renderer)
+end
+
+return function(): Node<RiveTypesDemo>
+    return {
+        init = init,
+        draw = draw,
+        position = late(),
+        color = late(),
+        path = late(),
+        paint = late(),
+    }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What directive enables full type checking in Luau?"
+  id="types-q1"
+  type="code"
+  answer="--!strict"
+  explanation="Add --!strict as the first line of your script to enable full type checking."
+/>
+
+<Quiz
+  question="What happens with 'local x = {}' in strict mode?"
+  id="types-q2"
+  options={[
+    { text: "It works fine" },
+    { text: "Type error - Luau can't infer the element type", correct: true },
+    { text: "Runtime error" },
+    { text: "It becomes type 'any'" },
+  ]}
+  explanation="Empty tables need explicit type annotations in strict mode because Luau cannot infer what type of elements they will contain."
+/>
+
+<Quiz
+  question="What is type refinement?"
+  id="types-q3"
+  options={[
+    { text: "Converting one type to another" },
+    { text: "Luau narrowing types based on control flow checks", correct: true },
+    { text: "Adding type annotations" },
+    { text: "Removing type errors" },
+  ]}
+  explanation="Type refinement is when Luau automatically narrows a type based on control flow. For example, after 'if x then', Luau knows x is not nil."
+/>
+
+<Quiz
+  question="What's the difference between string? and string | nil?"
+  id="types-q4"
+  options={[
+    { text: "string? is shorter syntax for the same thing", correct: true },
+    { text: "string? allows empty strings, string | nil doesn't" },
+    { text: "They are completely different types" },
+    { text: "string | nil is deprecated" },
+  ]}
+  explanation="string? is just shorthand syntax for string | nil. They are equivalent."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting `--!strict`**: Always add it as the first line
+2. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
+3. **Wrong Rive constructors**: Use `Vector.xy()` not plain tables
+4. **Not checking optionals**: Always guard `string?` before using as `string`
+5. **Redundant annotations**: Don't annotate when inference is obvious
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I always add `--!strict` to my Rive scripts
+- [ ] I can annotate variables: `local x: number = 5`
+- [ ] I can annotate functions: `function(a: string): boolean`
+- [ ] I understand when Luau can infer types automatically
+- [ ] I can use type refinement with `if` checks
+- [ ] I use Rive's built-in types correctly (Vector, Color, etc.)
+
+---
+
+## Next Up
+
+**[2.2 Custom Types & Unions →](./custom-types)**

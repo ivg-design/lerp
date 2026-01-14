@@ -1,8 +1,649 @@
 ---
-sidebar_position: 4
-title: Custom Types
+sidebar_position: 2
+title: "2.2 Custom Types & Unions"
+description: Define custom type aliases, table types, and union types
 ---
 
-# Custom Types
+import Quiz from '@site/src/components/Quiz';
 
-*Content being migrated...*
+# Lesson 2.2: Custom Types & Unions
+
+## Learning Objectives
+- Define custom type aliases with the `type` keyword
+- Create table types (interfaces) for complex data
+- Use union types for flexible values
+- Understand and use optional types (`?`)
+- Implement discriminated unions for state management
+
+---
+
+## Why Custom Types?
+
+In Lesson 2.1, we used built-in types like `number` and `string`. But real applications need custom data structures:
+
+- Player stats with multiple properties
+- Configuration objects
+- State machines with different states
+- Data from ViewModels
+
+Custom types give names to these structures, making code self-documenting and type-safe.
+
+---
+
+## Type Aliases
+
+Type aliases give meaningful names to types:
+
+```lua
+-- Type alias (gives a name to a type)
+type Age = number
+
+-- Table type (defines shape of data)
+type Player = {
+    name: string,
+    health: number,
+}
+
+-- Union type (can be one of several types)
+type StringOrNumber = string | number
+
+-- Optional type (can be nil)
+type MaybeString = string?
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Basic Type Aliases
+
+**Task**: Create type aliases and use them in your code:
+
+```lua
+--!strict
+
+-- Create these type aliases
+type Pixels = number
+type Percentage = number
+type ColorHex = string
+
+export type TypeAliasDemo = {}
+
+function init(self: TypeAliasDemo): boolean
+    -- Use your type aliases
+    local screenWidth: Pixels = 1920
+    local completion: Percentage = 75
+    local background: ColorHex = "#FF5500"
+
+    print(`Screen: {screenWidth}px`)
+    print(`Progress: {completion}%`)
+    print(`Color: {background}`)
+
+    -- Type aliases are just names - this still works
+    local anotherWidth: Pixels = 100 + 200  -- Pixels is just number
+
+    return true
+end
+
+function draw(self: TypeAliasDemo, renderer: Renderer)
+end
+
+return function(): Node<TypeAliasDemo>
+    return { init = init, draw = draw }
+end
+```
+
+**Key insight**: Type aliases don't create new types - they're just names for existing types. A `Pixels` variable can accept any `number`.
+
+---
+
+### Exercise 2: Table Types (Interfaces)
+
+**Task**: Define and use table types:
+
+```lua
+--!strict
+
+-- Define these types
+type Enemy = {
+    name: string,
+    health: number,
+    damage: number,
+}
+
+type Weapon = {
+    name: string,
+    power: number,
+    range: number,
+}
+
+type Position = {
+    x: number,
+    y: number,
+}
+
+export type TableTypesDemo = {}
+
+function init(self: TableTypesDemo): boolean
+    -- Create instances matching your types
+    local goblin: Enemy = {
+        name = "Goblin",
+        health = 30,
+        damage = 5
+    }
+
+    local sword: Weapon = {
+        name = "Iron Sword",
+        power = 15,
+        range = 2
+    }
+
+    local spawn: Position = {
+        x = 100,
+        y = 200
+    }
+
+    -- Types prevent errors - this would fail:
+    -- local brokenEnemy: Enemy = { name = "Orc" }  -- Missing health and damage!
+
+    print(`Enemy: {goblin.name} with {goblin.health} HP`)
+    print(`Weapon: {sword.name} ({sword.power} damage)`)
+    print(`Position: ({spawn.x}, {spawn.y})`)
+
+    return true
+end
+
+function draw(self: TableTypesDemo, renderer: Renderer)
+end
+
+return function(): Node<TableTypesDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 3: Nested and Complex Types
+
+**Task**: Build a character system with nested types:
+
+```lua
+--!strict
+
+-- Define these types in order
+type Stats = {
+    strength: number,
+    defense: number,
+    speed: number,
+}
+
+type Inventory = {
+    items: {string},
+    gold: number,
+}
+
+type Position = { x: number, y: number }
+
+type Character = {
+    name: string,
+    level: number,
+    stats: Stats,
+    inventory: Inventory,
+    position: Position,
+}
+
+-- Function with typed parameter and return
+local function createCharacter(name: string, level: number): Character
+    return {
+        name = name,
+        level = level,
+        stats = {
+            strength = 10 + level * 2,
+            defense = 5 + level,
+            speed = 8 + level
+        },
+        inventory = {
+            items = {"Starter Sword", "Health Potion"},
+            gold = 100
+        },
+        position = {
+            x = 0,
+            y = 0
+        }
+    }
+end
+
+local function printCharacter(char: Character)
+    print(`=== {char.name} (Level {char.level}) ===`)
+    print(`STR: {char.stats.strength}, DEF: {char.stats.defense}, SPD: {char.stats.speed}`)
+    print(`Gold: {char.inventory.gold}`)
+    print(`Items: {#char.inventory.items}`)
+    print(`Position: ({char.position.x}, {char.position.y})`)
+end
+
+export type NestedTypesDemo = {}
+
+function init(self: NestedTypesDemo): boolean
+    local hero = createCharacter("Aria", 5)
+    printCharacter(hero)
+
+    -- Modify nested properties
+    hero.stats.strength += 5
+    hero.inventory.gold -= 50
+    table.insert(hero.inventory.items, "Magic Ring")
+
+    print("\nAfter upgrades:")
+    printCharacter(hero)
+
+    return true
+end
+
+function draw(self: NestedTypesDemo, renderer: Renderer)
+end
+
+return function(): Node<NestedTypesDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+### Exercise 4: Union Types
+
+**Task**: Work with union types:
+
+```lua
+--!strict
+
+-- A value that could be a number or a string
+type ID = number | string
+
+-- A result that could be success (string) or error code (number)
+type Result = string | number
+
+-- A value that could be a position OR a direction name
+type Movement = {x: number, y: number} | "up" | "down" | "left" | "right"
+
+export type UnionDemo = {}
+
+-- This function accepts either type
+local function printID(id: ID)
+    -- We need to check which type it is before using type-specific operations
+    if type(id) == "number" then
+        print(`Numeric ID: {id}`)
+    else
+        print(`String ID: {id}`)
+    end
+end
+
+-- Process movement - could be coordinates or direction
+local function processMovement(move: Movement)
+    if type(move) == "string" then
+        print(`Direction: {move}`)
+    else
+        print(`Coordinates: ({move.x}, {move.y})`)
+    end
+end
+
+function init(self: UnionDemo): boolean
+    printID(12345)
+    printID("ABC-789")
+
+    processMovement("up")
+    processMovement("left")
+    processMovement({x = 10, y = 20})
+
+    return true
+end
+
+function draw(self: UnionDemo, renderer: Renderer)
+end
+
+return function(): Node<UnionDemo>
+    return { init = init, draw = draw }
+end
+```
+
+**Expected Output:**
+```
+Numeric ID: 12345
+String ID: ABC-789
+Direction: up
+Direction: left
+Coordinates: (10, 20)
+```
+
+---
+
+### Exercise 5: Optional Types
+
+**Task**: Handle optional values safely:
+
+```lua
+--!strict
+
+type UserProfile = {
+    username: string,
+    displayName: string?,      -- Optional: might not be set
+    email: string?,            -- Optional
+    age: number?,              -- Optional
+    verified: boolean,
+}
+
+-- This function REQUIRES an email
+local function sendEmail(email: string, message: string)
+    print(`Sending "{message}" to {email}`)
+end
+
+-- Get display name, fallback to username if not set
+local function getDisplayName(user: UserProfile): string
+    if user.displayName then
+        return user.displayName
+    else
+        return user.username
+    end
+end
+
+-- Safely send a welcome email (only if email exists)
+local function sendWelcomeEmail(user: UserProfile)
+    if user.email then
+        sendEmail(user.email, "Welcome!")
+    else
+        print(`No email on file for {user.username}`)
+    end
+end
+
+-- Get age category
+local function getAgeCategory(user: UserProfile): string
+    if user.age then
+        if user.age < 18 then
+            return "minor"
+        else
+            return "adult"
+        end
+    else
+        return "unknown"
+    end
+end
+
+export type OptionalDemo = {}
+
+function init(self: OptionalDemo): boolean
+    local user1: UserProfile = {
+        username = "warrior42",
+        displayName = "The Mighty Warrior",
+        email = "warrior@example.com",
+        age = 25,
+        verified = true
+    }
+
+    local user2: UserProfile = {
+        username = "newbie",
+        verified = false
+        -- No displayName, email, or age!
+    }
+
+    print(`User 1 display: {getDisplayName(user1)}`)
+    print(`User 2 display: {getDisplayName(user2)}`)
+
+    sendWelcomeEmail(user1)
+    sendWelcomeEmail(user2)
+
+    print(`User 1 category: {getAgeCategory(user1)}`)
+    print(`User 2 category: {getAgeCategory(user2)}`)
+
+    return true
+end
+
+function draw(self: OptionalDemo, renderer: Renderer)
+end
+
+return function(): Node<OptionalDemo>
+    return { init = init, draw = draw }
+end
+```
+
+**Expected Output:**
+```
+User 1 display: The Mighty Warrior
+User 2 display: newbie
+Sending "Welcome!" to warrior@example.com
+No email on file for newbie
+User 1 category: adult
+User 2 category: unknown
+```
+
+---
+
+### Exercise 6: Discriminated Unions (State Machines)
+
+**Context**: A powerful pattern for state machines. Add a `kind` field to distinguish between states.
+
+```lua
+--!strict
+
+-- Each state has a "kind" field that identifies it
+type LoadingState = { kind: "idle" }
+type FetchingState = { kind: "fetching", url: string, progress: number }
+type SuccessState = { kind: "success", data: string }
+type ErrorState = { kind: "error", message: string, code: number }
+
+-- Union of all states
+type AppState = LoadingState | FetchingState | SuccessState | ErrorState
+
+local function renderState(state: AppState)
+    -- Luau narrows the type based on the kind field
+    if state.kind == "idle" then
+        print("Ready to load...")
+    elseif state.kind == "fetching" then
+        -- Inside this block, state is known to be FetchingState
+        print(`Loading {state.url}: {state.progress}%`)
+    elseif state.kind == "success" then
+        print(`Loaded: {state.data}`)
+    elseif state.kind == "error" then
+        print(`Error {state.code}: {state.message}`)
+    end
+end
+
+-- State transition functions
+local function startLoading(url: string): FetchingState
+    return { kind = "fetching", url = url, progress = 0 }
+end
+
+local function updateProgress(state: FetchingState, newProgress: number): FetchingState
+    return { kind = "fetching", url = state.url, progress = newProgress }
+end
+
+local function finishLoading(data: string): SuccessState
+    return { kind = "success", data = data }
+end
+
+local function failLoading(message: string, code: number): ErrorState
+    return { kind = "error", message = message, code = code }
+end
+
+export type StateDemo = {
+    currentState: AppState,
+}
+
+function init(self: StateDemo): boolean
+    -- Simulate a loading sequence
+    self.currentState = { kind = "idle" }
+    renderState(self.currentState)
+
+    self.currentState = startLoading("https://api.example.com/data")
+    renderState(self.currentState)
+
+    -- Type guard: only update progress if we're in fetching state
+    if self.currentState.kind == "fetching" then
+        self.currentState = updateProgress(self.currentState, 50)
+        renderState(self.currentState)
+
+        self.currentState = updateProgress(self.currentState, 100)
+        renderState(self.currentState)
+    end
+
+    -- Success path
+    self.currentState = finishLoading("Player data loaded!")
+    renderState(self.currentState)
+
+    -- Alternative: Error path
+    print("\n--- Simulating error ---")
+    self.currentState = { kind = "idle" }
+    self.currentState = startLoading("https://api.example.com/missing")
+    self.currentState = failLoading("Resource not found", 404)
+    renderState(self.currentState)
+
+    return true
+end
+
+function draw(self: StateDemo, renderer: Renderer)
+end
+
+return function(): Node<StateDemo>
+    return {
+        init = init,
+        draw = draw,
+        currentState = { kind = "idle" }
+    }
+end
+```
+
+---
+
+### Exercise 7: Read-Only Properties
+
+**Task**: Prevent modification of certain properties:
+
+```lua
+--!strict
+
+-- Read-only properties use the 'read' modifier
+type ImmutableConfig = {
+    read version: string,
+    read maxPlayers: number,
+    read debug: boolean,
+}
+
+type MutableConfig = {
+    currentPlayers: number,
+    serverName: string,
+}
+
+type GameConfig = ImmutableConfig & MutableConfig
+
+export type ReadOnlyDemo = {}
+
+function init(self: ReadOnlyDemo): boolean
+    local config: GameConfig = {
+        version = "1.0.0",
+        maxPlayers = 100,
+        debug = false,
+        currentPlayers = 0,
+        serverName = "Main Server"
+    }
+
+    -- Reading is always OK
+    print(`Version: {config.version}`)
+    print(`Max Players: {config.maxPlayers}`)
+
+    -- Mutable properties can be changed
+    config.currentPlayers = 42
+    config.serverName = "Updated Server"
+
+    -- These would error:
+    -- config.version = "2.0.0"  -- Error: cannot write to read-only property
+    -- config.maxPlayers = 200   -- Error: cannot write to read-only property
+
+    print(`Current Players: {config.currentPlayers}`)
+    print(`Server: {config.serverName}`)
+
+    return true
+end
+
+function draw(self: ReadOnlyDemo, renderer: Renderer)
+end
+
+return function(): Node<ReadOnlyDemo>
+    return { init = init, draw = draw }
+end
+```
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What's the difference between a type alias and a new type?"
+  id="custom-q1"
+  options={[
+    { text: "Type aliases create completely new types" },
+    { text: "Type aliases are just names for existing types", correct: true },
+    { text: "Type aliases can only be used for primitives" },
+    { text: "There is no difference" },
+  ]}
+  explanation="Type aliases are just alternative names for types. A 'Pixels' type alias is still just a 'number' under the hood."
+/>
+
+<Quiz
+  question="What does 'string?' mean?"
+  id="custom-q2"
+  options={[
+    { text: "A question about strings" },
+    { text: "string | nil (optional string)", correct: true },
+    { text: "An empty string" },
+    { text: "A nullable string that can't be empty" },
+  ]}
+  explanation="The ? suffix means 'or nil'. So string? is equivalent to string | nil."
+/>
+
+<Quiz
+  question="Why use a 'kind' field in union types?"
+  id="custom-q3"
+  options={[
+    { text: "It's required by Luau" },
+    { text: "It helps Luau narrow the type in if statements", correct: true },
+    { text: "It improves performance" },
+    { text: "It's just a convention with no benefit" },
+  ]}
+  explanation="The 'kind' field creates a discriminated union. When you check state.kind == 'fetching', Luau knows the state is a FetchingState and can access its specific properties."
+/>
+
+<Quiz
+  question="What happens if you try to create a table missing required properties?"
+  id="custom-q4"
+  options={[
+    { text: "It works, missing properties become nil" },
+    { text: "Type error in strict mode", correct: true },
+    { text: "Runtime error" },
+    { text: "Properties get default values" },
+  ]}
+  explanation="In strict mode, all required properties must be provided when creating a table that matches a type."
+/>
+
+---
+
+## Common Mistakes
+
+1. **Forgetting required properties**: Table types require ALL non-optional properties
+2. **Not checking optionals**: Always guard `string?` before use
+3. **Accessing union properties without narrowing**: Check the type first
+4. **Confusing `?` and `| nil`**: They're equivalent, but `?` is cleaner
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can define custom type aliases
+- [ ] I can create table types with multiple properties
+- [ ] I can nest types inside other types
+- [ ] I understand union types (`A | B`)
+- [ ] I can handle optional types (`T?`) safely
+- [ ] I can implement discriminated unions with `kind` fields
+- [ ] I understand read-only properties
+
+---
+
+## Next Up
+
+**[2.3 Generics & Advanced Types →](./generics)**

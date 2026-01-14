@@ -1,16 +1,24 @@
 ---
 sidebar_position: 1
-title: Variables and Scope
-description: Understanding variables, scope, and closures in Luau
+title: "1.1 Variables, Types & Operators"
+description: Declare variables, understand data types, and use operators
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import Term from '@site/src/components/Term';
 import Exercise from '@site/src/components/Exercise';
 
-# Variables and Scope
+# Lesson 1.1: Variables, Types & Operators
 
-Luau syntax is clean and minimalist. Statements do not require semicolons at the end of lines.
+## Learning Objectives
+
+By the end of this lesson, you will be able to:
+- Declare local variables correctly
+- Understand Luau's basic data types
+- Use arithmetic, comparison, and logical operators
+- Apply string interpolation and compound assignments
+
+---
 
 ## Comments
 
@@ -33,22 +41,99 @@ gravity = 9.8
 
 -- Local variable (PREFERRED)
 local speed = 50
+
+-- With type annotation
+local health: number = 100
 ```
 
 ### Global vs Local Variables
 
 | Type | Declaration | Scope | Recommendation |
 |------|-------------|-------|----------------|
-| **Global** | `name = value` | Everywhere | ❌ Avoid |
-| **Local** | `local name = value` | Current block | ✅ Always use |
+| **Global** | `name = value` | Everywhere | Avoid |
+| **Local** | `local name = value` | Current block | Always use |
 
 :::danger Avoid Global Variables
 Global variables can lead to naming collisions and make code harder to trace and debug. Always use `local` unless you have a very specific reason not to.
 :::
 
+## Basic Types
+
+Luau has these fundamental types:
+
+| Type | Example | Description |
+|------|---------|-------------|
+| `nil` | `nil` | Absence of value |
+| `boolean` | `true`, `false` | Logical values |
+| `number` | `42`, `3.14`, `0xFF` | All numbers (integers and floats) |
+| `string` | `"hello"`, `'world'` | Text |
+| `table` | `{}`, `{1,2,3}` | Arrays and dictionaries |
+| `function` | `function() end` | Callable code |
+
+## Operators
+
+### Arithmetic Operators
+
+```lua
+-- Basic arithmetic
+local sum = 10 + 5      -- 15
+local diff = 10 - 5     -- 5
+local product = 10 * 5  -- 50
+local quotient = 10 / 3 -- 3.333...
+local floor = 10 // 3   -- 3 (floor division)
+local mod = 10 % 3      -- 1 (remainder)
+local power = 2 ^ 3     -- 8
+```
+
+### Compound Assignment Operators
+
+```lua
+local x = 10
+x += 5   -- x = x + 5  (15)
+x -= 3   -- x = x - 3  (12)
+x *= 2   -- x = x * 2  (24)
+x /= 4   -- x = x / 4  (6)
+x //= 2  -- x = x // 2 (3)
+```
+
+### Comparison Operators
+
+```lua
+==   -- equal
+~=   -- NOT equal (note: not !=)
+<    -- less than
+>    -- greater than
+<=   -- less than or equal
+>=   -- greater than or equal
+```
+
+### Logical Operators
+
+```lua
+and  -- both must be true
+or   -- at least one must be true
+not  -- negation
+```
+
+### String Operators
+
+```lua
+-- Concatenation
+local full = "Hello" .. " " .. "World"  -- "Hello World"
+
+-- Length
+local len = #"Hello"  -- 5
+
+-- String interpolation (backticks)
+local name = "Player"
+local msg = `Welcome, {name}!`  -- "Welcome, Player!"
+```
+
+---
+
 ## Block Scope
 
-Variables are scoped to the **block** where they are defined (a function, loop, or `do...end` block):
+Variables are scoped to the **block** where they are defined:
 
 ```lua
 local function calculate()
@@ -61,18 +146,6 @@ local function calculate()
 
     -- print(message)  -- Error: 'message' is out of scope here
 end
-```
-
-### Explicit Scope with `do ... end`
-
-Create explicit scopes to limit variable lifetime:
-
-```lua
-do
-    local temp = 42
-    print(temp)
-end
--- print(temp)  -- Error: temp is out of scope
 ```
 
 ## Closures and Upvalues
@@ -98,43 +171,140 @@ print(nextCount())  -- 3
 Closures are especially useful in Rive for callbacks, stateful helpers, and maintaining state between frames.
 :::
 
-## Exercise
+---
 
-<Exercise
-  title="Create a Counter"
-  code={`--!strict
+## Practice Exercises
 
-local function makeCounter()
-    local count = 0
-    return function()
-        count += 1
-        return count
-    end
+### Exercise 1: Variable Declaration
+
+**Task**: Declare variables for a game character and print them.
+
+```lua
+--!strict
+
+export type Exercise1 = {}
+
+function init(self: Exercise1): boolean
+    -- Declare these variables:
+    -- 1. characterName (string) = "Warrior"
+    -- 2. level (number) = 5
+    -- 3. experience (number) = 1250.5
+    -- 4. hasShield (boolean) = true
+
+    -- Print all variables
+
+    return true
 end
 
-local counter = makeCounter()
-print(counter())  -- What does this print?
-print(counter())  -- What about this?`}
-  task="Create a second counter with makeCounter() and verify it has its own independent count."
-  hint="Each call to makeCounter() creates a new closure with its own count variable."
-  solution={`--!strict
-
-local function makeCounter()
-    local count = 0
-    return function()
-        count += 1
-        return count
-    end
+function draw(self: Exercise1, renderer: Renderer)
 end
 
-local counter1 = makeCounter()
-local counter2 = makeCounter()
+return function(): Node<Exercise1>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
 
-print(counter1())  -- 1
-print(counter1())  -- 2
-print(counter2())  -- 1 (independent!)
-print(counter1())  -- 3`}
-/>
+**Expected Output:**
+```
+Warrior
+5
+1250.5
+true
+```
+
+### Exercise 2: Arithmetic Operations
+
+**Task**: Calculate damage with various modifiers.
+
+```lua
+function init(self: Exercise2): boolean
+    local baseDamage = 50
+    local critMultiplier = 2.5
+    local armorReduction = 15
+
+    -- Calculate: (baseDamage * critMultiplier) - armorReduction
+    -- Store in: finalDamage
+
+    -- Calculate percentage blocked:
+    -- armorReduction / (baseDamage * critMultiplier) * 100
+    -- Store in: percentBlocked
+
+    print(`Final damage: {finalDamage}`)
+    print(`Percent blocked: {percentBlocked}%`)
+
+    return true
+end
+```
+
+**Expected Output:**
+```
+Final damage: 110
+Percent blocked: 12%
+```
+
+### Exercise 3: Compound Assignments
+
+**Task**: Use compound operators to modify a score.
+
+```lua
+function init(self: Exercise3): boolean
+    local score = 100
+
+    -- 1. Add 50 to score (use +=)
+    -- 2. Multiply score by 2 (use *=)
+    -- 3. Subtract 75 from score (use -=)
+    -- 4. Floor divide score by 3 (use //=)
+
+    -- Print the score after EACH operation
+
+    return true
+end
+```
+
+**Expected Output:**
+```
+After +50: 150
+After *2: 300
+After -75: 225
+After //3: 75
+```
+
+### Exercise 4: Logical Operators
+
+**Task**: Determine game states using logical operators.
+
+```lua
+function init(self: Exercise4): boolean
+    local health = 25
+    local hasPotion = true
+    local inCombat = false
+    local level = 10
+
+    -- 1. Is the player low on health? (health < 30)
+    local isLowHealth = health < 30
+
+    -- 2. Can the player heal? (low health AND has potion AND NOT in combat)
+    local canHeal = isLowHealth and hasPotion and not inCombat
+
+    -- 3. Is the player a veteran? (level >= 10)
+    local isVeteran = level >= 10
+
+    -- 4. Should show health warning? (low health AND (in combat OR NOT has potion))
+    local showWarning = isLowHealth and (inCombat or not hasPotion)
+
+    print(`Low health: {isLowHealth}`)   -- true
+    print(`Can heal: {canHeal}`)         -- true
+    print(`Is veteran: {isVeteran}`)     -- true
+    print(`Show warning: {showWarning}`) -- false
+
+    return true
+end
+```
+
+---
 
 ## Knowledge Check
 
@@ -147,15 +317,15 @@ print(counter1())  -- 3`}
 />
 
 <Quiz
-  question="What does a closure capture?"
+  question="What operator is used for 'not equal' in Luau?"
   id="vars-q2"
   options={[
-    { text: "Only function arguments" },
-    { text: "Variables from the surrounding scope (upvalues)", correct: true },
-    { text: "Global variables only" },
-    { text: "Nothing - closures are stateless" },
+    { text: "!=" },
+    { text: "~=", correct: true },
+    { text: "<>" },
+    { text: "=/=" },
   ]}
-  explanation="Closures capture variables from their surrounding scope, called upvalues. This allows them to maintain state."
+  explanation="Luau uses ~= for not equal, not != like many other languages."
 />
 
 <Quiz
@@ -166,8 +336,40 @@ print(counter1())  -- 3`}
   explanation="The // operator is floor division - it divides and rounds down to the nearest integer."
 />
 
+<Quiz
+  question="What does a closure capture?"
+  id="vars-q4"
+  options={[
+    { text: "Only function arguments" },
+    { text: "Variables from the surrounding scope (upvalues)", correct: true },
+    { text: "Global variables only" },
+    { text: "Nothing - closures are stateless" },
+  ]}
+  explanation="Closures capture variables from their surrounding scope, called upvalues. This allows them to maintain state."
+/>
+
+---
+
+## Common Mistakes to Avoid
+
+1. **Forgetting `local`**: Always declare with `local`
+2. **Using `!=`**: Luau uses `~=` for not-equal
+3. **String concat in interpolation**: Inside `{}` you don't need `..`
+4. **Division precision**: `/` gives float, `//` gives floor integer
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I can declare local variables with explicit types
+- [ ] I understand the difference between `=` and `==`
+- [ ] I can use `~=` for "not equal" (not `!=`)
+- [ ] I can use compound assignments like `+=` and `*=`
+- [ ] I can use string interpolation with backticks
+- [ ] I understand `and`, `or`, `not` logical operators
+
+---
+
 ## Next Up
 
-Now let's explore Luau's data types:
-
-**[→ Data Types](/fundamentals/data-types)**
+**[1.2 Control Flow & Loops →](./control-flow)**
