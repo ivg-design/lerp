@@ -2,12 +2,28 @@
 sidebar_position: 1
 title: Core Types
 description: Understanding Path, Paint, and other core drawing types in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - advanced
+  - core
+  - types
+  - understanding
+  - path
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Core Types
+
+:::info Prerequisites
+Before this section, complete:
+- [How Rive Scripts Work](/getting-started/how-rive-scripts-work) — Script structure and lifecycle
+- [<Term>Node</Term> Protocol](/rive/protocols/node-protocol) — Factory function and init/draw pattern
+:::
 
 ## Rive Context: The Drawing Pipeline
 
@@ -15,7 +31,7 @@ Rive's drawing system follows a simple pipeline:
 
 1. **Path** = geometry (what shape to draw)
 2. **Paint** = styling (how it looks)
-3. **Renderer** = draw command (where it goes)
+3. **<Term>Renderer</Term>** = draw command (where it goes)
 
 Understanding these core types is essential for procedural graphics in Rive. Create paths and paints in `init`, then use them in `draw`.
 
@@ -27,26 +43,54 @@ A `Path` defines geometry using move, line, and curve commands. Think of it as a
 
 ### Path Methods
 
-| Method | Description |
-|--------|-------------|
-| `Path.new()` | Create an empty path |
-| `path:moveTo(vec)` | Move pen to position without drawing |
-| `path:lineTo(vec)` | Draw a line from current position to target |
-| `path:close()` | Connect back to the starting point |
-| `path:reset()` | Clear all path data |
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `Path.new()` | `Path.new(): Path` | Create an empty path |
+| `path:moveTo(vec)` | `path:moveTo(vec: Vector)` | Move pen to position without drawing |
+| `path:lineTo(vec)` | `path:lineTo(vec: Vector)` | Draw a line from current position to target |
+| `path:close()` | `path:close()` | Connect back to the starting point |
+| `path:reset()` | `path:reset()` | Clear all path data |
 
-<Exercise
-  id="advanced-core-1"
-  title="Exercise 1: Draw a Line"
-  difficulty={1}
-  hint="Use moveTo to set the start position, then lineTo to draw to the end position. Create a stroke paint with thickness and color."
-  expectedAnswer="line"
-  explanation="moveTo sets the pen position without drawing, while lineTo draws a line from the current position to the target. Together they form the most basic path operations."
-  task="Complete the init function to create a diagonal line path from (-120, -40) to (120, 40), and a stroke paint with thickness 4 and a pink color."
-  expectedOutput={`Creating line path...
-Line path created!
-ANSWER: line`}
-  code={`--!strict
+### Exercise 1: Draw a Line ⭐ {#exercise-1-draw-a-line}
+
+### Premise
+
+moveTo sets the pen position without drawing, while lineTo draws a line from the current position to the target. Together they form the most basic path operations.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to create a diagonal line path from (-120, -40) to (120, 40), and a stroke paint with thickness 4 and a pink color.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1DrawALine`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Draw a simple diagonal line
 
 export type DrawLine = {
@@ -86,28 +130,46 @@ return function(): Node<DrawLine>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Create a new Path
-self.path = Path.new()
+end
+```
 
--- TODO 2: Move to starting point
-self.path:moveTo(Vector.xy(-120, -40))
+---
 
--- TODO 3: Draw line to end point
-self.path:lineTo(Vector.xy(120, 40))
+### Assignment
 
--- TODO 4: Create stroke Paint
-self.paint = Paint.with({
-    style = "stroke",
-    thickness = 4,
-    color = Color.rgb(255, 80, 120),
-    cap = "round",
-})`}
->
-**Premise:** You're learning the most fundamental path operations—moving and drawing lines.
+Complete these tasks:
 
-**Use Case:** Every procedural graphic starts with these basics. Lines are used for graphs, connectors, indicators, and as building blocks for complex shapes.
-</Exercise>
+1. Complete the init function to create a diagonal line path from (-120, -40) to (120, 40), and a stroke paint with thickness 4 and a pink color.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-core-1"
+    expectedAnswer="ANSWER: line"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `moveTo` sets the starting position without drawing
@@ -116,18 +178,46 @@ self.paint = Paint.with({
 
 ---
 
-<Exercise
-  id="advanced-core-2"
-  title="Exercise 2: Filled Rectangle with Outline"
-  difficulty={1}
-  hint="Build a rectangle using 4 lineTo calls, then close(). Create two paints: one fill and one stroke. Draw fill first, then stroke on top."
-  expectedAnswer="rectangle"
-  explanation="close() connects the last point back to the starting point, creating a closed shape. You can draw the same path multiple times with different paints—fill first, then stroke on top."
-  task="Complete the init function to create a closed rectangle path and two paints (fill and stroke). In draw, render both."
-  expectedOutput={`Creating rectangle...
-Rectangle with outline created!
-ANSWER: rectangle`}
-  code={`--!strict
+### Exercise 2: Filled Rectangle with Outline ⭐ {#exercise-2-filled-rectangle-with-outline}
+
+### Premise
+
+close() connects the last point back to the starting point, creating a closed shape. You can draw the same path multiple times with different paints—fill first, then stroke on top.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to create a closed rectangle path and two paints (fill and stroke). In draw, render both.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2FilledRectangleWithOutline`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Draw a filled rectangle with a stroke outline
 
 export type DrawRect = {
@@ -170,32 +260,46 @@ return function(): Node<DrawRect>
         fill = late(),
         stroke = late(),
     }
-end`}
-  solution={`-- TODO 1: Create a new Path
-self.path = Path.new()
+end
+```
 
--- TODO 2: Build a rectangle
-self.path:moveTo(Vector.xy(-80, -50))
-self.path:lineTo(Vector.xy(80, -50))
-self.path:lineTo(Vector.xy(80, 50))
-self.path:lineTo(Vector.xy(-80, 50))
-self.path:close()
+---
 
--- TODO 3: Create fill Paint
-self.fill = Paint.with({ style = "fill", color = Color.rgb(80, 170, 255) })
+### Assignment
 
--- TODO 4: Create stroke Paint
-self.stroke = Paint.with({ style = "stroke", thickness = 6, color = Color.rgb(20, 60, 120) })
+Complete these tasks:
 
--- In draw():
--- TODO 5: Draw fill first, then stroke
-renderer:drawPath(self.path, self.fill)
-renderer:drawPath(self.path, self.stroke)`}
->
-**Premise:** You're building a shape with both a filled interior and a visible outline—a common pattern for UI elements.
+1. Complete the init function to create a closed rectangle path and two paints (fill and stroke). In draw, render both.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-**Use Case:** Most UI elements (buttons, panels, cards) have both fill and stroke. Understanding the draw order (fill first, stroke on top) is essential for clean visuals.
-</Exercise>
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-core-2"
+    expectedAnswer="ANSWER: rectangle"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `close()` connects the last point back to the first
@@ -208,6 +312,13 @@ renderer:drawPath(self.path, self.stroke)`}
 
 `Paint` defines how a path renders: fill vs stroke, color, thickness, gradients, and more.
 
+### Paint Constructors
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `Paint.with(def)` | `Paint.with(def: PaintDefinition): Paint` | Create a paint with initial properties |
+| `paint:copy(overrides)` | `paint:copy(overrides: PaintDefinition): Paint` | Clone a paint with overrides |
+
 ### Paint Properties
 
 | Property | Values | Description |
@@ -219,18 +330,46 @@ renderer:drawPath(self.path, self.stroke)`}
 | `join` | `"miter"`, `"round"`, `"bevel"` | Corner style |
 | `gradient` | `Gradient` | Linear or radial gradient |
 
-<Exercise
-  id="advanced-core-3"
-  title="Exercise 3: Fill vs Stroke"
-  difficulty={1}
-  hint="Fill colors the interior of a closed shape. Stroke draws the outline. Use 'cap' for line endings and 'join' for corners."
-  expectedAnswer="styles"
-  explanation="Fill and stroke are the two fundamental paint styles. Fill colors the interior, stroke draws the outline. You can combine both on the same path."
-  task="Create a rectangle path and two paints: a fill paint (orange) and a stroke paint (brown) with round cap and join settings."
-  expectedOutput={`Testing fill vs stroke...
-Both styles applied!
-ANSWER: styles`}
-  code={`--!strict
+### Exercise 3: Fill vs Stroke ⭐ {#exercise-3-fill-vs-stroke}
+
+### Premise
+
+Fill and stroke are the two fundamental paint styles. Fill colors the interior, stroke draws the outline. You can combine both on the same path.
+
+:::info Goal
+By the end of this exercise, you will be able to Create a rectangle path and two paints: a fill paint (orange) and a stroke paint (brown) with round cap and join settings.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3FillVsStroke`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Compare fill and stroke paint styles
 
 export type PaintBasics = {
@@ -274,46 +413,89 @@ return function(): Node<PaintBasics>
         fill = late(),
         stroke = late(),
     }
-end`}
-  solution={`-- TODO 1: Create fill Paint
-self.fill = Paint.with({
-    style = "fill",
-    color = Color.rgb(255, 160, 80),
-})
-
--- TODO 2: Create stroke Paint
-self.stroke = Paint.with({
-    style = "stroke",
-    thickness = 6,
-    cap = "round",
-    join = "round",
-    color = Color.rgb(70, 40, 20),
-})
-
--- In draw():
--- TODO 3: Draw fill first, then stroke
-renderer:drawPath(self.path, self.fill)
-renderer:drawPath(self.path, self.stroke)`}
->
-**Premise:** You're learning the two fundamental paint styles that control how shapes appear.
-
-**Use Case:** Almost every procedural graphic uses either fill, stroke, or both. Understanding the difference is essential for creating any visual element.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="advanced-core-4"
-  title="Exercise 4: Gradient Fill"
-  difficulty={2}
-  hint="Gradient.linear takes a start point, end point, and array of color stops. Each stop has a position (0-1) and color."
-  expectedAnswer="gradient"
-  explanation="Linear gradients interpolate colors between two points. Color stops define which colors appear at which positions along the gradient line."
-  task="Create a rectangle path and apply a linear gradient fill that transitions from red (left) to blue (right)."
-  expectedOutput={`Creating gradient...
-Gradient applied!
-ANSWER: gradient`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Create a rectangle path and two paints: a fill paint (orange) and a stroke paint (brown) with round cap and join settings.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-core-3"
+    expectedAnswer="ANSWER: styles"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Gradient Fill ⭐⭐ {#exercise-4-gradient-fill}
+
+### Premise
+
+Linear gradients interpolate colors between two points. Color stops define which colors appear at which positions along the gradient line.
+
+:::info Goal
+By the end of this exercise, you will be able to Create a rectangle path and apply a linear gradient fill that transitions from red (left) to blue (right).
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4GradientFill`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Apply a linear gradient to a filled rectangle
 
 export type GradientDemo = {
@@ -357,27 +539,46 @@ return function(): Node<GradientDemo>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Create a linear gradient
-local gradient = Gradient.linear(
-    Vector.xy(-90, 0),
-    Vector.xy(90, 0),
-    {
-        { position = 0, color = Color.rgb(255, 80, 80) },
-        { position = 1, color = Color.rgb(80, 120, 255) },
-    }
-)
+end
+```
 
--- TODO 2: Create fill Paint with gradient
-self.paint = Paint.with({
-    style = "fill",
-    gradient = gradient,
-})`}
->
-**Premise:** You're learning to create smooth color transitions using gradients.
+---
 
-**Use Case:** Gradients are essential for polished UI elements—buttons, backgrounds, progress bars, and visual effects all benefit from gradient fills.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Create a rectangle path and apply a linear gradient fill that transitions from red (left) to blue (right).
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-core-4"
+    expectedAnswer="ANSWER: gradient"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `Gradient.linear` takes start point, end point, and color stops
@@ -386,18 +587,46 @@ self.paint = Paint.with({
 
 ---
 
-<Exercise
-  id="advanced-core-5"
-  title="Exercise 5: Paint Variations with copy()"
-  difficulty={2}
-  hint="Use paint:copy({ property = value }) to create a new paint that inherits all settings from the original but overrides specific properties."
-  expectedAnswer="copied"
-  explanation="paint:copy() creates a new paint instance with inherited settings. This is more efficient than creating separate paints with redundant properties."
-  task="Create a base fill paint, then use copy() to create a highlight variation with a different color. Draw both with a slight offset."
-  expectedOutput={`Creating paint variations...
-Paint copied with variation!
-ANSWER: copied`}
-  code={`--!strict
+### Exercise 5: Paint Variations with copy() ⭐⭐ {#exercise-5-paint-variations-with-copy}
+
+### Premise
+
+paint:copy() creates a new paint instance with inherited settings. This is more efficient than creating separate paints with redundant properties.
+
+:::info Goal
+By the end of this exercise, you will be able to Create a base fill paint, then use copy() to create a highlight variation with a different color. Draw both with a slight offset.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5PaintVariationsWithCopy`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Create paint variations using copy()
 
 export type PaintCopyDemo = {
@@ -448,17 +677,46 @@ return function(): Node<PaintCopyDemo>
         base = late(),
         highlight = late(),
     }
-end`}
-  solution={`-- TODO 1: Create base fill Paint
-self.base = Paint.with({ style = "fill", color = Color.rgb(40, 140, 200) })
+end
+```
 
--- TODO 2: Create highlight Paint using copy()
-self.highlight = self.base:copy({ color = Color.rgb(120, 220, 255) })`}
->
-**Premise:** You're learning to efficiently create paint variations by copying and overriding specific properties.
+---
 
-**Use Case:** UI themes, hover states, and visual hierarchies often need similar paints with slight variations. copy() keeps your code DRY and maintainable.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Create a base fill paint, then use copy() to create a highlight variation with a different color. Draw both with a slight offset.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-core-5"
+    expectedAnswer="ANSWER: copied"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `paint:copy({ ... })` creates a new paint with overridden properties
@@ -525,6 +783,7 @@ Path and Paint are the foundation of Rive's drawing system. Create them once in 
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Drawing API (Transforms & Renderer) →](./drawing-api)**
+- Continue to [Drawing API](/advanced/drawing-api)
+- Need a refresher? Review [Quick Reference](/quick-reference)

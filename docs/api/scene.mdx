@@ -2,7 +2,17 @@
 sidebar_position: 3
 title: Scene
 description: Artboard, Node, and Animation objects
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - reference
+  - scene
+  - artboard
+  - node
 ---
+import Term from '@site/src/components/Term';
 
 # Scene
 
@@ -21,7 +31,7 @@ Represents a Rive artboard instance.
 | `width` | number | read/write | Artboard width |
 | `height` | number | read/write | Artboard height |
 | `frameOrigin` | boolean | read/write | Origin is frame origin |
-| `data` | typed | read-only | Associated ViewModel data |
+| `data` | typed | read-only | Associated <Term>ViewModel</Term> data |
 
 ### Methods
 
@@ -75,7 +85,7 @@ artboard:node(name: string): Node?
 
 #### `artboard:addToPath(path, transform?)`
 
-Adds the artboard's geometry to a path, optionally transformed.
+Adds the artboard's geometry to a <Term>Path</Term>, optionally transformed.
 
 ```lua
 artboard:addToPath(path: Path, transform?: Mat2D)
@@ -129,7 +139,7 @@ end
 
 #### `update(self)`
 
-Called when an input value changes.
+Called when an <Term>Input</Term> value changes.
 
 ```lua
 function update(self: MyNode)
@@ -191,7 +201,7 @@ return function(): Node<MyNode>
 end
 ```
 
-**See Also:** [PointerEvent](./events#pointerevent), [Renderer](./drawing#renderer), [NodeData](./hierarchy#nodedata)
+**See Also:** [PointerEvent](./events#pointerevent), [<Term>Renderer</Term>](./drawing#renderer), [NodeData](./hierarchy#nodedata)
 
 ---
 
@@ -241,6 +251,7 @@ animation:setTimePercentage(percent: number)
 
 **Example: Animation Scrubber**
 ```lua
+-- Assumes you have an Artboard reference (e.g., Input<Artboard<...>> named artboard)
 function update(self)
     local anim = self.artboard:animation("Idle")
     anim:setTimePercentage(self.progress)
@@ -248,3 +259,8 @@ end
 ```
 
 **See Also:** [Artboard.animation](#artboardanimationname)
+
+## Next Steps
+
+- Continue to [Data & Input](/api/data-input)
+- Need a refresher? Review [Quick Reference](/quick-reference)

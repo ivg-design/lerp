@@ -24,7 +24,7 @@ const termMappings: Record<string, string> = {
 
   // Scene Objects
   'artboard': '/api/scene#artboard',
-  'node': '/api/scene#node',
+  'node': '/api/scene#node-object',
   'animation': '/api/scene#animation',
 
   // Data & Input
@@ -47,9 +47,12 @@ const termMappings: Record<string, string> = {
   'late()': '/types/late-initializer',
 
   // Protocols
-  'node protocol': '/rive/node-protocol',
-  'util protocol': '/rive/util-protocol',
-  'converter protocol': '/rive/other-protocols',
+  'node protocol': '/rive/protocols/node-protocol',
+  'util protocol': '/rive/protocols/util-protocol',
+  'converter protocol': '/rive/protocols/converter-protocol',
+
+  // Glossary fallbacks
+  'state machine': '/glossary#state-machine',
 };
 
 export default function Term({ children, to, tooltip }: TermProps) {

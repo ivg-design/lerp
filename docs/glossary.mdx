@@ -2,7 +2,16 @@
 sidebar_position: 102
 title: Glossary
 description: Key terms and definitions for Rive scripting with Luau
+keywords:
+  - rive
+  - luau
+  - scripting
+  - glossary
+  - key
+  - terms
+  - definitions
 ---
+import Term from '@site/src/components/Term';
 
 # Glossary
 
@@ -14,7 +23,7 @@ A comprehensive reference of key terms used throughout the LERP course. Click an
 
 ### Artboard {#artboard}
 
-The canvas in Rive where animations are created. Each artboard can contain its own animations, state machines, and scripts. In Node scripts, you work with artboard instances via the `Artboard<T>` type.
+The canvas in Rive where animations are created. Each <Term>Artboard</Term> can contain its own animations, state machines, and scripts. In <Term>Node</Term> scripts, you work with artboard instances via the `Artboard<T>` type.
 
 ```lua
 -- Referencing another artboard as an input
@@ -38,7 +47,7 @@ function advance(self: MyScript, seconds: number): boolean
 end
 ```
 
-**Learn more:** [The Lifecycle](/rive/protocols)
+**Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
 ---
 
@@ -100,7 +109,7 @@ score *= 2    -- Same as: score = score * 2
 
 ### Context {#context}
 
-The runtime context object passed to Node scripts, providing access to the ViewModel and other runtime features.
+The runtime context object passed to Node scripts, providing access to the <Term>ViewModel</Term> and other runtime features.
 
 ```lua
 function init(self: MyScript, context: Context): boolean
@@ -130,7 +139,7 @@ function advance(self: MyScript, seconds: number): boolean
 end
 ```
 
-**Learn more:** [The Lifecycle](/rive/protocols)
+**Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
 ---
 
@@ -185,7 +194,7 @@ return function(): Node<MyScript>
 end
 ```
 
-**Learn more:** [Node Protocol](/rive/node-protocol)
+**Learn more:** [Node Protocol](/rive/protocols/node-protocol)
 
 ---
 
@@ -211,7 +220,7 @@ export type MyScript = {
 
 ### Gradient {#gradient}
 
-A color gradient for Paint objects. Supports linear and radial gradients.
+A color gradient for <Term>Paint</Term> objects. Supports linear and radial gradients.
 
 ```lua
 local gradient = Gradient.linear(
@@ -242,7 +251,7 @@ function init(self: MyScript): boolean
 end
 ```
 
-**Learn more:** [The Lifecycle](/rive/protocols)
+**Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
 ---
 
@@ -310,7 +319,7 @@ end
 
 ### late() {#late}
 
-A special Rive initializer for properties that will be set in `init()` rather than in the factory function. Required for Rive types like Path, Paint, and computed values.
+A special Rive initializer for properties that will be set in `init()` rather than in the factory function. Required for Rive types like <Term>Path</Term>, Paint, and computed values.
 
 ```lua
 export type MyScript = {
@@ -341,11 +350,11 @@ The sequence of functions Rive calls on your script: `init` → `update` → `ad
 | Function | When Called | Purpose |
 |----------|-------------|---------|
 | `init` | Once at start | Setup, create objects |
-| `update` | When inputs change | React to input changes |
+| `update` | When inputs change | React to <Term>Input</Term> changes |
 | `advance` | Every frame | Animation, physics |
 | `draw` | Every frame | Rendering |
 
-**Learn more:** [The Lifecycle](/rive/protocols)
+**Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
 ---
 
@@ -368,7 +377,7 @@ local combined = translate * rotate
 renderer:transform(combined)
 ```
 
-**Learn more:** [Transforms & Renderer](/advanced/drawing-api)
+**Learn more:** [Transforms & <Term>Renderer</Term>](/advanced/drawing-api)
 
 ---
 
@@ -428,7 +437,7 @@ return function(): Node<MyScript>
 end
 ```
 
-**Learn more:** [Node Protocol](/rive/node-protocol)
+**Learn more:** [Node Protocol](/rive/protocols/node-protocol)
 
 ---
 
@@ -541,7 +550,7 @@ end)
 
 ### Renderer {#renderer}
 
-The drawing context provided to `draw()` for custom rendering. Works like a state machine with save/restore.
+The drawing context provided to `draw()` for custom rendering. Works like a <Term>State Machine</Term> with save/restore.
 
 ```lua
 function draw(self: MyScript, renderer: Renderer)
@@ -575,6 +584,26 @@ end
 ```
 
 **Learn more:** [Self & Methods](/oop/self-and-methods)
+
+---
+
+### State Machine {#state-machine}
+
+Rive's logic layer that controls which animations play and when. State Machines contain inputs (Boolean, Number, Trigger), layers, states, and transitions with conditions. Scripts can interact with State Machines through ViewModel data binding.
+
+```lua
+-- Scripts don't directly access State Machines
+-- Instead, bind ViewModel properties to State Machine inputs
+-- Then read/write those properties from scripts
+
+local vm = context:viewModel()
+if vm then
+    -- This ViewModel property is bound to a State Machine input
+    vm:setNumber("health", 75)
+end
+```
+
+**Learn more:** [ViewModel Integration](/advanced/viewmodels)
 
 ---
 
@@ -658,7 +687,7 @@ function update(self: MyScript)
 end
 ```
 
-**Learn more:** [The Lifecycle](/rive/protocols)
+**Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
 ---
 
@@ -698,7 +727,7 @@ end
 return MathUtils
 ```
 
-**Learn more:** [Util Scripts](/rive/util-protocol)
+**Learn more:** [Util Scripts](/rive/protocols/util-protocol)
 
 ---
 
@@ -753,3 +782,8 @@ end
 | **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector) |
 | **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue) |
 | **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [Factory Function](#factory-function) |
+
+## Next Steps
+
+- Continue to [Welcome to LERP](/)
+- Refresh syntax in [Quick Reference](/quick-reference)

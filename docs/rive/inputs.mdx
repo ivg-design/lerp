@@ -2,16 +2,26 @@
 sidebar_position: 3
 title: Inputs and Data Binding
 description: Learn how to use script inputs and data binding in Rive Node Scripts
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - inputs
+  - data
+  - binding
+  - script
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Inputs and Data Binding
 
 ## Learning Objectives
 - Define and use script inputs with `Input<T>`
-- Read input values directly (e.g., `self.size`)
+- Read <Term>Input</Term> values directly (e.g., `self.size`)
 - Respond to input changes with `update()`
 - Connect to ViewModels for complex data binding
 
@@ -27,7 +37,7 @@ import Exercise from '@site/src/components/Exercise';
 | Default value | Set in Effect Controls Panel | Set in factory return table |
 | Property binding | Link expression to property | `context:viewModel()` |
 | Read-only input | N/A (AE controls are always editable) | `Input<T>` (read-only by design) |
-| Two-way binding | Not native (requires workarounds) | ViewModel `.value` setter |
+| Two-way binding | Not native (requires workarounds) | <Term>ViewModel</Term> `.value` setter |
 
 :::info Input Access in This Course
 In this version of Rive scripting, inputs are read directly (e.g., `self.size`). The editor still treats them as inputs, but you do not access a `.value` field.
@@ -42,7 +52,7 @@ Script inputs are how designers control your script from the Rive UI. You define
 **Key rules:**
 - Inputs are **read-only** in scripts (read them directly)
 - Use `update(self)` to respond to changes
-- Use `late()` for inputs that are assigned in the editor (ViewModel or Artboard inputs)
+- Use `late()` for inputs that are assigned in the editor (ViewModel or <Term>Artboard</Term> inputs)
 
 ---
 
@@ -101,18 +111,46 @@ When you define an `Input<T>` type in your script, Rive automatically creates a 
 
 ## Practice Exercises
 
-<Exercise
-  id="rive-inputs-1"
-  title="Exercise 1: Size + Color Inputs"
-  difficulty={2}
-  hint="In the rebuild function, calculate half as self.size / 2, then build a square path centered at the origin."
-  expectedAnswer="rebuilt"
-  explanation="The update() function is called only when inputs change. This is more efficient than rebuilding every frame in advance()—you only do work when the data actually changes."
-  task="Complete the rebuild function to build a square path based on the size input. The path should be centered at the origin with corners at (-half, -half) to (half, half)."
-  expectedOutput={`Creating input-driven square...
-Rebuilt: size=80
-ANSWER: rebuilt`}
-  code={`--!strict
+### Exercise 1: Size + Color Inputs ⭐⭐ {#exercise-1-size-color-inputs}
+
+### Premise
+
+The update() function is called only when inputs change. This is more efficient than rebuilding every frame in advance()—you only do work when the data actually changes.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the rebuild function to build a square <Term>Path</Term> based on the size input. The path should be centered at the origin with corners at (-half, -half) to (half, half).
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1SizeColorInputs`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A square that rebuilds when size input changes
 
 export type InputSquare = {
@@ -158,39 +196,89 @@ return function(): Node<InputSquare>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Calculate half as size divided by 2
-local half = self.size / 2
-
--- TODO 2: Reset the path and build a square
-self.path:reset()
-self.path:moveTo(Vector.xy(-half, -half))
-self.path:lineTo(Vector.xy(half, -half))
-self.path:lineTo(Vector.xy(half, half))
-self.path:lineTo(Vector.xy(-half, half))
-self.path:close()`}
->
-**Premise:** You're creating a shape whose size can be adjusted by designers in the Rive editor without touching code.
-
-**Use Case:** Input-driven shapes are fundamental to reusable components. A single button script can be used throughout your project with different sizes configured per-instance.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-inputs-2"
-  title="Exercise 2: Time-Based Animation"
-  difficulty={2}
-  hint="Use math.sin(self.time * speed) to create oscillation. Multiply by amplitude for the range."
-  expectedAnswer="oscillating"
-  explanation="Time-based calculations with sine/cosine create smooth oscillations. This pattern is the foundation for procedural animation—moving elements based on mathematical functions rather than keyframes."
-  task="Complete the advance function to track time and calculate an oscillating position using sine. The position should swing between -60 and +60."
-  expectedOutput={`Driver initialized
-Time: 0.5s, Position: 45.0
-Time: 1.0s, Position: 52.9
-...
-ANSWER: oscillating`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the rebuild function to build a square path based on the size input. The path should be centered at the origin with corners at (-half, -half) to (half, half).
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-inputs-1"
+    expectedAnswer="ANSWER: rebuilt"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Time-Based Animation ⭐⭐ {#exercise-2-timebased-animation}
+
+### Premise
+
+Time-based calculations with sine/cosine create smooth oscillations. This pattern is the foundation for procedural animation—moving elements based on mathematical functions rather than keyframes.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to track time and calculate an oscillating position using sine. The position should swing between -60 and +60.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2TimeBasedAnimation`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Animate a position over time using sine wave
 
 export type AnimationDriver = {
@@ -239,34 +327,89 @@ return function(): Node<AnimationDriver>
         time = 0,
         position = 0,
     }
-end`}
-  solution={`-- TODO 1: Add seconds to self.time
-self.time += seconds
-
--- TODO 2: Calculate position using sine wave
-self.position = math.sin(self.time * self.speed) * self.amplitude`}
->
-**Premise:** You're creating a procedural animation that oscillates smoothly over time without using keyframes.
-
-**Use Case:** Sine-based oscillation is everywhere: floating UI elements, breathing animations, pendulum motion, wave effects. This is fundamental to procedural animation.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-inputs-3"
-  title="Exercise 3: Input Change Counter"
-  difficulty={2}
-  hint="Track the previous value and compare it to the current value in update(). Increment the counter when they differ."
-  expectedAnswer="3"
-  explanation="The update() function is called whenever inputs change. By tracking previous values, you can detect and count changes—useful for analytics, undo systems, or triggering one-time effects."
-  task="Complete the update function to track how many times the speed input has changed. Store the previous value and compare it to detect changes."
-  expectedOutput={`Input tracker ready
-Speed changed: 2 -> 5 (change #1)
-Speed changed: 5 -> 3 (change #2)
-Speed changed: 3 -> 8 (change #3)
-ANSWER: 3`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to track time and calculate an oscillating position using sine. The position should swing between -60 and +60.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-inputs-2"
+    expectedAnswer="ANSWER: oscillating"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Input Change Counter ⭐⭐ {#exercise-3-input-change-counter}
+
+### Premise
+
+The update() function is called whenever inputs change. By tracking previous values, you can detect and count changes—useful for analytics, undo systems, or triggering one-time effects.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the update function to track how many times the speed input has changed. Store the previous value and compare it to detect changes.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3InputChangeCounter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Track how many times an input has changed
 
 export type InputTracker = {
@@ -306,24 +449,46 @@ return function(): Node<InputTracker>
         previousSpeed = 0,
         changeCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Check if speed has changed from previousSpeed
-if self.speed ~= self.previousSpeed then
-    -- TODO 2: If changed
-    self.changeCount += 1
-    print(\`Speed changed: {self.previousSpeed} -> {self.speed} (change #{self.changeCount})\`)
-    self.previousSpeed = self.speed
+end
+```
 
-    -- TODO 3: If changeCount reaches 3, print answer
-    if self.changeCount == 3 then
-        print("ANSWER: 3")
-    end
-end`}
->
-**Premise:** You're building a debugging tool that tracks how often users change certain parameters. This helps identify frequently-adjusted settings.
+---
 
-**Use Case:** Change tracking is useful for undo/redo systems, analytics, or triggering animations only on the first change.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the update function to track how many times the speed input has changed. Store the previous value and compare it to detect changes.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-inputs-3"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -338,19 +503,152 @@ end`}
 
 ---
 
-<Exercise
-  id="rive-inputs-4"
-  title="Exercise 4: Progress Bar with Inputs"
-  difficulty={2}
-  hint="Calculate filledWidth as (current / max) * barWidth. Build two rectangles: background (full width) and foreground (filled width)."
-  expectedAnswer="75%"
-  explanation="Progress bars combine multiple inputs (width, height, current, max) to create a visual representation of data. This pattern is used for health bars, loading indicators, and any value-to-visual mapping."
-  task="Complete the rebuild function to draw a progress bar. Calculate the filled width based on current/max ratio, and build paths for both background and foreground."
-  expectedOutput={`Progress bar initialized
-Current: 75 / Max: 100
-Fill percentage: 75%
-ANSWER: 75%`}
-  code={`--!strict
+## `Input<T>` vs ViewModel: When to Use Which
+
+This is a common source of confusion. Here's how to think about it:
+
+### The Core Difference
+
+| | `Input<T>` | ViewModel Property |
+|--|----------|-------------------|
+| **Scope** | Per-instance (each script can have different values) | Global (shared across all scripts) |
+| **Set from** | Rive editor inspector panel | Runtime API, external code, or bindings |
+| **Direction** | Read-only in scripts | Read/write in scripts |
+| **Changes trigger** | `update(self)` callback | Listeners you register |
+
+### Mental Model: Props vs State
+
+Think of it like React:
+
+```lua
+-- Input<T> = Props (passed to component, read-only)
+export type Button = {
+    label: Input<string>,    -- Configured per-instance in editor
+    width: Input<number>,    -- Each button can have different width
+}
+
+-- ViewModel = Global State (like Redux/Context)
+-- Multiple scripts can read/write the same score
+function init(self: GameUI, context: Context): boolean
+    local vm = context:viewModel()
+    local score = vm:getNumber("score")  -- Shared across all scripts
+    score.value = score.value + 100       -- Can write to it!
+    return true
+end
+```
+
+### Update Flow Comparison
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Input<T> Update Flow                         │
+├─────────────────────────────────────────────────────────────────┤
+│   Editor Inspector          →    update(self)    →    rebuild  │
+│   (designer changes value)       (automatic)         (your code)│
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│               ViewModel Property Update Flow                    │
+├─────────────────────────────────────────────────────────────────┤
+│   External code             →    Listener fires   →   callback │
+│   (API, binding, script)        (if registered)      (your code)│
+│                                                                 │
+│   vm.property.value = 10    →    addListener(fn)  →   fn()     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Choosing the Right One
+
+**Use `Input<T>` when:**
+- Designer needs to tweak values per-instance in the editor
+- Value is static configuration (size, color, speed)
+- Different instances need different values
+- No runtime changes needed
+
+**Use ViewModel when:**
+- Value changes at runtime (score, health, progress)
+- Multiple scripts need to share data
+- External code needs to update values
+- Two-way binding with UI elements
+
+### Example: Health Bar
+
+```lua
+export type HealthBar = {
+    -- Input: Configuration that designers set per-instance
+    barWidth: Input<number>,     -- Each health bar can be different size
+    barHeight: Input<number>,
+
+    -- ViewModel: Runtime data shared globally
+    context: Context,
+}
+
+function init(self: HealthBar, context: Context): boolean
+    self.context = context
+
+    -- Get shared player health from ViewModel
+    local vm = context:viewModel()
+    local health = vm:getNumber("playerHealth")
+
+    -- Listen for changes (not automatic like update())
+    if health then
+        health:addListener(function()
+            rebuild(self)  -- Redraw when health changes
+            self.context:markNeedsUpdate()
+        end)
+    end
+
+    return true
+end
+
+function update(self: HealthBar)
+    -- Called when barWidth or barHeight changes
+    rebuild(self)
+end
+```
+
+---
+
+### Exercise 4: Progress Bar with Inputs ⭐⭐ {#exercise-4-progress-bar-with-inputs}
+
+### Premise
+
+Progress bars combine multiple inputs (width, height, current, max) to create a visual representation of data. This pattern is used for health bars, loading indicators, and any value-to-visual mapping.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the rebuild function to draw a progress bar. Calculate the filled width based on current/max ratio, and build paths for both background and foreground.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4ProgressBarWithInputs`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A progress bar driven by inputs
 
 export type ProgressBar = {
@@ -418,33 +716,46 @@ return function(): Node<ProgressBar>
         bgPaint = late(),
         fillPaint = late(),
     }
-end`}
-  solution={`-- TODO 1: Calculate the percentage (current / max)
-local percent = self.current / self.max
+end
+```
 
--- TODO 2: Calculate filledWidth (percent * barWidth)
-local filledWidth = percent * self.barWidth
+---
 
--- TODO 3: Build bgPath as full-width rectangle
-self.bgPath:reset()
-self.bgPath:moveTo(Vector.xy(0, 0))
-self.bgPath:lineTo(Vector.xy(self.barWidth, 0))
-self.bgPath:lineTo(Vector.xy(self.barWidth, self.barHeight))
-self.bgPath:lineTo(Vector.xy(0, self.barHeight))
-self.bgPath:close()
+### Assignment
 
--- TODO 4: Build fillPath as partial-width rectangle
-self.fillPath:reset()
-self.fillPath:moveTo(Vector.xy(0, 0))
-self.fillPath:lineTo(Vector.xy(filledWidth, 0))
-self.fillPath:lineTo(Vector.xy(filledWidth, self.barHeight))
-self.fillPath:lineTo(Vector.xy(0, self.barHeight))
-self.fillPath:close()`}
->
-**Premise:** You're creating a reusable progress bar component where designers can configure dimensions and values through inputs.
+Complete these tasks:
 
-**Use Case:** Progress bars are everywhere: health bars in games, loading indicators, skill bars in portfolios. This component can be reused with different configurations throughout a project.
-</Exercise>
+1. Complete the rebuild function to draw a progress bar. Calculate the filled width based on current/max ratio, and build paths for both background and foreground.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-inputs-4"
+    expectedAnswer="ANSWER: 75%"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -570,6 +881,7 @@ Use **inputs** for per-instance tuning (each script instance can have different 
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Node Protocol →](./node-protocol)**
+- Continue to [Node Protocol](/rive/protocols/node-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

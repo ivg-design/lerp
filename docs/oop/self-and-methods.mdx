@@ -2,10 +2,20 @@
 sidebar_position: 5
 title: self and Methods
 description: The colon syntax, self parameter, and method calls in Lua
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - self
+  - methods
+  - colon
+  - syntax
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # self and Methods
 
@@ -45,10 +55,10 @@ The colon (`:`) is **syntactic sugar** that automatically passes the object as t
 
 ## Rive Context
 
-In Rive Node Scripts, you constantly work with methods:
+In Rive <Term>Node</Term> Scripts, you constantly work with methods:
 
-- **Renderer methods**: `renderer:drawPath()`, `renderer:save()`, `renderer:restore()`
-- **Path methods**: `path:moveTo()`, `path:lineTo()`, `path:close()`
+- **<Term>Renderer</Term> methods**: `renderer:drawPath()`, `renderer:save()`, `renderer:restore()`
+- **<Term>Path</Term> methods**: `path:moveTo()`, `path:lineTo()`, `path:close()`
 - **Your own class methods**: `sprite:update()`, `particle:draw()`
 
 Understanding the colon syntax is essential for writing correct Rive code. Get it wrong, and your `self` will be `nil` or the wrong object entirely.
@@ -81,21 +91,46 @@ The colon is just shorthand - nothing magical happens.
 
 ---
 
-<Exercise
-  id="oop-self-1"
-  title="Exercise 1: Dot vs Colon Basics"
-  difficulty={1}
-  hint="Use colon (:) to automatically pass self, or dot (.) with the object as the first argument"
-  expectedAnswer="20"
-  explanation="After increment (11) + increment (12) + add 5 (17) + add 3 (20), the final value is 20. Both colon and dot syntax work - colon just automatically passes self."
-  task="Complete the TODO sections to call counter methods using both dot and colon syntax, then print the final value."
-  expectedOutput={`Initial: 10
-After :increment(): 11
-After .increment(counter): 12
-After :add(5): 17
-After .add(counter, 3): 20
-ANSWER: 20`}
-  code={`--!strict
+### Exercise 1: Dot vs Colon Basics ⭐ {#exercise-1-dot-vs-colon-basics}
+
+### Premise
+
+After increment (11) + increment (12) + add 5 (17) + add 3 (20), the final value is 20. Both colon and dot syntax work - colon just automatically passes self.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the TODO sections to call counter methods using both dot and colon syntax, then print the final value.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1DotVsColonBasics`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Counter = {}
 Counter.__index = Counter
@@ -161,42 +196,89 @@ return function(): Node<DotColonDemo>
         draw = draw,
         counter = Counter.new(0),
     }
-end`}
-  solution={`-- TODO 1: Call increment using COLON syntax
-self.counter:increment()
-
--- TODO 2: Call increment using DOT syntax
-Counter.increment(self.counter)
-
--- TODO 3: Call add(5) using COLON syntax
-self.counter:add(5)
-
--- TODO 4: Call add(3) using DOT syntax
-Counter.add(self.counter, 3)`}
->
-
-**Premise**: The colon (`:`) syntax is **syntactic sugar** that automatically passes the object as `self`. Understanding this equivalence is fundamental to all Luau OOP.
-
-**Use Case**: Every Rive API call uses colon syntax (`renderer:drawPath()`). Knowing when to use dot vs colon prevents the #1 source of bugs in Luau.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-self-2"
-  title="Exercise 2: Why self Matters - Multiple Instances"
-  difficulty={1}
-  hint="Use colon syntax (:report()) to call on each sprite, then use the stored function with dot syntax by passing the sprite as the first argument"
-  expectedAnswer="4"
-  explanation="Each sprite reports twice (once with colon, once with dot syntax), totaling 4 reports. self allows each instance to know its own identity."
-  task="Make each sprite report itself using both colon syntax and the stored function with dot syntax."
-  expectedOutput={`I am A at (-60, 0)
-I am B at (60, 0)
-I am A at (-60, 0)
-I am B at (60, 0)
-ANSWER: 4`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the TODO sections to call counter methods using both dot and colon syntax, then print the final value.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-1"
+    expectedAnswer="ANSWER: 20"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Why self Matters - Multiple Instances ⭐ {#exercise-2-why-self-matters-multiple-instances}
+
+### Premise
+
+Each sprite reports twice (once with colon, once with dot syntax), totaling 4 reports. self allows each instance to know its own identity.
+
+:::info Goal
+By the end of this exercise, you will be able to Make each sprite report itself using both colon syntax and the stored function with dot syntax.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2WhySelfMattersMultipleInstances`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Sprite = {}
 Sprite.__index = Sprite
@@ -262,46 +344,89 @@ return function(): Node<SelfIdentityDemo>
         spriteB = Sprite.new("", 0, 0),
         reportCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Call report on spriteA using COLON syntax
-self.spriteA:report()
-self.reportCount += 1
-
--- TODO 2: Call report on spriteB using COLON syntax
-self.spriteB:report()
-self.reportCount += 1
-
--- TODO 3: Use reportFunc with DOT syntax to report spriteA
-reportFunc(self.spriteA)
-self.reportCount += 1
-
--- TODO 4: Use reportFunc with DOT syntax to report spriteB
-reportFunc(self.spriteB)
-self.reportCount += 1`}
->
-
-**Premise**: When you have multiple instances (sprites, particles, enemies), each object needs to know its OWN data. The `self` parameter is what answers "which one?".
-
-**Use Case**: A particle system with 100 particles. When you call `particle:update()`, `self` refers to THAT specific particle. Without proper `self` handling, you couldn't distinguish between instances.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-self-3"
-  title="Exercise 3: Debugging self Errors"
-  difficulty={2}
-  hint="Store the method with dot syntax, then call it by passing the widget as the first argument. For the bound wrapper, create a closure that calls widget:describe()."
-  expectedAnswer="MyWidget: 200x100"
-  explanation="After resizing to 200x100 and calling through the bound wrapper, the output shows the new dimensions. The bound wrapper captures self in a closure."
-  task="Complete the TODOs to call methods correctly and create a bound wrapper that preserves self."
-  expectedOutput={`Colon call: MyWidget: 100x50
-Dot call: MyWidget: 100x50
-Stored method: MyWidget: 100x50
-Bound wrapper after resize: MyWidget: 200x100
-ANSWER: MyWidget: 200x100`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Make each sprite report itself using both colon syntax and the stored function with dot syntax.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-2"
+    expectedAnswer="ANSWER: 4"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Debugging self Errors ⭐⭐ {#exercise-3-debugging-self-errors}
+
+### Premise
+
+After resizing to 200x100 and calling through the bound wrapper, the output shows the new dimensions. The bound wrapper captures self in a closure.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the TODOs to call methods correctly and create a bound wrapper that preserves self.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3DebuggingSelfErrors`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Widget = {}
 Widget.__index = Widget
@@ -373,27 +498,46 @@ return function(): Node<DebugSelfDemo>
         draw = draw,
         widget = Widget.new("", 0, 0),
     }
-end`}
-  solution={`-- TODO 1: Call describe using COLON syntax
-print("Colon call: " .. self.widget:describe())
+end
+```
 
--- TODO 2: Call describe using DOT syntax
-print("Dot call: " .. Widget.describe(self.widget))
+---
 
--- TODO 3: Call describeMethod with the widget as argument
-print("Stored method: " .. describeMethod(self.widget))
+### Assignment
 
--- TODO 4: Create a bound wrapper function
-local boundDescribe = function()
-    return self.widget:describe()
-end`}
->
+Complete these tasks:
 
-**Premise**: The error "attempt to index nil" almost always means `self` wasn't passed correctly. Learning to recognize and fix this saves hours of debugging.
+1. Complete the TODOs to call methods correctly and create a bound wrapper that preserves self.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-**Use Case**: When you need to pass a method as a callback (to an event handler, timer, etc.), wrapping it in a closure preserves the correct `self` binding.
+---
 
-</Exercise>
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-3"
+    expectedAnswer="ANSWER: MyWidget: 200x100"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -423,18 +567,46 @@ MyClass.method(differentObj, args)   -- Explicit self
 
 ---
 
-<Exercise
-  id="oop-self-4"
-  title="Exercise 4: Method Patterns in Rive"
-  difficulty={2}
-  hint="Use dot syntax for static utilities (MathUtil.lerp) and colon syntax for instance methods (self:getAlpha). The update method should return whether the particle is still alive."
-  expectedAnswer="5"
-  explanation="After spawning 5 particles and running one update cycle, 5 particles remain alive (life < maxLife after one frame). The pattern shows static utils use dot, instance methods use colon."
-  task="Complete the Particle class methods using the correct dot/colon syntax patterns."
-  expectedOutput={`Spawned 5 particles
-After update: 5 alive
-ANSWER: 5`}
-  code={`--!strict
+### Exercise 4: Method Patterns in Rive ⭐⭐ {#exercise-4-method-patterns-in-rive}
+
+### Premise
+
+After spawning 5 particles and running one update cycle, 5 particles remain alive (life < maxLife after one frame). The pattern shows static utils use dot, instance methods use colon.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Particle class methods using the correct dot/colon syntax patterns.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4MethodPatternsInRive`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- Util-style module with static functions (use DOT)
 local MathUtil = {}
@@ -515,45 +687,89 @@ return function(): Node<MethodPatternsDemo>
         draw = draw,
         particles = {},
     }
-end`}
-  solution={`-- TODO 1: Define update as an INSTANCE method
-function Particle:update(dt: number): boolean
-    self.life += dt
-    return self.life < self.maxLife
 end
-
--- TODO 2: Define getAlpha as an INSTANCE method
-function Particle:getAlpha(): number
-    local progress = self.life / self.maxLife
-    return MathUtil.lerp(1.0, 0.0, progress)
-end
-
--- TODO 3: Call update on particle p using COLON syntax
-if p:update(0.016) then
-    table.insert(alive, p)
-end`}
->
-
-**Premise**: Real Rive code combines static utilities (dot syntax) with instance methods (colon syntax). Knowing which to use where is essential for writing correct code.
-
-**Use Case**: A particle system needs `MathUtil.lerp()` (static), `Particle.new()` (constructor), and `particle:update()` / `particle:getAlpha()` (instance methods).
-
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="oop-self-5"
-  title="Exercise 5: Method Chaining"
-  difficulty={2}
-  hint="Each method should call the underlying path operation, then return self to enable chaining. The key is 'return self' at the end of each chainable method."
-  expectedAnswer="5"
-  explanation="The chain builds a pentagon with 5 commands: moveTo + 4 lineTo calls. Returning self from each method enables the fluent API pattern."
-  task="Complete the Builder methods so they can be chained together to build a path."
-  expectedOutput={`Building path with chaining...
-Path commands: 5
-ANSWER: 5`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Particle class methods using the correct dot/colon syntax patterns.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-4"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 5: Method Chaining ⭐⭐ {#exercise-5-method-chaining}
+
+### Premise
+
+The chain builds a pentagon with 5 commands: moveTo + 4 lineTo calls. Returning self from each method enables the fluent API pattern.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Builder methods so they can be chained together to build a path.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5MethodChaining`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Builder = {}
 Builder.__index = Builder
@@ -626,47 +842,89 @@ return function(): Node<ChainingDemo>
         draw = draw,
         commandCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Complete moveTo
-function Builder:moveTo(x: number, y: number): BuilderType
-    self.commands += 1
-    return self  -- Enable chaining!
 end
-
--- TODO 2: Complete lineTo
-function Builder:lineTo(x: number, y: number): BuilderType
-    self.commands += 1
-    return self  -- Enable chaining!
-end
-
--- TODO 3: Complete close
-function Builder:close(): BuilderType
-    self.commands += 1
-    return self  -- Enable chaining!
-end`}
->
-
-**Premise**: Method chaining (fluent API) makes code more readable. Instead of 5 separate lines, you get one flowing statement. The secret is returning `self` from each method.
-
-**Use Case**: Path builders, query builders, configuration objects - anywhere you want expressive code like `builder:moveTo(0,0):lineTo(10,0):lineTo(10,10):close()`.
-
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="oop-self-6"
-  title="Exercise 6: Callbacks and self (Binding Problem)"
-  difficulty={2}
-  hint="Create a wrapper function that captures the button reference and calls handleClick using colon syntax. The closure preserves the self binding."
-  expectedAnswer="3"
-  explanation="All 3 buttons fire their callbacks correctly because each callback is wrapped in a closure that captures the specific button reference and uses colon syntax to call handleClick."
-  task="Create properly bound callbacks for each button so they correctly identify themselves when clicked."
-  expectedOutput={`Submit was clicked!
-Cancel was clicked!
-Reset was clicked!
-ANSWER: 3`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Builder methods so they can be chained together to build a path.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-5"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 6: Callbacks and self (Binding Problem) ⭐⭐ {#exercise-6-callbacks-and-self-binding-problem}
+
+### Premise
+
+All 3 buttons fire their callbacks correctly because each callback is wrapped in a closure that captures the specific button reference and uses colon syntax to call handleClick.
+
+:::info Goal
+By the end of this exercise, you will be able to Create properly bound callbacks for each button so they correctly identify themselves when clicked.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_Exercise6CallbacksAndSelfBindingProblem`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Button = {}
 Button.__index = Button
@@ -735,28 +993,46 @@ return function(): Node<CallbackDemo>
         buttons = {},
         clickCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Set submit.onClick with proper binding
-submit.onClick = function()
-    submit:handleClick()
 end
+```
 
--- TODO 2: Set cancel.onClick with proper binding
-cancel.onClick = function()
-    cancel:handleClick()
-end
+---
 
--- TODO 3: Set reset.onClick with proper binding
-reset.onClick = function()
-    reset:handleClick()
-end`}
->
+### Assignment
 
-**Premise**: When you pass a method as a callback (to an event handler, timer, etc.), `self` gets lost. This is a classic bug in both Luau and JavaScript.
+Complete these tasks:
 
-**Use Case**: You want a button click to call `player:takeDamage()`. If you just pass `player.takeDamage`, self will be nil. Wrapping in a closure (`function() player:takeDamage() end`) preserves the binding.
+1. Create properly bound callbacks for each button so they correctly identify themselves when clicked.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-</Exercise>
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-self-6"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -887,6 +1163,7 @@ fn()  -- Works!
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Encapsulation →](./encapsulation)**
+- Continue to [3.3 Inheritance & Patterns](/oop/inheritance)
+- Need a refresher? Review [Quick Reference](/quick-reference)

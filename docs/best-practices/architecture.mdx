@@ -1,10 +1,17 @@
 ---
 sidebar_position: 1
 title: Architecture
+keywords:
+  - rive
+  - luau
+  - scripting
+  - "best practices"
+  - architecture
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Script Architecture
 
@@ -16,7 +23,7 @@ Rive provides two distinct script types with different purposes:
 
 | Script Type | Purpose | Has Lifecycle | Returns |
 |-------------|---------|---------------|---------|
-| **Node** | Visual behavior attached to artboard nodes | Yes (`init`, `advance`, `draw`) | Factory function |
+| **<Term>Node</Term>** | Visual behavior attached to <Term>Artboard</Term> nodes | Yes (`init`, `advance`, `draw`) | Factory function |
 | **Util** | Reusable code shared across scripts | No | Module table |
 
 Understanding when to use each type is fundamental to writing clean, maintainable Rive projects.
@@ -41,19 +48,46 @@ Understanding when to use each type is fundamental to writing clean, maintainabl
 
 ---
 
-<Exercise
-  id="best-practices-arch-1"
-  title="Exercise 1: Single Responsibility Principle"
-  difficulty={2}
-  hint="The lerp function interpolates between two values: result = a + (b - a) * t. Use the Easing functions in advance() to animate the position."
-  expectedAnswer="separation"
-  explanation="Single Responsibility Principle keeps code maintainable. Util scripts hold pure functions with no side effects, while Node scripts handle visual behavior and state."
-  task="Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function."
-  expectedOutput={`Animation started
-Position: -100.00 (eased: 0.00)
-Position: 100.00 (eased: 1.00)
-ANSWER: separation`}
-  code={`--!strict
+### Exercise 1: Single Responsibility Principle ⭐⭐ {#exercise-1-single-responsibility-principle}
+
+### Premise
+
+Single Responsibility Principle keeps code maintainable. Util scripts hold pure functions with no side effects, while Node scripts handle visual behavior and state.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1SingleResponsibilityPrinciple`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- File 1: Easing (Util Script)
 -- Reusable easing functions with no visual component
 
@@ -147,20 +181,46 @@ return function(): Node<AnimatedSquare>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- TODO 1: Add lerp function to Easing util
-function Easing.lerp(a: number, b: number, t: number): number
-    return a + (b - a) * t
 end
+```
 
--- TODO 2-3: Use easing functions in advance
-local eased = Easing.easeInOutQuad(t)
-self.x = Easing.lerp(self.startX, self.endX, eased)`}
->
-**Premise:** You're building an animated UI element and want to separate the math logic from the visual behavior.
+---
 
-**Use Case:** Separating concerns makes code maintainable. The Easing util can be reused across multiple Node scripts without duplication.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-arch-1"
+    expectedAnswer="ANSWER: separation"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - The Node script handles visual behavior and state
@@ -169,21 +229,46 @@ self.x = Easing.lerp(self.startX, self.endX, eased)`}
 
 ---
 
-<Exercise
-  id="best-practices-arch-2"
-  title="Exercise 2: State Management Patterns"
-  difficulty={2}
-  hint="Use SCALE_BY_STATE[newState] to get the target scale and COLOR_BY_STATE[newState] to get the color for the new state."
-  expectedAnswer="statemachine"
-  explanation="Union types and lookup tables make state machines type-safe and maintainable. The compiler catches invalid states, and configuration changes require updating only the lookup tables."
-  task="Complete the setState function to update targetScale and paint using the lookup tables when the button state changes."
-  expectedOutput={`Button initialized: idle
-State changed to: hover
-Scale target: 1.10, Color updated
-State changed to: pressed
-Scale target: 0.95, Color updated
-ANSWER: statemachine`}
-  code={`--!strict
+### Exercise 2: State Management Patterns ⭐⭐ {#exercise-2-state-management-patterns}
+
+### Premise
+
+Union types and lookup tables make state machines type-safe and maintainable. The compiler catches invalid states, and configuration changes require updating only the lookup tables.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the setState function to update targetScale and <Term>Paint</Term> using the lookup tables when the button state changes.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2StateManagementPatterns`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Interactive button with state machine pattern
 
 export type ButtonState = "idle" | "hover" | "pressed"
@@ -269,15 +354,46 @@ return function(): Node<InteractiveButton>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- TODO 1-2: Complete setState using lookup tables
-self.targetScale = SCALE_BY_STATE[newState]
-self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE[newState] })`}
->
-**Premise:** You're building an interactive button that needs to respond to hover and press states with smooth visual feedback.
+end
+```
 
-**Use Case:** State machines with lookup tables are ideal for UI components, game entities, and any system with discrete states and state-specific behavior.
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the setState function to update targetScale and paint using the lookup tables when the button state changes.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-arch-2"
+    expectedAnswer="ANSWER: statemachine"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Use union types (`"idle" | "hover" | "pressed"`) for finite states
@@ -286,22 +402,46 @@ self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE[newState] })`}
 
 ---
 
-<Exercise
-  id="best-practices-arch-3"
-  title="Exercise 3: Layered Architecture"
-  difficulty={3}
-  hint="In Particle.update: update position with velocity (p.x += p.vx * dt), apply gravity to vy, increment life. In advance: loop through particles, call Particle.update, keep alive ones."
-  expectedAnswer="layered"
-  explanation="Layered architecture separates concerns into modules: Config for constants, Data modules for pure logic, and Node scripts for orchestration. Each layer can be tested and modified independently."
-  task="Complete the Particle.update function to apply physics, then complete the advance function to update all particles and remove dead ones."
-  expectedOutput={`Particle system initialized
-Spawned particle 1
-Spawned particle 2
-Spawned particle 3
-Updating 3 particles...
-Particles alive: 3
-ANSWER: layered`}
-  code={`--!strict
+### Exercise 3: Layered Architecture ⭐⭐⭐ {#exercise-3-layered-architecture}
+
+### Premise
+
+Layered architecture separates concerns into modules: Config for constants, Data modules for pure logic, and Node scripts for orchestration. Each layer can be tested and modified independently.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Particle.update function to apply physics, then complete the advance function to update all particles and remove dead ones.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3LayeredArchitecture`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Layered particle system with separate Config, Particle, and System modules
 
 -- LAYER 1: Config (constants and configuration)
@@ -426,25 +566,46 @@ return function(): Node<ParticleSystem>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- TODO 1: Complete Particle.update
-p.x += p.vx * dt
-p.y += p.vy * dt
-p.vy += gravity * dt
-p.life += dt
-return p.life < p.maxLife
+end
+```
 
--- TODO 2: Update particles in advance
-for _, p in ipairs(self.particles) do
-    if Particle.update(p, seconds, Config.GRAVITY) then
-        table.insert(alive, p)
-    end
-end`}
->
-**Premise:** You're building a particle system that needs clean separation between configuration, particle logic, and system orchestration.
+---
 
-**Use Case:** Layered architecture is essential for complex features like particle systems, game engines, and any system with multiple interacting components.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Particle.update function to apply physics, then complete the advance function to update all particles and remove dead ones.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-arch-3"
+    expectedAnswer="ANSWER: layered"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Architecture breakdown:**
 - `Config` - Constants and configuration types
@@ -621,3 +782,8 @@ local B = require("B")  -- B requires A!
   ]}
   explanation="Complex features benefit from layered architecture: Config for constants, Data modules for pure logic, and a Node script to orchestrate rendering and state."
 />
+
+## Next Steps
+
+- Continue to [Performance](/best-practices/performance)
+- Need a refresher? Review [Quick Reference](/quick-reference)

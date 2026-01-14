@@ -2,10 +2,20 @@
 sidebar_position: 7
 title: "3.7 Encapsulation"
 description: Private state patterns and closures for encapsulation in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - encapsulation
+  - private
+  - state
+  - patterns
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 3.7: Encapsulation
 
@@ -14,7 +24,7 @@ import Exercise from '@site/src/components/Exercise';
 - Use closures to create truly private state
 - Implement the module pattern for encapsulated objects
 - Know the trade-offs of different privacy approaches
-- Apply encapsulation patterns in Rive Node Scripts
+- Apply encapsulation patterns in Rive <Term>Node</Term> Scripts
 
 ---
 
@@ -161,21 +171,46 @@ console.log(c.count);  // undefined! Can't access it
 
 ## Practice Exercises
 
-<Exercise
-  id="oop-encap-1"
-  title="Exercise 1: Encapsulated State Machine"
-  difficulty={2}
-  hint="Return an object with functions that close over the private state. The transition function should check if the target state is in the allowed list for the current state."
-  expectedAnswer="running"
-  explanation="The state machine only allows valid transitions. idle->walking->running works, but running->jumping fails because that transition isn't defined. The final state remains 'running'."
-  task="Complete the createStateMachine factory function to encapsulate state and enforce valid transitions."
-  expectedOutput={`Initial: idle
-After walking: walking
-After running: running
-Transition from running to jumping not allowed
-Final state: running
-ANSWER: running`}
-  code={`--!strict
+### Exercise 1: Encapsulated State Machine ⭐⭐ {#exercise-1-encapsulated-state-machine}
+
+### Premise
+
+The <Term>State Machine</Term> only allows valid transitions. idle->walking->running works, but running->jumping fails because that transition isn't defined. The final state remains 'running'.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the createStateMachine factory function to encapsulate state and enforce valid transitions.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1EncapsulatedStateMachine`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local function createStateMachine(initialState: string)
     -- Private state (captured in closures)
@@ -249,50 +284,89 @@ return function(): Node<StateMachineDemo>
         draw = draw,
         machine = createStateMachine(""),
     }
-end`}
-  solution={`-- TODO 1: Implement transition function
-transition = function(to: string): boolean
-    local allowed = transitions[currentState]
-    if allowed then
-        for _, state in ipairs(allowed) do
-            if state == to then
-                currentState = to
-                return true
-            end
-        end
-    end
-    print(\`Transition from {currentState} to {to} not allowed\`)
-    return false
-end,
-
--- TODO 2: Implement getState
-getState = function(): string
-    return currentState
-end,`}
->
-
-**Premise**: Closures create truly private state that can't be accessed from outside. The state machine enforces valid transitions - there's no way to "cheat" by setting the state directly.
-
-**Use Case**: A character animation that can only transition between valid states (idle -> walking -> running, but NOT idle -> flying directly).
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-encap-2"
-  title="Exercise 2: Encapsulated Animation Controller"
-  difficulty={2}
-  hint="Implement the step function with spring physics: displacement = target - position, velocity += displacement * stiffness * dt, then apply damping and update position."
-  expectedAnswer="settled"
-  explanation="The spring controller uses encapsulated physics state. After one second, the spring settles at its target position (80) because velocity approaches zero and displacement is within the threshold."
-  task="Complete the createSpringController factory function with private physics state. Implement the step() function with spring physics and settle detection."
-  expectedOutput={`Initial position: 0
-After 0.5s: position ~40 (moving toward 80)
-After 1.0s: position ~80 (nearly settled)
-Status: settled
-ANSWER: settled`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the createStateMachine factory function to encapsulate state and enforce valid transitions.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-1"
+    expectedAnswer="ANSWER: running"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Encapsulated Animation Controller ⭐⭐ {#exercise-2-encapsulated-animation-controller}
+
+### Premise
+
+The spring controller uses encapsulated physics state. After one second, the spring settles at its target position (80) because velocity approaches zero and displacement is within the threshold.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the createSpringController factory function with private physics state. Implement the step() function with spring physics and settle detection.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2EncapsulatedAnimationController`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local function createSpringController(initial: number, stiffness: number, damping: number)
     -- Private state (captured in closures)
@@ -378,57 +452,89 @@ return function(): Node<SpringDemo>
         draw = draw,
         spring = createSpringController(0, 1, 1),
     }
-end`}
-  solution={`-- TODO 1: Implement step function with spring physics
-step = function(dt: number)
-    if isSettled then return end
-
-    local displacement = target - position
-    velocity = velocity + displacement * stiffness * dt
-    velocity = velocity * math.max(0, 1 - damping * dt)
-    position = position + velocity * dt
-
-    -- Check if settled
-    if math.abs(displacement) < settleThreshold and math.abs(velocity) < settleThreshold then
-        position = target
-        velocity = 0
-        isSettled = true
-    end
-end,
-
--- TODO 2: Implement getPosition
-getPosition = function(): number
-    return position
-end,
-
--- TODO 3: Implement isMoving
-isMoving = function(): boolean
-    return not isSettled
-end,`}
->
-
-**Premise**: Spring physics simulations have internal state (velocity, position) that shouldn't be modified directly. Closures hide the physics internals so external code can only set targets and read positions.
-
-**Use Case**: A Rive button that springs into position when hovered. The spring physics are hidden - external code just calls `setTarget()` and `getPosition()`.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-encap-3"
-  title="Exercise 3: Weak Privacy with Conventions"
-  difficulty={1}
-  hint="Use underscore prefix (_) for fields and methods that should be considered private. Implement the public setColor method to update _paint.color."
-  expectedAnswer="dirty=false"
-  explanation="Underscore conventions indicate 'private' fields that shouldn't be accessed directly from outside the class. The _dirty flag is set to true initially, then false after _rebuildPath runs. This pattern is simpler than closures but relies on programmer discipline."
-  task="Complete the Sprite class using underscore conventions for private fields and methods. Implement setColor() and _rebuildPath()."
-  expectedOutput={`Created sprite at (50, 50)
-Initial dirty: true
-After draw, dirty: false
-Color changed via public API
-ANSWER: dirty=false`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the createSpringController factory function with private physics state. Implement the step() function with spring physics and settle detection.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-2"
+    expectedAnswer="ANSWER: settled"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Weak Privacy with Conventions ⭐ {#exercise-3-weak-privacy-with-conventions}
+
+### Premise
+
+Underscore conventions indicate 'private' fields that shouldn't be accessed directly from outside the class. The _dirty flag is set to true initially, then false after _rebuildPath runs. This pattern is simpler than closures but relies on programmer discipline.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Sprite class using underscore conventions for private fields and methods. Implement setColor() and _rebuildPath().
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3WeakPrivacyWithConventions`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Sprite = {}
 Sprite.__index = Sprite
@@ -505,43 +611,89 @@ return function(): Node<ConventionDemo>
         draw = draw,
         sprite = Sprite.new(0, 0, Color.rgb(0, 0, 0)),
     }
-end`}
-  solution={`-- TODO 1: Implement public setColor method
-function Sprite:setColor(color: Color)
-    self._paint.color = color
 end
-
--- TODO 2: Implement internal _rebuildPath method
-function Sprite:_rebuildPath()
-    if not self._dirty then return end
-    self._path:reset()
-    self._path:addEllipse(Vector.xy(0, 0), 25, 25)
-    self._dirty = false
-end`}
->
-
-**Premise**: Underscore conventions (`_privateField`) indicate fields that shouldn't be accessed directly. Unlike closures, these fields ARE accessible - privacy relies on programmer discipline.
-
-**Use Case**: A sprite class with internal `_path` and `_paint` fields. True enforcement isn't critical, and the simpler code allows method sharing via metatables (more memory efficient).
-
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="oop-encap-4"
-  title="Exercise 4: Module Pattern"
-  difficulty={2}
-  hint="The emit function should call createParticle (private helper) and add to the particles array. The update function should filter out dead particles (life <= 0)."
-  expectedAnswer="5"
-  explanation="The module pattern combines closures with a clean factory interface. Private helpers (createParticle, updateParticle) are completely hidden. After emitting 5 particles, the count is 5. The internal particles array can't be accessed or modified directly."
-  task="Complete the ParticleSystem module with private state and helpers. Implement the emit() and update() functions."
-  expectedOutput={`Created particle system (max: 100)
-Emitted 5 particles
-Current count: 5
-After update (0.5s): some particles still alive
-ANSWER: 5`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Sprite class using underscore conventions for private fields and methods. Implement setColor() and _rebuildPath().
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-3"
+    expectedAnswer="ANSWER: dirty=false"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Module Pattern ⭐⭐ {#exercise-4-module-pattern}
+
+### Premise
+
+The module pattern combines closures with a clean factory interface. Private helpers (createParticle, updateParticle) are completely hidden. After emitting 5 particles, the count is 5. The internal particles array can't be accessed or modified directly.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the ParticleSystem module with private state and helpers. Implement the emit() and update() functions.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4ModulePattern`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local ParticleSystem = {}
 
@@ -631,54 +783,89 @@ return function(): Node<ModuleDemo>
         draw = draw,
         system = ParticleSystem.create(1),
     }
-end`}
-  solution={`-- TODO 1: Implement emit function
-emit = function(x: number, y: number, count: number)
-    for i = 1, count do
-        if #particles < maxParticles then
-            table.insert(particles, createParticle(x, y))
-        end
-    end
-end,
-
--- TODO 2: Implement update function
-update = function(dt: number)
-    local alive: {Particle} = {}
-    for _, p in ipairs(particles) do
-        p.life -= dt
-        if p.life > 0 then
-            table.insert(alive, p)
-        end
-    end
-    particles = alive
-end,`}
->
-
-**Premise**: The module pattern combines closures with a clean factory interface. Private helpers like `createParticle` are completely hidden - external code can only use the public interface (`emit`, `update`, `getCount`).
-
-**Use Case**: A particle system module you import into any Node script. Users call `emit()` and `update()` but can't access or modify the internal particles array directly.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-encap-5"
-  title="Exercise 5: Read-Only Properties"
-  difficulty={2}
-  hint="Getters simply return the private variables. addScore should add points and check for level up (level = floor(score/1000) + 1). loseLife should decrement lives and set gameOver when lives reach 0."
-  expectedAnswer="true"
-  explanation="Read-only properties can only be modified through validated setter methods. Direct assignment (state.score = 999) fails because the field doesn't exist on the returned object - only the getter function exists. This prevents cheating and ensures game logic consistency."
-  task="Complete the createGameState factory with read-only getters and controlled mutation methods (addScore, loseLife)."
-  expectedOutput={`Starting: Score=0, Level=1, Lives=3
-After 500 points: Score=500
-Level up! Now level 2
-After 600 more: Score=1100, Level=2
-After 2 hits: Lives=1
-Game Over!
-Game over: true
-ANSWER: true`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the ParticleSystem module with private state and helpers. Implement the emit() and update() functions.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-4"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 5: Read-Only Properties ⭐⭐ {#exercise-5-readonly-properties}
+
+### Premise
+
+Read-only properties can only be modified through validated setter methods. Direct assignment (state.score = 999) fails because the field doesn't exist on the returned object - only the getter function exists. This prevents cheating and ensures game logic consistency.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the createGameState factory with read-only getters and controlled mutation methods (addScore, loseLife).
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5ReadOnlyProperties`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local function createGameState()
     -- PRIVATE MUTABLE STATE
@@ -764,69 +951,89 @@ return function(): Node<ReadOnlyDemo>
         draw = draw,
         state = createGameState(),
     }
-end`}
-  solution={`-- TODO 1: Implement read-only getters
-getScore = function(): number
-    return score
-end,
-getLevel = function(): number
-    return level
-end,
-getLives = function(): number
-    return lives
-end,
-isGameOver = function(): boolean
-    return gameOver
-end,
-
--- TODO 2: Implement addScore
-addScore = function(points: number)
-    if not gameOver then
-        score += points
-        local newLevel = math.floor(score / 1000) + 1
-        if newLevel > level then
-            level = newLevel
-            print(\`Level up! Now level {level}\`)
-        end
-    end
-end,
-
--- TODO 3: Implement loseLife
-loseLife = function()
-    if not gameOver then
-        lives -= 1
-        if lives <= 0 then
-            gameOver = true
-            print("Game Over!")
-        end
-    end
-end,`}
->
-
-**Premise**: Read-only properties can be accessed but not directly modified. All mutations go through validated setter methods that enforce business logic (level up thresholds, game over conditions).
-
-**Use Case**: A Rive game HUD where the score display reads from `getScore()` but can't directly set the score. All score changes go through validated `addScore()` calls that handle level-up logic.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-encap-6"
-  title="Exercise 6: Combining Approaches"
-  difficulty={3}
-  hint="The Timer module uses closures for true privacy. The Countdown class uses underscore conventions for internal details. Implement tick() to advance elapsed time and check for completion."
-  expectedAnswer="complete"
-  explanation="Real applications combine both approaches: closures for critical state (timer logic where elapsed/running must be protected) and conventions for internal implementation details (UI paths/paints). This gives you security where it matters and simplicity where it doesn't."
-  task="Complete the Timer module (closure-based) and Countdown class (convention-based) that work together. The timer handles critical timing logic while the countdown handles visual state."
-  expectedOutput={`Created countdown timer (3 seconds)
-Initial: elapsed=0, remaining=3
-After 1s: elapsed=1, remaining=2
-After 2s: elapsed=2, remaining=1
-Timer complete!
-Final status: complete
-ANSWER: complete`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the createGameState factory with read-only getters and controlled mutation methods (addScore, loseLife).
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-5"
+    expectedAnswer="ANSWER: true"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 6: Combining Approaches ⭐⭐⭐ {#exercise-6-combining-approaches}
+
+### Premise
+
+Real applications combine both approaches: closures for critical state (timer logic where elapsed/running must be protected) and conventions for internal implementation details (UI paths/paints). This gives you security where it matters and simplicity where it doesn't.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Timer module (closure-based) and Countdown class (convention-based) that work together. The timer handles critical timing logic while the countdown handles visual state.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_Exercise6CombiningApproaches`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- UTIL: Timer Module (true encapsulation via closures)
 local Timer = {}
@@ -940,42 +1147,46 @@ return function(): Node<CombinedDemo>
         draw = draw,
         countdown = Countdown.new(1),
     }
-end`}
-  solution={`-- TODO 1: Implement tick function
-tick = function(dt: number): boolean
-    if running and not complete then
-        elapsed += dt
-        if elapsed >= duration then
-            elapsed = duration
-            complete = true
-            running = false
-            return true
-        end
-    end
-    return false
-end,
+end
+```
 
--- TODO 2: Implement getElapsed
-getElapsed = function(): number
-    return elapsed
-end,
+---
 
--- TODO 3: Implement getRemaining
-getRemaining = function(): number
-    return math.max(0, duration - elapsed)
-end,
+### Assignment
 
--- TODO 4: Implement isComplete
-isComplete = function(): boolean
-    return complete
-end,`}
->
+Complete these tasks:
 
-**Premise**: Real applications need both approaches. Use true privacy (closures) for critical state like timer logic, and conventions (underscores) for internal implementation details like UI paths and paints.
+1. Complete the Timer module (closure-based) and Countdown class (convention-based) that work together. The timer handles critical timing logic while the countdown handles visual state.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-**Use Case**: A countdown timer Util (closure-based) used inside a visual Countdown class (convention-based). The timer logic is protected from tampering, while the visual internals are accessible but marked as "don't touch."
+---
 
-</Exercise>
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-encap-6"
+    expectedAnswer="ANSWER: complete"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -1136,8 +1347,7 @@ end
 
 ---
 
-## Next Up
+## Next Steps
 
-**[OOP Patterns →](./patterns)**
-
-Learn reusable design patterns (Factory, Singleton, Observer) that build on encapsulation concepts.
+- Continue to [3.8 OOP Patterns](/oop/patterns)
+- Need a refresher? Review [Quick Reference](/quick-reference)

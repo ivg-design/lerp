@@ -2,11 +2,21 @@
 sidebar_position: 10
 title: Hierarchy
 description: NodeData, NodeReadData, and Layout
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - reference
+  - hierarchy
+  - nodedata
+  - nodereaddata
 ---
+import Term from '@site/src/components/Term';
 
 # Hierarchy
 
-Node data access and layout scripting.
+<Term>Node</Term> data access and layout scripting.
 
 ---
 
@@ -54,7 +64,7 @@ Read-only node data providing transform properties.
 | `y` | number | Local position Y |
 | `scaleX` | number | Local scale X |
 | `scaleY` | number | Local scale Y |
-| `paint` | Paint? | Paint data (if Path node) |
+| `paint` | <Term>Paint</Term>? | Paint data (if <Term>Path</Term> node) |
 
 **See Also:** [NodeData](#nodedata), [Mat2D](./core-types#mat2d)
 
@@ -89,3 +99,8 @@ end
 ```
 
 **Note:** Layout scripts function like Node scripts but respond to layout box sizing.
+
+## Next Steps
+
+- Continue to [System](/api/system)
+- Need a refresher? Review [Quick Reference](/quick-reference)

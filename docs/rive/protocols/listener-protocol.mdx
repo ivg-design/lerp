@@ -2,10 +2,20 @@
 sidebar_position: 7
 title: Listener Protocol
 description: Learn about Listener scripts for event handling in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - listener
+  - protocol
+  - scripts
+  - event
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Other Protocols
 
@@ -19,7 +29,7 @@ import Exercise from '@site/src/components/Exercise';
 | Drag state | Manual with sliders | `isDragging` variable | `self.isDragging: boolean` |
 | Event bubbling | N/A | `event.stopPropagation()` | `return true` (consumes event) |
 | Custom events | N/A | `new CustomEvent('name')` | EventBus pattern via Util |
-| Animation state | `marker.key(1).time` | State variables | State machine inputs |
+| Animation state | `marker.key(1).time` | State variables | <Term>State Machine</Term> inputs |
 
 :::danger Critical Difference: Event-Driven Architecture
 **After Effects**: Events don't exist. Expressions react to time and layer properties. You check `time >= marker.key(1).time` to "respond" to moments.
@@ -44,7 +54,7 @@ end
 
 ## Rive Context: Beyond Node and Util Scripts
 
-While Node and Util scripts handle most use cases, Rive provides additional script types for specific interaction patterns. These protocols let you respond to events, listen for state changes, and create more dynamic animations.
+While <Term>Node</Term> and Util scripts handle most use cases, Rive provides additional script types for specific interaction patterns. These protocols let you respond to events, listen for state changes, and create more dynamic animations.
 
 **Script types covered:**
 - **Listener scripts** - respond to Rive events from state machines
@@ -114,25 +124,46 @@ class MyListener {
 
 ## Exercises
 
-<Exercise
-  id="rive-listener-1"
-  title="Exercise 1: Basic Event Logger"
-  difficulty={1}
-  hint="Store the event name in the events table using table.insert(). Use pairs() to iterate over the properties table and print each key/value."
-  expectedAnswer="3"
-  explanation="Listener scripts respond to events from state machines. They have an onEvent callback instead of init/draw/advance. This is fundamentally different from Node scripts and is used for analytics, debugging, and triggering external systems."
-  task="Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer."
-  expectedOutput={`=== Event: ButtonClicked ===
-  source = button1
-Total events received: 1
-=== Event: LevelComplete ===
-  level = 1
-Total events received: 2
-=== Event: ScoreUpdate ===
-  points = 100
-Total events received: 3
-ANSWER: 3`}
-  code={`--!strict
+### Exercise 1: Basic Event Logger ⭐ {#exercise-1-basic-event-logger}
+
+### Premise
+
+Listener scripts respond to events from state machines. They have an onEvent callback instead of init/draw/advance. This is fundamentally different from Node scripts and is used for analytics, debugging, and triggering external systems.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1BasicEventLogger`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A Listener script that logs all events from the state machine
 
 export type EventLogger = {
@@ -158,49 +189,89 @@ return function(): Listener<EventLogger>
         onEvent = onEvent,
         events = {},
     }
-end`}
-  solution={`-- TODO 1: Store the event name
-table.insert(self.events, eventName)
-
--- TODO 2: Print the event header
-print(\`=== Event: {eventName} ===\`)
-
--- TODO 3: Loop through properties
-for key, value in pairs(properties) do
-    print(\`  {key} = {tostring(value)}\`)
 end
-
--- TODO 4: Print total events
-print(\`Total events received: {#self.events}\`)
-
--- TODO 5: Print answer when 3 events received
-if #self.events == 3 then
-    print("ANSWER: 3")
-end`}
->
-**Premise:** You're debugging a complex state machine and need to see exactly what events are firing and when.
-
-**Use Case:** Event loggers are essential for analytics tracking, debugging state machine behavior, triggering sound effects, and syncing external systems with animation events.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-listener-2"
-  title="Exercise 2: Filtered Event Handler"
-  difficulty={2}
-  hint="Use ~= to check if eventName doesn't match targetEvent. Return early if it doesn't match. Only increment count and print for matching events."
-  expectedAnswer="2"
-  explanation="Filtering events lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern where you only respond to events from certain sources."
-  task="Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events."
-  expectedOutput={`Ignoring event: OtherEvent
-Target event "ButtonClicked" triggered!
-Trigger count: 1
-Ignoring event: RandomEvent
-Target event "ButtonClicked" triggered!
-Trigger count: 2
-ANSWER: 2`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-1"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Filtered Event Handler ⭐⭐ {#exercise-2-filtered-event-handler}
+
+### Premise
+
+Filtering events lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern where you only respond to events from certain sources.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2FilteredEventHandler`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A Listener that only responds to specific events by name
 
 export type FilteredListener = {
@@ -228,37 +299,52 @@ return function(): Listener<FilteredListener>
         targetEvent = "ButtonClicked",
         triggerCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Filter non-matching events
-if eventName ~= self.targetEvent then
-    print(\`Ignoring event: {eventName}\`)
-    return
 end
+```
 
--- TODO 2: Increment count
-self.triggerCount += 1
+---
 
--- TODO 3: Print target triggered
-print(\`Target event "{self.targetEvent}" triggered!\`)
+### Assignment
 
--- TODO 4: Print trigger count
-print(\`Trigger count: {self.triggerCount}\`)
+Complete these tasks:
 
--- TODO 5: Print answer when count is 2
-if self.triggerCount == 2 then
-    print("ANSWER: 2")
-end`}
->
-**Premise:** Your animation has many events firing, but you only care about "Purchase" events to update the inventory display.
+1. Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-**Use Case:** Event filtering is essential when you have multiple Listener scripts, each handling different event types. This creates clean separation of concerns.
-</Exercise>
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-2"
+    expectedAnswer="ANSWER: 2"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
 ## Pointer Events in Node Scripts
 
-Node scripts can respond to mouse/touch input through pointer handlers. This is how you create interactive elements.
+Node scripts can respond to mouse/touch <Term>Input</Term> through pointer handlers. This is how you create interactive elements.
 
 ### Pointer Event Reference
 
@@ -299,20 +385,46 @@ Forgetting to return `true` when you handle an event lets it "fall through" to e
 
 ---
 
-<Exercise
-  id="rive-listener-3"
-  title="Exercise 3: Click Counter with Visual Feedback"
-  difficulty={2}
-  hint="Check if position is within bounds using math.abs(). Set displayScale to 1.2 on click, then animate it back to 1 in advance. Return true from pointerDown to consume the event."
-  expectedAnswer="clicked"
-  explanation="Pointer events use boolean returns: true consumes the event (like stopPropagation), false lets it propagate. Combining pointerDown with advance creates interactive elements with visual feedback."
-  task="Complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks."
-  expectedOutput={`init: Button ready
-Click #1 at (0.0, 0.0)
-Click #2 at (10.0, 5.0)
-Click #3 at (-20.0, 10.0)
-ANSWER: clicked`}
-  code={`--!strict
+### Exercise 3: Click Counter with Visual Feedback ⭐⭐ {#exercise-3-click-counter-with-visual-feedback}
+
+### Premise
+
+Pointer events use boolean returns: true consumes the event (like stopPropagation), false lets it propagate. Combining pointerDown with advance creates interactive elements with visual feedback.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3ClickCounterWithVisualFeedback`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Click counter with visual pop feedback
 
 export type ClickCounter = {
@@ -366,7 +478,7 @@ end
 
 function draw(self: ClickCounter, renderer: Renderer)
     renderer:save()
-    renderer:scale(Vector.xy(self.displayScale, self.displayScale))
+    renderer:transform(Mat2D.withScale(self.displayScale, self.displayScale))
     renderer:drawPath(self.path, self.paint)
     renderer:restore()
 end
@@ -382,57 +494,89 @@ return function(): Node<ClickCounter>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- In pointerDown():
--- TODO 1: Check bounds
-if math.abs(position.x) <= 60 and math.abs(position.y) <= 30 then
-    -- TODO 2: Increment click count
-    self.clickCount += 1
-
-    -- TODO 3: Set scale for pop effect
-    self.displayScale = 1.2
-
-    -- TODO 4: Print click info
-    print(\`Click #{self.clickCount} at ({position.x:.1f}, {position.y:.1f})\`)
-
-    -- TODO 5: Print answer on third click
-    if self.clickCount == 3 then
-        print("ANSWER: clicked")
-    end
-
-    -- TODO 6: Consume the event
-    return true
 end
-
--- TODO 7: Don't consume if outside
-return false
-
--- In advance():
--- TODO 8: Animate scale back to normal
-if self.displayScale > 1 then
-    self.displayScale = math.max(1, self.displayScale - seconds * 4)
-end`}
->
-**Premise:** You're building an interactive button that needs visual feedback when pressed.
-
-**Use Case:** Click handlers with visual feedback are the foundation for buttons, toggles, tap counters, and all interactive UI elements in games and apps.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-listener-4"
-  title="Exercise 4: Drag and Drop"
-  difficulty={3}
-  hint="Calculate offset in pointerDown so dragging feels natural. Only process pointerMove/pointerUp when isDragging is true. Return true to consume events when handling them."
-  expectedAnswer="dragged"
-  explanation="Drag behavior requires all three pointer events working together: pointerDown to start and capture offset, pointerMove to track movement, pointerUp to finish. The offset calculation ensures smooth dragging from wherever you grab."
-  task="Complete all three pointer event handlers to implement drag and drop. Print the answer after the first successful drag."
-  expectedOutput={`init: Draggable ready
-Drag started
-Dropped at (50.0, 30.0)
-ANSWER: dragged`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-3"
+    expectedAnswer="ANSWER: clicked"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Drag and Drop ⭐⭐⭐ {#exercise-4-drag-and-drop}
+
+### Premise
+
+Drag behavior requires all three pointer events working together: pointerDown to start and capture offset, pointerMove to track movement, pointerUp to finish. The offset calculation ensures smooth dragging from wherever you grab.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete all three pointer event handlers to implement drag and drop. Print the answer after the first successful drag.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4DragAndDrop`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Implement drag and drop with all three pointer events
 
 export type Draggable = {
@@ -544,48 +688,46 @@ return function(): Node<Draggable>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- In pointerDown():
--- TODO 1-5
-self.isDragging = true
-self.offsetX = position.x - self.posX
-self.offsetY = position.y - self.posY
-self.paint.color = Color.rgb(255, 180, 120)
-print("Drag started")
-return true
-
--- In pointerMove():
--- TODO 6: Early return if not dragging
-if not self.isDragging then
-    return false
 end
+```
 
--- TODO 7-9: Update position and rebuild
-self.posX = position.x - self.offsetX
-self.posY = position.y - self.offsetY
-rebuildPath(self)
-return true
+---
 
--- In pointerUp():
--- TODO 10: Early return if not dragging
-if not self.isDragging then
-    return false
-end
+### Assignment
 
--- TODO 11-15: Finish drag
-self.isDragging = false
-self.paint.color = Color.rgb(255, 120, 80)
-print(\`Dropped at ({self.posX:.1f}, {self.posY:.1f})\`)
-if not self.hasDragged then
-    self.hasDragged = true
-    print("ANSWER: dragged")
-end
-return true`}
->
-**Premise:** You're building a puzzle game where players drag pieces into position.
+Complete these tasks:
 
-**Use Case:** Drag-and-drop is fundamental for sliders, reorderable lists, drawing tools, game character movement, and any direct manipulation interface.
-</Exercise>
+1. Complete all three pointer event handlers to implement drag and drop. Print the answer after the first successful drag.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-4"
+    expectedAnswer="ANSWER: dragged"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -593,19 +735,46 @@ return true`}
 
 Scripts can communicate with Rive's state machine through Inputs. This creates powerful bidirectional data flow.
 
-<Exercise
-  id="rive-listener-5"
-  title="Exercise 5: Input-Driven State Visualization"
-  difficulty={2}
-  hint="Use if/then/else syntax for color selection. Calculate width from progress (0-1 maps to 0-200). The update function is called whenever inputs change."
-  expectedAnswer="reactive"
-  explanation="Scripts can respond to state machine inputs through the update() callback. This creates bidirectional data flow where state machines control 'what' happens and scripts control 'how' it looks."
-  task="Complete the rebuildVisual helper and update function to create a progress bar that changes color based on isActive input."
-  expectedOutput={`init: StateBridge ready
-State changed: active=false, progress=0.5
-State changed: active=true, progress=0.75
-ANSWER: reactive`}
-  code={`--!strict
+### Exercise 5: Input-Driven State Visualization ⭐⭐ {#exercise-5-inputdriven-state-visualization}
+
+### Premise
+
+Scripts can respond to state machine inputs through the update() callback. This creates bidirectional data flow where state machines control 'what' happens and scripts control 'how' it looks.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the rebuildVisual helper and update function to create a progress bar that changes color based on isActive input.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5InputDrivenStateVisualization`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A visual that responds to state machine inputs
 
 export type StateBridge = {
@@ -673,43 +842,46 @@ return function(): Node<StateBridge>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- In rebuildVisual():
--- TODO 1: Calculate width
-local width = 200 * self.progress
+end
+```
 
--- TODO 2: Choose color based on active state
-local color = if self.isActive
-    then Color.rgb(80, 200, 120)
-    else Color.rgb(200, 80, 80)
+---
 
--- TODO 3: Rebuild path
-self.path:reset()
-self.path:moveTo(Vector.xy(-100, -20))
-self.path:lineTo(Vector.xy(-100 + width, -20))
-self.path:lineTo(Vector.xy(-100 + width, 20))
-self.path:lineTo(Vector.xy(-100, 20))
-self.path:close()
+### Assignment
 
--- TODO 4: Set color
-self.paint.color = color
+Complete these tasks:
 
--- In update():
--- TODO 5: Print state
-print(\`State changed: active={self.isActive}, progress={self.progress}\`)
+1. Complete the rebuildVisual helper and update function to create a progress bar that changes color based on isActive input.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
--- TODO 6: Rebuild visual
-rebuildVisual(self)
+---
 
--- TODO 7: Print answer
-if self.updateCount == 2 then
-    print("ANSWER: reactive")
-end`}
->
-**Premise:** You're building a health bar that changes color based on game state (active/inactive) and fills based on health percentage.
+### Expected Output
 
-**Use Case:** State machine integration lets you connect procedural scripts to Rive's powerful state machine system, creating complex reactive animations.
-</Exercise>
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-5"
+    expectedAnswer="ANSWER: reactive"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -717,23 +889,46 @@ end`}
 
 When you need scripts to communicate with each other, create an EventBus using a Util script.
 
-<Exercise
-  id="rive-listener-6"
-  title="Exercise 6: Publisher-Subscriber Pattern"
-  difficulty={3}
-  hint="The EventBus uses module-level state (subscriptions table) shared across all scripts. Use table.insert for subscribe, ipairs loop for publish. The subscriber's callback receives data from the publisher."
-  expectedAnswer="pubsub"
-  explanation="The pub/sub pattern enables decoupled component communication. Util scripts with module-level state can act as shared event buses. Publishers don't know about subscribers - they just emit events."
-  task="Complete the EventBus Util functions and the Subscriber's init to create a working pub/sub system. Print the answer after receiving 2 events."
-  expectedOutput={`EventBus: Subscribed to "click"
-Publisher clicked!
-EventBus: Publishing "click"
-Subscriber received click #1
-Publisher clicked!
-EventBus: Publishing "click"
-Subscriber received click #2
-ANSWER: pubsub`}
-  code={`--!strict
+### Exercise 6: Publisher-Subscriber Pattern ⭐⭐⭐ {#exercise-6-publishersubscriber-pattern}
+
+### Premise
+
+The pub/sub pattern enables decoupled component communication. Util scripts with module-level state can act as shared event buses. Publishers don't know about subscribers - they just emit events.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the EventBus Util functions and the Subscriber's init to create a working pub/sub system. Print the answer after receiving 2 events.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_Exercise6PublisherSubscriberPattern`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Publisher-Subscriber pattern with EventBus
 
 -- UTIL SCRIPT: EventBus (create this as a separate Util script)
@@ -814,8 +1009,8 @@ end
 
 function draw(self: Subscriber, renderer: Renderer)
     renderer:save()
-    renderer:translate(Vector.xy(100, 0))
-    renderer:scale(Vector.xy(self.scale, self.scale))
+    renderer:transform(Mat2D.withTranslation(100, 0))
+    renderer:transform(Mat2D.withScale(self.scale, self.scale))
     renderer:drawPath(self.path, self.paint)
     renderer:restore()
 end
@@ -830,39 +1025,46 @@ return function(): Node<Subscriber>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- In EventBus Util:
--- TODO 1: Insert subscription
-table.insert(subscriptions, { eventName = eventName, callback = callback })
-
--- TODO 2: Print subscribed
-print(\`EventBus: Subscribed to "{eventName}"\`)
-
--- TODO 3: Print publishing
-print(\`EventBus: Publishing "{eventName}"\`)
-
--- TODO 4: Call matching callbacks
-for _, sub in ipairs(subscriptions) do
-    if sub.eventName == eventName then
-        sub.callback(data)
-    end
 end
+```
 
--- In Subscriber init():
--- TODO 5: Subscribe to click events
-EventBus.subscribe("click", function(data)
-    self.receivedClicks += 1
-    self.scale = 1.5
-    print(\`Subscriber received click #{self.receivedClicks}\`)
-    if self.receivedClicks == 2 then
-        print("ANSWER: pubsub")
-    end
-end)`}
->
-**Premise:** You're building a game where multiple UI elements need to respond when the player earns points, but you don't want them tightly coupled.
+---
 
-**Use Case:** The pub/sub pattern is fundamental for particle effects responding to gameplay, sound systems triggered by events, score displays updating, and any scenario where multiple components need to react to the same action.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the EventBus Util functions and the Subscriber's init to create a working pub/sub system. Print the answer after receiving 2 events.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-6"
+    expectedAnswer="ANSWER: pubsub"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -1002,7 +1204,7 @@ return MyUtil
     { text: "Listener scripts can only be used with state machines" },
     { text: "Listener scripts have more lifecycle functions" },
   ]}
-  explanation="Listener scripts have an onEvent callback instead of init/draw/advance. They respond to Rive events from state machines but don't render anything to the artboard. Use them for analytics, triggering sounds, or coordinating external systems."
+  explanation="Listener scripts have an onEvent callback instead of init/draw/advance. They respond to Rive events from state machines but don't render anything to the <Term>Artboard</Term>. Use them for analytics, triggering sounds, or coordinating external systems."
 />
 
 <Quiz
@@ -1087,3 +1289,8 @@ You now understand the complete Rive scripting system:
 With this foundation, you can create sophisticated interactive animations that respond to user input, communicate between components, and integrate with Rive's state machines.
 
 **Next**: Learn about Object-Oriented Programming patterns in Luau with metatables and classes.
+
+## Next Steps
+
+- Continue to [Test Script Protocol](/rive/protocols/test-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

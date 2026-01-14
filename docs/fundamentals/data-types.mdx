@@ -2,10 +2,20 @@
 sidebar_position: 2
 title: Data Types
 description: Understanding Luau's fundamental data types for Rive animations
+keywords:
+  - rive
+  - luau
+  - scripting
+  - fundamentals
+  - data
+  - types
+  - understanding
+  - fundamental
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Data Types
 
@@ -83,7 +93,7 @@ a == b           -- true (always straightforward)
 
 ### Why nil Matters in Rive
 
-In Rive Node Scripts, `nil` is commonly used with:
+In Rive <Term>Node</Term> Scripts, `nil` is commonly used with:
 - **Uninitialized values**: Before `init()` runs, fields may be `nil`
 - **Optional parameters**: Functions can have optional arguments
 - **Missing table keys**: Accessing a non-existent key returns `nil`
@@ -418,11 +428,11 @@ end
 
 ## Exercises
 
-### Exercise 1: Type Snapshot ⭐
+### Exercise 1: Type Snapshot ⭐ {#exercise-1-type-snapshot}
 
 ### Premise
 
-When you bind data or debug scripts in Rive, you often need to confirm what type a value actually is. Using `type()` helps you catch mismatches early, before the wrong value is fed into a drawing or input path.
+When you bind data or debug scripts in Rive, you often need to confirm what type a value actually is. Using `type()` helps you catch mismatches early, before the wrong value is fed into a drawing or <Term>Input</Term> <Term>Path</Term>.
 
 :::info Goal
 By the end of this exercise, you will define values of multiple types and print a compact verification summary.
@@ -430,7 +440,7 @@ By the end of this exercise, you will define values of multiple types and print 
 
 ### Use Case
 
-Imagine a script that reads data from different sources: a ViewModel value, a state flag, and a table of points for a path. You need to verify that each is the expected type before you build visuals. A quick type snapshot prevents debugging blind spots.
+Imagine a script that reads data from different sources: a <Term>ViewModel</Term> value, a state flag, and a table of points for a path. You need to verify that each is the expected type before you build visuals. A quick type snapshot prevents debugging blind spots.
 
 **Example scenarios:**
 - Verifying ViewModel properties before use
@@ -529,7 +539,7 @@ Your console output should display a comma-separated summary containing:
 
 ---
 
-### Exercise 2: Truthiness Check ⭐
+### Exercise 2: Truthiness Check ⭐ {#exercise-2-truthiness-check}
 
 ### Premise
 
@@ -630,7 +640,7 @@ Remember: Luau's truthiness rules differ from JavaScript!
 
 ---
 
-### Exercise 3: Label Builder ⭐⭐
+### Exercise 3: Label Builder ⭐⭐ {#exercise-3-label-builder}
 
 ### Premise
 
@@ -735,7 +745,7 @@ Both labels should follow the format: `Player [name] (Lv.[level]) - HP [hp]/[max
 
 ---
 
-### Exercise 4: Number Formats ⭐⭐
+### Exercise 4: Number Formats ⭐⭐ {#exercise-4-number-formats}
 
 ### Premise
 
@@ -842,7 +852,7 @@ All values should be displayed as plain decimal numbers.
 
 ---
 
-### Exercise 5: Nil Defaults ⭐⭐
+### Exercise 5: Nil Defaults ⭐⭐ {#exercise-5-nil-defaults}
 
 ### Premise
 
@@ -1062,6 +1072,7 @@ if x ~= nil then     -- Explicit nil check
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Operators](./operators)** - Learn arithmetic, comparison, logical, and compound operators.
+- Continue to [Operators](/fundamentals/operators)
+- Need a refresher? Review [Quick Reference](/quick-reference)

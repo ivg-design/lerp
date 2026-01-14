@@ -2,10 +2,20 @@
 sidebar_position: 5
 title: "Strict Mode Deep Dive"
 description: Master the --!strict directive and understand the type errors it catches
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - strict
+  - mode
+  - deep
+  - dive
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Strict Mode Deep Dive
 
@@ -59,7 +69,7 @@ Rive scripts run with `--!strict` mode enabled by default. This is not optional�
 
 **Why does this matter?** When your animation ships to users, there's no debugger. Strict mode ensures your animation works correctly because all type errors were caught during development.
 
-When you write a Node Script, the Rive compiler expects proper type annotations for your `export type`, function parameters, and return values. Missing or incorrect types will prevent your script from compiling.
+When you write a <Term>Node</Term> Script, the Rive compiler expects proper type annotations for your `export type`, function parameters, and return values. Missing or incorrect types will prevent your script from compiling.
 
 ---
 
@@ -86,7 +96,7 @@ Luau supports three modes, controlled by a directive at the top of your file:
 
 ## Practice Exercises
 
-### Exercise 1: Parse Text Safely ⭐
+### Exercise 1: Parse Text Safely ⭐ {#exercise-1-parse-text-safely}
 
 ### Premise
 
@@ -98,7 +108,7 @@ By the end of this exercise, you will convert text to numbers before arithmetic.
 
 ### Use Case
 
-A UI field or designer input provides a string value, but you need numeric math for animation. Parsing explicitly keeps strict mode happy and avoids hidden coercion bugs.
+A UI field or designer <Term>Input</Term> provides a string value, but you need numeric math for animation. Parsing explicitly keeps strict mode happy and avoids hidden coercion bugs.
 
 **Example scenarios:**
 - Parsing user-entered values
@@ -183,7 +193,7 @@ Your console output should display the remaining health after converting the str
 
 ---
 
-### Exercise 2: Optional Label ⭐
+### Exercise 2: Optional Label ⭐ {#exercise-2-optional-label}
 
 ### Premise
 
@@ -278,11 +288,11 @@ Your console output should display the label value — either the hint (if provi
 
 ---
 
-### Exercise 3: Return Paths ⭐
+### Exercise 3: Return Paths ⭐ {#exercise-3-return-paths}
 
 ### Premise
 
-Strict mode requires every code path to return a value that matches the function signature. Clear boolean helpers avoid hidden nil returns.
+Strict mode requires every code <Term>Path</Term> to return a value that matches the function signature. Clear boolean helpers avoid hidden nil returns.
 
 :::info Goal
 By the end of this exercise, you will return a boolean on all paths.
@@ -374,11 +384,11 @@ Your console output should display whether the health value is at or below the c
 
 ---
 
-### Exercise 4: Literal Union Mode ⭐
+### Exercise 4: Literal Union Mode ⭐ {#exercise-4-literal-union-mode}
 
 ### Premise
 
-Literal unions limit a variable to known values. This keeps state machine values predictable and typo-proof.
+Literal unions limit a variable to known values. This keeps <Term>State Machine</Term> values predictable and typo-proof.
 
 :::info Goal
 By the end of this exercise, you will use a literal union type.
@@ -469,7 +479,7 @@ Your console output should display the current mode value from the literal union
 
 ---
 
-### Exercise 5: Table Shape Enforcement ⭐⭐
+### Exercise 5: Table Shape Enforcement ⭐⭐ {#exercise-5-table-shape-enforcement}
 
 ### Premise
 
@@ -571,7 +581,7 @@ Your console output should display the ratio computed from the typed stats table
 
 ---
 
-### Exercise 6: Input Safety ⭐⭐
+### Exercise 6: Input Safety ⭐⭐ {#exercise-6-input-safety}
 
 ### Premise
 
@@ -770,6 +780,7 @@ Your console output should display the adjusted value computed by multiplying th
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Advanced Types ->](./advanced-types)**
+- Continue to [2.2 Custom Types & Unions](/types/custom-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

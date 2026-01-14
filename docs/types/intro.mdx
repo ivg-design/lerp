@@ -2,10 +2,20 @@
 sidebar_position: 1
 title: "2.1 Type Annotations & Inference"
 description: Enable strict mode, add type annotations, and understand type inference
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - type
+  - annotations
+  - inference
+  - strict
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 2.1: Type Annotations & Inference
 
@@ -125,7 +135,7 @@ local items = {"a", "b"} -- Luau infers: {string}
 
 ## Practice Exercises
 
-### Exercise 1: Strict Mode Guard ⭐
+### Exercise 1: Strict Mode Guard ⭐ {#exercise-1-strict-mode-guard}
 
 ### Premise
 
@@ -137,7 +147,7 @@ By the end of this exercise, you will use strict mode to keep a numeric calculat
 
 ### Use Case
 
-You are calculating remaining health for a character driven by a Rive state machine. If a number becomes a string, your math breaks and the animation desyncs. Strict mode makes sure the error is caught before you press Play.
+You are calculating remaining health for a character driven by a Rive <Term>State Machine</Term>. If a number becomes a string, your math breaks and the animation desyncs. Strict mode makes sure the error is caught before you press Play.
 
 **Example scenarios:**
 - Health or stamina bars
@@ -150,7 +160,7 @@ You are calculating remaining health for a character driven by a Rive state mach
 #### In Rive Editor:
 
 1. **Create the script:**
-   - Assets panel → `+` → Script → Node Script
+   - Assets panel → `+` → Script → <Term>Node</Term> Script
    - Name it `Exercise1_StrictModeGuard`
 
 2. **Attach and run:**
@@ -220,7 +230,7 @@ Your console output should display the remaining health after applying damage. T
 
 ---
 
-### Exercise 2: Typed Variables ⭐
+### Exercise 2: Typed Variables ⭐ {#exercise-2-typed-variables}
 
 ### Premise
 
@@ -318,7 +328,7 @@ Your console output should display three fields from the typed variables:
 
 ---
 
-### Exercise 3: Typed Function ⭐
+### Exercise 3: Typed Function ⭐ {#exercise-3-typed-function}
 
 ### Premise
 
@@ -330,11 +340,11 @@ By the end of this exercise, you will implement a typed helper function.
 
 ### Use Case
 
-You are scaling an opacity value before drawing a layer. The helper should only accept numbers and always return a number for the renderer.
+You are scaling an opacity value before drawing a layer. The helper should only accept numbers and always return a number for the <Term>Renderer</Term>.
 
 **Example scenarios:**
 - Scaling opacity or alpha
-- Converting input ranges
+- Converting <Term>Input</Term> ranges
 
 ---
 
@@ -414,7 +424,7 @@ Your console output should display the computed opacity value after applying the
 
 ---
 
-### Exercise 4: Inference Snapshot ⭐
+### Exercise 4: Inference Snapshot ⭐ {#exercise-4-inference-snapshot}
 
 ### Premise
 
@@ -512,7 +522,7 @@ Your console output should display the inferred types of the variables using `ty
 
 ---
 
-### Exercise 5: Type Refinement ⭐⭐
+### Exercise 5: Type Refinement ⭐⭐ {#exercise-5-type-refinement}
 
 ### Premise
 
@@ -609,7 +619,7 @@ Your console output should display the doubled value after refining the union ty
 
 ---
 
-### Exercise 6: Rive State Type ⭐⭐
+### Exercise 6: Rive State Type ⭐⭐ {#exercise-6-rive-state-type}
 
 ### Premise
 
@@ -826,6 +836,7 @@ Your console output should display the three state fields with the assigned valu
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Type Annotations Deep Dive ->](./annotations)**
+- Continue to [Type Annotations Deep Dive](/types/annotations)
+- Need a refresher? Review [Quick Reference](/quick-reference)

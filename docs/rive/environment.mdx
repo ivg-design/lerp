@@ -2,17 +2,27 @@
 sidebar_position: 1
 title: Rive Environment
 description: Understand the Rive scripting environment, Console panel, script types, and sandbox limitations
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - environment
+  - understand
+  - console
+  - panel
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Rive Environment
 
 ## Learning Objectives
 - Understand how Rive scripts run inside the editor
 - Use the Console panel for debugging
-- Know the difference between Node and Util scripts
+- Know the difference between <Term>Node</Term> and Util scripts
 - Work within sandbox limitations
 
 ---
@@ -39,7 +49,7 @@ import Exercise from '@site/src/components/Exercise';
 - ❌ No network requests
 - ❌ No system commands
 - ❌ No dynamic code loading
-- ✅ Full access to Rive's graphics APIs (Path, Paint, Vector, etc.)
+- ✅ Full access to Rive's graphics APIs (<Term>Path</Term>, <Term>Paint</Term>, Vector, etc.)
 - ✅ Standard math, string, and table libraries
 :::
 
@@ -92,7 +102,7 @@ Rive has two types of scripts with different purposes:
 
 ### Node Scripts
 
-Node scripts attach to artboard nodes and have a lifecycle:
+Node scripts attach to <Term>Artboard</Term> nodes and have a lifecycle:
 
 ```lua
 --!strict
@@ -175,22 +185,70 @@ export default MyUtil;
 
 ---
 
+## Artboard References (`self.artboard`)
+
+In Rive scripts, **`self` only contains fields you explicitly define** in your exported type. There is **no built-in `self.artboard`** unless you add it.
+
+If you see `self.artboard` in examples, it means the script defines an artboard <Term>Input</Term>:
+
+```lua
+--!strict
+export type Spawner = {
+    artboard: Input<Artboard<Data.ComponentVM>>,
+}
+
+function init(self: Spawner): boolean
+    local instance = self.artboard:instance()
+    return true
+end
+```
+
+**Key takeaway:** To access an artboard, declare it as an `Input<Artboard<...>>` (or `late()` if assigned in the editor) and then use `self.artboard` in your logic.
+
+---
+
 ## Practice Exercises
 
-<Exercise
-  id="rive-env-1"
-  title="Exercise 1: Console Exploration"
-  difficulty={1}
-  hint="The advance function should increment frameCount. Print a message when frameCount reaches 60."
-  expectedAnswer="milestone"
-  explanation="Understanding the lifecycle order (init → advance → draw) is fundamental to Rive scripting. The milestone detection shows how to track state across frames."
-  task="Complete the advance function to track frames and detect when frameCount reaches exactly 60. Print 'ANSWER: milestone' when you hit that frame."
-  expectedOutput={`init() called
-Frame 1
-Frame 2
-...
-ANSWER: milestone`}
-  code={`--!strict
+### Exercise 1: Console Exploration ⭐ {#exercise-1-console-exploration}
+
+### Premise
+
+Understanding the lifecycle order (init → advance → draw) is fundamental to Rive scripting. The milestone detection shows how to track state across frames.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to track frames and detect when frameCount reaches exactly 60. Print 'ANSWER: milestone' when you hit that frame.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1ConsoleExploration`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- This script explores the Console panel and lifecycle callbacks
 
 export type ConsoleExplorer = {
@@ -223,43 +281,89 @@ return function(): Node<ConsoleExplorer>
         draw = draw,
         frameCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Increment frameCount by 1
-self.frameCount += 1
-
--- TODO 2: If this is one of the first 3 frames, print "Frame {frameCount}"
-if self.frameCount <= 3 then
-    print(\`Frame {self.frameCount}\`)
 end
-
--- TODO 3: When frameCount reaches exactly 60, print "ANSWER: milestone"
-if self.frameCount == 60 then
-    print("ANSWER: milestone")
-end`}
->
-**Premise:** You're building a frame counter to understand how often `advance()` runs. This helps you grasp the lifecycle: `init()` runs once, while `advance()` and `draw()` run every frame.
-
-**Use Case:** Frame tracking is essential for animations, timers, and performance monitoring in any Rive script.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-env-2"
-  title="Exercise 2: Understanding the Sandbox"
-  difficulty={1}
-  hint="Check if each API exists using ~= nil, then count how many are available."
-  expectedAnswer="4"
-  explanation="Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available (and what isn't, like file I/O or network) helps you design scripts correctly."
-  task="Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox."
-  expectedOutput={`=== Environment Probe ===
-Checking APIs...
-Vector: true
-Path: true
-Paint: true
-Color: true
-ANSWER: 4`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to track frames and detect when frameCount reaches exactly 60. Print 'ANSWER: milestone' when you hit that frame.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-env-1"
+    expectedAnswer="ANSWER: milestone"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Understanding the Sandbox ⭐ {#exercise-2-understanding-the-sandbox}
+
+### Premise
+
+Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available (and what isn't, like file I/O or network) helps you design scripts correctly.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2UnderstandingTheSandbox`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- This script probes the Rive environment to discover available APIs
 
 export type EnvironmentProbe = {
@@ -295,60 +399,89 @@ return function(): Node<EnvironmentProbe>
         draw = draw,
         availableCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Check if Vector exists
-if Vector ~= nil then
-    self.availableCount += 1
-    print("Vector: true")
-else
-    print("Vector: false")
 end
-
--- TODO 2: Check if Path exists
-if Path ~= nil then
-    self.availableCount += 1
-    print("Path: true")
-else
-    print("Path: false")
-end
-
--- TODO 3: Check if Paint exists
-if Paint ~= nil then
-    self.availableCount += 1
-    print("Paint: true")
-else
-    print("Paint: false")
-end
-
--- TODO 4: Check if Color exists
-if Color ~= nil then
-    self.availableCount += 1
-    print("Color: true")
-else
-    print("Color: false")
-end`}
->
-**Premise:** You need to verify which graphics APIs are available in the Rive sandbox before building a procedural graphics system.
-
-**Use Case:** Understanding available APIs prevents runtime errors and helps you design scripts that work within Rive's sandboxed environment.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-env-3"
-  title="Exercise 3: Type Safety with --!strict"
-  difficulty={1}
-  hint="Add the correct type annotations to each field in the exported type. Numbers use 'number', text uses 'string', and positions use 'Vector'."
-  expectedAnswer="typed"
-  explanation="Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Without --!strict, Node scripts won't be recognized by Rive."
-  task="Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector."
-  expectedOutput={`Player created:
-  name = Hero
-  health = 100
-  position = (50, 75)
-ANSWER: typed`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-env-2"
+    expectedAnswer="ANSWER: 4"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Type Safety with --!strict ⭐ {#exercise-3-type-safety-with-strict}
+
+### Premise
+
+Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Without --!strict, Node scripts won't be recognized by Rive.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3TypeSafetyWithStrict`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Type annotations help catch errors at edit time
 
 export type Player = {
@@ -387,35 +520,89 @@ return function(): Node<Player>
         health = 0,
         position = Vector.xy(0, 0),
     }
-end`}
-  solution={`-- TODO 1: Add type annotation for name (should be a string)
-name: string,
--- TODO 2: Add type annotation for health (should be a number)
-health: number,
--- TODO 3: Add type annotation for position (should be a Vector)
-position: Vector,`}
->
-**Premise:** You're defining a Player type that will be used throughout your game script. Proper type annotations ensure consistency.
-
-**Use Case:** Type safety catches bugs early. If you later try to assign a string to `health`, the editor will show an error immediately.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-env-4"
-  title="Exercise 4: Working Within the Sandbox"
-  difficulty={2}
-  hint="Use math.rad() to convert degrees to radians, then calculate sin and cos. Store results in a table."
-  expectedAnswer="0.707"
-  explanation="The sandbox provides standard Luau math functions (sin, cos, rad) plus Rive graphics APIs. You can perform complex calculations and create procedural graphics—just no file I/O or network access."
-  task="Complete the trigonometry calculations: convert 45 degrees to radians, then calculate sin and cos. Store the cos value (rounded to 3 decimals) as the answer."
-  expectedOutput={`Calculating for 45 degrees...
-Radians: 0.785
-Sin: 0.707
-Cos: 0.707
-ANSWER: 0.707`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-env-3"
+    expectedAnswer="ANSWER: typed"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Working Within the Sandbox ⭐⭐ {#exercise-4-working-within-the-sandbox}
+
+### Premise
+
+The sandbox provides standard Luau math functions (sin, cos, rad) plus Rive graphics APIs. You can perform complex calculations and create procedural graphics—just no file I/O or network access.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the trigonometry calculations: convert 45 degrees to radians, then calculate sin and cos. Store the cos value (rounded to 3 decimals) as the answer.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4WorkingWithinTheSandbox`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Demonstrate math operations available in the sandbox
 
 export type SandboxDemo = {
@@ -458,22 +645,46 @@ return function(): Node<SandboxDemo>
         sinValue = 0,
         cosValue = 0,
     }
-end`}
-  solution={`-- TODO 1: Convert 45 degrees to radians using math.rad()
-self.angle = math.rad(45)
+end
+```
 
--- TODO 2: Calculate sin and cos of the angle
-self.sinValue = math.sin(self.angle)
-self.cosValue = math.cos(self.angle)
+---
 
--- (After the print statements)
--- TODO 3: Print the answer
-print(\`ANSWER: {string.format("%.3f", self.cosValue)}\`)`}
->
-**Premise:** You're building a rotation system that needs trigonometry calculations. The sandbox provides all standard math functions.
+### Assignment
 
-**Use Case:** Many animations need trig: rotating objects, circular motion, wave effects. Understanding that these math functions are available (even though network/file APIs aren't) is crucial for sandbox development.
-</Exercise>
+Complete these tasks:
+
+1. Complete the trigonometry calculations: convert 45 degrees to radians, then calculate sin and cos. Store the cos value (rounded to 3 decimals) as the answer.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-env-4"
+    expectedAnswer="ANSWER: 0.707"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -485,7 +696,7 @@ The Rive scripting environment has intentional restrictions:
 
 | Feature | Reason | Alternative |
 |---------|--------|-------------|
-| File I/O | Security - scripts cannot access filesystem | Use ViewModel to store data |
+| File I/O | Security - scripts cannot access filesystem | Use <Term>ViewModel</Term> to store data |
 | Network requests | Security - no HTTP or socket access | Pre-load data into ViewModel |
 | `os.execute` | Security - cannot run system commands | N/A |
 | `loadstring` | Security - cannot dynamically load code | Use require() for Util scripts |
@@ -631,6 +842,7 @@ export type MyNode = {}
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Protocols Overview ->](./protocols)**
+- Continue to [Script Types Overview](/rive/script-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

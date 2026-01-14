@@ -2,10 +2,20 @@
 sidebar_position: 6
 title: "Advanced Types"
 description: Master intersection types, union types, optional types, and function types in Luau
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - master
+  - intersection
+  - union
+  - optional
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Advanced Types
 
@@ -127,7 +137,7 @@ type MaybeString = string | null
 
 ## Practice Exercises
 
-### Exercise 1: Intersection Components ⭐⭐
+### Exercise 1: Intersection Components ⭐⭐ {#exercise-1-intersection-components}
 
 ### Premise
 
@@ -152,7 +162,7 @@ A UI element needs a name, position, and visibility flag. Intersection types kee
 #### In Rive Editor:
 
 1. **Create the script:**
-   - Assets panel → `+` → Script → Node Script
+   - Assets panel → `+` → Script → <Term>Node</Term> Script
    - Name it `Exercise1_Intersection`
 
 2. **Attach and run:**
@@ -233,7 +243,7 @@ Your console output should display the intersection type fields (name, position 
 
 ---
 
-### Exercise 2: Union ID Format ⭐⭐
+### Exercise 2: Union ID Format ⭐⭐ {#exercise-2-union-id-format}
 
 ### Premise
 
@@ -330,11 +340,11 @@ Your console output should display the formatted ID after narrowing the union ty
 
 ---
 
-### Exercise 3: Optional Subtitle ⭐⭐
+### Exercise 3: Optional Subtitle ⭐⭐ {#exercise-3-optional-subtitle}
 
 ### Premise
 
-Optional types represent values that may be nil. You must handle the nil path before using them.
+Optional types represent values that may be nil. You must handle the nil <Term>Path</Term> before using them.
 
 :::info Goal
 By the end of this exercise, you will handle an optional string safely.
@@ -433,7 +443,7 @@ Your console output should display the subtitle value or the fallback when the o
 
 ---
 
-### Exercise 4: Function Type Alias ⭐⭐
+### Exercise 4: Function Type Alias ⭐⭐ {#exercise-4-function-type-alias}
 
 ### Premise
 
@@ -531,7 +541,7 @@ Your console output should display the eased value from the function type alias.
 
 ---
 
-### Exercise 5: Literal Direction Union ⭐⭐
+### Exercise 5: Literal Direction Union ⭐⭐ {#exercise-5-literal-direction-union}
 
 ### Premise
 
@@ -629,7 +639,7 @@ Your console output should display the dx and dy values mapped from the literal 
 
 ---
 
-### Exercise 6: Multiple Returns ⭐⭐
+### Exercise 6: Multiple Returns ⭐⭐ {#exercise-6-multiple-returns}
 
 ### Premise
 
@@ -850,6 +860,7 @@ type ID = string | number  -- Either one
 
 ---
 
-## Next Up
+## Next Steps
 
-**[The late() Initializer ->](./late-initializer)**
+- Continue to [2.3 Generics & Advanced Types](/types/generics)
+- Need a refresher? Review [Quick Reference](/quick-reference)

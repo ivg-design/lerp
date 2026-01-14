@@ -1,31 +1,83 @@
 ---
-sidebar_position: 4
+sidebar_position: 6
 title: Path Effect Script Protocol
 description: Real-time manipulation of path geometry for stroke effects
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - path
+  - effect
+  - script
+  - protocol
 ---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Path Effect Script Protocol
 
-:::caution Coming Soon
-This section is under development. See the [Script Types Overview](../script-types) for a summary of Path Effect Scripts.
+## Learning Objectives
+
+- Understand when to use Path Effect Scripts
+- Process PathData and its command types
+- Implement the `update()` function to transform paths
+- Create animated path effects with `advance()`
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | JavaScript (Canvas/SVG) | Luau (Rive Path Effects) |
+|---------|-------------------------|--------------------------|
+| Path creation | `new Path2D()` | `Path.new()` |
+| Move to | `path.moveTo(x, y)` | `path:moveTo(Vector.xy(x, y))` |
+| Line to | `path.lineTo(x, y)` | `path:lineTo(Vector.xy(x, y))` |
+| Cubic curve | `path.bezierCurveTo(...)` | `path:cubicTo(cp1, cp2, end)` |
+| Close path | `path.closePath()` | `path:close()` |
+
+:::tip Key Insight
+Path Effect Scripts receive the **original path** and return a **transformed path**. Unlike SVG filters that apply post-render effects, Path Effects modify the actual geometry before rendering.
 :::
+
+---
 
 ## Overview
 
-Path Effect Scripts enable **real-time manipulation of path geometry**. They give you programmatic control over the shape and structure of paths for effects like warping, distortion, and procedural modifications.
+Path Effect Scripts enable **real-time manipulation of path geometry**. They give you programmatic control over the shape and structure of paths for effects like warping, distortion, animation, and procedural modifications.
 
-## Template
+**When to use Path Effect Scripts:**
+- Custom stroke effects (waves, distortions, warps)
+- Procedural path generation
+- Animated path modifications
+- Geometric transformations on existing paths
+
+---
+
+## The Path Effect Script Template
 
 ```lua
 --!strict
 
-type MyPathEffect = {
+export type MyPathEffect = {
     context: Context,
+    time: number,
+    amplitude: Input<number>,
+    frequency: Input<number>,
 }
 
 function init(self: MyPathEffect, context: Context): boolean
     self.context = context
+    self.time = 0
     return true
+end
+
+-- Called each frame for animated effects
+function advance(self: MyPathEffect, seconds: number): boolean
+    self.time += seconds
+    return true  -- Return true to keep receiving advance calls
 end
 
 -- Core transformation: receives original path, returns modified path
@@ -33,57 +85,659 @@ function update(self: MyPathEffect, inPath: PathData): PathData
     local path = Path.new()
 
     for _, cmd in ipairs(inPath) do
-        -- Transform each command
+        if cmd.type == CommandType.moveTo then
+            path:moveTo(Vector.xy(cmd[1], cmd[2]))
+
+        elseif cmd.type == CommandType.lineTo then
+            path:lineTo(Vector.xy(cmd[1], cmd[2]))
+
+        elseif cmd.type == CommandType.cubicTo then
+            path:cubicTo(
+                Vector.xy(cmd[1], cmd[2]),  -- Control point 1
+                Vector.xy(cmd[3], cmd[4]),  -- Control point 2
+                Vector.xy(cmd[5], cmd[6])   -- End point
+            )
+
+        elseif cmd.type == CommandType.close then
+            path:close()
+        end
     end
 
     return path
 end
 
--- Optional: animated effects
-function advance(self: MyPathEffect, seconds: number): boolean
-    return true
-end
-
 return function(): PathEffect<MyPathEffect>
     return {
         init = init,
-        update = update,
         advance = advance,
+        update = update,
+        context = late(),
+        time = 0,
+        amplitude = late(),
+        frequency = late(),
+    }
+end
+```
+
+---
+
+## Key Functions
+
+### `update(self, inPath: PathData): PathData` — **REQUIRED**
+
+The core transformation function. Receives the original path data, returns the modified path.
+
+```lua
+function update(self: MyPathEffect, inPath: PathData): PathData
+    local path = Path.new()
+
+    for _, cmd in ipairs(inPath) do
+        -- Process each command and build new path
+    end
+
+    return path
+end
+```
+
+---
+
+### `advance(self, seconds: number): boolean` — Optional
+
+Called each frame for time-based animations. Use this to update internal state like time counters.
+
+```lua
+function advance(self: MyPathEffect, seconds: number): boolean
+    self.time += seconds
+    return true  -- Return true to keep receiving callbacks
+end
+```
+
+**Return value:**
+- `true` — Continue receiving advance callbacks
+- `false` — Stop receiving callbacks (static effect)
+
+---
+
+### `init(self, context: Context): boolean` — Optional
+
+One-time initialization when the effect is first applied.
+
+```lua
+function init(self: MyPathEffect, context: Context): boolean
+    self.context = context
+    self.time = 0
+    return true
+end
+```
+
+---
+
+## PathData API
+
+PathData is an indexed collection of PathCommand objects representing the original path geometry.
+
+### Iterating Commands
+
+```lua
+-- Get total number of commands
+local count = #inPath
+
+-- Iterate through all commands
+for _, cmd in ipairs(inPath) do
+    local cmdType = cmd.type     -- CommandType enum
+    local pointCount = #cmd      -- Number of coordinate values
+
+    -- Access coordinates by index
+    -- cmd[1], cmd[2], etc.
+end
+```
+
+---
+
+## CommandType Values
+
+| Type | Points | Values | Description |
+|------|--------|--------|-------------|
+| `CommandType.moveTo` | 2 | `cmd[1]=x, cmd[2]=y` | Move cursor to position |
+| `CommandType.lineTo` | 2 | `cmd[1]=x, cmd[2]=y` | Draw straight line |
+| `CommandType.quadTo` | 4 | `cmd[1..2]=cp, cmd[3..4]=end` | Quadratic bezier curve |
+| `CommandType.cubicTo` | 6 | `cmd[1..2]=cp1, cmd[3..4]=cp2, cmd[5..6]=end` | Cubic bezier curve |
+| `CommandType.close` | 0 | *(none)* | Close path to start |
+
+---
+
+## How to Apply Path Effects
+
+1. Create a Path Effect Script
+2. In Editor: Select a stroke → Effects Tab
+3. Add **Script Effect** → Choose your script
+4. Configure any custom inputs
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Pass-Through Effect ⭐ {#exercise-1-passthrough-effect}
+
+### Premise
+
+Before modifying paths, you need to understand how to copy them unchanged. This establishes the foundation for all path transformations.
+
+:::info Goal
+By the end of this exercise, you will create a path effect that copies the <Term>Input</Term> path without modification.
+:::
+
+### Use Case
+
+You're building a debugging tool to verify path data is being processed correctly before adding transformations.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Path Effect Script
+   - Name it `Exercise1_PassThrough`
+
+2. **Apply to a shape:**
+   - Select any path/shape with a stroke
+   - Effects tab → Add Script Effect → Choose your script
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise1 = {
+    context: Context,
+}
+
+function init(self: Exercise1, context: Context): boolean
+    self.context = context
+    return true
+end
+
+function update(self: Exercise1, inPath: PathData): PathData
+    local path = Path.new()
+    local cmdCount = 0
+
+    for _, cmd in ipairs(inPath) do
+        cmdCount += 1
+
+        -- TODO: Handle each command type
+        if cmd.type == CommandType.moveTo then
+            path:moveTo(Vector.xy(cmd[1], cmd[2]))
+
+        elseif cmd.type == CommandType.lineTo then
+            -- TODO: Copy lineTo command
+            path:lineTo(Vector.xy(cmd[1], cmd[2]))
+
+        elseif cmd.type == CommandType.cubicTo then
+            -- TODO: Copy cubicTo with all 3 vectors
+            -- Hint: cp1 = cmd[1,2], cp2 = cmd[3,4], end = cmd[5,6]
+
+        elseif cmd.type == CommandType.close then
+            path:close()
+        end
+    end
+
+    print(`ANSWER: commands={cmdCount}`)
+    return path
+end
+
+return function(): PathEffect<Exercise1>
+    return {
+        init = init,
+        update = update,
         context = late(),
     }
 end
 ```
 
-## PathData API
+---
 
-```lua
--- Number of commands
-local count = #inPath
+### Assignment
 
--- Iterate commands
-for i, cmd in ipairs(inPath) do
-    local cmdType = cmd.type    -- CommandType enum
-    local pointCount = #cmd     -- Number of points
-end
-```
-
-## CommandType Values
-
-| Value | Points | Description |
-|-------|--------|-------------|
-| `moveTo` | 2 | Move cursor |
-| `lineTo` | 2 | Draw line |
-| `quadTo` | 4 | Quadratic bezier |
-| `cubicTo` | 6 | Cubic bezier |
-| `close` | 0 | Close path |
-
-## Use Cases
-
-- Wave/wobble distortion
-- Custom dash patterns
-- Procedural path generation
-- Animated stroke effects
+1. Complete the `cubicTo` handler with all three vector parameters
+2. Apply to a simple shape (circle or rectangle)
+3. Count should be non-zero if path has commands
 
 ---
 
-*Full documentation coming soon.*
+### Expected Output
+
+Your console output should display the number of path commands processed.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-pathfx-1"
+    expectedAnswer="ANSWER: commands="
+    matchType="startsWith"
+/>
+
+---
+
+### Checklist
+
+- [ ] moveTo copies x,y coordinates
+- [ ] lineTo copies x,y coordinates
+- [ ] cubicTo copies all 6 values (3 vectors)
+- [ ] close is handled
+- [ ] Path renders identically to original
+
+---
+
+### Exercise 2: Vertical Offset Effect ⭐⭐ {#exercise-2-vertical-offset-effect}
+
+### Premise
+
+Now that you can copy paths, let's modify them. Adding an offset to coordinates is the simplest transformation.
+
+:::info Goal
+By the end of this exercise, you will create a path effect that shifts all points vertically.
+:::
+
+### Use Case
+
+You want to create a shadow effect by duplicating and offsetting a path.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Path Effect Script
+   - Name it `Exercise2_VerticalOffset`
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {
+    context: Context,
+    offsetY: Input<number>,
+}
+
+function update(self: Exercise2, inPath: PathData): PathData
+    local path = Path.new()
+    local offset = self.offsetY or 20
+
+    for _, cmd in ipairs(inPath) do
+        if cmd.type == CommandType.moveTo then
+            -- TODO: Add offset to Y coordinate
+            -- Original: cmd[1]=x, cmd[2]=y
+            -- New Y = cmd[2] + offset
+            local x = cmd[1]
+            local y = cmd[2] + offset
+
+            path:moveTo(Vector.xy(x, y))
+
+        elseif cmd.type == CommandType.lineTo then
+            -- TODO: Add offset to Y coordinate
+            path:lineTo(Vector.xy(cmd[1], cmd[2] + offset))
+
+        elseif cmd.type == CommandType.cubicTo then
+            -- TODO: Add offset to ALL Y coordinates (cmd[2], cmd[4], cmd[6])
+            path:cubicTo(
+                Vector.xy(cmd[1], cmd[2] + offset),
+                Vector.xy(cmd[3], cmd[4] + offset),
+                Vector.xy(cmd[5], cmd[6] + offset)
+            )
+
+        elseif cmd.type == CommandType.close then
+            path:close()
+        end
+    end
+
+    print(`ANSWER: offset={offset}`)
+    return path
+end
+
+return function(): PathEffect<Exercise2>
+    return {
+        update = update,
+        context = late(),
+        offsetY = 20,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Verify all Y coordinates have the offset added
+2. Test with offsetY = 20
+
+---
+
+### Expected Output
+
+Your console output should display the offset value being applied.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-pathfx-2"
+    expectedAnswer="ANSWER: offset=20"
+/>
+
+---
+
+### Checklist
+
+- [ ] moveTo Y coordinate offset
+- [ ] lineTo Y coordinate offset
+- [ ] cubicTo all 3 Y coordinates offset
+- [ ] Path visibly shifts downward
+
+---
+
+### Exercise 3: Wave Distortion ⭐⭐⭐ {#exercise-3-wave-distortion}
+
+### Premise
+
+Animated path effects use `advance()` to track time and create dynamic transformations. Wave distortion is a classic effect.
+
+:::info Goal
+By the end of this exercise, you will create an animated wave effect that distorts path geometry.
+:::
+
+### Use Case
+
+You're creating a water or wind effect where shapes appear to ripple.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Path Effect Script
+   - Name it `Exercise3_WaveEffect`
+
+2. **Press Play** to see animation
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {
+    context: Context,
+    time: number,
+    amplitude: Input<number>,
+    frequency: Input<number>,
+}
+
+function init(self: Exercise3, context: Context): boolean
+    self.context = context
+    self.time = 0
+    return true
+end
+
+function advance(self: Exercise3, seconds: number): boolean
+    -- TODO: Increment time by seconds
+    self.time += seconds
+    return true
+end
+
+-- Helper: Calculate wave offset for a Y position
+local function waveOffset(y: number, time: number, amp: number, freq: number): number
+    -- TODO: Return sine wave offset
+    -- Formula: amp * sin(y * freq + time * 3)
+    return amp * math.sin(y * freq + time * 3)
+end
+
+function update(self: Exercise3, inPath: PathData): PathData
+    local path = Path.new()
+    local amp = self.amplitude or 5
+    local freq = self.frequency or 0.1
+    local t = self.time
+
+    for _, cmd in ipairs(inPath) do
+        if cmd.type == CommandType.moveTo then
+            local x, y = cmd[1], cmd[2]
+            local offset = waveOffset(y, t, amp, freq)
+            path:moveTo(Vector.xy(x + offset, y))
+
+        elseif cmd.type == CommandType.lineTo then
+            local x, y = cmd[1], cmd[2]
+            local offset = waveOffset(y, t, amp, freq)
+            path:lineTo(Vector.xy(x + offset, y))
+
+        elseif cmd.type == CommandType.cubicTo then
+            local o1 = waveOffset(cmd[2], t, amp, freq)
+            local o2 = waveOffset(cmd[4], t, amp, freq)
+            local o3 = waveOffset(cmd[6], t, amp, freq)
+
+            path:cubicTo(
+                Vector.xy(cmd[1] + o1, cmd[2]),
+                Vector.xy(cmd[3] + o2, cmd[4]),
+                Vector.xy(cmd[5] + o3, cmd[6])
+            )
+
+        elseif cmd.type == CommandType.close then
+            path:close()
+        end
+    end
+
+    print(`ANSWER: time={math.floor(t * 10) / 10},amp={amp}`)
+    return path
+end
+
+return function(): PathEffect<Exercise3>
+    return {
+        init = init,
+        advance = advance,
+        update = update,
+        context = late(),
+        time = 0,
+        amplitude = 5,
+        frequency = 0.1,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Verify `advance()` increments time
+2. Verify wave offset is applied to X coordinates based on Y position
+3. Watch the shape animate when playing
+
+---
+
+### Expected Output
+
+Your console output should show time incrementing and amplitude.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-pathfx-3"
+    expectedAnswer="ANSWER: time="
+    matchType="startsWith"
+/>
+
+---
+
+### Checklist
+
+- [ ] `advance()` increments self.time
+- [ ] Wave offset varies by Y position
+- [ ] Time component creates animation
+- [ ] Shape visibly wobbles when playing
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What does the update() function receive and return?"
+  id="pathfx-q1"
+  options={[
+    { text: "Receives <Term>Renderer</Term>, returns nothing" },
+    { text: "Receives PathData, returns PathData", correct: true },
+    { text: "Receives Path, returns Path" },
+    { text: "Receives Vector, returns Vector" },
+  ]}
+  explanation="update() receives the original PathData (collection of commands) and must return a new PathData (the transformed path)."
+/>
+
+<Quiz
+  question="How many coordinate values does a cubicTo command have?"
+  id="pathfx-q2"
+  options={[
+    { text: "2 values (1 point)" },
+    { text: "4 values (2 points)" },
+    { text: "6 values (3 points)", correct: true },
+    { text: "8 values (4 points)" },
+  ]}
+  explanation="cubicTo has 6 values: control point 1 (x,y), control point 2 (x,y), and end point (x,y) - three points total."
+/>
+
+<Quiz
+  question="What should advance() return to keep receiving frame callbacks?"
+  id="pathfx-q3"
+  options={[
+    { text: "Return nothing" },
+    { text: "Return false" },
+    { text: "Return true", correct: true },
+    { text: "Return the time value" },
+  ]}
+  explanation="Return true from advance() to keep receiving callbacks each frame. Return false to stop (for static effects)."
+/>
+
+<Quiz
+  question="Which function is REQUIRED in a Path Effect Script?"
+  id="pathfx-q4"
+  options={[
+    { text: "init()" },
+    { text: "advance()" },
+    { text: "update()", correct: true },
+    { text: "draw()" },
+  ]}
+  explanation="update() is the only required function - it's the core transformation that converts input PathData to output PathData."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Avoid These Errors
+
+1. **Forgetting to handle all command types**
+   ```lua
+   -- WRONG: Only handling moveTo and lineTo
+   for _, cmd in ipairs(inPath) do
+       if cmd.type == CommandType.moveTo then ...
+       elseif cmd.type == CommandType.lineTo then ...
+       -- Missing cubicTo, quadTo, close!
+   end
+
+   -- CORRECT: Handle all types
+   for _, cmd in ipairs(inPath) do
+       if cmd.type == CommandType.moveTo then ...
+       elseif cmd.type == CommandType.lineTo then ...
+       elseif cmd.type == CommandType.cubicTo then ...
+       elseif cmd.type == CommandType.quadTo then ...
+       elseif cmd.type == CommandType.close then ...
+       end
+   end
+   ```
+
+2. **Wrong index for cubicTo points**
+   ```lua
+   -- WRONG: Swapped indices
+   path:cubicTo(
+       Vector.xy(cmd[1], cmd[3]),  -- Mixed up!
+       ...
+   )
+
+   -- CORRECT: Sequential pairs
+   path:cubicTo(
+       Vector.xy(cmd[1], cmd[2]),  -- cp1: x,y
+       Vector.xy(cmd[3], cmd[4]),  -- cp2: x,y
+       Vector.xy(cmd[5], cmd[6])   -- end: x,y
+   )
+   ```
+
+3. **Not returning true from advance()**
+   ```lua
+   -- WRONG: Animation stops after first frame
+   function advance(self, seconds)
+       self.time += seconds
+       -- No return! Defaults to nil/false
+   end
+
+   -- CORRECT: Keep receiving callbacks
+   function advance(self, seconds)
+       self.time += seconds
+       return true
+   end
+   ```
+
+4. **Returning wrong type from update()**
+   ```lua
+   -- WRONG: Returning the input
+   function update(self, inPath)
+       return inPath  -- Error! Expected PathData (Path.new())
+   end
+
+   -- CORRECT: Return a new Path
+   function update(self, inPath)
+       local path = Path.new()
+       -- ... build path
+       return path
+   end
+   ```
+
+:::
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand that update() transforms PathData → PathData
+- [ ] I can iterate through PathData commands with ipairs
+- [ ] I know the coordinate layout for each CommandType
+- [ ] I can create animated effects using advance() and time
+- [ ] I understand that advance() should return true for animations
+
+---
+
+## Summary
+
+Path Effect Scripts are the most advanced script type in Rive. They give you complete control over path geometry, enabling:
+
+- **Static effects**: Offsets, scales, custom dash patterns
+- **Animated effects**: Waves, wobbles, procedural animation
+- **Generative effects**: Procedural path creation
+
+The key is understanding the PathData structure and building new paths command by command.
+
+## Next Steps
+
+- Continue to [Util Protocol](/rive/protocols/util-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

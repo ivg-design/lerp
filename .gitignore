@@ -10,6 +10,7 @@
 
 # Work directories
 ../lerp-work/
+.dev-docs/
 
 # Misc
 .DS_Store

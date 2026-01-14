@@ -2,12 +2,29 @@
 sidebar_position: 3
 title: ViewModels
 description: Binding scripts to ViewModels for reactive data-driven animations
+keywords:
+  - rive
+  - luau
+  - scripting
+  - advanced
+  - viewmodels
+  - binding
+  - scripts
+  - reactive
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # ViewModels
+
+:::info Prerequisites
+Before this section, complete:
+- [Inputs and Data Binding](/rive/inputs) — `Input<T>` basics and `update()`
+- [<Term>Node</Term> Protocol](/rive/protocols/node-protocol) — Factory function and context
+- [Tables](/fundamentals/tables) — Luau tables (ViewModels use property access)
+:::
 
 ## Rive Context: ViewModels Connect Data to Graphics
 
@@ -20,8 +37,8 @@ ViewModels are Rive's data binding system. They let you expose properties (numbe
 **Key concepts:**
 - ViewModels define a **schema** of properties
 - Properties are **reactive**: changes propagate automatically
-- Scripts can **read**, **write**, and **listen** to ViewModel properties
-- Use `context:viewModel()` for the artboard's main ViewModel
+- Scripts can **read**, **write**, and **listen** to <Term>ViewModel</Term> properties
+- Use `context:viewModel()` for the <Term>Artboard</Term>'s main ViewModel
 - Use `Input<Data.X>` for nested ViewModel references
 
 ---
@@ -74,18 +91,46 @@ All getters return `nil` if the property doesn't exist. Always check before usin
 
 ---
 
-<Exercise
-  id="advanced-viewmodel-1"
-  title="Exercise 1: Read and Display ViewModel Data"
-  difficulty={2}
-  hint="Use context:viewModel() to get the VM, then vm:getNumber('score') to get the property. Access .value to read the current value."
-  expectedAnswer="viewmodel"
-  explanation="ViewModels provide reactive properties that scripts can read. Use context:viewModel() in init, then access properties with getNumber(), getString(), etc."
-  task="Complete the init function to get the ViewModel and score property, then read its value."
-  expectedOutput={`ViewModel connected!
-Score property found: 50
-ANSWER: viewmodel`}
-  code={`--!strict
+### Exercise 1: Read and Display ViewModel Data ⭐⭐ {#exercise-1-read-and-display-viewmodel-data}
+
+### Premise
+
+ViewModels provide reactive properties that scripts can read. Use context:viewModel() in init, then access properties with getNumber(), getString(), etc.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to get the ViewModel and score property, then read its value.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1ReadAndDisplayViewmodelData`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Read a score property from the main ViewModel
 
 export type ScoreDisplay = {
@@ -150,26 +195,52 @@ return function(): Node<ScoreDisplay>
         paint = late(),
         barWidth = 0,
     }
-end`}
-  solution={`-- TODO 1: Get the ViewModel
-self.vm = context:viewModel()
+end
+```
 
--- TODO 2: Get the score property
-self.scoreProp = self.vm:getNumber("score")
+---
 
--- TODO 3: Read the value
-self.barWidth = self.scoreProp.value * 2`}
->
-**Premise:** You're building a score display that reads data from the artboard's ViewModel.
+### Assignment
 
-**Use Case:** ViewModels let external code (your app, state machines) drive animation data. Score displays, health bars, and progress indicators all use this pattern.
-</Exercise>
+Complete these tasks:
+
+1. Complete the init function to get the ViewModel and score property, then read its value.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-viewmodel-1"
+    expectedAnswer="ANSWER: viewmodel"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
 1. Create a ViewModel with a `score` number property (default: 50)
 2. Bind the ViewModel to your artboard
 
-:::warning Path Reset Location
+:::warning <Term>Path</Term> Reset Location
 In this example, `path:reset()` is in `draw` for simplicity. For production code, move path updates to `advance` to avoid potential rendering artifacts.
 :::
 
@@ -180,18 +251,46 @@ In this example, `path:reset()` is in `draw` for simplicity. For production code
 
 ---
 
-<Exercise
-  id="advanced-viewmodel-2"
-  title="Exercise 2: Writing to ViewModel Properties"
-  difficulty={2}
-  hint="Assign to .value to write: self.xProp.value = newValue. Use sine/cosine with time for smooth oscillation."
-  expectedAnswer="writing"
-  explanation="ViewModel properties are read/write. Assign to .value to update them—changes automatically propagate to all bound visual elements."
-  task="Complete the advance function to animate the position properties using sine and cosine waves."
-  expectedOutput={`Position driver initialized
-Driving position...
-ANSWER: writing`}
-  code={`--!strict
+### Exercise 2: Writing to ViewModel Properties ⭐⭐ {#exercise-2-writing-to-viewmodel-properties}
+
+### Premise
+
+ViewModel properties are read/write. Assign to .value to update them—changes automatically propagate to all bound visual elements.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to animate the position properties using sine and cosine waves.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2WritingToViewmodelProperties`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Drive ViewModel position properties from script
 
 export type PositionDriver = {
@@ -248,21 +347,46 @@ return function(): Node<PositionDriver>
         yProp = nil,
         time = 0,
     }
-end`}
-  solution={`-- TODO 1: Write to xProp
-if self.xProp then
-    self.xProp.value = math.sin(self.time) * 100
 end
+```
 
--- TODO 2: Write to yProp
-if self.yProp then
-    self.yProp.value = math.cos(self.time * 1.5) * 50
-end`}
->
-**Premise:** You're creating a position driver that controls an element's movement through ViewModel properties.
+---
 
-**Use Case:** Scripts can animate visual elements indirectly by writing to ViewModel properties that are bound to layer transforms, colors, or other visual attributes.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to animate the position properties using sine and cosine waves.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-viewmodel-2"
+    expectedAnswer="ANSWER: writing"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
 1. Add `posX` and `posY` number properties to your ViewModel
@@ -275,18 +399,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-viewmodel-3"
-  title="Exercise 3: Listening for Property Changes"
-  difficulty={2}
-  hint="Use property:addListener(function() ... end) to register a callback. Inside the callback, read the new value and update visuals."
-  expectedAnswer="listener"
-  explanation="Listeners make scripts reactive to external changes. When the runtime or state machine updates a property, your listener callback fires automatically."
-  task="Complete the init function to register a listener that changes color when the mode property changes."
-  expectedOutput={`Listener registered for mode
-Mode changed to: active
-ANSWER: listener`}
-  code={`--!strict
+### Exercise 3: Listening for Property Changes ⭐⭐ {#exercise-3-listening-for-property-changes}
+
+### Premise
+
+Listeners make scripts reactive to external changes. When the runtime or <Term>State Machine</Term> updates a property, your listener callback fires automatically.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to register a listener that changes color when the mode property changes.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3ListeningForPropertyChanges`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- React to ViewModel property changes with listeners
 
 export type ChangeListener = {
@@ -344,23 +496,46 @@ return function(): Node<ChangeListener>
         paint = late(),
         path = late(),
     }
-end`}
-  solution={`-- Register the listener
-self.modeProp:addListener(function()
-    self.currentMode = self.modeProp.value
-    print(\`Mode changed to: {self.currentMode}\`)
-    if self.currentMode == "active" then
-        self.paint.color = Color.rgb(255, 100, 100)
-    else
-        self.paint.color = Color.rgb(100, 100, 255)
-    end
-    print("ANSWER: listener")
-end)`}
->
-**Premise:** You're building a reactive component that changes appearance when a ViewModel property changes.
+end
+```
 
-**Use Case:** Listeners enable event-driven behavior—changing states, triggering animations, or updating visuals when external code modifies ViewModel properties.
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the init function to register a listener that changes color when the mode property changes.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-viewmodel-3"
+    expectedAnswer="ANSWER: listener"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
 1. Add a `mode` string property to your ViewModel (default: "idle")
@@ -373,19 +548,46 @@ end)`}
 
 ---
 
-<Exercise
-  id="advanced-viewmodel-4"
-  title="Exercise 4: Firing Triggers"
-  difficulty={2}
-  hint="Use vm:getTrigger('name') to get a trigger. Register listener with :addListener(function() ... end). Fire with :fire()."
-  expectedAnswer="trigger"
-  explanation="Triggers are one-shot events with no persistent value. Use them for notifications like collisions, button presses, or animation completions."
-  task="Complete the init function to get the trigger, register a listener, and implement a pointerDown handler to fire it."
-  expectedOutput={`Trigger listener registered
-Hit trigger fired! Count: 1
-Hit trigger fired! Count: 2
-ANSWER: trigger`}
-  code={`--!strict
+### Exercise 4: Firing Triggers ⭐⭐ {#exercise-4-firing-triggers}
+
+### Premise
+
+Triggers are one-shot events with no persistent value. Use them for notifications like collisions, button presses, or animation completions.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to get the trigger, register a listener, and implement a pointerDown handler to fire it.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4FiringTriggers`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Use triggers for one-shot events
 
 export type TriggerDemo = {
@@ -449,28 +651,46 @@ return function(): Node<TriggerDemo>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Get the trigger
-self.hitTrigger = self.vm:getTrigger("onHit")
+end
+```
 
--- TODO 2: Register listener
-self.hitTrigger:addListener(function()
-    self.clickCount += 1
-    print(\`Hit trigger fired! Count: {self.clickCount}\`)
-    if self.clickCount == 2 then
-        print("ANSWER: trigger")
-    end
-end)
+---
 
--- TODO 3: Fire the trigger in pointerDown
-if self.hitTrigger then
-    self.hitTrigger:fire()
-end`}
->
-**Premise:** You're building a clickable component that fires a trigger event when pressed.
+### Assignment
 
-**Use Case:** Triggers communicate events between scripts, state machines, and runtime code—perfect for buttons, collision notifications, and animation cues.
-</Exercise>
+Complete these tasks:
+
+1. Complete the init function to get the trigger, register a listener, and implement a pointerDown handler to fire it.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-viewmodel-4"
+    expectedAnswer="ANSWER: trigger"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
 1. Add an `onHit` trigger to your ViewModel
@@ -483,18 +703,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-viewmodel-5"
-  title="Exercise 5: Nested ViewModel Inputs"
-  difficulty={3}
-  hint="Use Input<Data.YourViewModelName> in the type. Access properties like self.character.posX.value. Use late() in the factory."
-  expectedAnswer="nested"
-  explanation="Input<Data.X> binds to a specific ViewModel instance assigned in the editor. Access its properties directly using dot notation."
-  task="Complete the advance function to animate the character's position using the nested ViewModel properties."
-  expectedOutput={`Character controller ready
-Animating character...
-ANSWER: nested`}
-  code={`--!strict
+### Exercise 5: Nested ViewModel Inputs ⭐⭐⭐ {#exercise-5-nested-viewmodel-inputs}
+
+### Premise
+
+`Input<Data.X>` binds to a specific ViewModel instance assigned in the editor. Access its properties directly using dot notation.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to animate the character's position using the nested ViewModel properties.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5NestedViewmodelInputs`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Control a nested ViewModel using script inputs
 
 export type CharacterController = {
@@ -537,16 +785,46 @@ return function(): Node<CharacterController>
         speed = 2.0,
         time = 0,
     }
-end`}
-  solution={`-- TODO 1-4: Animate character position
-local offset = math.sin(self.time * self.speed) * 80
-self.character.posX.value = offset
-self.character.posY.value = math.cos(self.time * self.speed * 0.7) * 40`}
->
-**Premise:** You're building a character controller that drives a nested ViewModel's position properties.
+end
+```
 
-**Use Case:** Nested ViewModels let you create reusable components (characters, UI elements) that scripts can control independently.
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to animate the character's position using the nested ViewModel properties.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-viewmodel-5"
+    expectedAnswer="ANSWER: nested"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
 1. Create a `Character` ViewModel with `posX` and `posY` number properties
@@ -641,6 +919,7 @@ ViewModels are the bridge between your animation data and your scripts. Use `con
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Procedural Geometry ->](./procedural)**
+- Continue to [Pointer Events](/advanced/game-logic)
+- Need a refresher? Review [Quick Reference](/quick-reference)

@@ -1,8 +1,18 @@
 ---
 sidebar_position: 1
 title: Interactive Button
-description: Build a button that reacts to pointer input and fires ViewModel triggers
+description: Build a button that reacts to pointer Input and fires ViewModel triggers
+keywords:
+  - rive
+  - luau
+  - scripting
+  - project
+  - interactive
+  - button
+  - build
+  - reacts
 ---
+import Term from '@site/src/components/Term';
 
 # Project: Interactive Button
 
@@ -15,8 +25,8 @@ Build a button that reacts to pointer input and fires a ViewModel trigger when c
 1. Create a ViewModel named `ButtonVM` with:
    - `pressed` (Boolean)
    - `click` (Trigger)
-2. Bind `pressed` to a state machine input or a shape color
-3. Attach this Node script to a group on your artboard
+2. Bind `pressed` to a <Term>State Machine</Term> input or a shape color
+3. Attach this <Term>Node</Term> script to a group on your <Term>Artboard</Term>
 
 ---
 
@@ -150,5 +160,10 @@ The button draws itself using the Drawing API with a fill and stroke. Colors cha
 - Add a hover state with `pointerMove`
 - Animate the button depth using `advance`
 - Use a `Sound` trigger via ViewModel
-- Add rounded corners by building a rounded-rect path manually (cubic beziers)
+- Add rounded corners by building a rounded-rect <Term>Path</Term> manually (cubic beziers)
 - Implement a disabled state controlled by ViewModel boolean
+
+## Next Steps
+
+- Continue to [Data Visualization](/projects/data-visualization)
+- Need a refresher? Review [Quick Reference](/quick-reference)

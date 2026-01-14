@@ -2,10 +2,20 @@
 sidebar_position: 2
 title: "Type Annotations Deep Dive"
 description: Master type annotations for Rive Node Scripts with practical patterns
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - type
+  - annotations
+  - deep
+  - dive
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Type Annotations Deep Dive
 
@@ -27,7 +37,7 @@ If you're coming from After Effects expressions or JavaScript, here's how Rive's
 | Export type | `export type X = ...` (TS) | `export type X = ...` | Same syntax! |
 | Self reference | `this.health` | `self.health` | Luau uses `self`, not `this` |
 | Class properties | Declared in constructor | Declared in `export type` | Different pattern entirely |
-| Input binding | N/A | `Input<number>` | Rive-specific wrapper |
+| <Term>Input</Term> binding | N/A | `Input<number>` | Rive-specific wrapper |
 | Deferred init | N/A | `late()` | Rive-specific placeholder |
 | Factory function | `new Class()` | `return function(): Node<T>` | Rive's script pattern |
 
@@ -107,7 +117,7 @@ class MyScript {
 
 ## Practice Exercises
 
-### Exercise 1: Exported State Shape ⭐
+### Exercise 1: Exported State Shape ⭐ {#exercise-1-exported-state-shape}
 
 ### Premise
 
@@ -210,7 +220,7 @@ Your console output should display the three annotated field values demonstratin
 
 ---
 
-### Exercise 2: Typed Range Table ⭐
+### Exercise 2: Typed Range Table ⭐ {#exercise-2-typed-range-table}
 
 ### Premise
 
@@ -312,7 +322,7 @@ Your console output should display the computed range (max minus min) from the t
 
 ---
 
-### Exercise 3: Input Defaults ⭐
+### Exercise 3: Input Defaults ⭐ {#exercise-3-input-defaults}
 
 ### Premise
 
@@ -412,7 +422,7 @@ Your console output should display the boost value computed from the Input field
 
 ---
 
-### Exercise 4: Input to State ⭐⭐
+### Exercise 4: Input to State ⭐⭐ {#exercise-4-input-to-state}
 
 ### Premise
 
@@ -510,7 +520,7 @@ Your console output should display the smoothed value derived from the input spe
 
 ---
 
-### Exercise 5: Input Label to Status ⭐⭐
+### Exercise 5: Input Label to Status ⭐⭐ {#exercise-5-input-label-to-status}
 
 ### Premise
 
@@ -526,7 +536,7 @@ A designer supplies a label in the editor. Your script adds a status suffix befo
 
 **Example scenarios:**
 - Label formatting for HUD elements
-- Status text in a state machine
+- Status text in a <Term>State Machine</Term>
 
 ---
 
@@ -608,7 +618,7 @@ Your console output should display the formatted status string combining the inp
 
 ---
 
-### Exercise 6: Function Field Annotation ⭐⭐
+### Exercise 6: Function Field Annotation ⭐⭐ {#exercise-6-function-field-annotation}
 
 ### Premise
 
@@ -805,10 +815,11 @@ Your console output should display the formatted result from the typed function 
 - [ ] I understand when to use `late()` vs direct values
 - [ ] I can annotate helper functions with parameters and return types
 - [ ] I know the difference between `Input<T>` and `T`
-- [ ] I use Rive's built-in types correctly (Vector, Color, Path, Paint)
+- [ ] I use Rive's built-in types correctly (Vector, Color, <Term>Path</Term>, <Term>Paint</Term>)
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Custom Types & Unions ->](./custom-types)**
+- Continue to [Strict Mode Deep Dive](/types/strict-mode)
+- Need a refresher? Review [Quick Reference](/quick-reference)

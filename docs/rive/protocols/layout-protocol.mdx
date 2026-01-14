@@ -1,46 +1,99 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 title: Layout Script Protocol
 description: Programmatic control over Layout component sizing and positioning
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - layout
+  - script
+  - protocol
+  - programmatic
 ---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Layout Script Protocol
 
-:::caution Coming Soon
-This section is under development. See the [Script Types Overview](../script-types) for a summary of Layout Scripts.
+## Learning Objectives
+
+- Understand Layout Script lifecycle functions
+- Use `measure()` to propose sizes for Hug layouts
+- Use `resize()` to react to container size changes
+- Position children programmatically within layouts
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | CSS/JavaScript | Luau (Rive Layout Scripts) |
+|---------|---------------|----------------------------|
+| Container query | `@container (min-width)` | `resize(self, size)` callback |
+| Preferred size | `width: fit-content` | `measure()` returns Vector |
+| Flexbox gap | `gap: 10px` | Manual positioning in `resize()` |
+| Grid layout | `display: grid` | Custom logic in `resize()` |
+
+:::tip Key Insight
+Layout Scripts let you implement **custom layout algorithms**. Unlike CSS where you pick from predefined models (flex, grid), in Rive you write the exact positioning logic yourself.
 :::
+
+---
 
 ## Overview
 
-Layout Scripts extend Node Scripts to give you programmatic control over **Layout components**. They enable custom layout behaviors like masonry grids, carousels, and dynamic spacing logic.
+Layout Scripts extend <Term>Node</Term> Scripts to give you programmatic control over **Layout components**. They enable custom layout behaviors like masonry grids, carousels, and dynamic spacing logic.
 
-## Template
+**When to use Layout Scripts:**
+- Custom responsive layouts (masonry, carousel)
+- Dynamic spacing/positioning logic
+- Programmatic child arrangement
+- Data-driven layout systems
+
+---
+
+## The Layout Script Template
 
 ```lua
 --!strict
 
-type MyLayout = {}
+export type MyLayout = {
+    spacing: Input<number>,
+    columns: Input<number>,
+}
 
 function init(self: MyLayout, context: Context): boolean
+    -- Initialize layout state
     return true
 end
 
 function advance(self: MyLayout, seconds: number): boolean
+    -- Per-frame updates (for animated layouts)
     return true
 end
 
-function update(self: MyLayout) end
+function update(self: MyLayout)
+    -- Called when inputs (spacing, columns) change
+end
 
-function draw(self: MyLayout, renderer: Renderer) end
+function draw(self: MyLayout, renderer: Renderer)
+    -- Custom rendering (optional)
+end
 
 -- Propose ideal size (only for "Hug" fit type)
 function measure(self: MyLayout): Vector
-    return Vector.xy(100, 100)
+    return Vector.xy(200, 150)
 end
 
--- React to size changes
+-- REQUIRED: React to container size changes
 function resize(self: MyLayout, size: Vector)
-    -- Position children here
+    -- Position children based on available size
+    local width = size.x
+    local height = size.y
+    -- ... layout logic here
 end
 
 return function(): Layout<MyLayout>
@@ -51,28 +104,501 @@ return function(): Layout<MyLayout>
         draw = draw,
         measure = measure,
         resize = resize,
+        spacing = 10,
+        columns = 3,
     }
 end
 ```
 
-## Key Functions
+---
 
-| Function | Required | Purpose |
-|----------|----------|---------|
-| `init` | Optional | Initialize state |
-| `advance` | Optional | Frame-by-frame updates |
-| `update` | Optional | React to input changes |
-| `draw` | Optional | Custom rendering |
-| `measure` | Optional | Propose ideal size (Hug fit only) |
-| `resize` | **Required** | React to size changes |
+## Lifecycle Functions
 
-## Use Cases
+### `resize(self, size: Vector)` — **REQUIRED**
 
-- Masonry grids
-- Carousels with custom spacing
-- Responsive layouts
-- Data-driven positioning
+Called whenever the layout container changes size. This is where you position children.
+
+```lua
+function resize(self: MyLayout, size: Vector)
+    print(`Container resized to: {size.x} x {size.y}`)
+    -- Position children here
+end
+```
+
+**When it's called:**
+- On initial layout load
+- When the container resizes
+- When parent layout changes
 
 ---
 
-*Full documentation coming soon.*
+### `measure(self): Vector` — Optional
+
+Proposes an ideal size for layouts with **Hug** fit type. Return a Vector with your preferred width and height.
+
+```lua
+function measure(self: MyLayout): Vector
+    -- Calculate ideal size based on content
+    local totalWidth = self.columns * (self.itemWidth + self.spacing)
+    local totalHeight = self.rows * (self.itemHeight + self.spacing)
+    return Vector.xy(totalWidth, totalHeight)
+end
+```
+
+**Important:** `measure()` is only effective when the Layout's Fit type is set to **Hug**. For **Fill** or **Fixed** layouts, the return value is ignored.
+
+---
+
+### Other Lifecycle Functions
+
+Layout Scripts inherit all Node Script lifecycle functions:
+
+| Function | Purpose |
+|----------|---------|
+| `init(self, context)` | One-time initialization |
+| `advance(self, seconds)` | Per-frame updates (for animations) |
+| `update(self)` | React to <Term>Input</Term> changes |
+| `draw(self, renderer)` | Custom rendering |
+
+---
+
+## Fit Types and `measure()`
+
+The effect of `measure()` depends on the Layout's Fit setting:
+
+| Fit Type | Behavior | `measure()` Effect |
+|----------|----------|-------------------|
+| **Hug** | Container sizes to fit content | Your `measure()` return is used |
+| **Fill** | Container fills available space | `measure()` ignored |
+| **Fixed** | Container has explicit size | `measure()` ignored |
+
+```lua
+-- measure() only matters for Hug layouts
+function measure(self: MyLayout): Vector
+    if self.fitType == "hug" then
+        return Vector.xy(self.contentWidth, self.contentHeight)
+    end
+    -- For Fill/Fixed, this return is ignored anyway
+    return Vector.xy(0, 0)
+end
+```
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Simple Horizontal Layout ⭐ {#exercise-1-simple-horizontal-layout}
+
+### Premise
+
+Layout Scripts give you precise control over positioning. Understanding `resize()` is fundamental—it's where all the layout magic happens.
+
+:::info Goal
+By the end of this exercise, you will implement a simple horizontal layout that spaces items evenly.
+:::
+
+### Use Case
+
+You're building a toolbar with evenly-spaced buttons. The toolbar width may change, and buttons should redistribute automatically.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the Layout:**
+   - Add a Layout component to the <Term>Artboard</Term>
+   - Set Fit to "Fill" (width) and "Fixed" (height: 60)
+
+2. **Create the script:**
+   - Assets panel → `+` → Script → Layout Script
+   - Name it `Exercise1_HorizontalLayout`
+
+3. **Attach and run:**
+   - Add the script as child of the Layout
+   - Press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise1 = {
+    itemCount: Input<number>,
+}
+
+function resize(self: Exercise1, size: Vector)
+    local count = self.itemCount
+    local width = size.x
+
+    -- TODO: Calculate spacing between items
+    -- Formula: spacing = width / (count + 1)
+    local spacing = 0
+
+    print(`ANSWER: count={count},width={width},spacing={spacing}`)
+end
+
+return function(): Layout<Exercise1>
+    return {
+        resize = resize,
+        itemCount = 4,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Calculate `spacing` using the formula: `width / (itemCount + 1)`
+2. Run with default itemCount of 4 and a container width of 500
+
+---
+
+### Expected Output
+
+Your console output should display the item count, container width, and calculated spacing between items.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-layout-1"
+    expectedAnswer="ANSWER: count=4,width=500,spacing=100"
+/>
+
+---
+
+### Checklist
+
+- [ ] `spacing` is calculated correctly
+- [ ] Formula divides width by (count + 1)
+- [ ] Output matches expected line
+
+---
+
+### Exercise 2: Grid Layout Calculation ⭐⭐ {#exercise-2-grid-layout-calculation}
+
+### Premise
+
+Grid layouts require calculating both row and column positions. The `resize()` callback gives you the container dimensions to work with.
+
+:::info Goal
+By the end of this exercise, you will calculate row and column counts for a responsive grid.
+:::
+
+### Use Case
+
+You're building a responsive image gallery. As the container resizes, the grid should adjust column count to fit available space.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Layout Script
+   - Name it `Exercise2_GridLayout`
+
+2. **Attach and run:**
+   - Add to a Layout component
+   - Press Play
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {
+    itemSize: Input<number>,
+    itemCount: Input<number>,
+}
+
+function resize(self: Exercise2, size: Vector)
+    local itemSize = self.itemSize
+    local itemCount = self.itemCount
+    local width = size.x
+
+    -- TODO 1: Calculate columns that fit in width
+    -- Use: math.floor(width / itemSize)
+    local columns = 0
+
+    -- TODO 2: Calculate rows needed for all items
+    -- Use: math.ceil(itemCount / columns)
+    local rows = 0
+
+    print(`ANSWER: cols={columns},rows={rows}`)
+end
+
+return function(): Layout<Exercise2>
+    return {
+        resize = resize,
+        itemSize = 100,
+        itemCount = 10,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Calculate `columns` using `math.floor(width / itemSize)`
+2. Calculate `rows` using `math.ceil(itemCount / columns)`
+3. Container width is 450, itemSize is 100, itemCount is 10
+
+---
+
+### Expected Output
+
+Your console output should display the calculated column and row counts for the grid.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-layout-2"
+    expectedAnswer="ANSWER: cols=4,rows=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] Columns calculated with math.floor
+- [ ] Rows calculated with math.ceil
+- [ ] Output matches expected line
+
+---
+
+### Exercise 3: Measure for Hug Layout ⭐⭐ {#exercise-3-measure-for-hug-layout}
+
+### Premise
+
+When a Layout uses "Hug" fit type, your `measure()` function proposes the ideal size. The container then sizes to fit.
+
+:::info Goal
+By the end of this exercise, you will implement `measure()` to propose a size based on content.
+:::
+
+### Use Case
+
+You're building a dynamic tag cloud where the container should grow to fit all tags. The layout "hugs" its content.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the Layout:**
+   - Add a Layout component
+   - Set Fit to "Hug" for both width and height
+
+2. **Create the script:**
+   - Assets panel → `+` → Script → Layout Script
+   - Name it `Exercise3_HugLayout`
+
+3. **Attach and run**
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {
+    tagWidth: Input<number>,
+    tagHeight: Input<number>,
+    tagCount: Input<number>,
+    columns: Input<number>,
+}
+
+function measure(self: Exercise3): Vector
+    local tagW = self.tagWidth
+    local tagH = self.tagHeight
+    local count = self.tagCount
+    local cols = self.columns
+
+    -- TODO 1: Calculate total width needed
+    -- Width = columns * tagWidth
+    local totalWidth = 0
+
+    -- TODO 2: Calculate rows needed
+    local rows = math.ceil(count / cols)
+
+    -- TODO 3: Calculate total height needed
+    -- Height = rows * tagHeight
+    local totalHeight = 0
+
+    print(`ANSWER: w={totalWidth},h={totalHeight}`)
+    return Vector.xy(totalWidth, totalHeight)
+end
+
+function resize(self: Exercise3, size: Vector)
+    -- Layout positioning would go here
+end
+
+return function(): Layout<Exercise3>
+    return {
+        measure = measure,
+        resize = resize,
+        tagWidth = 80,
+        tagHeight = 30,
+        tagCount = 12,
+        columns = 4,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Calculate `totalWidth` as `columns * tagWidth`
+2. Calculate `totalHeight` as `rows * tagHeight`
+3. With tagWidth=80, tagHeight=30, tagCount=12, columns=4
+
+---
+
+### Expected Output
+
+Your console output should display the proposed width and height for the hug layout.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-layout-3"
+    expectedAnswer="ANSWER: w=320,h=90"
+/>
+
+---
+
+### Checklist
+
+- [ ] totalWidth = columns × tagWidth
+- [ ] rows = ceil(tagCount / columns)
+- [ ] totalHeight = rows × tagHeight
+- [ ] Output matches expected line
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="When is measure() called and what does it do?"
+  id="layout-q1"
+  options={[
+    { text: "Every frame to measure rendering time" },
+    { text: "When the layout needs to know its preferred size (for Hug fit type)", correct: true },
+    { text: "After resize() to verify dimensions" },
+    { text: "Only once during initialization" },
+  ]}
+  explanation="measure() is called when the layout system needs to know what size the content prefers. It only has effect when the Layout's Fit type is 'Hug'."
+/>
+
+<Quiz
+  question="What is the key difference between resize() and measure()?"
+  id="layout-q2"
+  options={[
+    { text: "resize() is called first, measure() is called second" },
+    { text: "resize() reacts to size changes; measure() proposes a size", correct: true },
+    { text: "resize() is optional, measure() is required" },
+    { text: "They do the same thing but for different fit types" },
+  ]}
+  explanation="resize() is a reactive callback (the container changed, now position children). measure() is proactive (tell the container what size you'd like)."
+/>
+
+<Quiz
+  question="Which lifecycle function is REQUIRED in a Layout Script?"
+  id="layout-q3"
+  options={[
+    { text: "init()" },
+    { text: "measure()" },
+    { text: "resize()", correct: true },
+    { text: "advance()" },
+  ]}
+  explanation="resize() is the only required function. It's called when the layout container changes size, and you must handle positioning children there."
+/>
+
+<Quiz
+  question="For which Fit type does measure() have an effect?"
+  id="layout-q4"
+  options={[
+    { text: "Fill only" },
+    { text: "Fixed only" },
+    { text: "Hug only", correct: true },
+    { text: "All fit types" },
+  ]}
+  explanation="measure() only affects layouts with 'Hug' fit type, where the container sizes to fit its content. For Fill and Fixed, the return value is ignored."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Avoid These Errors
+
+1. **Forgetting resize() is required**
+   ```lua
+   -- WRONG: No resize function
+   return function(): Layout<MyLayout>
+       return { measure = measure }  -- Error!
+   end
+
+   -- CORRECT: Always include resize
+   return function(): Layout<MyLayout>
+       return { resize = resize, measure = measure }
+   end
+   ```
+
+2. **Expecting measure() to work with Fill layouts**
+   ```lua
+   -- measure() is ignored for Fill fit type
+   -- The container size is determined by parent, not your measure()
+   ```
+
+3. **Not using the size parameter in resize()**
+   ```lua
+   -- WRONG: Ignoring container size
+   function resize(self: MyLayout, size: Vector)
+       positionAt(100, 100)  -- Hardcoded, doesn't adapt!
+   end
+
+   -- CORRECT: Use size to calculate positions
+   function resize(self: MyLayout, size: Vector)
+       local centerX = size.x / 2
+       local centerY = size.y / 2
+       positionAt(centerX, centerY)
+   end
+   ```
+
+:::
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand when resize() is called
+- [ ] I know the difference between measure() and resize()
+- [ ] I can implement a simple grid layout in resize()
+- [ ] I understand which Fit type uses measure()
+- [ ] I can calculate positions based on container size
+
+---
+
+## Next Steps
+
+- Continue to [Converter Script Protocol](/rive/protocols/converter-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

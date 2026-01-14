@@ -1,13 +1,29 @@
 ---
 sidebar_position: 2
 title: Drawing API
-description: Transforms, renderer state, and advanced drawing techniques in Rive
+description: Transforms, Renderer state, and advanced drawing techniques in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - advanced
+  - drawing
+  - api
+  - transforms
+  - renderer
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Drawing API
+
+:::info Prerequisites
+Before this section, complete:
+- [Core Types](/advanced/core-types) — <Term>Path</Term>, <Term>Paint</Term> fundamentals
+- [<Term>Node</Term> Protocol](/rive/protocols/node-protocol) — Factory function and lifecycle
+:::
 
 ## Rive Context: The Renderer Is a State Machine
 
@@ -43,19 +59,46 @@ Transforms are applied in order and accumulate. The order matters: translate-the
 
 ---
 
-<Exercise
-  id="advanced-draw-1"
-  title="Exercise 1: Translate and Rotate a Shape"
-  difficulty={2}
-  hint="Use renderer:save() before transforms, apply Mat2D.withRotation(), then renderer:restore(). Increment angle in advance()."
-  expectedAnswer="rotating"
-  explanation="The renderer maintains a transform stack. save() pushes state, transform() applies matrices, restore() pops state. Always pair save/restore."
-  task="Complete the advance and draw functions to create a rotating rectangle. Increment angle each frame and apply rotation in draw."
-  expectedOutput={`Transform demo initialized
-Rotating: angle = 1.00
-Rotating: angle = 2.00
-ANSWER: rotating`}
-  code={`--!strict
+### Exercise 1: Translate and Rotate a Shape ⭐⭐ {#exercise-1-translate-and-rotate-a-shape}
+
+### Premise
+
+The renderer maintains a transform stack. save() pushes state, transform() applies matrices, restore() pops state. Always pair save/restore.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance and draw functions to create a rotating rectangle. Increment angle each frame and apply rotation in draw.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1TranslateAndRotateAShape`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Apply translation and rotation transforms
 
 export type TransformDemo = {
@@ -111,34 +154,46 @@ return function(): Node<TransformDemo>
         paint = late(),
         angle = 0,
     }
-end`}
-  solution={`-- In advance():
--- TODO 1: Add seconds to angle
-self.angle += seconds
-
--- TODO 2: Log each second
-local prevSec = math.floor(self.angle - seconds)
-local currSec = math.floor(self.angle)
-if currSec > prevSec and currSec > 0 then
-    print(\`Rotating: angle = {self.angle:.2f}\`)
 end
+```
 
--- TODO 3: After 2 seconds, print answer
-if currSec == 2 and prevSec < 2 then
-    print("ANSWER: rotating")
-end
+---
 
--- In draw():
--- TODO 4-7: Save, transform, draw, restore
-renderer:save()
-renderer:transform(Mat2D.withRotation(self.angle))
-renderer:drawPath(self.path, self.paint)
-renderer:restore()`}
->
-**Premise:** You're learning to apply transforms to shapes using the renderer's state machine.
+### Assignment
 
-**Use Case:** Rotation transforms are essential for spinners, loading indicators, clock hands, and any animated rotation effect.
-</Exercise>
+Complete these tasks:
+
+1. Complete the advance and draw functions to create a rotating rectangle. Increment angle each frame and apply rotation in draw.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-draw-1"
+    expectedAnswer="ANSWER: rotating"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `save()` preserves the current renderer state
@@ -148,18 +203,46 @@ renderer:restore()`}
 
 ---
 
-<Exercise
-  id="advanced-draw-2"
-  title="Exercise 2: Multiple Instances with save/restore"
-  difficulty={2}
-  hint="Use a for loop from 1 to 5. Inside the loop: save(), translate, rotate, draw, restore(). Each iteration is independent."
-  expectedAnswer="5"
-  explanation="save/restore in a loop lets you draw the same path multiple times with different transforms. Each iteration is isolated."
-  task="Complete the draw function to render 5 copies of the square at different positions and rotations."
-  expectedOutput={`Clones initialized
-Drawing 5 clones...
-ANSWER: 5`}
-  code={`--!strict
+### Exercise 2: Multiple Instances with save/restore ⭐⭐ {#exercise-2-multiple-instances-with-saverestore}
+
+### Premise
+
+save/restore in a loop lets you draw the same path multiple times with different transforms. Each iteration is isolated.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the draw function to render 5 copies of the square at different positions and rotations.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2MultipleInstancesWithSaveRestore`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Draw the same path multiple times with different transforms
 
 export type CloneDemo = {
@@ -200,20 +283,46 @@ return function(): Node<CloneDemo>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1 & 2: Loop with save/restore
-for i = 1, 5 do
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(-120 + i * 60, 0))
-    renderer:transform(Mat2D.withRotation(i * 0.4))
-    renderer:drawPath(self.path, self.paint)
-    renderer:restore()
-end`}
->
-**Premise:** You're learning to efficiently draw multiple instances of the same shape with different transforms.
+end
+```
 
-**Use Case:** Particle systems, grids of icons, repeated patterns, and UI layouts all benefit from this pattern—one path, many renders.
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the draw function to render 5 copies of the square at different positions and rotations.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-draw-2"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Each loop iteration gets its own save/restore pair
@@ -222,18 +331,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-draw-3"
-  title="Exercise 3: Animated Polyline"
-  difficulty={2}
-  hint="Use path:reset() at the start of advance. Loop through points, using moveTo for i==0 and lineTo for the rest. Use math.sin for wave motion."
-  expectedAnswer="wavy"
-  explanation="Dynamic paths are rebuilt in advance() using reset(). Never call reset() in draw()—it can cause rendering artifacts."
-  task="Complete the advance function to rebuild the path as an animated wave each frame."
-  expectedOutput={`Wavy line initialized
-Wave animating...
-ANSWER: wavy`}
-  code={`--!strict
+### Exercise 3: Animated Polyline ⭐⭐ {#exercise-3-animated-polyline}
+
+### Premise
+
+Dynamic paths are rebuilt in advance() using reset(). Never call reset() in draw()—it can cause rendering artifacts.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to rebuild the path as an animated wave each frame.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3AnimatedPolyline`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Update path data dynamically in advance
 
 export type WavyLine = {
@@ -281,25 +418,46 @@ return function(): Node<WavyLine>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 2: Reset path
-self.path:reset()
+end
+```
 
--- TODO 3: Build wave points
-for i = 0, 12 do
-    local x = -150 + i * 25
-    local y = math.sin(self.time * 2 + i) * 20
-    if i == 0 then
-        self.path:moveTo(Vector.xy(x, y))
-    else
-        self.path:lineTo(Vector.xy(x, y))
-    end
-end`}
->
-**Premise:** You're creating a dynamically animated polyline that updates its geometry every frame.
+---
 
-**Use Case:** Waveforms, oscilloscopes, audio visualizers, and any path that changes shape over time require dynamic path rebuilding.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to rebuild the path as an animated wave each frame.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-draw-3"
+    expectedAnswer="ANSWER: wavy"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 :::warning Important
 `path:reset()` should only be called in `advance`, never in `draw`. Calling reset in draw can cause rendering artifacts because the path data changes during the render pass.
@@ -312,18 +470,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-draw-4"
-  title="Exercise 4: Clipping a Region"
-  difficulty={2}
-  hint="Use save(), clipPath(), drawPath() for content, restore(). Then draw the clip boundary stroke outside the save/restore block."
-  expectedAnswer="clipped"
-  explanation="clipPath() restricts all subsequent drawing to inside the clip region. The clip is part of renderer state and cleared by restore()."
-  task="Complete the draw function to clip content to the square region, then draw a stroke around the clip boundary."
-  expectedOutput={`Clip demo initialized
-Content clipped to region!
-ANSWER: clipped`}
-  code={`--!strict
+### Exercise 4: Clipping a Region ⭐⭐ {#exercise-4-clipping-a-region}
+
+### Premise
+
+clipPath() restricts all subsequent drawing to inside the clip region. The clip is part of renderer state and cleared by restore().
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the draw function to clip content to the square region, then draw a stroke around the clip boundary.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4ClippingARegion`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Use clipPath to restrict drawing to a specific area
 
 export type ClipDemo = {
@@ -377,20 +563,46 @@ return function(): Node<ClipDemo>
         fill = late(),
         stroke = late(),
     }
-end`}
-  solution={`-- TODO 1-4: Clipped drawing
-renderer:save()
-renderer:clipPath(self.clipPath)
-renderer:drawPath(self.contentPath, self.fill)
-renderer:restore()
+end
+```
 
--- TODO 5: Draw clip boundary (unclipped)
-renderer:drawPath(self.clipPath, self.stroke)`}
->
-**Premise:** You're learning to mask content to a specific region using clipping paths.
+---
 
-**Use Case:** Clipping is essential for scroll views, masked reveals, progress indicators, and any UI that needs to hide content outside a boundary.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the draw function to clip content to the square region, then draw a stroke around the clip boundary.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-draw-4"
+    expectedAnswer="ANSWER: clipped"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `clipPath` restricts all subsequent drawing to the clipped area
@@ -519,6 +731,7 @@ Use `save()` and `restore()` for every isolated transform or clip. It keeps your
 
 ---
 
-## Next Up
+## Next Steps
 
-**[ViewModels →](./viewmodels)**
+- Continue to [ViewModels](/advanced/viewmodels)
+- Need a refresher? Review [Quick Reference](/quick-reference)

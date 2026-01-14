@@ -2,11 +2,21 @@
 sidebar_position: 3
 title: Catch the Stars
 description: Build a tiny interactive game with clicking stars and score tracking
+keywords:
+  - rive
+  - luau
+  - scripting
+  - project
+  - catch
+  - stars
+  - build
+  - tiny
 ---
+import Term from '@site/src/components/Term';
 
 # Project: Catch the Stars
 
-Build a tiny interactive game: click stars to increase a score stored in the ViewModel.
+Build a tiny interactive game: click stars to increase a score stored in the <Term>ViewModel</Term>.
 
 ---
 
@@ -14,7 +24,7 @@ Build a tiny interactive game: click stars to increase a score stored in the Vie
 
 1. Create a ViewModel named `GameVM` with a number property `score`
 2. Bind `score` to a text field or UI element
-3. Attach this Node script to a group on your artboard
+3. Attach this <Term>Node</Term> script to a group on your <Term>Artboard</Term>
 
 ---
 
@@ -145,7 +155,7 @@ Each star is a table containing:
 - `position`: Current Vector location
 - `velocity`: Movement direction and speed
 - `radius`: Size for hit detection and rendering
-- `path`: Pre-built star shape path
+- `path`: Pre-built star shape <Term>Path</Term>
 
 ### Movement System
 The `advance` function updates each star's position using delta time:
@@ -178,7 +188,7 @@ When a star is caught:
 3. Increment the ViewModel score
 
 ### Rendering with Transforms
-Each star is drawn by saving renderer state, translating to position, drawing, then restoring:
+Each star is drawn by saving <Term>Renderer</Term> state, translating to position, drawing, then restoring:
 
 ```lua
 renderer:save()
@@ -198,3 +208,8 @@ renderer:restore()
 - Implement different star types worth different points
 - Add a high score tracker
 - Create a game over state after missing too many stars
+
+## Next Steps
+
+- Continue to [Core Types](/api/core-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

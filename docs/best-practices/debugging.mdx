@@ -1,10 +1,17 @@
 ---
 sidebar_position: 3
 title: Debugging
+keywords:
+  - rive
+  - luau
+  - scripting
+  - "best practices"
+  - debugging
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Debugging Rive Scripts
 
@@ -75,20 +82,115 @@ Tick: 120, Elapsed: 2.0s
 
 ---
 
-<Exercise
-  id="best-practices-debug-1"
-  title="Exercise 1: Tracing Execution Flow"
-  difficulty={1}
-  hint="Use print() with string interpolation to show the function name and relevant data. Format: print(`[{self.name}] function called`)"
-  expectedAnswer="lifecycle"
-  explanation="Understanding when lifecycle functions are called is essential for debugging. init runs once, update runs when inputs change, advance runs every frame."
-  task="Add print statements to trace when each lifecycle function is called, including the frame count in advance."
-  expectedOutput={`[Tracer] init called
-[Tracer] advance #1, dt=0.0167
-[Tracer] advance #2, dt=0.0166
-[Tracer] advance #3, dt=0.0167
-ANSWER: lifecycle`}
-  code={`--!strict
+## Common Errors and Fixes
+
+Use these patterns to diagnose the most frequent Rive scripting errors.
+
+### 1. `attempt to index nil with 'x'`
+
+**Cause:** A `late()` value was never assigned in the editor, or you are accessing a <Term>Node</Term> that doesn't exist.
+
+**Fix:**
+- Assign the <Term>Input</Term> in the Inspector (for `Input<T>` and `late()`).
+- Guard access if it can be optional:
+
+```lua
+if self.target then
+    self.target.opacity = 1
+end
+```
+
+### 2. `Type 'number' does not have key 'value'`
+
+**Cause:** You treated a script `Input<number>` like a <Term>ViewModel</Term> property.
+
+**Fix:**
+- Use `self.someInput` directly (it is the number).
+- Use `context:viewModel()` only for ViewModel properties.
+
+```lua
+-- Input<T> (read-only value)
+local speed = self.speed
+
+-- ViewModel (has .value)
+local vm = context:viewModel()
+local speedProp = vm and vm:property("speed")
+if speedProp then
+    speedProp.value = speedProp.value + 1
+end
+```
+
+### 3. `attempt to call a nil value`
+
+**Cause:** You forgot to return a lifecycle function from the factory.
+
+**Fix:**
+Make sure the returned table includes the function:
+
+```lua
+return function(): Node<MyType>
+    return {
+        init = init,
+        draw = draw,
+        advance = advance,
+    }
+end
+```
+
+### 4. Type errors in `Paint.with(...)` or `Vector.xy(...)`
+
+**Cause:** Wrong types for fields (e.g., string instead of `Color`, number instead of `Vector`).
+
+**Fix:**
+Match the API signature exactly:
+
+```lua
+local paint = Paint.with({ style = "stroke", thickness = 2, color = Color.rgb(255, 0, 0) })
+local pos = Vector.xy(100, 50)
+```
+
+---
+
+### Exercise 1: Tracing Execution Flow ⭐ {#exercise-1-tracing-execution-flow}
+
+### Premise
+
+Understanding when lifecycle functions are called is essential for debugging. init runs once, update runs when inputs change, advance runs every frame.
+
+:::info Goal
+By the end of this exercise, you will be able to Add print statements to trace when each lifecycle function is called, including the frame count in advance.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1TracingExecutionFlow`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Lifecycle tracer to understand when functions are called
 
 export type LifecycleTracer = {
@@ -148,19 +250,46 @@ return function(): Node<LifecycleTracer>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- TODO 1: Print init called
-print(\`[{self.name}] init called\`)
+end
+```
 
--- TODO 2: Print advance info for first 3 frames
-if self.frameCount <= 3 then
-    print(\`[{self.name}] advance #{self.frameCount}, dt={seconds:.4f}\`)
-end`}
->
-**Premise:** You're debugging a script and need to understand the order and timing of lifecycle function calls.
+---
 
-**Use Case:** Tracing execution flow helps identify issues like functions not being called, being called in unexpected order, or running too frequently.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Add print statements to trace when each lifecycle function is called, including the frame count in advance.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-debug-1"
+    expectedAnswer="ANSWER: lifecycle"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Print in `init` to confirm initialization
@@ -169,19 +298,46 @@ end`}
 
 ---
 
-<Exercise
-  id="best-practices-debug-2"
-  title="Exercise 2: Debugging State Changes"
-  difficulty={2}
-  hint="Create a logState function that prints a formatted string with label, target, current, and velocity values. Call it from init and when deltaX > 1."
-  expectedAnswer="statetrack"
-  explanation="Tracking state changes over time helps identify issues like values not updating, updating incorrectly, or oscillating unexpectedly. Helper functions ensure consistent formatting."
-  task="Complete the logState helper function and add calls to track state in init and during significant movement."
-  expectedOutput={`[INIT] target=100, current=0.00, vel=0.00
-[MOVING] target=100, current=15.23, vel=152.30
-[MOVING] target=100, current=45.67, vel=304.40
-ANSWER: statetrack`}
-  code={`--!strict
+### Exercise 2: Debugging State Changes ⭐⭐ {#exercise-2-debugging-state-changes}
+
+### Premise
+
+Tracking state changes over time helps identify issues like values not updating, updating incorrectly, or oscillating unexpectedly. Helper functions ensure consistent formatting.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the logState helper function and add calls to track state in init and during significant movement.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2DebuggingStateChanges`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- State debugger to track how values change over time
 
 export type StateDebugger = {
@@ -262,23 +418,46 @@ return function(): Node<StateDebugger>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- TODO 1: Complete logState helper
-print(\`[{label}] target={self.targetX}, current={self.currentX:.2f}, vel={self.velocity:.2f}\`)
+end
+```
 
--- TODO 2: Call logState in init
-logState("INIT", self)
+---
 
--- TODO 3: Log significant changes
-if deltaX > 1 then
-    logState("MOVING", self)
-    self.moveCount += 1
-end`}
->
-**Premise:** You're debugging a spring physics animation and need to track how position and velocity change over time.
+### Assignment
 
-**Use Case:** State tracking is essential for debugging physics, animations, and any system where values change gradually over multiple frames.
-</Exercise>
+Complete these tasks:
+
+1. Complete the logState helper function and add calls to track state in init and during significant movement.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-debug-2"
+    expectedAnswer="ANSWER: statetrack"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Use a helper function (`logState`) for consistent formatting
@@ -380,19 +559,46 @@ end
 
 ---
 
-<Exercise
-  id="best-practices-debug-3"
-  title="Exercise 3: Debugging a Broken Script"
-  difficulty={2}
-  hint="Bug 1: Initialize self.path before calling methods on it. Bug 2: Use self.paint not self.colour. Bug 3: Use self.radius not self.rad."
-  expectedAnswer="debugged"
-  explanation="Common bugs include uninitialized fields (nil errors), typos in property names, and accessing undefined fields. Strict mode catches many of these at edit time."
-  task="Find and fix the three bugs in this script: missing initialization, wrong property name, and incorrect field access."
-  expectedOutput={`Circle initialized with radius: 50
-Radius check passed
-All bugs fixed!
-ANSWER: debugged`}
-  code={`--!strict
+### Exercise 3: Debugging a Broken Script ⭐⭐ {#exercise-3-debugging-a-broken-script}
+
+### Premise
+
+Common bugs include uninitialized fields (nil errors), typos in property names, and accessing undefined fields. Strict mode catches many of these at edit time.
+
+:::info Goal
+By the end of this exercise, you will be able to Find and fix the three bugs in this script: missing initialization, wrong property name, and incorrect field access.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3DebuggingABrokenScript`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- This script has 3 bugs - find and fix them!
 
 export type BuggyCircle = {
@@ -446,20 +652,46 @@ return function(): Node<BuggyCircle>
         path = Path.new(),
         paint = Paint.new(),
     }
-end`}
-  solution={`-- BUG 1 FIX: Initialize path before using
-self.path = Path.new()
+end
+```
 
--- BUG 2 FIX: Use correct property name "paint"
-self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 100, 100) })
+---
 
--- BUG 3 FIX: Use correct field name "radius"
-local r = self.radius`}
->
-**Premise:** You inherited a broken script and need to identify and fix the bugs to make it work.
+### Assignment
 
-**Use Case:** Bug hunting is a core debugging skill. Learning to recognize common error patterns (nil access, typos, wrong names) speeds up debugging.
-</Exercise>
+Complete these tasks:
+
+1. Find and fix the three bugs in this script: missing initialization, wrong property name, and incorrect field access.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-debug-3"
+    expectedAnswer="ANSWER: debugged"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -677,3 +909,8 @@ end
   ]}
   explanation="Systematic debugging involves adding print statements to trace execution and commenting out sections to narrow down where the problem occurs."
 />
+
+## Next Steps
+
+- Continue to [Resources](/best-practices/resources)
+- Need a refresher? Review [Quick Reference](/quick-reference)

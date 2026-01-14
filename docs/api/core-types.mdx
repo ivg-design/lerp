@@ -2,7 +2,17 @@
 sidebar_position: 1
 title: Core Types
 description: Vector, Color, and Mat2D types
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - reference
+  - core
+  - types
+  - vector
 ---
+import Term from '@site/src/components/Term';
 
 # Core Types
 
@@ -308,7 +318,7 @@ local endColor = Color.rgb(0, 0, 255)    -- Blue
 local purple = Color.lerp(startColor, endColor, 0.5)
 ```
 
-**See Also:** [Paint](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
+**See Also:** [<Term>Paint</Term>](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
 
 ---
 
@@ -455,4 +465,9 @@ local fromOrigin = Mat2D.withTranslation(50, 50)
 local combined = fromOrigin * rotate * toOrigin
 ```
 
-**See Also:** [Renderer.transform](./drawing#renderertransformmat)
+**See Also:** [<Term>Renderer</Term>.transform](./drawing#renderertransformmat)
+
+## Next Steps
+
+- Continue to [Drawing](/api/drawing)
+- Need a refresher? Review [Quick Reference](/quick-reference)

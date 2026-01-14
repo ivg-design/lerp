@@ -2,10 +2,20 @@
 sidebar_position: 8
 title: "3.8 OOP Patterns"
 description: Common OOP patterns for Rive - Factory, Prototype, Module, and more
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - patterns
+  - common
+  - factory
+  - prototype
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 3.8: OOP Patterns
 
@@ -81,7 +91,7 @@ Luau uses **closures and IIFEs** (Immediately Invoked Function Expressions) to a
 
 ## Why Patterns Matter in Rive
 
-Rive Node Scripts benefit from established OOP patterns:
+Rive <Term>Node</Term> Scripts benefit from established OOP patterns:
 
 - **Factory**: Create different types of drawables, particles, or UI elements
 - **Prototype**: Clone complex objects without re-running expensive setup
@@ -97,21 +107,46 @@ Each pattern solves specific problems you'll encounter in Rive development.
 
 ## Practice Exercises
 
-<Exercise
-  id="oop-pattern-1"
-  title="Exercise 1: Factory Pattern"
-  difficulty={2}
-  hint="The factory's create method checks config.type and returns the appropriate shape. Use 'if/elseif' to handle each type."
-  expectedAnswer="3"
-  explanation="The factory centralizes object creation. With 3 configs (circle, rectangle, triangle), the factory creates 3 shapes. Adding new shape types only requires modifying the factory, not client code."
-  task="Complete the ShapeFactory.create method to produce different shape types from configuration objects."
-  expectedOutput={`Creating shapes from config...
-Created circle at (-60, 0)
-Created rectangle at (0, 0)
-Created triangle at (60, 0)
-Total shapes created: 3
-ANSWER: 3`}
-  code={`--!strict
+### Exercise 1: Factory Pattern ⭐⭐ {#exercise-1-factory-pattern}
+
+### Premise
+
+The factory centralizes object creation. With 3 configs (circle, rectangle, triangle), the factory creates 3 shapes. Adding new shape types only requires modifying the factory, not client code.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the ShapeFactory.create method to produce different shape types from configuration objects.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1FactoryPattern`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 export type ShapeType = {
     shapeType: string,
@@ -228,47 +263,89 @@ return function(): Node<FactoryDemo>
         draw = draw,
         shapes = {},
     }
-end`}
-  solution={`-- TODO: Complete the factory method
-function ShapeFactory.create(config: ShapeConfig): ShapeType?
-    if config.type == "circle" then
-        return Circle.new(config.x, config.y, config.size or 20)
-    elseif config.type == "rectangle" then
-        return Rectangle.new(config.x, config.y, config.width or 40, config.height or 40)
-    elseif config.type == "triangle" then
-        return Triangle.new(config.x, config.y, config.size or 40)
-    end
-    return nil
-end`}
->
-
-**Premise**: The Factory pattern centralizes object creation. Instead of scattering `new` calls throughout your code, a factory method decides which type to create based on configuration.
-
-**Use Case**: A Rive UI toolkit where designers specify component types in data (JSON/XML) and the factory creates the right objects. Adding new shape types only requires modifying the factory.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-pattern-2"
-  title="Exercise 2: Prototype Pattern (Clone)"
-  difficulty={2}
-  hint="The clone method creates a new object with setmetatable, copies all fields, and clones the path. The key is avoiding the expensive path construction."
-  expectedAnswer="5"
-  explanation="The Prototype pattern avoids expensive initialization. Templates are created once (expensive), then spawned many times via cheap cloning. 5 sprites are spawned from the template without re-running the complex path construction."
-  task="Complete the Sprite.clone method to efficiently copy objects without expensive re-initialization."
-  expectedOutput={`Creating template (expensive)...
-Template created with complexity 6
-Spawning 5 clones (cheap)...
-Clone 1 spawned at (-80, 0)
-Clone 2 spawned at (-40, 0)
-Clone 3 spawned at (0, 0)
-Clone 4 spawned at (40, 0)
-Clone 5 spawned at (80, 0)
-Total sprites: 5
-ANSWER: 5`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the ShapeFactory.create method to produce different shape types from configuration objects.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-pattern-1"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Prototype Pattern (Clone) ⭐⭐ {#exercise-2-prototype-pattern-clone}
+
+### Premise
+
+The Prototype pattern avoids expensive initialization. Templates are created once (expensive), then spawned many times via cheap cloning. 5 sprites are spawned from the template without re-running the complex <Term>Path</Term> construction.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Sprite.clone method to efficiently copy objects without expensive re-initialization.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2PrototypePatternClone`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 local Sprite = {}
 Sprite.__index = Sprite
@@ -359,42 +436,89 @@ return function(): Node<PrototypeDemo>
         draw = draw,
         sprites = {},
     }
-end`}
-  solution={`-- TODO: Implement CHEAP clone method
-function Sprite:clone(): SpriteType
-    local copy = setmetatable({}, Sprite)
-    copy.x = self.x
-    copy.y = self.y
-    copy.complexity = self.complexity
-    copy.path = self.path:clone()
-    copy.paint = Paint.with({ style = "fill", color = self.paint.color })
-    return (copy :: any) :: SpriteType
-end`}
->
-
-**Premise**: The Prototype pattern creates expensive objects once as templates, then spawns copies via cheap cloning. Building complex paths is expensive; cloning them is fast.
-
-**Use Case**: A Rive particle system where each particle is a clone of a complex template sprite. Create the template once, spawn thousands of clones without the initialization overhead.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-pattern-3"
-  title="Exercise 3: Module Pattern (IIFE)"
-  difficulty={2}
-  hint="Use an IIFE (Immediately Invoked Function Expression) to create private state that's captured in the returned public interface."
-  expectedAnswer="50"
-  explanation="The Module pattern uses IIFEs to create private scope. The private 'interpolate' helper and constants are hidden. The public interface exposes only what's needed. The result 50 comes from lerp(0, 100, 0.5)."
-  task="Complete the MathUtils module using the IIFE pattern with private helpers and public interface."
-  expectedOutput={`Testing MathUtils module...
-lerp(0, 100, 0.5) = 50
-clamp(150, 0, 100) = 100
-inverseLerp(0, 100, 25) = 0.25
-All functions work!
-ANSWER: 50`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Sprite.clone method to efficiently copy objects without expensive re-initialization.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-pattern-2"
+    expectedAnswer="ANSWER: 5"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Module Pattern (IIFE) ⭐⭐ {#exercise-3-module-pattern-iife}
+
+### Premise
+
+The Module pattern uses IIFEs to create private scope. The private 'interpolate' helper and constants are hidden. The public interface exposes only what's needed. The result 50 comes from lerp(0, 100, 0.5).
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the MathUtils module using the IIFE pattern with private helpers and public interface.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3ModulePatternIife`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- TODO: Complete the MathUtils module using IIFE pattern
 -- 1. Create private helper: local function interpolate(a, b, t) return a + (b - a) * t end
@@ -448,54 +572,89 @@ return function(): Node<ModuleDemo>
         init = init,
         draw = draw,
     }
-end`}
-  solution={`local MathUtils = (function()
-    -- Private helper (hidden from outside)
-    local function interpolate(a: number, b: number, t: number): number
-        return a + (b - a) * t
-    end
-
-    -- Public interface
-    return {
-        lerp = function(a: number, b: number, t: number): number
-            return interpolate(a, b, t)
-        end,
-
-        clamp = function(value: number, min: number, max: number): number
-            return math.max(min, math.min(max, value))
-        end,
-
-        inverseLerp = function(a: number, b: number, value: number): number
-            return (value - a) / (b - a)
-        end,
-    }
-end)()`}
->
-
-**Premise**: The Module pattern uses IIFEs (Immediately Invoked Function Expressions) to create private scope. Private helpers and constants are hidden; only the public interface is exposed.
-
-**Use Case**: An easing module or animation utility library. Private helpers do the math; the public interface provides clean, documented functions that any Node script can use.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-pattern-4"
-  title="Exercise 4: Singleton Pattern"
-  difficulty={2}
-  hint="Use an IIFE to create the singleton. The private cache table persists across calls. The 'get' function checks if the key exists; if not, it calls the loader and stores the result."
-  expectedAnswer="1"
-  explanation="The Singleton ensures only one cache instance exists. When requesting 'player_path' twice, the first call is a miss (runs loader), the second is a hit (returns cached). With 1 miss and 1 hit, there's 1 item in cache."
-  task="Complete the AssetCache singleton with get() that caches expensive loader results."
-  expectedOutput={`Testing AssetCache singleton...
-First request (should be miss)...
-Creating expensive path...
-Second request (should be hit)...
-Cache stats: hits=1, misses=1, size=1
-Both paths are same reference: true
-ANSWER: 1`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the MathUtils module using the IIFE pattern with private helpers and public interface.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-pattern-3"
+    expectedAnswer="ANSWER: 50"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Singleton Pattern ⭐⭐ {#exercise-4-singleton-pattern}
+
+### Premise
+
+The Singleton ensures only one cache instance exists. When requesting 'player_path' twice, the first call is a miss (runs loader), the second is a hit (returns cached). With 1 miss and 1 hit, there's 1 item in cache.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the AssetCache singleton with get() that caches expensive loader results.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4SingletonPattern`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- TODO: Complete the AssetCache singleton
 -- Use IIFE pattern with private 'cache' table and hit/miss counters
@@ -554,53 +713,89 @@ return function(): Node<SingletonDemo>
         init = init,
         draw = draw,
     }
-end`}
-  solution={`-- TODO 1: Implement get function
-get = function(key: string, loader: () -> any): any
-    if cache[key] then
-        hitCount += 1
-        return cache[key]
-    end
-    missCount += 1
-    local asset = loader()
-    cache[key] = asset
-    return asset
-end,
-
--- TODO 2: Implement getStats function
-getStats = function(): { hits: number, misses: number, size: number }
-    local size = 0
-    for _ in pairs(cache) do size += 1 end
-    return { hits = hitCount, misses = missCount, size = size }
-end,`}
->
-
-**Premise**: The Singleton pattern ensures exactly one instance of a resource exists. An IIFE creates private state that persists across all calls - perfect for caches, event buses, and configuration stores.
-
-**Use Case**: An asset cache that stores expensive resources (paths, textures) so they're created once and reused. Multiple components can access the same cache without passing references.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-pattern-5"
-  title="Exercise 5: Observer Pattern"
-  difficulty={2}
-  hint="The set() function should only notify observers if the value actually changed. Store callbacks in an array and call each one with (newValue, oldValue)."
-  expectedAnswer="50"
-  explanation="The Observer pattern provides reactive updates. When the observable value changes from 100 to 50, all subscribed observers are automatically notified with both the new and old values. The UI updates without manual intervention."
-  task="Complete the createObservable factory with get(), set(), and observe() methods for reactive state management."
-  expectedOutput={`Creating observable with initial value 100
-Subscribing observer...
-Setting value to 75...
-Observer called: 100 -> 75
-Setting value to 50...
-Observer called: 75 -> 50
-Setting same value (50) - no notification
-Final value: 50
-ANSWER: 50`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the AssetCache singleton with get() that caches expensive loader results.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-pattern-4"
+    expectedAnswer="ANSWER: 1"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 5: Observer Pattern ⭐⭐ {#exercise-5-observer-pattern}
+
+### Premise
+
+The Observer pattern provides reactive updates. When the observable value changes from 100 to 50, all subscribed observers are automatically notified with both the new and old values. The UI updates without manual intervention.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the createObservable factory with get(), set(), and observe() methods for reactive state management.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5ObserverPattern`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- TODO: Complete the createObservable factory
 -- Creates a reactive value that notifies observers when changed
@@ -666,42 +861,46 @@ return function(): Node<ObserverDemo>
         init = init,
         draw = draw,
     }
-end`}
-  solution={`-- TODO 1: Implement get()
-get = function(): number
-    return value
-end,
+end
+```
 
--- TODO 2: Implement set(newValue)
-set = function(newValue: number)
-    if newValue ~= value then
-        local oldValue = value
-        value = newValue
-        for _, observer in ipairs(observers) do
-            observer(newValue, oldValue)
-        end
-    end
-end,
+---
 
--- TODO 3: Implement observe(callback)
-observe = function(callback: (number, number) -> ()): () -> ()
-    table.insert(observers, callback)
-    return function()
-        for i, cb in ipairs(observers) do
-            if cb == callback then
-                table.remove(observers, i)
-                break
-            end
-        end
-    end
-end,`}
->
+### Assignment
 
-**Premise**: The Observer pattern creates reactive state. When a value changes, all subscribed observers are automatically notified. This decouples state from UI - change the data once and all components update.
+Complete these tasks:
 
-**Use Case**: A game HUD where health, score, and ammo displays all update automatically. Call `health.set(50)` and the health bar updates without explicit `healthBar.update()` calls.
+1. Complete the createObservable factory with get(), set(), and observe() methods for reactive state management.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-</Exercise>
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-pattern-5"
+    expectedAnswer="ANSWER: 50"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -894,3 +1093,8 @@ You've finished the OOP module. You now understand how to build reusable classes
 - Use IIFEs `(function() ... end)()` for modules and singletons
 - Observer pattern enables reactive, decoupled UI updates
 - Choose patterns based on the problem, not complexity
+
+## Next Steps
+
+- Continue to [Rive Environment](/rive/environment)
+- Need a refresher? Review [Quick Reference](/quick-reference)

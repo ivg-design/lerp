@@ -2,10 +2,20 @@
 sidebar_position: 2
 title: Node Lifecycle
 description: Understand when each Node script callback runs in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - node
+  - lifecycle
+  - understand
+  - each
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Protocols Overview
 
@@ -66,7 +76,7 @@ Rive calls your script functions in a specific order. Understanding this lets yo
 
 **Lifecycle order:**
 1. `init(self, context)` - runs once at startup
-2. `update(self, context)` - runs when any input changes
+2. `update(self, context)` - runs when any <Term>Input</Term> changes
 3. `advance(self, seconds, context)` - runs every frame (logic)
 4. `draw(self, renderer)` - runs every frame after `advance` (rendering)
 
@@ -81,10 +91,53 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 | **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
 | **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
 | **advance** | Update time-based state (movement, physics, timers) | Every frame | `requestAnimationFrame` logic |
-| **draw** | Issue renderer commands only | Every frame | Canvas `ctx.draw()` calls |
+| **draw** | Issue <Term>Renderer</Term> commands only | Every frame | Canvas `ctx.draw()` calls |
 
 :::tip Performance Rule
 Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry every frame wastes resources if inputs haven't changed.
+:::
+
+---
+
+## The Context Object
+
+The `context` parameter passed to lifecycle functions provides access to the runtime environment. Store it in `init` to use later.
+
+### Context API
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `context:viewModel()` | `ViewModel?` | Gets the <Term>Artboard</Term>'s <Term>ViewModel</Term> (if bound) |
+| `context:markNeedsUpdate()` | *void* | Requests a redraw on the next frame |
+
+### Common Usage
+
+```lua
+export type MyNode = {
+    context: Context,  -- Store context for later use
+}
+
+function init(self: MyNode, context: Context): boolean
+    self.context = context  -- Save for use in listeners
+
+    -- Access ViewModel through context
+    local vm = context:viewModel()
+    if vm then
+        local prop = vm:getNumber("score")
+        if prop then
+            prop:addListener(function()
+                -- Request redraw when data changes
+                self.context:markNeedsUpdate()
+            end)
+        end
+    end
+
+    return true
+end
+```
+
+:::info When to Use context:markNeedsUpdate()
+Call `markNeedsUpdate()` when external changes (like ViewModel property updates) need to trigger a redraw. This is more efficient than constantly redrawing - it tells Rive "something changed, please redraw next frame."
 :::
 
 ---
@@ -123,20 +176,46 @@ Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding
 
 ## Practice Exercises
 
-<Exercise
-  id="rive-lifecycle-1"
-  title="Exercise 1: Lifecycle Probe"
-  difficulty={1}
-  hint="Print messages in init, update, and advance. Count how many times advance runs in 2 seconds."
-  expectedAnswer="probe"
-  explanation="Understanding when each callback runs is crucial: init once at start, update when inputs change, advance every frame. This helps you put code in the right place."
-  task="Complete the lifecycle probe that logs when each callback runs and counts advance calls for 2 seconds."
-  expectedOutput={`init: Starting probe
-advance tick 1
-advance tick 2
-(after 2 seconds...)
-ANSWER: probe`}
-  code={`--!strict
+### Exercise 1: Lifecycle Probe ⭐ {#exercise-1-lifecycle-probe}
+
+### Premise
+
+Understanding when each callback runs is crucial: init once at start, update when inputs change, advance every frame. This helps you put code in the right place.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the lifecycle probe that logs when each callback runs and counts advance calls for 2 seconds.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1LifecycleProbe`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A probe to see when each lifecycle callback runs
 
 export type LifecycleProbe = {
@@ -175,46 +254,89 @@ return function(): Node<LifecycleProbe>
         elapsed = 0,
         advanceCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Print "init: Starting probe"
-print("init: Starting probe")
-
--- TODO 2: Increment advanceCount
-self.advanceCount += 1
-
--- TODO 3: Every second, print tick
-local prevSecond = math.floor(self.elapsed - seconds)
-local currSecond = math.floor(self.elapsed)
-if currSecond > prevSecond and currSecond <= 2 then
-    print(\`advance tick {currSecond}\`)
 end
-
--- TODO 4: When 2 seconds elapsed, print answer
-if self.elapsed >= 2 and self.elapsed < 2.02 then
-    print("ANSWER: probe")
-end`}
->
-**Premise:** You need to understand when each lifecycle callback fires to debug your scripts effectively.
-
-**Use Case:** "Why isn't my value updating?" is often answered by understanding that init runs once, update runs on input changes, and advance runs every frame.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-lifecycle-2"
-  title="Exercise 2: Rebuild Only on Updates"
-  difficulty={2}
-  hint="Call rebuild() in both init and update, but NOT in draw. Track rebuild count to verify."
-  expectedAnswer="efficient"
-  explanation="Put expensive work in update, not draw. The update callback only runs when inputs change, saving CPU cycles compared to rebuilding every frame."
-  task="Complete the rebuild function and verify it only runs when needed (in init and update, NOT every frame in draw)."
-  expectedOutput={`init: Creating shape
-Rebuild #1: 120 x 80
-(change width input...)
-Rebuild #2: 150 x 80
-ANSWER: efficient`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the lifecycle probe that logs when each callback runs and counts advance calls for 2 seconds.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-lifecycle-1"
+    expectedAnswer="ANSWER: probe"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Rebuild Only on Updates ⭐⭐ {#exercise-2-rebuild-only-on-updates}
+
+### Premise
+
+Put expensive work in update, not draw. The update callback only runs when inputs change, saving CPU cycles compared to rebuilding every frame.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the rebuild function and verify it only runs when needed (in init and update, NOT every frame in draw).
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2RebuildOnlyOnUpdates`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Rebuild geometry only when inputs change
 
 export type OnDemandShape = {
@@ -267,48 +389,89 @@ return function(): Node<OnDemandShape>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Increment rebuildCount
-self.rebuildCount += 1
-
--- TODO 2: Calculate half dimensions
-local halfW = self.width / 2
-local halfH = self.height / 2
-
--- TODO 3: Build rectangle path
-self.path:reset()
-self.path:moveTo(Vector.xy(-halfW, -halfH))
-self.path:lineTo(Vector.xy(halfW, -halfH))
-self.path:lineTo(Vector.xy(halfW, halfH))
-self.path:lineTo(Vector.xy(-halfW, halfH))
-self.path:close()
-
--- TODO 4: Print answer when rebuild count reaches 2
-if self.rebuildCount == 2 then
-    print("ANSWER: efficient")
-end`}
->
-**Premise:** You're building a shape that could be resized by the designer. Rebuilding every frame would waste CPU.
-
-**Use Case:** Performance optimization is critical. Rebuild in update (when inputs change), not in draw (every frame). This can be a 60x improvement!
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-lifecycle-3"
-  title="Exercise 3: Combining Lifecycle Callbacks"
-  difficulty={2}
-  hint="Track time in advance, calculate pulse using sine, rebuild path with pulsed size. Log the pulse value after 2 seconds."
-  expectedAnswer="pulsing"
-  explanation="Combining update (for input changes) and advance (for animation) lets you build components that are both configurable AND animated. This is the foundation for interactive game elements."
-  task="Complete the advance function to create a pulsing animation. After 2 seconds of animation, print the answer."
-  expectedOutput={`init: Creating animated shape
-advance: pulse = 1.00
-advance: pulse = 0.85
-...
-ANSWER: pulsing`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the rebuild function and verify it only runs when needed (in init and update, NOT every frame in draw).
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-lifecycle-2"
+    expectedAnswer="ANSWER: efficient"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Combining Lifecycle Callbacks ⭐⭐ {#exercise-3-combining-lifecycle-callbacks}
+
+### Premise
+
+Combining update (for input changes) and advance (for animation) lets you build components that are both configurable AND animated. This is the foundation for interactive game elements.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to create a pulsing animation. After 2 seconds of animation, print the answer.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3CombiningLifecycleCallbacks`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A shape that pulses over time
 
 export type AnimatedShape = {
@@ -375,28 +538,46 @@ return function(): Node<AnimatedShape>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Add seconds to self.time
-self.time += seconds
+end
+```
 
--- TODO 2: Calculate pulse
-local pulse = math.sin(self.time * self.pulseSpeed) * 0.2 + 1
+---
 
--- TODO 3: Calculate currentSize
-local currentSize = self.baseSize * pulse
+### Assignment
 
--- TODO 4: Rebuild the path
-rebuildPath(self, currentSize)
+Complete these tasks:
 
--- TODO 5: After 2 seconds, print answer
-if self.time >= 2 and self.time < 2.02 then
-    print("ANSWER: pulsing")
-end`}
->
-**Premise:** You're building a UI element that needs to both animate (pulse) and respond to input changes (color, size).
+1. Complete the advance function to create a pulsing animation. After 2 seconds of animation, print the answer.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
 
-**Use Case:** Many interactive elements combine animation with configurability: pulsing buttons, breathing indicators, animated progress bars.
-</Exercise>
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-lifecycle-3"
+    expectedAnswer="ANSWER: pulsing"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -447,19 +628,46 @@ end
 
 ---
 
-<Exercise
-  id="rive-lifecycle-4"
-  title="Exercise 4: Click Counter"
-  difficulty={2}
-  hint="In pointerDown, increment click count. In advance, smoothly return scale to 1. Return true from pointerDown to consume the event."
-  expectedAnswer="interactive"
-  explanation="Pointer events (pointerDown, pointerMove, pointerUp) enable interactivity. Return true to consume an event, false to let it propagate. This is the foundation of buttons, toggles, and draggable elements."
-  task="Complete the click counter that tracks clicks and animates a pop effect. Print the answer after 3 clicks."
-  expectedOutput={`Click #1
-Click #2
-Click #3
-ANSWER: interactive`}
-  code={`--!strict
+### Exercise 4: Click Counter ⭐⭐ {#exercise-4-click-counter}
+
+### Premise
+
+Pointer events (pointerDown, pointerMove, pointerUp) enable interactivity. Return true to consume an event, false to let it propagate. This is the foundation of buttons, toggles, and draggable elements.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the click counter that tracks clicks and animates a pop effect. Print the answer after 3 clicks.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4ClickCounter`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A clickable shape that counts clicks
 
 export type ClickCounter = {
@@ -506,7 +714,7 @@ end
 
 function draw(self: ClickCounter, renderer: Renderer)
     renderer:save()
-    renderer:scale(Vector.xy(self.displayScale, self.displayScale))
+    renderer:transform(Mat2D.withScale(self.displayScale, self.displayScale))
     renderer:drawPath(self.path, self.paint)
     renderer:restore()
 end
@@ -522,32 +730,46 @@ return function(): Node<ClickCounter>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Increment clickCount
-self.clickCount += 1
-
--- TODO 2: Set displayScale for pop effect
-self.displayScale = 1.2
-
--- TODO 3: Print click number
-print(\`Click #{self.clickCount}\`)
-
--- TODO 4: When 3 clicks, print answer
-if self.clickCount == 3 then
-    print("ANSWER: interactive")
 end
+```
 
--- TODO 5: Return true to consume the event
-return true
+---
 
--- In advance():
--- TODO 6: Animate displayScale back to 1
-self.displayScale = math.max(1, self.displayScale - seconds * 2)`}
->
-**Premise:** You're building a button that responds to clicks with a satisfying pop animation.
+### Assignment
 
-**Use Case:** Pointer events are the foundation of interactivity in Rive: buttons, toggles, draggable elements, games. Understanding event consumption (return true/false) is critical for complex UI.
-</Exercise>
+Complete these tasks:
+
+1. Complete the click counter that tracks clicks and animates a pop effect. Print the answer after 3 clicks.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-lifecycle-4"
+    expectedAnswer="ANSWER: interactive"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -581,7 +803,7 @@ self.displayScale = math.max(1, self.displayScale - seconds * 2)`}
   question="What is the purpose of the draw function?"
   id="lifecycle-q3"
   options={[
-    { text: "Create Path and Paint objects" },
+    { text: "Create <Term>Path</Term> and <Term>Paint</Term> objects" },
     { text: "Update game logic and physics" },
     { text: "Issue renderer commands only", correct: true },
     { text: "Handle user input" },
@@ -611,19 +833,31 @@ self.displayScale = math.max(1, self.displayScale - seconds * 2)`}
 -- WRONG: Creating objects every frame wastes resources
 function draw(self: MyNode, renderer: Renderer)
     local path = Path.new()  -- DON'T do this!
-    path:circle(Vector.xy(0, 0), 50)
+    addCircle(path, Vector.xy(0, 0), 50)  -- Rebuilding every frame!
     renderer:drawPath(path, self.paint)
 end
 
 -- CORRECT: Create in init, draw only issues commands
 function init(self: MyNode): boolean
     self.path = Path.new()
-    self.path:circle(Vector.xy(0, 0), 50)
+    addCircle(self.path, Vector.xy(0, 0), 50)
     return true
 end
 
 function draw(self: MyNode, renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
+end
+
+-- Helper: Draw circle using cubic bezier approximation
+local function addCircle(path: Path, center: Vector, radius: number)
+    local k = 0.5522847498  -- Bezier circle constant
+    local cx, cy, r = center.x, center.y, radius
+    path:moveTo(Vector.xy(cx, cy - r))
+    path:cubicTo(Vector.xy(cx + r*k, cy - r), Vector.xy(cx + r, cy - r*k), Vector.xy(cx + r, cy))
+    path:cubicTo(Vector.xy(cx + r, cy + r*k), Vector.xy(cx + r*k, cy + r), Vector.xy(cx, cy + r))
+    path:cubicTo(Vector.xy(cx - r*k, cy + r), Vector.xy(cx - r, cy + r*k), Vector.xy(cx - r, cy))
+    path:cubicTo(Vector.xy(cx - r, cy - r*k), Vector.xy(cx - r*k, cy - r), Vector.xy(cx, cy - r))
+    path:close()
 end
 ```
 
@@ -666,6 +900,7 @@ Put expensive work in `update`, not in `draw` or `advance`. Understanding the li
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Layout Protocol →](./layout-protocol)**
+- Continue to [Layout Script Protocol](/rive/protocols/layout-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

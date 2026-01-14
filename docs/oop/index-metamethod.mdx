@@ -2,10 +2,20 @@
 sidebar_position: 3
 title: The __index Metamethod
 description: Deep dive into __index, __newindex, and method lookup chains
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - index
+  - metamethod
+  - deep
+  - dive
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # The __index Metamethod
 
@@ -46,7 +56,7 @@ This is crucial for performance—methods and existing properties are fast.
 
 ## Rive Context
 
-In Rive Node Scripts, `__index` is your primary tool for:
+In Rive <Term>Node</Term> Scripts, `__index` is your primary tool for:
 
 - **Sharing methods** between drawable objects (particles, sprites, UI elements)
 - **Default values** for style configuration (colors, thicknesses, fonts)
@@ -80,7 +90,7 @@ print(t.missing)   -- prints "Looking up: missing", returns "fallback"
 
 ## Exercises
 
-### Exercise 1: __index Defaults ⭐
+### Exercise 1: __index Defaults ⭐ {#exercise-1-index-defaults}
 
 ### Premise
 
@@ -181,7 +191,7 @@ Your console output should display the opacity value (overridden) and the blur v
 
 ---
 
-### Exercise 2: __index Computed ⭐⭐
+### Exercise 2: __index Computed ⭐⭐ {#exercise-2-index-computed}
 
 ### Premise
 
@@ -283,7 +293,7 @@ Your console output should display the computed length from the `__index` functi
 
 ---
 
-### Exercise 3: Lookup Chain ⭐⭐
+### Exercise 3: Lookup Chain ⭐⭐ {#exercise-3-lookup-chain}
 
 ### Premise
 
@@ -384,7 +394,7 @@ Your console output should display the describe method result showing the kind v
 
 ---
 
-### Exercise 4: __newindex Validation ⭐⭐
+### Exercise 4: __newindex Validation ⭐⭐ {#exercise-4-newindex-validation}
 
 ### Premise
 
@@ -485,7 +495,7 @@ Your console output should display the clamped power value enforced by the `__ne
 
 ---
 
-### Exercise 5: Lazy Initialization ⭐⭐
+### Exercise 5: Lazy Initialization ⭐⭐ {#exercise-5-lazy-initialization}
 
 ### Premise
 
@@ -585,7 +595,7 @@ Your console output should display the lazily initialized value that was created
 
 ---
 
-### Exercise 6: Read-Only Table ⭐⭐
+### Exercise 6: Read-Only Table ⭐⭐ {#exercise-6-readonly-table}
 
 ### Premise
 
@@ -815,6 +825,7 @@ setmetatable(obj, { __index = defaults })
 
 ---
 
-## Next Up
+## Next Steps
 
-**[self and Methods →](./self-and-methods)**
+- Continue to [3.2 Building Classes](/oop/classes)
+- Need a refresher? Review [Quick Reference](/quick-reference)

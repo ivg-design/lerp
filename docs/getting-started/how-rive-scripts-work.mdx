@@ -2,6 +2,15 @@
 sidebar_position: 3
 title: How Rive Scripts Work
 description: Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide
+keywords:
+  - rive
+  - luau
+  - scripting
+  - "getting started"
+  - scripts
+  - understanding
+  - structured
+  - way
 ---
 
 import Quiz from '@site/src/components/Quiz';
@@ -12,6 +21,90 @@ import Term from '@site/src/components/Term';
 :::info For Complete Beginners
 This page explains **why** Rive scripts look the way they do. If you've never programmed before, or if you're coming from After Effects expressions or JavaScript, this will make everything click.
 :::
+
+---
+
+## Template at a Glance
+
+When you create a script in Rive, you'll see this. Here's what each part does:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  --!strict                          │ Enable type checking (REQUIRED)       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  export type MyNode = {             │ Define your script's data shape       │
+│      path: Path,                    │   - Rive objects (Path, Paint)        │
+│      time: number,                  │   - State variables                   │
+│      speed: Input<number>,          │   - Editor inputs (Input<T>)          │
+│  }                                  │                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  function init(self: MyNode)        │ Runs ONCE at startup                  │
+│      -- Create objects here         │   - Create Path, Paint objects        │
+│      return true                    │   - Initialize state                  │
+│  end                                │   - Return true to continue           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  function advance(self, seconds)    │ Runs EVERY FRAME (optional)           │
+│      -- Update logic here           │   - Animation, physics                │
+│      return true                    │   - Return true to keep running       │
+│  end                                │                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  function draw(self, renderer)      │ Runs EVERY FRAME (REQUIRED)           │
+│      -- Render here                 │   - Draw paths with renderer          │
+│  end                                │   - Apply transforms                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  return function(): Node<MyNode>    │ Factory function (REQUIRED)           │
+│      return {                       │   - Creates fresh instance per node   │
+│          init = init,               │   - Wire up lifecycle functions       │
+│          advance = advance,         │   - Set Input<T> defaults             │
+│          draw = draw,               │   - Use late() for runtime values     │
+│          speed = 100,               │                                       │
+│          path = late(),             │                                       │
+│      }                              │                                       │
+│  end                                │                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Start for Experienced Developers
+
+:::tip Already know JavaScript/TypeScript?
+Here's the mental model - then you can start coding and reference details as needed.
+:::
+
+| Rive/Luau | JavaScript/TypeScript Equivalent |
+|-----------|----------------------------------|
+| `--!strict` | TypeScript's strict mode |
+| `export type MyNode = {}` | `interface MyNode {}` |
+| `self` parameter | `this` (but explicit, not a keyword) |
+| `function init(self)` | `constructor()` |
+| `function draw(self, renderer)` | `render()` method |
+| `function advance(self, seconds)` | `requestAnimationFrame` callback |
+| `return function(): Node<T>` | Factory pattern / `() => new MyClass()` |
+| `late()` | Placeholder for values set in constructor |
+| `Input<number>` | React props / component inputs |
+
+**Key differences from JS:**
+- `~=` instead of `!==`
+- `and`/`or`/`not` instead of `&&`/`||`/`!`
+- `local` instead of `let`/`const`
+- Tables use `{}` for both arrays and objects
+- String concatenation: `..` or backtick interpolation `` `Hello {name}` ``
+- No semicolons needed, blocks end with `end`
+
+**You can start coding now.** Reference these sections as needed:
+
+| Topic | Section |
+|-------|---------|
+| Full lifecycle details | [<Term>Node</Term> Lifecycle Protocol](/rive/protocols/node-lifecycle) |
+| All script types | [Script Types Overview](/rive/script-types) |
+| <Term>Input</Term> system | [Inputs and Data Binding](/rive/inputs) |
+| Drawing API | [Core Types](/advanced/core-types) (<Term>Path</Term>, <Term>Paint</Term>) |
+| Transforms | [Drawing API](/advanced/drawing-api) (Mat2D, <Term>Renderer</Term>) |
+| Luau syntax | [Variables](/fundamentals/variables), [Functions](/fundamentals/functions) |
+| Type system | [Type Annotations](/types/annotations) |
+
+---
 
 ## The Big Picture: What Is a Rive Script?
 
@@ -293,20 +386,38 @@ function draw(self: MyScript, renderer: Renderer)
 end
 ```
 
-**Coming from JavaScript classes?** `self` is like `this`:
-```javascript
-class MyScript {
-    init() {
-        this.score = 0;
-    }
+:::tip Coming from JavaScript?
+`self` serves the same **purpose** as JavaScript's `this` — accessing instance data. But there's a critical difference:
 
-    advance(elapsed) {
-        this.score += 1;
-    }
+| | JavaScript `this` | Luau `self` |
+|--|-------------------|-------------|
+| **Type** | Reserved keyword | Just a parameter name |
+| **Provided** | Automatically by the engine | Explicitly as first parameter |
+| **Rename it?** | No, it's a keyword | Yes! Could be `me`, `obj`, anything |
+
+```javascript
+// JavaScript: 'this' is a reserved keyword, implicit
+class MyScript {
+    init() { this.score = 0; }
 }
 ```
 
-**Why `self` instead of `this`?** Luau (and Lua) don't have a `this` keyword. By convention, the first parameter is named `self` and serves the same purpose.
+```lua
+-- Luau: 'self' is just a parameter name, explicit
+function init(self: MyScript): boolean
+    self.score = 0
+    return true
+end
+
+-- This works too (but don't do it):
+function init(potato: MyScript): boolean
+    potato.score = 0  -- Same thing!
+    return true
+end
+```
+
+**Bottom line:** `self` is a **convention**, not a keyword. It's just the first parameter that Rive passes your script's data object to.
+:::
 
 ---
 
@@ -391,7 +502,7 @@ function init(self: MyScript): boolean
 end
 ```
 
-**From scripts, inputs appear read-only** — you access them directly (e.g., `self.speed`) but shouldn't reassign them. However, inputs CAN be updated externally through ViewModel bindings or state machine connections.
+**From scripts, inputs appear read-only** — you access them directly (e.g., `self.speed`) but shouldn't reassign them. However, inputs CAN be updated externally through <Term>ViewModel</Term> bindings or <Term>State Machine</Term> connections.
 
 ---
 
@@ -624,6 +735,5 @@ Once you understand WHY each part exists, the structure becomes second nature!
 
 ## Next Steps
 
-Now that you understand the structure, let's learn the language itself:
-
-**[→ Variables, Types & Operators](/fundamentals/variables)**
+- Continue to [1.1 Variables, Types & Operators](/fundamentals/variables)
+- Need a refresher? Review [Quick Reference](/quick-reference)

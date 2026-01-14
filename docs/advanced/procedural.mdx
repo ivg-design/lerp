@@ -1,19 +1,36 @@
 ---
 sidebar_position: 6
 title: Procedural Geometry
-description: Dynamic path generation, animated shapes, and particle systems in Rive
+description: Dynamic Path generation, animated shapes, and particle systems in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - advanced
+  - procedural
+  - geometry
+  - dynamic
+  - path
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Procedural Geometry
 
+:::info Prerequisites
+Before this section, complete:
+- [Core Types](/advanced/core-types) — Path, <Term>Paint</Term>, <Term>Renderer</Term> basics
+- [Drawing API](/advanced/drawing-api) — Transforms and clipping
+- [Functions](/fundamentals/functions) — Math functions (sin, cos, floor)
+:::
+
 ## Rive Context: Drawing Shapes with Code
 
-Procedural geometry means creating shapes dynamically through code rather than importing static assets. In Rive Node Scripts, you build paths point-by-point using mathematical functions, enabling:
+Procedural geometry means creating shapes dynamically through code rather than importing static assets. In Rive <Term>Node</Term> Scripts, you build paths point-by-point using mathematical functions, enabling:
 
-- Shapes that respond to data or user input
+- Shapes that respond to data or user <Term>Input</Term>
 - Animated geometry (pulsing circles, flowing waves)
 - Particle systems and effects
 - Visualizations driven by external data
@@ -34,18 +51,46 @@ Procedural geometry means creating shapes dynamically through code rather than i
 
 ---
 
-<Exercise
-  id="advanced-procedural-1"
-  title="Exercise 1: Procedural Polygon"
-  difficulty={2}
-  hint="Loop from 0 to n-1, calculate angle = (i/n) * 2π, then x = cos(angle)*r, y = sin(angle)*r. Use moveTo for first, lineTo for rest."
-  expectedAnswer="polygon"
-  explanation="Regular polygons are built by distributing points evenly around a circle. The angle offset (-π/2) makes the first vertex point upward."
-  task="Complete the buildPolygon function to generate a regular polygon with N sides using trigonometry."
-  expectedOutput={`Building 6-sided polygon...
-Polygon built!
-ANSWER: polygon`}
-  code={`--!strict
+### Exercise 1: Procedural Polygon ⭐⭐ {#exercise-1-procedural-polygon}
+
+### Premise
+
+Regular polygons are built by distributing points evenly around a circle. The angle offset (-π/2) makes the first vertex point upward.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the buildPolygon function to generate a regular polygon with N sides using trigonometry.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1ProceduralPolygon`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Generate a regular polygon with N sides
 
 export type Polygon = {
@@ -99,24 +144,46 @@ return function(): Node<Polygon>
         fill = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
         stroke = Paint.with({ style = "stroke", thickness = 3, color = Color.rgb(40, 80, 140) }),
     }
-end`}
-  solution={`-- TODO 1-4: Build polygon vertices
-for i = 0, n - 1 do
-    local angle = (i / n) * math.pi * 2 - math.pi / 2
-    local x = math.cos(angle) * r
-    local y = math.sin(angle) * r
+end
+```
 
-    if i == 0 then
-        self.path:moveTo(Vector.xy(x, y))
-    else
-        self.path:lineTo(Vector.xy(x, y))
-    end
-end`}
->
-**Premise:** You're learning to generate regular polygons procedurally using trigonometry.
+---
 
-**Use Case:** Procedural polygons are useful for icons, badges, HUD elements, and any shape that needs to be generated from data rather than imported as static art.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the buildPolygon function to generate a regular polygon with N sides using trigonometry.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-1"
+    expectedAnswer="ANSWER: polygon"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Calculate vertex positions using trigonometry
@@ -125,18 +192,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-procedural-2"
-  title="Exercise 2: Animated Star"
-  difficulty={2}
-  hint="Double the point count (n*2), alternate radius: outer for even indices, inner for odd. Animate innerRatio using sine wave."
-  expectedAnswer="star"
-  explanation="Stars alternate between outer and inner radius. Animating the innerRatio creates a pulsing effect as the path rebuilds each frame."
-  task="Complete the advance function to animate the star's inner radius and rebuild the path each frame."
-  expectedOutput={`Star initialized
-Star pulsing...
-ANSWER: star`}
-  code={`--!strict
+### Exercise 2: Animated Star ⭐⭐ {#exercise-2-animated-star}
+
+### Premise
+
+Stars alternate between outer and inner radius. Animating the innerRatio creates a pulsing effect as the path rebuilds each frame.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to animate the star's inner radius and rebuild the path each frame.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2AnimatedStar`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Animated star with pulsing inner radius
 
 export type AnimatedStar = {
@@ -197,28 +292,46 @@ return function(): Node<AnimatedStar>
         time = 0,
         innerRatio = 0.5,
     }
-end`}
-  solution={`-- TODO 2: Animate inner ratio
-self.innerRatio = 0.3 + math.sin(self.time * 2) * 0.2
+end
+```
 
--- TODO 3-5: Build star points
-for i = 0, n * 2 - 1 do
-    local angle = (i / (n * 2)) * math.pi * 2 - math.pi / 2
-    local r = if i % 2 == 0 then outer else inner
-    local x = math.cos(angle) * r
-    local y = math.sin(angle) * r
+---
 
-    if i == 0 then
-        self.path:moveTo(Vector.xy(x, y))
-    else
-        self.path:lineTo(Vector.xy(x, y))
-    end
-end`}
->
-**Premise:** You're creating a star shape with an animated pulsing effect by varying the inner radius over time.
+### Assignment
 
-**Use Case:** Animated stars are used for ratings, power-ups, achievements, and any visual that needs eye-catching motion.
-</Exercise>
+Complete these tasks:
+
+1. Complete the advance function to animate the star's inner radius and rebuild the path each frame.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-2"
+    expectedAnswer="ANSWER: star"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Alternate between outer and inner radius for star points
@@ -227,18 +340,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-procedural-3"
-  title="Exercise 3: Sine Wave Path"
-  difficulty={2}
-  hint="Loop through segments, calculate x position and y = sin((t * freq + time) * 2π) * amplitude. Add time to phase for animation."
-  expectedAnswer="wave"
-  explanation="Adding time to the sine phase creates animation. More segments means smoother curves. Use stroke style for open paths."
-  task="Complete the advance function to build an animated sine wave path."
-  expectedOutput={`Sine wave initialized
-Wave flowing...
-ANSWER: wave`}
-  code={`--!strict
+### Exercise 3: Sine Wave Path ⭐⭐ {#exercise-3-sine-wave-path}
+
+### Premise
+
+Adding time to the sine phase creates animation. More segments means smoother curves. Use stroke style for open paths.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to build an animated sine wave path.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3SineWavePath`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Animated sine wave path
 
 export type SineWave = {
@@ -295,24 +436,46 @@ return function(): Node<SineWave>
         paint = Paint.with({ style = "stroke", thickness = 4, color = Color.rgb(120, 220, 180), cap = "round" }),
         time = 0,
     }
-end`}
-  solution={`-- Build wave path
-for i = 0, segs do
-    local t = i / segs
-    local x = -width / 2 + t * width
-    local y = math.sin((t * freq + self.time) * math.pi * 2) * amp
+end
+```
 
-    if i == 0 then
-        self.path:moveTo(Vector.xy(x, y))
-    else
-        self.path:lineTo(Vector.xy(x, y))
-    end
-end`}
->
-**Premise:** You're creating a flowing sine wave animation that updates every frame.
+---
 
-**Use Case:** Sine waves are used for audio visualizers, water effects, breathing animations, and any oscillating visual.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to build an animated sine wave path.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-3"
+    expectedAnswer="ANSWER: wave"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Add `self.time` to the phase for animation
@@ -321,18 +484,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-procedural-4"
-  title="Exercise 4: Bezier Curves"
-  difficulty={2}
-  hint="Use cubicTo(control1, control2, endpoint). Animate the control point Y offsets using sine wave for flowing motion."
-  expectedAnswer="bezier"
-  explanation="cubicTo creates smooth curves using two control points. Animating the control points creates elegant flowing motion."
-  task="Complete the advance function to create an animated cubic bezier curve."
-  expectedOutput={`Bezier demo initialized
-Curve flowing...
-ANSWER: bezier`}
-  code={`--!strict
+### Exercise 4: Bezier Curves ⭐⭐ {#exercise-4-bezier-curves}
+
+### Premise
+
+cubicTo creates smooth curves using two control points. Animating the control points creates elegant flowing motion.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to create an animated cubic bezier curve.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4BezierCurves`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Animated cubic bezier curve
 
 export type BezierDemo = {
@@ -378,23 +569,46 @@ return function(): Node<BezierDemo>
         paint = Paint.with({ style = "stroke", thickness = 5, color = Color.rgb(255, 100, 150), cap = "round" }),
         time = 0,
     }
-end`}
-  solution={`-- TODO 1: Animate offset
-local offset = math.sin(self.time * 1.5) * 30
+end
+```
 
--- TODO 2: Build bezier curve
-self.path:reset()
-self.path:moveTo(Vector.xy(-120, 0))
-self.path:cubicTo(
-    Vector.xy(-60, -80 + offset),
-    Vector.xy(60, 80 - offset),
-    Vector.xy(120, 0)
-)`}
->
-**Premise:** You're creating smooth animated curves using cubic bezier segments.
+---
 
-**Use Case:** Bezier curves are ideal for flowing motion paths, smooth transitions, and any organic-looking animation.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to create an animated cubic bezier curve.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-4"
+    expectedAnswer="ANSWER: bezier"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `cubicTo(control1, control2, end)` creates smooth curves
@@ -403,18 +617,46 @@ self.path:cubicTo(
 
 ---
 
-<Exercise
-  id="advanced-procedural-5"
-  title="Exercise 5: Simple Particle System"
-  difficulty={3}
-  hint="Spawn particles on timer, update position with velocity + gravity, filter out dead particles (life >= maxLife). Fade alpha based on remaining life."
-  expectedAnswer="particles"
-  explanation="Particle systems spawn objects, update their physics, and remove dead ones. Filter arrays to efficiently remove particles."
-  task="Complete the advance function to spawn particles, update physics, and remove dead particles."
-  expectedOutput={`Particle system started
-Particles spawning...
-ANSWER: particles`}
-  code={`--!strict
+### Exercise 5: Simple Particle System ⭐⭐⭐ {#exercise-5-simple-particle-system}
+
+### Premise
+
+Particle systems spawn objects, update their physics, and remove dead ones. Filter arrays to efficiently remove particles.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to spawn particles, update physics, and remove dead particles.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise5_Exercise5SimpleParticleSystem`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Basic particle system with spawning and aging
 
 type Particle = {
@@ -500,32 +742,46 @@ return function(): Node<ParticleSystem>
         paint = Paint.with({ style = "fill", color = Color.rgb(255, 180, 80) }),
         spawnTimer = 0,
     }
-end`}
-  solution={`-- TODO 1: Spawn particles
-while self.spawnTimer >= spawnInterval do
-    self.spawnTimer -= spawnInterval
-    if #self.particles < 100 then
-        table.insert(self.particles, spawnParticle())
-    end
 end
+```
 
--- TODO 2: Update and filter particles
-local alive: { Particle } = {}
-for _, p in ipairs(self.particles) do
-    p.life += seconds
-    if p.life < p.maxLife then
-        p.x += p.vx * seconds
-        p.y += p.vy * seconds
-        p.vy += 50 * seconds
-        table.insert(alive, p)
-    end
-end
-self.particles = alive`}
->
-**Premise:** You're building a basic particle system that spawns, animates, and removes particles over time.
+---
 
-**Use Case:** Particle systems create visual effects like sparks, explosions, rain, smoke, and magical effects.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to spawn particles, update physics, and remove dead particles.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-5"
+    expectedAnswer="ANSWER: particles"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 :::warning Performance Note
 This example modifies the path in `draw` for simplicity. For production particle systems, consider creating a pool of paths or using instanced rendering techniques.
@@ -539,18 +795,46 @@ This example modifies the path in `draw` for simplicity. For production particle
 
 ---
 
-<Exercise
-  id="advanced-procedural-6"
-  title="Exercise 6: Circular Progress Ring"
-  difficulty={2}
-  hint="Build arcs by looping through segments, calculating angle = start + (end-start)*t, then x = cos(angle)*r, y = sin(angle)*r."
-  expectedAnswer="ring"
-  explanation="Progress rings are built as arcs. The foreground arc length is based on progress (0-1), starting from -π/2 (top) and sweeping clockwise."
-  task="Complete the buildArc helper function to generate arc paths based on start and end angles."
-  expectedOutput={`Progress ring initialized
-Progress at 70%
-ANSWER: ring`}
-  code={`--!strict
+### Exercise 6: Circular Progress Ring ⭐⭐ {#exercise-6-circular-progress-ring}
+
+### Premise
+
+Progress rings are built as arcs. The foreground arc length is based on progress (0-1), starting from -π/2 (top) and sweeping clockwise.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the buildArc helper function to generate arc paths based on start and end angles.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise6_Exercise6CircularProgressRing`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Circular progress ring with background and foreground arcs
 
 export type ProgressRing = {
@@ -613,25 +897,46 @@ return function(): Node<ProgressRing>
         bgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgba(255, 255, 255, 40), cap = "round" }),
         fgPaint = Paint.with({ style = "stroke", thickness = 8, color = Color.rgb(100, 200, 255), cap = "round" }),
     }
-end`}
-  solution={`-- TODO 1-5: Build arc from segments
-for i = 0, segments do
-    local t = i / segments
-    local angle = startAngle + (endAngle - startAngle) * t
-    local x = math.cos(angle) * radius
-    local y = math.sin(angle) * radius
+end
+```
 
-    if i == 0 then
-        path:moveTo(Vector.xy(x, y))
-    else
-        path:lineTo(Vector.xy(x, y))
-    end
-end`}
->
-**Premise:** You're creating a circular progress indicator that fills based on a progress value.
+---
 
-**Use Case:** Progress rings are used for loading indicators, skill cooldowns, health bars, and any circular meter visualization.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the buildArc helper function to generate arc paths based on start and end angles.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-6"
+    expectedAnswer="ANSWER: ring"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Build arcs by calculating points around a circle
@@ -640,18 +945,46 @@ end`}
 
 ---
 
-<Exercise
-  id="advanced-procedural-7"
-  title="Exercise 7: Data-Driven Bar Chart"
-  difficulty={3}
-  hint="Use lerp formula: current + (target - current) * (seconds * speed). Loop through target values and interpolate each bar's current value."
-  expectedAnswer="bars"
-  explanation="Bar charts interpolate toward target values for smooth animation. Each bar's x position is calculated from its index, and colors are generated procedurally."
-  task="Complete the advance function to animate bar values toward their targets using lerp interpolation."
-  expectedOutput={`Bar chart initialized with 5 bars
-Bars animating...
-ANSWER: bars`}
-  code={`--!strict
+### Exercise 7: Data-Driven Bar Chart ⭐⭐⭐ {#exercise-7-datadriven-bar-chart}
+
+### Premise
+
+Bar charts interpolate toward target values for smooth animation. Each bar's x position is calculated from its index, and colors are generated procedurally.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to animate bar values toward their targets using lerp interpolation.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise7_Exercise7DataDrivenBarChart`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+--!strict
 -- Animated bar chart with data-driven values
 
 export type BarChart = {
@@ -742,17 +1075,46 @@ return function(): Node<BarChart>
         paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) }),
         animating = true,
     }
-end`}
-  solution={`-- TODO 1-4: Animate values toward targets
-for i, target in ipairs(self.targetValues) do
-    local current = self.values[i] or 0
-    self.values[i] = current + (target - current) * math.min(1, seconds * speed)
-end`}
->
-**Premise:** You're building an animated bar chart that smoothly transitions to new data values.
+end
+```
 
-**Use Case:** Bar charts visualize data comparisons—sales figures, scores, statistics. Animation makes data changes feel polished and professional.
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to animate bar values toward their targets using lerp interpolation.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-7"
+    expectedAnswer="ANSWER: bars"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - Animate values toward targets for smooth transitions
@@ -874,6 +1236,7 @@ Procedural geometry gives you complete control over shapes through code. Build p
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Game Logic ->](./game-logic)**
+- Continue to [Architecture](/best-practices/architecture)
+- Need a refresher? Review [Quick Reference](/quick-reference)

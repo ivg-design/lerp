@@ -1,47 +1,94 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Converter Script Protocol
 description: Bidirectional data transformation for ViewModel bindings
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - converter
+  - script
+  - protocol
+  - bidirectional
 ---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Converter Script Protocol
 
-:::caution Coming Soon
-This section is under development. See the [Script Types Overview](../script-types) for a summary of Converter Scripts.
+## Learning Objectives
+
+- Understand when to use Converter Scripts
+- Implement `convert()` for source-to-target transformation
+- Implement `reverseConvert()` for two-way bindings
+- Work with DataValue types for type-safe conversions
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | JavaScript | Luau (Rive Converter Scripts) |
+|---------|------------|-------------------------------|
+| Data transformation | Custom getter/setter | `convert()` / `reverseConvert()` |
+| Type checking | `typeof value === 'number'` | `input:isNumber()` |
+| Type casting | `Number(value)` | `(input :: DataValueNumber).value` |
+| Creating typed values | `{ type: 'number', value: 42 }` | `DataValue.number()` with `.value = 42` |
+
+:::tip Key Insight
+Converter Scripts are **bidirectional transformers**. Unlike JavaScript where you might write separate functions for each direction, Rive requires both `convert()` AND `reverseConvert()` to handle two-way data bindings properly.
 :::
+
+---
 
 ## Overview
 
-Converter Scripts enable custom data transformations within Rive's data binding system. They act as a bridge between source and target data with **bidirectional conversion**.
+Converter Scripts enable custom data transformations within Rive's data binding system. They act as a **bridge between source and target data** with bidirectional conversion.
 
-## Template
+**When to use Converter Scripts:**
+- Transform data between incompatible types
+- Format/parse values (e.g., number to formatted string)
+- Apply mathematical transformations to bound values
+- Create reusable data transformations across your project
+
+---
+
+## The Converter Script Template
 
 ```lua
 --!strict
 
-type MyConverter = {}
+export type MyConverter = {
+    -- Converter state (rarely needed)
+}
 
+-- Types of inputs this converter accepts
 type DataInputs = DataValueNumber
+
+-- Data type this converter outputs
 type DataOutput = DataValueNumber
 
 function init(self: MyConverter, context: Context): boolean
+    -- Initialize any converter state
     return true
 end
 
--- SOURCE → TARGET
+-- Converts value when binding from SOURCE to TARGET
 function convert(self: MyConverter, input: DataInputs): DataOutput
     local dv: DataValueNumber = DataValue.number()
     if input:isNumber() then
-        dv.value = (input :: DataValueNumber).value + 1
+        dv.value = (input :: DataValueNumber).value * 2  -- Example: double
     end
     return dv
 end
 
--- TARGET → SOURCE (for two-way binding)
+-- Converts value when binding from TARGET to SOURCE (for two-way binding)
 function reverseConvert(self: MyConverter, input: DataOutput): DataInputs
     local dv: DataValueNumber = DataValue.number()
     if input:isNumber() then
-        dv.value = (input :: DataValueNumber).value - 1
+        dv.value = (input :: DataValueNumber).value / 2  -- Inverse: halve
     end
     return dv
 end
@@ -55,22 +102,540 @@ return function(): Converter<MyConverter, DataInputs, DataOutput>
 end
 ```
 
-## DataValue Types
+---
 
-| Type | Constructor | Check |
-|------|-------------|-------|
-| `DataValueNumber` | `DataValue.number()` | `isNumber()` |
-| `DataValueString` | `DataValue.string()` | `isString()` |
-| `DataValueBoolean` | `DataValue.boolean()` | `isBoolean()` |
-| `DataValueColor` | `DataValue.color()` | `isColor()` |
+## Key Functions
 
-## Use Cases
+### `convert(self, input): DataOutput` — **REQUIRED**
 
-- Number formatting (units, decimals)
-- Temperature conversion
-- Color transformations
-- String parsing/formatting
+Transforms data from **source to target**. Called whenever the source value changes.
+
+```lua
+function convert(self: MyConverter, input: DataInputs): DataOutput
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local value = (input :: DataValueNumber).value
+        dv.value = value * 100  -- Convert to percentage
+    end
+    return dv
+end
+```
 
 ---
 
-*Full documentation coming soon.*
+### `reverseConvert(self, input): DataInputs` — **REQUIRED**
+
+Transforms data from **target back to source**. Called during two-way binding when the target changes.
+
+```lua
+function reverseConvert(self: MyConverter, input: DataOutput): DataInputs
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local value = (input :: DataValueNumber).value
+        dv.value = value / 100  -- Convert from percentage
+    end
+    return dv
+end
+```
+
+:::warning Important
+`reverseConvert` must be the **mathematical inverse** of `convert`. If `convert` multiplies by 2, `reverseConvert` must divide by 2.
+:::
+
+---
+
+### `init(self, context): boolean` — Optional
+
+One-time initialization when the converter is first used.
+
+```lua
+function init(self: MyConverter, context: Context): boolean
+    -- Set up any initial state
+    return true
+end
+```
+
+---
+
+## DataValue Types
+
+Converter Scripts work with typed DataValue wrappers:
+
+| Type | Constructor | Type Check | `.value` Type |
+|------|-------------|------------|---------------|
+| `DataValueNumber` | `DataValue.number()` | `isNumber()` | `number` |
+| `DataValueString` | `DataValue.string()` | `isString()` | `string` |
+| `DataValueBoolean` | `DataValue.boolean()` | `isBoolean()` | `boolean` |
+| `DataValueColor` | `DataValue.color()` | `isColor()` | `Color` |
+
+### DataValue API
+
+```lua
+-- Create new DataValue instances
+local numVal = DataValue.number()   -- Creates DataValueNumber
+local strVal = DataValue.string()   -- Creates DataValueString
+local boolVal = DataValue.boolean() -- Creates DataValueBoolean
+local colorVal = DataValue.color()  -- Creates DataValueColor
+
+-- Type checking (call on any DataValue)
+if input:isNumber() then
+    -- Safe to cast and access .value
+end
+
+-- Type casting and value access
+local num = (input :: DataValueNumber).value   -- Get number
+local str = (input :: DataValueString).value   -- Get string
+local bool = (input :: DataValueBoolean).value -- Get boolean
+local color = (input :: DataValueColor).value  -- Get Color
+```
+
+---
+
+## How to Apply Converters
+
+1. Create a new script, select **Converter** as the type
+2. In the Data panel, click the "+" button
+3. Choose **Converters → Script → [YourScript]**
+4. Apply to bindings in the editor
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Percentage Converter ⭐ {#exercise-1-percentage-converter}
+
+### Premise
+
+Converters transform data between formats. Understanding the relationship between `convert()` and `reverseConvert()` is essential for two-way bindings.
+
+:::info Goal
+By the end of this exercise, you will implement a converter that transforms a decimal (0.75) to a percentage (75).
+:::
+
+### Use Case
+
+You have a progress value stored as a decimal (0.0 to 1.0), but you want to display it as a percentage (0 to 100) in the UI.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Converter Script
+   - Name it `Exercise1_PercentConverter`
+
+2. **Test setup:**
+   - Create a ViewModel with a `progress` number property
+   - Bind it to a text element using your converter
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise1 = {}
+type DataInputs = DataValueNumber
+type DataOutput = DataValueNumber
+
+function convert(self: Exercise1, input: DataInputs): DataOutput
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local decimal = (input :: DataValueNumber).value
+
+        -- TODO: Convert decimal to percentage
+        -- Formula: percentage = decimal * 100
+        local percentage = 0
+
+        dv.value = percentage
+        print(`ANSWER: convert={percentage}`)
+    end
+    return dv
+end
+
+function reverseConvert(self: Exercise1, input: DataOutput): DataInputs
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local percentage = (input :: DataValueNumber).value
+
+        -- TODO: Convert percentage back to decimal
+        -- Formula: decimal = percentage / 100
+        local decimal = 0
+
+        dv.value = decimal
+    end
+    return dv
+end
+
+return function(): Converter<Exercise1, DataInputs, DataOutput>
+    return {
+        convert = convert,
+        reverseConvert = reverseConvert,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Calculate `percentage` as `decimal * 100`
+2. Calculate `decimal` as `percentage / 100`
+3. Test with <Term>Input</Term> decimal of 0.75
+
+---
+
+### Expected Output
+
+Your console output should display the converted percentage value.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-converter-1"
+    expectedAnswer="ANSWER: convert=75"
+/>
+
+---
+
+### Checklist
+
+- [ ] `convert()` multiplies by 100
+- [ ] `reverseConvert()` divides by 100
+- [ ] Functions are mathematical inverses
+
+---
+
+### Exercise 2: Temperature Converter ⭐⭐ {#exercise-2-temperature-converter}
+
+### Premise
+
+Real-world converters often involve non-trivial formulas. Temperature conversion is a classic example of bidirectional transformation with offsets.
+
+:::info Goal
+By the end of this exercise, you will implement Celsius to Fahrenheit conversion with proper inverse operations.
+:::
+
+### Use Case
+
+Your app stores temperatures in Celsius internally, but displays Fahrenheit for US users.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Converter Script
+   - Name it `Exercise2_TempConverter`
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise2 = {}
+type DataInputs = DataValueNumber
+type DataOutput = DataValueNumber
+
+function convert(self: Exercise2, input: DataInputs): DataOutput
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local celsius = (input :: DataValueNumber).value
+
+        -- TODO: Convert Celsius to Fahrenheit
+        -- Formula: F = C * 9/5 + 32
+        local fahrenheit = 0
+
+        dv.value = fahrenheit
+        print(`ANSWER: celsius={celsius},fahrenheit={fahrenheit}`)
+    end
+    return dv
+end
+
+function reverseConvert(self: Exercise2, input: DataOutput): DataInputs
+    local dv = DataValue.number()
+    if input:isNumber() then
+        local fahrenheit = (input :: DataValueNumber).value
+
+        -- TODO: Convert Fahrenheit back to Celsius
+        -- Formula: C = (F - 32) * 5/9
+        local celsius = 0
+
+        dv.value = celsius
+    end
+    return dv
+end
+
+return function(): Converter<Exercise2, DataInputs, DataOutput>
+    return {
+        convert = convert,
+        reverseConvert = reverseConvert,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Implement the Celsius to Fahrenheit formula: `F = C * 9/5 + 32`
+2. Implement the inverse: `C = (F - 32) * 5/9`
+3. Test with input of 25 Celsius
+
+---
+
+### Expected Output
+
+Your console output should display both the input Celsius and converted Fahrenheit values.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-converter-2"
+    expectedAnswer="ANSWER: celsius=25,fahrenheit=77"
+/>
+
+---
+
+### Checklist
+
+- [ ] Fahrenheit formula correct (C * 9/5 + 32)
+- [ ] Celsius formula correct ((F - 32) * 5/9)
+- [ ] Formulas are mathematical inverses
+
+---
+
+### Exercise 3: String Formatter ⭐⭐ {#exercise-3-string-formatter}
+
+### Premise
+
+Converters can transform between different types. Converting numbers to formatted strings is common for display purposes.
+
+:::info Goal
+By the end of this exercise, you will implement a converter that formats a number with a currency prefix.
+:::
+
+### Use Case
+
+You have a price stored as a number (19.99), but need to display it as "$19.99" in the UI.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Converter Script
+   - Name it `Exercise3_CurrencyFormatter`
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+export type Exercise3 = {}
+type DataInputs = DataValueNumber
+type DataOutput = DataValueString
+
+function convert(self: Exercise3, input: DataInputs): DataOutput
+    local dv = DataValue.string()
+    if input:isNumber() then
+        local price = (input :: DataValueNumber).value
+
+        -- TODO: Format as currency string
+        -- Use string interpolation: `$amount`
+        local formatted = ""
+
+        dv.value = formatted
+        print(`ANSWER: formatted={formatted}`)
+    end
+    return dv
+end
+
+function reverseConvert(self: Exercise3, input: DataOutput): DataInputs
+    local dv = DataValue.number()
+    if input:isString() then
+        local str = (input :: DataValueString).value
+
+        -- TODO: Parse number from currency string
+        -- Remove "$" prefix and convert to number
+        -- Hint: Use string.sub(str, 2) to remove first character
+        local price = 0
+
+        dv.value = price
+    end
+    return dv
+end
+
+return function(): Converter<Exercise3, DataInputs, DataOutput>
+    return {
+        convert = convert,
+        reverseConvert = reverseConvert,
+    }
+end
+```
+
+---
+
+### Assignment
+
+1. Format the number as `$` followed by the price
+2. Parse by removing the `$` and converting with `tonumber()`
+3. Test with input price of 42
+
+---
+
+### Expected Output
+
+Your console output should display the formatted currency string.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-converter-3"
+    expectedAnswer="ANSWER: formatted=$42"
+/>
+
+---
+
+### Checklist
+
+- [ ] `convert()` prepends "$" to number
+- [ ] `reverseConvert()` strips "$" and parses number
+- [ ] Note: DataInputs is Number, DataOutput is String
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What must be true about convert() and reverseConvert()?"
+  id="converter-q1"
+  options={[
+    { text: "They must return the same type" },
+    { text: "They must be mathematical inverses of each other", correct: true },
+    { text: "reverseConvert() is optional" },
+    { text: "They must have the same implementation" },
+  ]}
+  explanation="For two-way bindings to work correctly, reverseConvert must undo whatever convert does. If convert multiplies by 2, reverseConvert must divide by 2."
+/>
+
+<Quiz
+  question="How do you safely access a DataValue's underlying number?"
+  id="converter-q2"
+  options={[
+    { text: "input.value directly" },
+    { text: "input:getValue()" },
+    { text: "Check with isNumber() then cast: (input :: DataValueNumber).value", correct: true },
+    { text: "DataValue.toNumber(input)" },
+  ]}
+  explanation="Always type-check with isNumber() first, then use type casting (input :: DataValueNumber) to safely access the .value property."
+/>
+
+<Quiz
+  question="When is convert() called?"
+  id="converter-q3"
+  options={[
+    { text: "Every frame during animation" },
+    { text: "When the source value changes and needs to update the target", correct: true },
+    { text: "Only during initialization" },
+    { text: "When the user interacts with the UI" },
+  ]}
+  explanation="convert() transforms source→target. It's called whenever the bound source value changes and the target needs to be updated with the converted value."
+/>
+
+<Quiz
+  question="Which functions are REQUIRED in a Converter Script?"
+  id="converter-q4"
+  options={[
+    { text: "Only convert()" },
+    { text: "Only init() and convert()" },
+    { text: "convert() and reverseConvert()", correct: true },
+    { text: "init(), convert(), and update()" },
+  ]}
+  explanation="Both convert() and reverseConvert() are required for bidirectional data binding to work properly."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Avoid These Errors
+
+1. **Forgetting reverseConvert is required**
+   ```lua
+   -- WRONG: Missing reverseConvert
+   return function(): Converter<MyConverter, DataInputs, DataOutput>
+       return { convert = convert }  -- Error!
+   end
+
+   -- CORRECT: Always include both
+   return function(): Converter<MyConverter, DataInputs, DataOutput>
+       return {
+           convert = convert,
+           reverseConvert = reverseConvert,
+       }
+   end
+   ```
+
+2. **Non-inverse operations**
+   ```lua
+   -- WRONG: Operations don't reverse properly
+   function convert(self, input)
+       -- Adds 10, but reverseConvert subtracts 5 = BROKEN!
+   end
+
+   -- CORRECT: Mathematical inverses
+   function convert(self, input)
+       -- result = value * 2 + 10
+   end
+   function reverseConvert(self, input)
+       -- value = (result - 10) / 2
+   end
+   ```
+
+3. **Not checking input type**
+   ```lua
+   -- WRONG: Accessing .value without type check
+   local value = (input :: DataValueNumber).value  -- Could crash!
+
+   -- CORRECT: Always check first
+   if input:isNumber() then
+       local value = (input :: DataValueNumber).value  -- Safe
+   end
+   ```
+
+:::
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand when to use Converter Scripts
+- [ ] I can implement convert() for source→target transformation
+- [ ] I can implement reverseConvert() as the mathematical inverse
+- [ ] I know how to use DataValue types and type checking
+- [ ] I understand the relationship between convert and reverseConvert
+
+---
+
+## Next Steps
+
+- Continue to [<Term>Path</Term> Effect Script Protocol](/rive/protocols/path-effect-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

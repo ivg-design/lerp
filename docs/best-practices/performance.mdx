@@ -1,10 +1,17 @@
 ---
 sidebar_position: 2
 title: Performance
+keywords:
+  - rive
+  - luau
+  - scripting
+  - "best practices"
+  - performance
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Performance Optimization
 
@@ -13,7 +20,7 @@ Write efficient Rive scripts by understanding when and where to do work.
 ## Rive Context
 
 Rive scripts run every frame. The biggest performance wins come from:
-- **Reusing objects** (Path, Paint, tables)
+- **Reusing objects** (<Term>Path</Term>, <Term>Paint</Term>, tables)
 - **Doing heavy work in `update`** instead of `draw`
 - **Avoiding per-frame allocations** in hot loops
 
@@ -29,19 +36,46 @@ Rive scripts run every frame. The biggest performance wins come from:
 
 ---
 
-<Exercise
-  id="best-practices-perf-1"
-  title="Exercise 1: Cache and Reuse Objects"
-  difficulty={2}
-  hint="Create Path and Paint objects once in init, then reuse them. Use path:reset() to clear and rebuild geometry without allocating new objects."
-  expectedAnswer="cached"
-  explanation="Creating objects every frame is expensive. Allocating Path and Paint once in init and reusing them eliminates per-frame allocation overhead."
-  task="Move object creation from the factory to init, and rebuild geometry in update without allocating new objects."
-  expectedOutput={`Objects cached in init
-Path rebuilt with radius: 50
-Drawing with cached objects
-ANSWER: cached`}
-  code={`--!strict
+### Exercise 1: Cache and Reuse Objects ⭐⭐ {#exercise-1-cache-and-reuse-objects}
+
+### Premise
+
+Creating objects every frame is expensive. Allocating Path and Paint once in init and reusing them eliminates per-frame allocation overhead.
+
+:::info Goal
+By the end of this exercise, you will be able to Move object creation from the factory to init, and rebuild geometry in update without allocating new objects.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → <Term>Node</Term> Script
+   - Name it `Exercise1_Exercise1CacheAndReuseObjects`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Optimize by caching Path and Paint objects
 
 export type CachedCircle = {
@@ -94,22 +128,46 @@ return function(): Node<CachedCircle>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Create objects in init (allocate once)
-self.path = Path.new()
-self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
+end
+```
 
--- TODO 2: Rebuild geometry without new allocation
-self.path:reset()
-self.path:moveTo(Vector.xy(-r, 0))
-self.path:quadTo(Vector.xy(0, -r), Vector.xy(r, 0))
-self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
-self.path:close()`}
->
-**Premise:** You're optimizing a shape that updates when inputs change but was creating new objects every frame.
+---
 
-**Use Case:** Object caching is essential for any script that renders dynamic content. It's the difference between 60fps and slideshow performance.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Move object creation from the factory to init, and rebuild geometry in update without allocating new objects.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-perf-1"
+    expectedAnswer="ANSWER: cached"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Key points:**
 - `Path` and `Paint` are created once in `init`
@@ -118,19 +176,46 @@ self.path:close()`}
 
 ---
 
-<Exercise
-  id="best-practices-perf-2"
-  title="Exercise 2: Update-Driven Rendering"
-  difficulty={2}
-  hint="Create a rebuild helper function that resets and rebuilds the path. Call it from init for initial state, and from update when inputs change."
-  expectedAnswer="efficient"
-  explanation="Update-driven rendering only rebuilds geometry when inputs change, not every frame. This pattern is essential for complex shapes that are expensive to rebuild."
-  task="Complete the rebuild helper function and call it from both init and update to only rebuild when necessary."
-  expectedOutput={`Initial build: 140x80
-Geometry rebuilt on input change: 200x100
-Drawing efficiently
-ANSWER: efficient`}
-  code={`--!strict
+### Exercise 2: Update-Driven Rendering ⭐⭐ {#exercise-2-updatedriven-rendering}
+
+### Premise
+
+Update-driven rendering only rebuilds geometry when inputs change, not every frame. This pattern is essential for complex shapes that are expensive to rebuild.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the rebuild helper function and call it from both init and update to only rebuild when necessary.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2UpdateDrivenRendering`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Only rebuild geometry when inputs change
 
 export type EfficientRect = {
@@ -192,31 +277,71 @@ return function(): Node<EfficientRect>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Complete rebuild helper
-self.path:reset()
-self.path:moveTo(Vector.xy(-halfW, -halfH))
-self.path:lineTo(Vector.xy(halfW, -halfH))
-self.path:lineTo(Vector.xy(halfW, halfH))
-self.path:lineTo(Vector.xy(-halfW, halfH))
-self.path:close()
+end
+```
 
--- TODO 2: Call rebuild in init
-rebuild(self)
+---
 
--- TODO 3: Call rebuild in update
-rebuild(self)`}
->
-**Premise:** You're optimizing a rectangle that should only rebuild when its width or height inputs change.
+### Assignment
 
-**Use Case:** Update-driven rendering is crucial for complex geometry like charts, diagrams, or procedural shapes where rebuilding is expensive.
-</Exercise>
+Complete these tasks:
+
+1. Complete the rebuild helper function and call it from both init and update to only rebuild when necessary.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="best-practices-perf-2"
+    expectedAnswer="ANSWER: efficient"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **How it works:**
 1. `rebuild` is a helper that reconstructs the path geometry
 2. `init` calls `rebuild` once for the initial state
 3. `update` is called when inputs change and rebuilds the geometry
 4. `draw` remains lightweight, only rendering the cached path
+
+---
+
+## Memory Management
+
+Rive scripts run in a managed Luau VM with automatic garbage collection. You still need to control **object lifetimes** to avoid leaks and stutters.
+
+**Guidelines:**
+- **Reuse objects** in `draw` and `advance` (Path, Paint, tables).
+- **Clear references** when an object is no longer needed:
+  ```lua
+  self.enemy = nil
+  self.tempPoints = {}
+  ```
+- **Avoid unbounded tables** (lists that only grow). Prune or recycle entries.
+- **Use object pools** for frequently spawned items (particles, bullets, stars).
+- **Prefer short-lived locals** inside functions over storing long-lived globals.
+
+**Rule of thumb:** If something is created every frame, it should be reused or pooled.
 
 ---
 
@@ -273,12 +398,17 @@ end
 
 <Quiz
   question="Where should you create Path and Paint objects for best performance?"
+  id="performance-init"
   options={[
-    "In the draw function",
-    "In the advance function",
-    "In the init function",
-    "In the factory return table"
+    { text: "In the draw function" },
+    { text: "In the advance function" },
+    { text: "In the init function", correct: true },
+    { text: "In the factory return table" },
   ]}
-  correctIndex={2}
   explanation="Creating Path and Paint objects in init ensures they are allocated once and reused every frame, avoiding per-frame allocations."
 />
+
+## Next Steps
+
+- Continue to [Debugging](/best-practices/debugging)
+- Need a refresher? Review [Quick Reference](/quick-reference)

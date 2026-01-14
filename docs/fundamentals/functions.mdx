@@ -2,6 +2,15 @@
 sidebar_position: 3
 title: "1.3 Functions & Closures"
 description: Define functions, understand scope, and use closures in Rive Node Scripts
+keywords:
+  - rive
+  - luau
+  - scripting
+  - fundamentals
+  - functions
+  - closures
+  - define
+  - understand
 ---
 
 import Quiz from '@site/src/components/Quiz';
@@ -412,6 +421,12 @@ return function(): Node<ButtonScript>
 end
 ```
 
+**Output (after each click):**
+```
+[Button A] Clicked 1 times
+[Button A] Clicked 2 times
+```
+
 ---
 
 ## Function Scope
@@ -444,6 +459,13 @@ function draw(self: MyScript, renderer: Renderer)
 end
 ```
 
+**Output (when init runs, then draw runs):**
+```
+I'm accessible anywhere in this file
+I only exist inside init
+I'm accessible anywhere in this file
+```
+
 :::tip Best Practice
 - **Helper functions** that are reused → Define at module level
 - **Single-use functions** → Define locally where needed
@@ -453,7 +475,7 @@ end
 
 ## Exercises
 
-### Exercise 1: Damage Function ⭐
+### Exercise 1: Damage Function ⭐ {#exercise-1-damage-function}
 
 ### Premise
 
@@ -558,7 +580,7 @@ Your console output should display four damage values separated by commas:
 
 ---
 
-### Exercise 2: Typed Formatters ⭐
+### Exercise 2: Typed Formatters ⭐ {#exercise-2-typed-formatters}
 
 ### Premise
 
@@ -663,7 +685,7 @@ Your console output should display two values separated by a comma:
 
 ---
 
-### Exercise 3: Closure Counter ⭐⭐
+### Exercise 3: Closure Counter ⭐⭐ {#exercise-3-closure-counter}
 
 ### Premise
 
@@ -766,7 +788,7 @@ Your console output should display three incrementing values separated by commas
 
 ---
 
-### Exercise 4: Update Helper ⭐⭐
+### Exercise 4: Update Helper ⭐⭐ {#exercise-4-update-helper}
 
 ### Premise
 
@@ -869,7 +891,7 @@ Your console output should display the final progress value after all three `add
 
 ---
 
-### Exercise 5: Lerp Factory ⭐⭐
+### Exercise 5: Lerp Factory ⭐⭐ {#exercise-5-lerp-factory}
 
 ### Premise
 
@@ -972,7 +994,7 @@ Your console output should display two interpolated values separated by a comma:
 
 ---
 
-### Exercise 6: Clamp Utility ⭐⭐
+### Exercise 6: Clamp Utility ⭐⭐ {#exercise-6-clamp-utility}
 
 ### Premise
 
@@ -984,7 +1006,7 @@ By the end of this exercise, you will implement clamp and mapRange helpers.
 
 ### Use Case
 
-You are limiting user input values and remapping ranges for UI animations. Clamping prevents invalid values, and mapping lets you translate ranges cleanly.
+You are limiting user <Term>Input</Term> values and remapping ranges for UI animations. Clamping prevents invalid values, and mapping lets you translate ranges cleanly.
 
 **Example scenarios:**
 - Constraining slider input
@@ -1190,6 +1212,7 @@ end
 
 ---
 
-## Next Up
+## Next Steps
 
-**[1.4 Tables →](./tables)** — Learn about Luau's most powerful data structure — tables (arrays, dictionaries, and objects).
+- Continue to [1.4 Tables](/fundamentals/tables)
+- Need a refresher? Review [Quick Reference](/quick-reference)

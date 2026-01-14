@@ -148,14 +148,6 @@ const sidebars: SidebarsConfig = {
       id: 'glossary',
       label: 'Glossary',
     },
-    {
-      type: 'category',
-      label: 'Examples (Dev)',
-      collapsed: true,
-      items: [
-        'examples/sample-exercise',
-      ],
-    },
   ],
 };
 

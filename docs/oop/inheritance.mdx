@@ -2,10 +2,20 @@
 sidebar_position: 3
 title: "3.3 Inheritance & Patterns"
 description: Extend classes and implement design patterns
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - inheritance
+  - patterns
+  - extend
+  - classes
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 3.3: Inheritance & Patterns
 
@@ -55,7 +65,7 @@ The **dot notation with explicit `self`** is how you call parent methods in Luau
 
 ## Why Inheritance Matters in Rive
 
-In Rive, inheritance is most useful when multiple drawable objects share common behavior (`draw`, `move`, `update`) but differ in geometry or styling. This helps keep Node scripts clean while still producing complex procedural visuals.
+In Rive, inheritance is most useful when multiple drawable objects share common behavior (`draw`, `move`, `update`) but differ in geometry or styling. This helps keep <Term>Node</Term> scripts clean while still producing complex procedural visuals.
 
 **When to use inheritance in Rive:**
 - Multiple drawables share a base `draw` or `update` function
@@ -112,19 +122,46 @@ end
 
 ## Practice Exercises
 
-<Exercise
-  id="oop-inherit-1"
-  title="Exercise 1: Drawable Base + Two Shapes"
-  difficulty={2}
-  hint="Use setmetatable(ChildClass, { __index = ParentClass }) to set up inheritance. The child class will automatically have access to parent methods."
-  expectedAnswer="2"
-  explanation="Both shapes inherit draw() from Shape, so the count is 2. This demonstrates polymorphism - different objects responding to the same method call."
-  task="Complete the inheritance setup for Triangle so it inherits from Shape, then create both shapes in init."
-  expectedOutput={`Created 2 shapes
-Drawing shape 1
-Drawing shape 2
-ANSWER: 2`}
-  code={`--!strict
+### Exercise 1: Drawable Base + Two Shapes ⭐⭐ {#exercise-1-drawable-base-two-shapes}
+
+### Premise
+
+Both shapes inherit draw() from Shape, so the count is 2. This demonstrates polymorphism - different objects responding to the same method call.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the inheritance setup for Triangle so it inherits from Shape, then create both shapes in init.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1DrawableBaseTwoShapes`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- BASE CLASS: Shape
 local Shape = {}
@@ -230,37 +267,89 @@ return function(): Node<ShapeDemo>
         shapes = {},
         shapeCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Set up Triangle to inherit from Shape
-setmetatable(Triangle, { __index = Shape })
-
--- TODO 2 & 3: Create shapes
-self.shapes = {
-    Rect.new(-60, 0, 80, 50, Color.rgb(255, 100, 100)),
-    Triangle.new(60, 0, 70, Color.rgb(100, 100, 255)),
-}`}
->
-
-**Premise**: Inheritance lets multiple drawable objects share common behavior (like `draw`) but have different geometry. You define shared behavior once in the parent and specialize in children.
-
-**Use Case**: A Rive animation with multiple UI elements (buttons, panels, icons) that all need to be drawn but have different shapes.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-inherit-2"
-  title="Exercise 2: Override a Method"
-  difficulty={2}
-  hint="Override the draw method in OutlineRect to render both fill and stroke. Remember to draw the fill first, then the stroke on top."
-  expectedAnswer="stroke"
-  explanation="OutlineRect overrides draw() to render both fill and stroke. The child defines its own version of the method, which takes precedence over the parent's."
-  task="Complete the OutlineRect class by overriding the draw method to render both fill and stroke."
-  expectedOutput={`Plain rect: fill only
-Outline rect: fill + stroke
-ANSWER: stroke`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the inheritance setup for Triangle so it inherits from Shape, then create both shapes in init.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-inherit-1"
+    expectedAnswer="ANSWER: 2"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Override a Method ⭐⭐ {#exercise-2-override-a-method}
+
+### Premise
+
+OutlineRect overrides draw() to render both fill and stroke. The child defines its own version of the method, which takes precedence over the parent's.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the OutlineRect class by overriding the draw method to render both fill and stroke.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2OverrideAMethod`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- BASE CLASS: Shape
 local Shape = {}
@@ -356,41 +445,89 @@ return function(): Node<OutlineDemo>
         outlineRect = OutlineRect.new(0, 0, 1, 1, Color.rgb(0, 0, 0), Color.rgb(0, 0, 0)),
         hasStroke = "",
     }
-end`}
-  solution={`-- Override the draw method to render BOTH fill AND stroke
-function OutlineRect:draw(renderer: Renderer)
-    renderer:drawPath(self.path, self.paint)   -- Draw fill first
-    renderer:drawPath(self.path, self.stroke)  -- Draw stroke on top
-end`}
->
-
-**Premise**: Sometimes you need to extend parent behavior rather than replace it. Overriding lets you add functionality while keeping the parent's logic.
-
-**Use Case**: A Rive button that needs both fill and stroke, or a selected state that adds a highlight effect on top of the base rendering.
-
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="oop-inherit-3"
-  title="Exercise 3: Calling Parent Methods"
-  difficulty={2}
-  hint="Use dot notation with explicit self to call parent methods: Enemy.attack(self). This is like super.attack() in JavaScript."
-  expectedAnswer="45"
-  explanation="After nextPhase (damage 25 -> 35), and another nextPhase (35 -> 45), the final damage is 45. The boss's attack method calls the parent's attack using Enemy.attack(self)."
-  task="Complete the Boss class by calling parent methods correctly using dot notation and explicit self."
-  expectedOutput={`Dragon: 500 HP, 25 DMG
-  Phase: 1, Special: Fire Breath
-Phase 1 attack:
-Dragon attacks for 25 damage!
-Dragon enters phase 2!
-Dragon enters phase 3!
-Phase 3 attack:
-Dragon attacks for 45 damage!
-Dragon also uses Fire Breath!
-ANSWER: 45`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the OutlineRect class by overriding the draw method to render both fill and stroke.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-inherit-2"
+    expectedAnswer="ANSWER: stroke"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Calling Parent Methods ⭐⭐ {#exercise-3-calling-parent-methods}
+
+### Premise
+
+After nextPhase (damage 25 -> 35), and another nextPhase (35 -> 45), the final damage is 45. The boss's attack method calls the parent's attack using Enemy.attack(self).
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Boss class by calling parent methods correctly using dot notation and explicit self.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3CallingParentMethods`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- BASE CLASS: Enemy
 local Enemy = {}
@@ -488,55 +625,89 @@ return function(): Node<BossDemo>
         draw = draw,
         boss = Boss.new("", 0, 0, ""),
     }
-end`}
-  solution={`-- TODO 1: Override attack() to call parent's attack FIRST
-function Boss:attack()
-    Enemy.attack(self)  -- Call parent with DOT and explicit self!
-    if self.phase >= 2 then
-        print(\`{self.name} also uses {self.specialAttackName}!\`)
-    end
 end
-
--- TODO 2: Override describe() to call parent's describe FIRST
-function Boss:describe()
-    Enemy.describe(self)  -- Call parent with DOT and explicit self!
-    print(\`  Phase: {self.phase}, Special: {self.specialAttackName}\`)
-end`}
->
-
-**Premise**: Often you want to ADD behavior to a parent method, not replace it entirely. Call the parent's version using **dot notation** with **explicit self**: `Parent.method(self)`.
-
-**Use Case**: A boss enemy that does normal attack damage PLUS a special attack. Or a premium button that does normal click handling PLUS analytics tracking.
-
-:::danger Critical: Calling Parent Methods
-```lua
--- WRONG: passes Enemy as self
-Enemy:attack()
-
--- CORRECT: passes self explicitly
-Enemy.attack(self)
 ```
-:::
-
-</Exercise>
 
 ---
 
-<Exercise
-  id="oop-inherit-4"
-  title="Exercise 4: Complete Drawable Hierarchy"
-  difficulty={3}
-  hint="Build the hierarchy step by step: GameObject (base) -> DrawableObject (adds rendering) -> Circle (adds geometry). Each level uses setmetatable to inherit from its parent."
-  expectedAnswer="3"
-  explanation="3 objects are created (2 boxes + 1 circle), all stored as DrawableType. The hierarchy chains: Circle/Box -> DrawableObject -> GameObject."
-  task="Complete the 3-level hierarchy by setting up the inheritance chain and creating shapes in init."
-  expectedOutput={`Level 1: GameObject (position, active)
-Level 2: DrawableObject (path, paint, draw)
-Level 3: Box/Circle (specific geometry)
-Created 3 objects
-Active objects: 3
-ANSWER: 3`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Boss class by calling parent methods correctly using dot notation and explicit self.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-inherit-3"
+    expectedAnswer="ANSWER: 45"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Complete Drawable Hierarchy ⭐⭐⭐ {#exercise-4-complete-drawable-hierarchy}
+
+### Premise
+
+3 objects are created (2 boxes + 1 circle), all stored as DrawableType. The hierarchy chains: Circle/Box -> DrawableObject -> GameObject.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the 3-level hierarchy by setting up the inheritance chain and creating shapes in init.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4CompleteDrawableHierarchy`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 
 -- LEVEL 1: Base GameObject
 local GameObject = {}
@@ -686,34 +857,46 @@ return function(): Node<HierarchyDemo>
         objects = {},
         objectCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Set up DrawableObject to inherit from GameObject
-setmetatable(DrawableObject, { __index = GameObject })
-
--- TODO 2: Set up Box to inherit from DrawableObject
-setmetatable(Box, { __index = DrawableObject })
-
--- TODO 3: Set up Circle to inherit from DrawableObject
-setmetatable(Circle, { __index = DrawableObject })
-
--- TODO 4: Create objects array
-self.objects = {
-    Box.new(-60, 0, 50, 40, Color.rgb(255, 100, 100)),
-    Box.new(60, 0, 40, 50, Color.rgb(100, 255, 100)),
-    Circle.new(0, 0, 30, Color.rgb(100, 100, 255)),
-}`}
->
-
-**Premise**: Real applications have multi-level hierarchies. Understanding how to chain inheritance through multiple levels is essential for complex Rive projects.
-
-**Use Case**: A game with various entities - some are just data (positions), some are drawable (sprites), and some are specific shapes (boxes, circles). Each level adds functionality.
-
-**Hierarchy:**
-```
-Circle/Box -> DrawableObject -> GameObject
+end
 ```
 
-</Exercise>
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Complete the 3-level hierarchy by setting up the inheritance chain and creating shapes in init.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="oop-inherit-4"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -845,8 +1028,5 @@ GameObject -> DrawableObject -> Player
 
 ## Next Steps
 
-Now that you understand inheritance, the next lessons cover:
-- **Encapsulation**: Protecting internal state with closures and conventions
-- **Design Patterns**: Factory, Singleton, Observer, and other reusable patterns
-
-These complete your OOP toolkit for building sophisticated Rive Node scripts.
+- Continue to [3.7 Encapsulation](/oop/encapsulation)
+- Need a refresher? Review [Quick Reference](/quick-reference)

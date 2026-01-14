@@ -1,38 +1,87 @@
 ---
-sidebar_position: 7
+sidebar_position: 5
 title: Test Script Protocol
 description: Unit testing for Util Scripts in the Rive editor
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - test
+  - script
+  - protocol
+  - unit
 ---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Test Script Protocol
 
-:::caution Coming Soon
-This section is under development. See the [Script Types Overview](../script-types) for a summary of Test Scripts.
+## Learning Objectives
+
+- Understand when and why to use Test Scripts
+- Write test cases using `case()` and `group()`
+- Use expect matchers for assertions
+- Run and interpret test results in the Rive editor
+
+---
+
+## AE/JS Syntax Comparison
+
+| Concept | JavaScript (Jest/Vitest) | Luau (Rive Test Scripts) |
+|---------|--------------------------|--------------------------|
+| Test case | `test('name', () => {})` | `case('name', function(expect) end)` |
+| Test group | `describe('name', () => {})` | `group('name', function() end)` |
+| Equality | `expect(x).toBe(y)` | `expect(x).is(y)` |
+| Negation | `expect(x).not.toBe(y)` | `expect(x).never.is(y)` |
+| Greater than | `expect(x).toBeGreaterThan(y)` | `expect(x).greaterThan(y)` |
+
+:::tip Key Insight
+Test Scripts test **Util Scripts only**. They're designed for testing pure functions and reusable logic modules, not <Term>Node</Term> Scripts or other script types.
 :::
+
+---
 
 ## Overview
 
-Test Scripts enable **unit testing for Util Scripts** directly in the Rive editor. They provide a simple testing framework with assertions.
+Test Scripts enable **unit testing for Util Scripts** directly in the Rive editor. They provide a simple testing framework with assertions, making it easy to verify your utility functions work correctly.
 
-## Template
+**When to use Test Scripts:**
+- Verify Util Script logic works correctly
+- Test edge cases and error conditions
+- Regression testing after changes
+- Document expected behavior through tests
+
+---
+
+## The Test Script Template
 
 ```lua
 --!strict
 
+-- Load the Util(s) you want to test
 local MyUtil = require('MyUtil')
 
 function setup(test: Tester)
     local case = test.case
     local group = test.group
 
-    case('Basic test', function(expect)
+    -- Single test case
+    case('Addition works', function(expect)
         local result = MyUtil.add(2, 3)
         expect(result).is(5)
     end)
 
+    -- Group related tests
     group('Math operations', function()
         case('Multiplication', function(expect)
             expect(MyUtil.multiply(3, 4)).is(12)
+        end)
+
+        case('Division', function(expect)
+            expect(MyUtil.divide(10, 2)).is(5)
         end)
     end)
 end
@@ -42,39 +91,515 @@ return function(): Tests
 end
 ```
 
+---
+
 ## Tester API
 
-| Method | Purpose |
-|--------|---------|
-| `test.case(name, fn)` | Define a single test case |
-| `test.group(name, fn)` | Group related tests |
+### `test.case(name, fn)` — Define a Test
+
+Creates a single test case. The callback receives an `expect` function for assertions.
+
+```lua
+case('Should calculate area', function(expect)
+    local area = MyUtil.rectangleArea(5, 10)
+    expect(area).is(50)
+end)
+```
+
+---
+
+### `test.group(name, fn)` — Group Related Tests
+
+Organizes related tests together. Groups can be nested for better organization.
+
+```lua
+group('Rectangle functions', function()
+    case('Area calculation', function(expect)
+        expect(MyUtil.rectangleArea(5, 10)).is(50)
+    end)
+
+    case('Perimeter calculation', function(expect)
+        expect(MyUtil.rectanglePerimeter(5, 10)).is(30)
+    end)
+
+    -- Nested group
+    group('Edge cases', function()
+        case('Zero dimensions', function(expect)
+            expect(MyUtil.rectangleArea(0, 10)).is(0)
+        end)
+    end)
+end)
+```
+
+---
 
 ## Expect Matchers
 
+### Equality
+
 ```lua
-expect(value).is(expected)              -- Equality
+expect(value).is(expected)              -- value == expected
+expect(value).never.is(wrong)           -- value ~= wrong
+```
+
+### Numeric Comparisons
+
+```lua
 expect(value).greaterThan(n)            -- value > n
 expect(value).greaterThanOrEqual(n)     -- value >= n
 expect(value).lessThan(n)               -- value < n
 expect(value).lessThanOrEqual(n)        -- value <= n
-
--- Invert with .never
-expect(value).never.is(wrong)           -- value ~= wrong
 ```
 
-## Running Tests
+### Negation with `.never`
 
-1. Right-click Test script in Assets panel
-2. Select **"Run Tests"**
-3. Results show passing/failing cases
+Any matcher can be negated by chaining `.never`:
 
-## Use Cases
-
-- Verify math utilities
-- Test edge cases
-- Regression testing
-- Document expected behavior
+```lua
+expect(10).never.is(5)                  -- PASS: 10 ~= 5
+expect(10).never.greaterThan(5)         -- FAIL: 10 > 5
+expect(3).never.greaterThan(5)          -- PASS: 3 is not > 5
+```
 
 ---
 
-*Full documentation coming soon.*
+## Running Tests
+
+1. **Right-click** your Test script in the Assets panel
+2. Select **"Run Tests"**
+3. Results display:
+   - Passing and failing cases listed
+   - Cases highlighted in the script editor
+   - Error messages for failures
+
+---
+
+## Practice Exercises
+
+### Exercise 1: Basic Test Case ⭐ {#exercise-1-basic-test-case}
+
+### Premise
+
+Writing clear, focused test cases is the foundation of good testing. Each case should test one specific behavior.
+
+:::info Goal
+By the end of this exercise, you will write a test case that verifies a simple clamp function.
+:::
+
+### Use Case
+
+You have a Util Script with a `clamp` function that limits a value to a range. You want to verify it works correctly.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the Util Script first:**
+   - Assets panel → `+` → Script → Util Script
+   - Name it `MathUtils`
+   - Add a clamp function
+
+2. **Create the Test Script:**
+   - Assets panel → `+` → Script → Test Script
+   - Name it `Exercise1_BasicTest`
+
+---
+
+### Util Script (MathUtils)
+
+```lua
+--!strict
+
+local MathUtils = {}
+
+function MathUtils.clamp(value: number, min: number, max: number): number
+    if value < min then return min end
+    if value > max then return max end
+    return value
+end
+
+return MathUtils
+```
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+local MathUtils = require('MathUtils')
+
+function setup(test: Tester)
+    local case = test.case
+
+    case('Clamp returns minimum when value is too low', function(expect)
+        -- TODO: Test that clamp(-5, 0, 10) returns 0
+        local result = MathUtils.clamp(-5, 0, 10)
+        -- Use expect(result).is(expected)
+
+        print(`ANSWER: result={result}`)
+    end)
+end
+
+return function(): Tests
+    return setup
+end
+```
+
+---
+
+### Assignment
+
+1. Add `expect(result).is(0)` to verify the clamp result
+2. Run the test to see output
+
+---
+
+### Expected Output
+
+Your console output should display the clamped result.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-test-1"
+    expectedAnswer="ANSWER: result=0"
+/>
+
+---
+
+### Checklist
+
+- [ ] Used `expect(result).is(expected)` for assertion
+- [ ] Test verifies minimum clamping behavior
+- [ ] Test passes when run
+
+---
+
+### Exercise 2: Test Groups ⭐⭐ {#exercise-2-test-groups}
+
+### Premise
+
+Organizing tests into groups makes large test suites easier to understand and maintain. Related tests should be grouped together.
+
+:::info Goal
+By the end of this exercise, you will organize multiple test cases into logical groups.
+:::
+
+### Use Case
+
+You're testing a comprehensive MathUtils module with multiple functions. Grouping keeps tests organized.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Use the same MathUtils** from Exercise 1
+
+2. **Create the Test Script:**
+   - Assets panel → `+` → Script → Test Script
+   - Name it `Exercise2_TestGroups`
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+local MathUtils = require('MathUtils')
+
+function setup(test: Tester)
+    local case = test.case
+    local group = test.group
+
+    -- TODO: Create a group called 'clamp function'
+    -- Inside, add three test cases:
+    -- 1. 'clamps to minimum' - test clamp(-5, 0, 10) returns 0
+    -- 2. 'clamps to maximum' - test clamp(15, 0, 10) returns 10
+    -- 3. 'returns value when in range' - test clamp(5, 0, 10) returns 5
+
+    group('clamp function', function()
+        case('clamps to minimum', function(expect)
+            local result = MathUtils.clamp(-5, 0, 10)
+            expect(result).is(0)
+        end)
+
+        -- TODO: Add 'clamps to maximum' case
+
+        -- TODO: Add 'returns value when in range' case
+    end)
+
+    print("ANSWER: group=clamp function,cases=3")
+end
+
+return function(): Tests
+    return setup
+end
+```
+
+---
+
+### Assignment
+
+1. Complete the two remaining test cases inside the group
+2. Verify all three tests pass
+
+---
+
+### Expected Output
+
+Your console output should confirm the group structure.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-test-2"
+    expectedAnswer="ANSWER: group=clamp function,cases=3"
+/>
+
+---
+
+### Checklist
+
+- [ ] All three test cases are inside the group
+- [ ] Each case tests a different clamp behavior
+- [ ] Tests pass when run
+
+---
+
+### Exercise 3: Using .never for Negation ⭐⭐ {#exercise-3-using-never-for-negation}
+
+### Premise
+
+Sometimes you need to verify that a value is NOT something. The `.never` modifier inverts any matcher.
+
+:::info Goal
+By the end of this exercise, you will use `.never` to assert negative conditions.
+:::
+
+### Use Case
+
+You want to verify that certain operations do NOT produce specific values.
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the Test Script:**
+   - Assets panel → `+` → Script → Test Script
+   - Name it `Exercise3_NeverMatcher`
+
+---
+
+### Starter Code
+
+```lua
+--!strict
+
+local MathUtils = require('MathUtils')
+
+function setup(test: Tester)
+    local case = test.case
+
+    case('Clamped value is never negative', function(expect)
+        local result = MathUtils.clamp(-100, 0, 10)
+
+        -- TODO: Assert that result is NOT negative
+        -- Use: expect(result).never.lessThan(0)
+
+        print(`ANSWER: result={result},notNegative=true`)
+    end)
+
+    case('Clamped value never exceeds max', function(expect)
+        local result = MathUtils.clamp(100, 0, 10)
+
+        -- TODO: Assert that result is NOT greater than 10
+        -- Use: expect(result).never.greaterThan(10)
+
+        print(`ANSWER2: result={result},notOver10=true`)
+    end)
+end
+
+return function(): Tests
+    return setup
+end
+```
+
+---
+
+### Assignment
+
+1. Add `expect(result).never.lessThan(0)` to first case
+2. Add `expect(result).never.greaterThan(10)` to second case
+3. Run tests to verify
+
+---
+
+### Expected Output
+
+Your console output should confirm both negative assertions.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-test-3"
+    expectedAnswer="ANSWER: result=0,notNegative=true"
+/>
+
+---
+
+### Checklist
+
+- [ ] Used `.never.lessThan()` for first assertion
+- [ ] Used `.never.greaterThan()` for second assertion
+- [ ] Both tests pass
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What can Test Scripts test in Rive?"
+  id="test-q1"
+  options={[
+    { text: "Node Scripts" },
+    { text: "Util Scripts only", correct: true },
+    { text: "Any script type" },
+    { text: "Layout Scripts" },
+  ]}
+  explanation="Test Scripts are specifically designed to test Util Scripts, which contain pure functions and reusable logic."
+/>
+
+<Quiz
+  question="How do you negate an expect matcher?"
+  id="test-q2"
+  options={[
+    { text: "Use expect(x).not.is(y)" },
+    { text: "Use expect(x).never.is(y)", correct: true },
+    { text: "Use notExpect(x).is(y)" },
+    { text: "Use expect(x).isNot(y)" },
+  ]}
+  explanation="In Rive Test Scripts, chain .never before any matcher to negate it: expect(x).never.is(y)"
+/>
+
+<Quiz
+  question="What is the purpose of test.group()?"
+  id="test-q3"
+  options={[
+    { text: "Run tests in parallel" },
+    { text: "Share state between tests" },
+    { text: "Organize related tests together", correct: true },
+    { text: "Skip tests conditionally" },
+  ]}
+  explanation="group() organizes related test cases together for better structure and readability. Groups can be nested."
+/>
+
+<Quiz
+  question="What does expect(5).greaterThanOrEqual(5) return?"
+  id="test-q4"
+  options={[
+    { text: "Fails because 5 is not greater than 5" },
+    { text: "Passes because 5 is equal to 5", correct: true },
+    { text: "Throws an error" },
+    { text: "Returns undefined" },
+  ]}
+  explanation="greaterThanOrEqual checks if the value is greater than OR equal to the expected value. Since 5 equals 5, this passes."
+/>
+
+---
+
+## Common Mistakes
+
+:::danger Avoid These Errors
+
+1. **Trying to test Node Scripts**
+   ```lua
+   -- WRONG: Test Scripts only work with Util Scripts
+   local MyNodeScript = require('MyNodeScript')  -- Error!
+
+   -- CORRECT: Only require Util Scripts
+   local MyUtil = require('MyUtil')  -- Works!
+   ```
+
+2. **Forgetting to use expect in case callback**
+   ```lua
+   -- WRONG: Not using the expect parameter
+   case('Test', function()
+       local result = MyUtil.add(2, 3)
+       -- No assertion! Test always passes
+   end)
+
+   -- CORRECT: Use expect for assertions
+   case('Test', function(expect)
+       local result = MyUtil.add(2, 3)
+       expect(result).is(5)
+   end)
+   ```
+
+3. **Using wrong negation syntax**
+   ```lua
+   -- WRONG: JavaScript syntax
+   expect(value).not.is(5)      -- Error!
+   expect(value).toBe(5)        -- Error!
+
+   -- CORRECT: Rive syntax
+   expect(value).never.is(5)    -- Works!
+   expect(value).is(5)          -- Works!
+   ```
+
+4. **Missing return in factory function**
+   ```lua
+   -- WRONG: Not returning the setup function
+   return function(): Tests
+       -- Missing return!
+   end
+
+   -- CORRECT: Return the setup function
+   return function(): Tests
+       return setup
+   end
+   ```
+
+:::
+
+---
+
+## Best Practices
+
+1. **Use descriptive names** for groups and cases
+2. **Test edge cases** (zero, negative, large numbers, empty strings)
+3. **Keep tests focused** on single behaviors
+4. **Group related tests** logically
+5. **Test both success and failure conditions**
+
+---
+
+## Self-Assessment Checklist
+
+- [ ] I understand that Test Scripts only test Util Scripts
+- [ ] I can write test cases using `case()`
+- [ ] I can organize tests using `group()`
+- [ ] I know how to use expect matchers (is, greaterThan, etc.)
+- [ ] I can negate assertions with `.never`
+- [ ] I can run tests in the Rive editor
+
+---
+
+## Next Steps
+
+- Continue to [Core Types](/advanced/core-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

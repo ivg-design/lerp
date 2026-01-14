@@ -2,10 +2,20 @@
 sidebar_position: 6
 title: Util Protocol
 description: Learn how to create reusable Util scripts for sharing code across Node scripts in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - util
+  - protocol
+  - create
+  - reusable
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Util Protocol
 
@@ -128,21 +138,46 @@ local value = MyUtil.clamp(120, { min = 0, max = 100 })
 
 ## Practice Exercises
 
-<Exercise
-  id="rive-util-1"
-  title="Exercise 1: MathUtils Module"
-  difficulty={2}
-  hint="Use MathUtils.clamp to constrain values, MathUtils.lerp to interpolate, and MathUtils.remap to map value ranges. Don't forget to require the module first!"
-  expectedAnswer="75"
-  explanation="Util scripts let you define reusable functions once and import them anywhere. The require() function loads the module by name, and functions are called with dot notation like MathUtils.lerp(). Unlike Node scripts, Util scripts have no lifecycle - they just return a table of functions."
-  task="Complete the init function to test the MathUtils module. Use lerp, clamp, and remap to calculate values and verify the module works correctly."
-  expectedOutput={`Testing MathUtils module...
-lerp(0, 100, 0.5) = 50
-clamp(150, 0, 100) = 100
-remap(50, 0, 100, 0, 200) = 100
-MathUtils working correctly!
-ANSWER: 75`}
-  code={`--!strict
+### Exercise 1: MathUtils Module ⭐⭐ {#exercise-1-mathutils-module}
+
+### Premise
+
+Util scripts let you define reusable functions once and import them anywhere. The require() function loads the module by name, and functions are called with dot notation like MathUtils.lerp(). Unlike Node scripts, Util scripts have no lifecycle - they just return a table of functions.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to test the MathUtils module. Use lerp, clamp, and remap to calculate values and verify the module works correctly.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1MathutilsModule`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Test a MathUtils Util module
 
 -- First, create a Util script named "MathUtils" with this code:
@@ -196,49 +231,89 @@ return function(): Node<TestUtils>
         init = init,
         draw = draw,
     }
-end`}
-  solution={`-- TODO 1: Require the MathUtils module
-local MathUtils = require("MathUtils")
-
--- In init():
--- TODO 2: Use MathUtils.lerp and print
-local lerpResult = MathUtils.lerp(0, 100, 0.5)
-print(\`lerp(0, 100, 0.5) = {lerpResult}\`)
-
--- TODO 3: Use MathUtils.clamp and print
-local clampResult = MathUtils.clamp(150, 0, 100)
-print(\`clamp(150, 0, 100) = {clampResult}\`)
-
--- TODO 4: Use MathUtils.remap and print
-local remapResult = MathUtils.remap(50, 0, 100, 0, 200)
-print(\`remap(50, 0, 100, 0, 200) = {remapResult}\`)
-
--- TODO 5: Calculate final answer
-local answer = MathUtils.lerp(50, 100, 0.5)
-print(\`ANSWER: {answer}\`)`}
->
-**Premise:** You've built a collection of math helper functions and want to reuse them across multiple Node scripts without copy-pasting.
-
-**Use Case:** Every animation project needs math utilities. Lerp for smooth transitions, clamp for constraining values, remap for converting between ranges. Defining these once in a Util script eliminates duplication and bugs.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-util-2"
-  title="Exercise 2: Exported Types from Util Scripts"
-  difficulty={2}
-  hint="Use Palette.Swatch as the type annotation and Palette.warm(), Palette.cool(), or Palette.dark() to create swatches. Access colors with swatch.primary, swatch.accent, swatch.neutral."
-  expectedAnswer="3"
-  explanation="Util scripts can export types using 'export type'. Other scripts access these types with ModuleName.TypeName syntax (e.g., Palette.Swatch). This ensures type-safe data structures are shared consistently across your entire project."
-  task="Complete the Node script to use the Palette module. Create swatches using factory functions and verify the exported type works correctly."
-  expectedOutput={`Testing Palette module...
-Created warm swatch
-Created cool swatch
-Created dark swatch
-All 3 palettes created successfully!
-ANSWER: 3`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the init function to test the MathUtils module. Use lerp, clamp, and remap to calculate values and verify the module works correctly.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-util-1"
+    expectedAnswer="ANSWER: 75"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Exported Types from Util Scripts ⭐⭐ {#exercise-2-exported-types-from-util-scripts}
+
+### Premise
+
+Util scripts can export types using 'export type'. Other scripts access these types with ModuleName.TypeName syntax (e.g., Palette.Swatch). This ensures type-safe data structures are shared consistently across your entire project.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Node script to use the Palette module. Create swatches using factory functions and verify the exported type works correctly.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2ExportedTypesFromUtilScripts`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Test exported types from a Palette Util module
 
 -- First, create a Util script named "Palette" with this code:
@@ -312,54 +387,89 @@ return function(): Node<TestPalette>
         draw = draw,
         paletteCount = 0,
     }
-end`}
-  solution={`-- TODO 1: Require the Palette module
-local Palette = require("Palette")
-
--- TODO 2: Add currentSwatch field with exported type
-currentSwatch: Palette.Swatch,
-
--- In init():
--- TODO 3: Create warm swatch
-local warm: Palette.Swatch = Palette.warm()
-print("Created warm swatch")
-
--- TODO 4: Create cool swatch
-local cool: Palette.Swatch = Palette.cool()
-print("Created cool swatch")
-
--- TODO 5: Create dark swatch
-local dark: Palette.Swatch = Palette.dark()
-print("Created dark swatch")
-
--- TODO 6: Set count and print answer
-self.paletteCount = 3
-print("All 3 palettes created successfully!")
-print("ANSWER: 3")`}
->
-**Premise:** Your design system uses consistent color palettes across multiple components. You want to define the palette structure once and share it everywhere.
-
-**Use Case:** Color palettes, entity structures, animation configs—any data shape used in multiple places should be defined once in a Util script. This prevents bugs from mismatched structures and enables type checking across your project.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-util-3"
-  title="Exercise 3: Spring Animation Util"
-  difficulty={3}
-  hint="Use Spring.new() to create a spring state, Spring.setTarget() to change the target, Spring.update() in advance to simulate physics, and Spring.isSettled() to check if motion stopped."
-  expectedAnswer="settled"
-  explanation="Spring physics create natural-feeling animations. The Spring util encapsulates the physics calculations (stiffness, damping, velocity) in reusable functions. Each Node script creates its own SpringState, while the physics logic is shared from the Util."
-  task="Complete the Node script to use the Spring module. Create a spring, set its target, update it each frame, and detect when it settles."
-  expectedOutput={`Spring test starting...
-Created spring at position 0
-Target set to 100
-Frame 1: position ~1.50
-Frame 60: position ~99.50
-Spring settled at target!
-ANSWER: settled`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the Node script to use the Palette module. Create swatches using factory functions and verify the exported type works correctly.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-util-2"
+    expectedAnswer="ANSWER: 3"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Spring Animation Util ⭐⭐⭐ {#exercise-3-spring-animation-util}
+
+### Premise
+
+Spring physics create natural-feeling animations. The Spring util encapsulates the physics calculations (stiffness, damping, velocity) in reusable functions. Each Node script creates its own SpringState, while the physics logic is shared from the Util.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the Node script to use the Spring module. Create a spring, set its target, update it each frame, and detect when it settles.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3SpringAnimationUtil`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Test spring physics from a Spring Util module
 
 -- First, create a Util script named "Spring" with this code:
@@ -458,44 +568,46 @@ return function(): Node<TestSpring>
         frame = 0,
         hasSettled = false,
     }
-end`}
-  solution={`-- TODO 1: Require the Spring module
-local Spring = require("Spring")
-
--- In init():
--- TODO 2: Create spring at position 0
-self.spring = Spring.new(0)
-print("Created spring at position 0")
-
--- TODO 3: Set target to 100
-Spring.setTarget(self.spring, 100)
-print("Target set to 100")
-
--- In advance():
--- TODO 4: Update spring
-local pos = Spring.update(self.spring, seconds)
-
--- TODO 5: Print frame 1 position
-if self.frame == 1 then
-    print(\`Frame 1: position ~{pos:.2f}\`)
 end
+```
 
--- TODO 6: Print frame 60 position
-if self.frame == 60 then
-    print(\`Frame 60: position ~{pos:.2f}\`)
-end
+---
 
--- TODO 7: Check if settled
-if Spring.isSettled(self.spring) and not self.hasSettled then
-    print("Spring settled at target!")
-    print("ANSWER: settled")
-    self.hasSettled = true
-end`}
->
-**Premise:** You're building UI elements that need smooth, physics-based animations—buttons that bounce, panels that slide with momentum.
+### Assignment
 
-**Use Case:** Springs create natural-feeling motion. A Spring util encapsulates the physics math so any script can create bouncy, settling animations without reimplementing the formulas.
-</Exercise>
+Complete these tasks:
+
+1. Complete the Node script to use the Spring module. Create a spring, set its target, update it each frame, and detect when it settles.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-util-3"
+    expectedAnswer="ANSWER: settled"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -663,6 +775,7 @@ end
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Listener Protocol →](./listener-protocol)**
+- Continue to [Listener Protocol](/rive/protocols/listener-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

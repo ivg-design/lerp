@@ -2,10 +2,20 @@
 sidebar_position: 3
 title: "2.2 Custom Types & Unions"
 description: Define custom type aliases, table types, and union types
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - custom
+  - unions
+  - define
+  - type
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 2.2: Custom Types & Unions
 
@@ -53,7 +63,7 @@ In Rive scripts, your `export type` defines the shape of `self`. Custom types he
 
 Common Rive use cases for custom types:
 - Nested state objects for complex animations
-- Union types for state machine states
+- Union types for <Term>State Machine</Term> states
 - Optional types for late-bound references
 - Type aliases for domain-specific values (angles, pixels, etc.)
 
@@ -112,7 +122,7 @@ type MaybeString = string | null;  // null instead of nil
 
 ## Practice Exercises
 
-### Exercise 1: Stats Alias ⭐
+### Exercise 1: Stats Alias ⭐ {#exercise-1-stats-alias}
 
 ### Premise
 
@@ -137,7 +147,7 @@ You track health and mana values for a Rive-driven HUD. A Stats type guarantees 
 #### In Rive Editor:
 
 1. **Create the script:**
-   - Assets panel → `+` → Script → Node Script
+   - Assets panel → `+` → Script → <Term>Node</Term> Script
    - Name it `Exercise1_StatsAlias`
 
 2. **Attach and run:**
@@ -214,7 +224,7 @@ Your console output should display the total computed from the typed Stats table
 
 ---
 
-### Exercise 2: Nested Types ⭐
+### Exercise 2: Nested Types ⭐ {#exercise-2-nested-types}
 
 ### Premise
 
@@ -324,7 +334,7 @@ Your console output should display the sprite name and position sum (x + y) from
 
 ---
 
-### Exercise 3: Array Alias ⭐
+### Exercise 3: Array Alias ⭐ {#exercise-3-array-alias}
 
 ### Premise
 
@@ -421,7 +431,7 @@ Your console output should display the average of the array values.
 
 ---
 
-### Exercise 4: Optional Field ⭐
+### Exercise 4: Optional Field ⭐ {#exercise-4-optional-field}
 
 ### Premise
 
@@ -524,7 +534,7 @@ Your console output should display the subtitle value — either the actual subt
 
 ---
 
-### Exercise 5: Function Alias ⭐⭐
+### Exercise 5: Function Alias ⭐⭐ {#exercise-5-function-alias}
 
 ### Premise
 
@@ -622,7 +632,7 @@ Your console output should display the eased value computed by the function alia
 
 ---
 
-### Exercise 6: State Alias ⭐⭐
+### Exercise 6: State Alias ⭐⭐ {#exercise-6-state-alias}
 
 ### Premise
 
@@ -727,7 +737,7 @@ Your console output should display the percent computed from the nested state al
 
 ---
 
-### Exercise 7: Config Alias ⭐⭐
+### Exercise 7: Config Alias ⭐⭐ {#exercise-7-config-alias}
 
 ### Premise
 
@@ -942,6 +952,7 @@ Your console output should display the speed value from the config alias when en
 
 ---
 
-## Next Up
+## Next Steps
 
-**[2.3 Generics & Advanced Types →](./generics)**
+- Continue to [Advanced Types](/types/advanced-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

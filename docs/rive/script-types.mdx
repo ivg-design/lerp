@@ -2,7 +2,17 @@
 sidebar_position: 2
 title: Script Types Overview
 description: All 7 Rive script types at a glance - when to use each one
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - script
+  - types
+  - all
+  - glance
 ---
+import Term from '@site/src/components/Term';
 
 # Script Types Overview
 
@@ -18,10 +28,10 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 
 | Script Type | Primary Purpose | Attach To |
 |-------------|-----------------|-----------|
-| **[Node Script](#node-script)** | Animation logic, custom rendering | Any node |
+| **[<Term>Node</Term> Script](#node-script)** | Animation logic, custom rendering | Any node |
 | **[Layout Script](#layout-script)** | Custom layout behavior | Layout components |
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
-| **[Path Effect Script](#path-effect-script)** | Modify path geometry | Strokes |
+| **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |
 | **[Listener Script](#listener-script)** | Event handling | State machines, events |
 | **[Test Script](#test-script)** | Unit testing Util Scripts | Nothing (run manually) |
@@ -35,7 +45,7 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 **Key features:**
 - Lifecycle callbacks: `init`, `update`, `advance`, `draw`
 - Pointer event handlers: `pointerDown`, `pointerMove`, `pointerUp`
-- Access to Renderer for custom drawing
+- Access to <Term>Renderer</Term> for custom drawing
 - Can have inputs from the editor
 
 **Typical use cases:**
@@ -175,7 +185,7 @@ return MathUtils
 
 **Key features:**
 - Event-driven (not frame-based)
-- Responds to state machine events
+- Responds to <Term>State Machine</Term> events
 - Can handle pointer events on specific nodes
 - Useful for decoupled event handling
 
@@ -233,6 +243,24 @@ end
 
 ---
 
+## Scripts and State Machines
+
+Rive state machines decide **what state an animation is in**. Scripts decide **how that state is visualized or extended**.
+
+**How they connect:**
+- **Inputs** are the bridge. Bind state machine inputs to script inputs or <Term>ViewModel</Term> properties.
+- **Listener scripts** respond to state machine events (transitions, triggers, custom events).
+- **Node scripts** render visuals and can **read** inputs or ViewModel values to drive drawing.
+
+**Typical flow:**
+1. State machine updates an <Term>Input</Term> (e.g., `isHovering = true`)
+2. Script reads that input in `update()` or `advance()`
+3. Script changes visuals in `draw()` or updates ViewModel data
+
+If you need to **react to transitions or events**, use a Listener script. If you need to **render or animate based on inputs**, use a Node script.
+
+---
+
 ## Quick Decision Guide
 
 ```
@@ -278,8 +306,5 @@ Remember from [Part 1](/getting-started/how-rive-scripts-work#5-return-function-
 
 ## Next Steps
 
-Choose the script type you need and dive into its detailed protocol:
-
-- **Most common starting point:** [Node Script Protocol →](./protocols/node-protocol)
-- **Working with layouts:** [Layout Script Protocol →](./protocols/layout-protocol)
-- **Need shared utilities:** [Util Script Protocol →](./protocols/util-protocol)
+- Continue to [Inputs and Data Binding](/rive/inputs)
+- Need a refresher? Review [Quick Reference](/quick-reference)

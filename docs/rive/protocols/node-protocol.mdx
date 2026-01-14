@@ -2,10 +2,20 @@
 sidebar_position: 1
 title: Node Protocol
 description: Learn the Node script protocol structure required for Rive animations
+keywords:
+  - rive
+  - luau
+  - scripting
+  - rive
+  - node
+  - protocol
+  - script
+  - structure
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Node Protocol
 
@@ -13,7 +23,7 @@ import Exercise from '@site/src/components/Exercise';
 - Understand the complete Node script structure
 - Know which functions are required vs optional
 - Master the factory function pattern
-- Attach scripts to artboard nodes
+- Attach scripts to <Term>Artboard</Term> nodes
 
 ---
 
@@ -128,7 +138,7 @@ Every Node script you write will follow this structure. The exported type define
 |----------|----------|------------|--------|-------------|
 | `init` | ✅ Yes | `self`, `context?` | `boolean` | Once at startup |
 | `draw` | ✅ Yes | `self`, `renderer` | none | Every frame |
-| `update` | Optional | `self`, `context?` | none | Input changes |
+| `update` | Optional | `self`, `context?` | none | <Term>Input</Term> changes |
 | `advance` | Optional | `self`, `seconds`, `context?` | `boolean` | Every frame (before draw) |
 | `pointerDown` | Optional | `self`, `position` | `boolean` | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `position` | `boolean` | Mouse/touch move |
@@ -152,18 +162,46 @@ Every Node script you write will follow this structure. The exported type define
 
 ## Practice Exercises
 
-<Exercise
-  id="rive-node-1"
-  title="Exercise 1: Hello Rive"
-  difficulty={1}
-  hint="The init function should print a greeting and then 'ANSWER: hello'. Don't forget to return true."
-  expectedAnswer="hello"
-  explanation="Every Node script must have init() and draw() functions. init() runs once when the script starts and is the place to print debug messages and set up initial state."
-  task="Complete the init function to print a greeting message and the answer. The script structure (export type, factory function) is already provided."
-  expectedOutput={`Hello from a Node Script!
-Script initialized successfully
-ANSWER: hello`}
-  code={`--!strict
+### Exercise 1: Hello Rive ⭐ {#exercise-1-hello-rive}
+
+### Premise
+
+Every Node script must have init() and draw() functions. init() runs once when the script starts and is the place to print debug messages and set up initial state.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to print a greeting message and the answer. The script structure (export type, factory function) is already provided.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1HelloRive`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Your first Node script
 
 export type HelloRive = {}
@@ -187,39 +225,89 @@ return function(): Node<HelloRive>
         init = init,
         draw = draw,
     }
-end`}
-  solution={`-- TODO 1: Print "Hello from a Node Script!"
-print("Hello from a Node Script!")
-
--- TODO 2: Print "Script initialized successfully"
-print("Script initialized successfully")
-
--- TODO 3: Print "ANSWER: hello"
-print("ANSWER: hello")
-
--- TODO 4: Return true to indicate successful initialization
-return true`}
->
-**Premise:** You're verifying that your Rive scripting environment is set up correctly before building more complex scripts.
-
-**Use Case:** Every developer starts here. If you can get "Hello World" working, you've confirmed that scripts compile, attach to nodes, and produce console output.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-node-2"
-  title="Exercise 2: Frame Timer"
-  difficulty={1}
-  hint="Add seconds to elapsed each frame. When tick reaches 120, print the answer."
-  expectedAnswer="2.00"
-  explanation="The advance() function runs every frame and receives delta time (seconds since last frame). You must accumulate time yourself since Rive doesn't provide a global time value like AE does."
-  task="Complete the advance function to track elapsed time and frame count. When you reach frame 120, print the elapsed time (which should be approximately 2 seconds at 60fps)."
-  expectedOutput={`Timer started!
-Frame 60: ~1.00s elapsed
-Frame 120: ~2.00s elapsed
-ANSWER: 2.00`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the init function to print a greeting message and the answer. The script structure (export type, factory function) is already provided.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-node-1"
+    expectedAnswer="ANSWER: hello"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 2: Frame Timer ⭐ {#exercise-2-frame-timer}
+
+### Premise
+
+The advance() function runs every frame and receives delta time (seconds since last frame). You must accumulate time yourself since Rive doesn't provide a global time value like AE does.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the advance function to track elapsed time and frame count. When you reach frame 120, print the elapsed time (which should be approximately 2 seconds at 60fps).
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise2_Exercise2FrameTimer`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Track time across frames using advance()
 
 export type FrameTimer = {
@@ -258,43 +346,89 @@ return function(): Node<FrameTimer>
         elapsed = 0,
         tick = 0,
     }
-end`}
-  solution={`-- TODO 1: Add seconds to self.elapsed
-self.elapsed += seconds
-
--- TODO 2: Increment self.tick by 1
-self.tick += 1
-
--- TODO 3: When tick is 60, print elapsed time
-if self.tick == 60 then
-    print(\`Frame 60: ~{self.elapsed:.2f}s elapsed\`)
 end
-
--- TODO 4: When tick is 120, print elapsed time and answer
-if self.tick == 120 then
-    print(\`Frame 120: ~{self.elapsed:.2f}s elapsed\`)
-    print(\`ANSWER: {self.elapsed:.2f}\`)
-end`}
->
-**Premise:** You're building a timer system to track how long an animation has been playing.
-
-**Use Case:** Frame timers are essential for timed events, countdowns, animations that depend on real time, and gameplay logic that needs to track duration.
-</Exercise>
+```
 
 ---
 
-<Exercise
-  id="rive-node-3"
-  title="Exercise 3: Draw a Simple Shape"
-  difficulty={2}
-  hint="Use Path.new() to create a path, then moveTo/lineTo/close to build a triangle. Use Paint.with() for the fill style."
-  expectedAnswer="triangle"
-  explanation="Procedural graphics in Rive use the Path API (moveTo, lineTo, close) combined with Paint for styling. Create these objects in init(), then use renderer:drawPath() in draw()."
-  task="Complete the init function to create a triangle path (3 points) and a green fill paint. The draw function should render the path."
-  expectedOutput={`Creating triangle...
-Triangle created!
-ANSWER: triangle`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the advance function to track elapsed time and frame count. When you reach frame 120, print the elapsed time (which should be approximately 2 seconds at 60fps).
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-node-2"
+    expectedAnswer="ANSWER: 2.00"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 3: Draw a Simple Shape ⭐⭐ {#exercise-3-draw-a-simple-shape}
+
+### Premise
+
+Procedural graphics in Rive use the <Term>Path</Term> API (moveTo, lineTo, close) combined with <Term>Paint</Term> for styling. Create these objects in init(), then use <Term>Renderer</Term>:drawPath() in draw().
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the init function to create a triangle path (3 points) and a green fill paint. The draw function should render the path.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise3_Exercise3DrawASimpleShape`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Draw a procedural triangle
 
 export type DrawTriangle = {
@@ -334,45 +468,89 @@ return function(): Node<DrawTriangle>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- TODO 1: Create a new Path
-self.path = Path.new()
-
--- TODO 2: Build a triangle
-self.path:moveTo(Vector.xy(0, -40))
-self.path:lineTo(Vector.xy(-40, 40))
-self.path:lineTo(Vector.xy(40, 40))
-self.path:close()
-
--- TODO 3: Create a Paint with green fill
-self.paint = Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })
-
--- In draw():
--- TODO 4: Draw the path
-renderer:drawPath(self.path, self.paint)`}
->
-**Premise:** You're creating your first procedural shape in Rive—a triangle built from code rather than design tools.
-
-**Use Case:** Procedural graphics let you create shapes that respond to data: progress bars, charts, indicators. This is the foundation for all dynamic visuals.
-</Exercise>
+end
+```
 
 ---
 
-<Exercise
-  id="rive-node-4"
-  title="Exercise 4: Complete Protocol Example"
-  difficulty={3}
-  hint="Use all lifecycle functions: init to set up, advance to track time, pointerDown to handle clicks. Count clicks and print answer when click count reaches 3."
-  expectedAnswer="complete"
-  explanation="Production scripts combine multiple lifecycle functions. init() creates objects, advance() animates, update() responds to input changes, pointerDown() handles interaction, and draw() renders. This is the full Node protocol in action."
-  task="Complete this script that combines all lifecycle functions. Track clicks and print 'ANSWER: complete' when the user clicks 3 times."
-  expectedOutput={`init: Script ready
-advance: Time 1.00s
-Click #1
-Click #2
-Click #3
-ANSWER: complete`}
-  code={`--!strict
+### Assignment
+
+Complete these tasks:
+
+1. Complete the init function to create a triangle path (3 points) and a green fill paint. The draw function should render the path.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-node-3"
+    expectedAnswer="ANSWER: triangle"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+---
+
+### Exercise 4: Complete Protocol Example ⭐⭐⭐ {#exercise-4-complete-protocol-example}
+
+### Premise
+
+Production scripts combine multiple lifecycle functions. init() creates objects, advance() animates, update() responds to input changes, pointerDown() handles interaction, and draw() renders. This is the full Node protocol in action.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete this script that combines all lifecycle functions. Track clicks and print 'ANSWER: complete' when the user clicks 3 times.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise4_Exercise4CompleteProtocolExample`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- A complete script using all major lifecycle functions
 
 export type CompleteDemo = {
@@ -431,34 +609,46 @@ return function(): Node<CompleteDemo>
         path = late(),
         paint = late(),
     }
-end`}
-  solution={`-- In advance():
--- TODO 1: Add seconds to self.time
-self.time += seconds
-
--- TODO 2: Every second, print time
-local prevSecond = math.floor(self.time - seconds)
-local currSecond = math.floor(self.time)
-if currSecond > prevSecond and currSecond > 0 then
-    print(\`advance: Time {self.time:.2f}s\`)
 end
+```
 
--- In pointerDown():
--- TODO 3: Increment clickCount
-self.clickCount += 1
+---
 
--- TODO 4: Print click number
-print(\`Click #{self.clickCount}\`)
+### Assignment
 
--- TODO 5: When 3 clicks, print answer
-if self.clickCount == 3 then
-    print("ANSWER: complete")
-end`}
->
-**Premise:** You're building a complete interactive component that initializes, animates, responds to clicks, and renders—demonstrating all major lifecycle functions working together.
+Complete these tasks:
 
-**Use Case:** Real production scripts typically use multiple lifecycle functions. Understanding how they interact is essential for building any non-trivial interactive animation.
-</Exercise>
+1. Complete this script that combines all lifecycle functions. Track clicks and print 'ANSWER: complete' when the user clicks 3 times.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-node-4"
+    expectedAnswer="ANSWER: complete"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 ---
 
@@ -584,6 +774,7 @@ Every Node script follows the same protocol. Once that structure is correct, you
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Util Protocol →](./util-protocol)**
+- Continue to [Node Lifecycle](/rive/protocols/node-lifecycle)
+- Need a refresher? Review [Quick Reference](/quick-reference)

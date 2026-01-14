@@ -2,10 +2,20 @@
 sidebar_position: 2
 title: "3.2 Building Classes"
 description: Create proper class constructors with typing and methods
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - building
+  - classes
+  - create
+  - proper
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Lesson 3.2: Building Classes
 
@@ -42,7 +52,7 @@ This looks strange but is **required** for type safety. Think of it as telling L
 
 ## Rive Context
 
-Rive does not have built-in classes, so you build your own with metatables. In real Rive projects, **class-like objects belong in Util scripts** and are **instantiated by Node scripts**.
+Rive does not have built-in classes, so you build your own with metatables. In real Rive projects, **class-like objects belong in Util scripts** and are **instantiated by <Term>Node</Term> scripts**.
 
 Use classes when you need:
 - Reusable simulation objects (springs, timers, particles)
@@ -90,7 +100,7 @@ return MyClass
 
 ## Exercises
 
-### Exercise 1: Spring Step ⭐⭐
+### Exercise 1: Spring Step ⭐⭐ {#exercise-1-spring-step}
 
 ### Premise
 
@@ -196,7 +206,7 @@ Your console output should display the spring's value after one step toward the 
 
 ---
 
-### Exercise 2: Class Instance ⭐
+### Exercise 2: Class Instance ⭐ {#exercise-2-class-instance}
 
 ### Premise
 
@@ -302,7 +312,7 @@ Your console output should display the counter's value after incrementing twice 
 
 ---
 
-### Exercise 3: Sprite Class ⭐
+### Exercise 3: Sprite Class ⭐ {#exercise-3-sprite-class}
 
 ### Premise
 
@@ -411,7 +421,7 @@ Your console output should display the sprite's name and the sum of x and y afte
 
 ---
 
-### Exercise 4: Instance Formatter ⭐⭐
+### Exercise 4: Instance Formatter ⭐⭐ {#exercise-4-instance-formatter}
 
 ### Premise
 
@@ -514,7 +524,7 @@ Your console output should display the formatted string from the label's format 
 
 ---
 
-### Exercise 5: Multiple Constructors ⭐⭐
+### Exercise 5: Multiple Constructors ⭐⭐ {#exercise-5-multiple-constructors}
 
 ### Premise
 
@@ -624,7 +634,7 @@ Your console output should display the marker fields from both constructor helpe
 
 ---
 
-### Exercise 6: Class vs Plain Table ⭐⭐
+### Exercise 6: Class vs Plain Table ⭐⭐ {#exercise-6-class-vs-plain-table}
 
 ### Premise
 
@@ -863,6 +873,7 @@ end
 
 ---
 
-## Next Up
+## Next Steps
 
-**[3.3 Inheritance & Patterns →](./inheritance)**
+- Continue to [self and Methods](/oop/self-and-methods)
+- Need a refresher? Review [Quick Reference](/quick-reference)

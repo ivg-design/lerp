@@ -1,12 +1,28 @@
 ---
 sidebar_position: 5
 title: Dynamic Instantiation
+keywords:
+  - rive
+  - luau
+  - scripting
+  - advanced
+  - dynamic
+  - instantiation
 ---
 
 import Quiz from '@site/src/components/Quiz';
-import Exercise from '@site/src/components/Exercise';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Dynamic Instantiation
+
+:::info Prerequisites
+Before this section, complete:
+- [<Term>Node</Term> Protocol](/rive/protocols/node-protocol) — Factory function and lifecycle
+- [ViewModels](/advanced/viewmodels) — Data binding for component artboards
+- [Tables](/fundamentals/tables) — Managing collections of instances
+- [Iteration](/fundamentals/iteration) — Looping through instance arrays
+:::
 
 Spawn and manage Rive components at runtime to build particle systems, object pools, and procedural content.
 
@@ -15,24 +31,52 @@ Spawn and manage Rive components at runtime to build particle systems, object po
 Rive lets you instance Artboards from script inputs. This is how you build reusable components (particles, enemies, cards, etc.) with real Rive visuals that can be spawned and controlled from code.
 
 **Core steps:**
-1. Add an `Input<Artboard<Data.YourVM>>` to reference a component artboard
+1. Add an `Input<Artboard<Data.YourVM>>` to reference a component <Term>Artboard</Term>
 2. Call `self.yourInput:instance()` to create a new instance
 3. Store instances and call `advance()` and `draw()` on them each frame
 
 ---
 
-<Exercise
-  id="advanced-instantiation-1"
-  title="Exercise 1: Spawn Multiple Instances"
-  difficulty={3}
-  hint="Call self.star:instance() to create artboard instances. Store them in a table with position data. Call advance() and draw() on each instance."
-  expectedAnswer="spawned"
-  explanation="Dynamic instantiation creates runtime copies of component artboards. You must call advance() and draw() on each instance every frame."
-  task="Complete the spawn function to create instances, and the advance/draw functions to update and render them."
-  expectedOutput={`Spawning 5 stars...
-5 stars spawned!
-ANSWER: spawned`}
-  code={`--!strict
+### Exercise 1: Spawn Multiple Instances ⭐⭐⭐ {#exercise-1-spawn-multiple-instances}
+
+### Premise
+
+Dynamic instantiation creates runtime copies of component artboards. You must call advance() and draw() on each instance every frame.
+
+:::info Goal
+By the end of this exercise, you will be able to Complete the spawn function to create instances, and the advance/draw functions to update and render them.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Debugging script behavior
+- Driving animation logic
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise1_Exercise1SpawnMultipleInstances`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua
+--!strict
 -- Spawn and animate multiple artboard instances
 
 type Spawned = {
@@ -96,41 +140,50 @@ return function(): Node<SpawnDemo>
         count = 5,
         items = {},
     }
-end`}
-  solution={`-- In spawn():
--- TODO 1: Create instance
-local instance = self.star:instance()
-
--- TODO 3: Add to items
-table.insert(self.items, entry)
-
--- In advance():
--- TODO 4: Update each item
-for _, item in ipairs(self.items) do
-    item.position = Vector.xy(item.position.x + item.speed * seconds, item.position.y)
-    if item.position.x > 160 then
-        item.position = Vector.xy(-160, item.position.y)
-    end
-    item.artboard:advance(seconds)
 end
+```
 
--- In draw():
--- TODO 5: Render each item
-for _, item in ipairs(self.items) do
-    renderer:save()
-    renderer:transform(Mat2D.withTranslation(item.position))
-    item.artboard:draw(renderer)
-    renderer:restore()
-end`}
->
-**Premise:** You're building a system that spawns multiple copies of a component artboard and animates them independently.
+---
 
-**Use Case:** Particle systems, enemy spawners, collectible items, and any scenario where you need multiple animated instances of the same component.
-</Exercise>
+### Assignment
+
+Complete these tasks:
+
+1. Complete the spawn function to create instances, and the advance/draw functions to update and render them.
+2. Run the script and verify the console output
+3. Copy the `ANSWER:` line into the validator
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: <your result>
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-instantiation-1"
+    expectedAnswer="ANSWER: spawned"
+/>
+
+---
+
+### Checklist
+
+- [ ] `--!strict` is at the top
+- [ ] All TODOs are replaced with working code
+- [ ] Console output includes the `ANSWER:` line
+
+---
 
 **Editor setup:**
-1. Create a component artboard named `Star` with a `Star` ViewModel
-2. Select the Node script and assign the `star` input to the component artboard
+1. Create a component artboard named `Star` with a `Star` <Term>ViewModel</Term>
+2. Select the Node script and assign the `star` <Term>Input</Term> to the component artboard
 
 **How it works:**
 1. `init` spawns the initial set of instances based on `count`
@@ -212,12 +265,17 @@ end
 
 <Quiz
   question="What method creates a new instance from an artboard input?"
+  id="instantiation-method"
   options={[
-    "self.artboard:new()",
-    "self.artboard:clone()",
-    "self.artboard:instance()",
-    "self.artboard:spawn()"
+    { text: "self.artboard:new()" },
+    { text: "self.artboard:clone()" },
+    { text: "self.artboard:instance()", correct: true },
+    { text: "self.artboard:spawn()" },
   ]}
-  correctIndex={2}
   explanation="The :instance() method creates a new independent instance of the component artboard that you can position and animate separately."
 />
+
+## Next Steps
+
+- Continue to [Procedural Geometry](/advanced/procedural)
+- Need a refresher? Review [Quick Reference](/quick-reference)

@@ -2,17 +2,27 @@
 sidebar_position: 7
 title: "The late() Initializer"
 description: Understand when and how to use late() for engine-provided and deferred values
+keywords:
+  - rive
+  - luau
+  - scripting
+  - types
+  - late
+  - initializer
+  - understand
+  - engine
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # The late() Initializer
 
 ## Learning Objectives
 - Understand why `late()` exists in Rive's type system
 - Know when to use `late()` vs direct values
-- Apply `late()` correctly with Input types
+- Apply `late()` correctly with <Term>Input</Term> types
 - Avoid common `late()` mistakes
 
 ---
@@ -38,7 +48,7 @@ class MyComponent {
 }
 ```
 
-In Rive Node Scripts:
+In Rive <Term>Node</Term> Scripts:
 ```lua
 -- Factory runs FIRST (keep it lightweight)
 return function(): Node<MyScript>
@@ -67,7 +77,7 @@ In Rive Node Scripts, objects are created in two phases:
 2. **Init phase**: The `init()` function runs and can set up additional state
 
 The problem: Some values are best created after the factory runs. They are either:
-- **Engine-provided**: Values the Rive engine supplies (like artboard-bound inputs)
+- **Engine-provided**: Values the Rive engine supplies (like <Term>Artboard</Term>-bound inputs)
 - **Init-created**: Values you create or compute in `init()`
 
 The `late()` function is a type-safe placeholder that tells the type system: "Trust me, this value will be provided later."
@@ -126,7 +136,7 @@ class MyScript {
 
 ## Practice Exercises
 
-### Exercise 1: Computed Total ⭐
+### Exercise 1: Computed Total ⭐ {#exercise-1-computed-total}
 
 ### Premise
 
@@ -225,11 +235,11 @@ Your console output should display the total value computed and assigned to the 
 
 ---
 
-### Exercise 2: Late Path Creation ⭐⭐
+### Exercise 2: Late Path Creation ⭐⭐ {#exercise-2-late-path-creation}
 
 ### Premise
 
-Rive objects like Path are created in init, not in the factory. `late()` reserves the slot until init runs.
+Rive objects like <Term>Path</Term> are created in init, not in the factory. `late()` reserves the slot until init runs.
 
 :::info Goal
 By the end of this exercise, you will use `late()` for a Rive object created in init.
@@ -322,7 +332,7 @@ Your console output should confirm the Path was successfully created in init (re
 
 ---
 
-### Exercise 3: Input and Computed State ⭐⭐
+### Exercise 3: Input and Computed State ⭐⭐ {#exercise-3-input-and-computed-state}
 
 ### Premise
 
@@ -420,7 +430,7 @@ Your console output should display the scaled value computed from the Input spee
 
 ---
 
-### Exercise 4: Input Defaults Only ⭐
+### Exercise 4: Input Defaults Only ⭐ {#exercise-4-input-defaults-only}
 
 ### Premise
 
@@ -514,7 +524,7 @@ Your console output should display the label read directly from the Input field 
 
 ---
 
-### Exercise 5: Late Bounds Table ⭐⭐
+### Exercise 5: Late Bounds Table ⭐⭐ {#exercise-5-late-bounds-table}
 
 ### Premise
 
@@ -619,7 +629,7 @@ Your console output should display the range computed from the late-initialized 
 
 ---
 
-### Exercise 6: Late Status String ⭐⭐
+### Exercise 6: Late Status String ⭐⭐ {#exercise-6-late-status-string}
 
 ### Premise
 
@@ -738,7 +748,7 @@ Your console output should display the status string built dynamically in init a
     { text: "Always use late() to be safe" },
     { text: "Never use late() - it's deprecated" },
   ]}
-  explanation="Input<T> properties should have direct default values. Use late() for Rive objects (Path, Paint) and any values computed or created in init()."
+  explanation="Input<T> properties should have direct default values. Use late() for Rive objects (Path, <Term>Paint</Term>) and any values computed or created in init()."
 />
 
 <Quiz
@@ -890,8 +900,7 @@ enemyArtboard = late(),
 
 ---
 
-## Next Up
+## Next Steps
 
-Congratulations! You've completed the Types module. Continue to:
-
-**[Module 3: Object-Oriented Programming ->](../oop/metatables)**
+- Continue to [Prototype-Based OOP](/oop/prototype-based)
+- Need a refresher? Review [Quick Reference](/quick-reference)

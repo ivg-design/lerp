@@ -2,10 +2,20 @@
 sidebar_position: 1
 title: "Metatables & __index"
 description: Understand metatables and the __index metamethod - the foundation of OOP in Luau
+keywords:
+  - rive
+  - luau
+  - scripting
+  - oop
+  - metatables
+  - index
+  - understand
+  - metamethod
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Metatables & __index
 
@@ -67,7 +77,7 @@ This is not just syntax difference - it's a fundamentally different mental model
 
 ## Rive Context
 
-Rive scripts are not classes. When you need reusable behavior (drawing helpers, physics helpers, layout logic), you build **prototype tables** with metatables. This lets Node scripts share methods and data structures without leaving the Rive scripting environment.
+Rive scripts are not classes. When you need reusable behavior (drawing helpers, physics helpers, layout logic), you build **prototype tables** with metatables. This lets <Term>Node</Term> scripts share methods and data structures without leaving the Rive scripting environment.
 
 **Typical Rive pattern:**
 - Put reusable logic in a Util script or a local prototype table
@@ -115,7 +125,7 @@ print(dog:speak())  -- "Rex says hello"
 
 ## Exercises
 
-### Exercise 1: Basic Metatable ⭐
+### Exercise 1: Basic Metatable ⭐ {#exercise-1-basic-metatable}
 
 ### Premise
 
@@ -216,7 +226,7 @@ Your console output should display the opacity value (overridden) and the shadow
 
 ---
 
-### Exercise 2: Class Pattern ⭐
+### Exercise 2: Class Pattern ⭐ {#exercise-2-class-pattern}
 
 ### Premise
 
@@ -320,7 +330,7 @@ Your console output should display the button's describe method result, showing 
 
 ---
 
-### Exercise 3: Shared Methods ⭐
+### Exercise 3: Shared Methods ⭐ {#exercise-3-shared-methods}
 
 ### Premise
 
@@ -425,7 +435,7 @@ Your console output should display the names returned by the shared describe met
 
 ---
 
-### Exercise 4: Default Styles ⭐⭐
+### Exercise 4: Default Styles ⭐⭐ {#exercise-4-default-styles}
 
 ### Premise
 
@@ -526,7 +536,7 @@ Your console output should display the width (overridden) and color (inherited f
 
 ---
 
-### Exercise 5: Computed __index ⭐⭐
+### Exercise 5: Computed __index ⭐⭐ {#exercise-5-computed-index}
 
 ### Premise
 
@@ -628,7 +638,7 @@ Your console output should display the computed length from the `__index` functi
 
 ---
 
-### Exercise 6: __tostring Metamethod ⭐⭐
+### Exercise 6: __tostring Metamethod ⭐⭐ {#exercise-6-tostring-metamethod}
 
 ### Premise
 
@@ -802,6 +812,7 @@ Your console output should display the formatted point string from the `__tostri
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Building Classes →](./classes)**
+- Continue to [The __index Metamethod](/oop/index-metamethod)
+- Need a refresher? Review [Quick Reference](/quick-reference)

@@ -2,10 +2,20 @@
 sidebar_position: 7
 title: Iteration
 description: Loops, iterators, and collection traversal in Rive Node Scripts
+keywords:
+  - rive
+  - luau
+  - scripting
+  - fundamentals
+  - iteration
+  - loops
+  - iterators
+  - collection
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
 
 # Iteration
 
@@ -55,7 +65,7 @@ Iteration is essential in Rive animations for processing collections of objects.
 - **Arrays of enemies/particles** to update positions each frame
 - **Waypoints** to calculate paths
 - **Animation keyframes** to interpolate values
-- **Input events** to process user interactions
+- **<Term>Input</Term> events** to process user interactions
 - **Child nodes** to apply transformations
 
 Loops run inside lifecycle functions (`init`, `advance`, `draw`). For per-frame iteration over persistent collections, store them on `self` and iterate in `advance`.
@@ -422,7 +432,7 @@ end
 
 ## Exercises
 
-### Exercise 1: Range Loop ⭐
+### Exercise 1: Range Loop ⭐ {#exercise-1-range-loop}
 
 ### Premise
 
@@ -515,7 +525,7 @@ Your console output should display the sum of all numbers from 1 through 5 (incl
 
 ---
 
-### Exercise 2: Step Loop ⭐
+### Exercise 2: Step Loop ⭐ {#exercise-2-step-loop}
 
 ### Premise
 
@@ -608,7 +618,7 @@ Your console output should display the sum of all even numbers from 2 to 10 (inc
 
 ---
 
-### Exercise 3: ipairs Total ⭐
+### Exercise 3: ipairs Total ⭐ {#exercise-3-ipairs-total}
 
 ### Premise
 
@@ -703,7 +713,7 @@ Your console output should display the total of all scores in the array, demonst
 
 ---
 
-### Exercise 4: pairs Count ⭐
+### Exercise 4: pairs Count ⭐ {#exercise-4-pairs-count}
 
 ### Premise
 
@@ -802,7 +812,7 @@ Your console output should display the count of flags that have a value of `true
 
 ---
 
-### Exercise 5: Nested Loop Grid ⭐⭐
+### Exercise 5: Nested Loop Grid ⭐⭐ {#exercise-5-nested-loop-grid}
 
 ### Premise
 
@@ -897,7 +907,7 @@ Your console output should display the total number of cells in the grid (rows �
 
 ---
 
-### Exercise 6: Break Search ⭐⭐
+### Exercise 6: Break Search ⭐⭐ {#exercise-6-break-search}
 
 ### Premise
 
@@ -992,7 +1002,7 @@ Your console output should display the first value in the array that exceeds the
 
 ---
 
-### Exercise 7: Continue Filter ⭐⭐
+### Exercise 7: Continue Filter ⭐⭐ {#exercise-7-continue-filter}
 
 ### Premise
 
@@ -1093,7 +1103,7 @@ Negative values should be skipped entirely.
 
 ---
 
-### Exercise 8: String Iteration ⭐⭐
+### Exercise 8: String Iteration ⭐⭐ {#exercise-8-string-iteration}
 
 ### Premise
 
@@ -1325,6 +1335,7 @@ continue   -- Skip to next iteration
 
 ---
 
-## Next Up
+## Next Steps
 
-**[Module 2: Type System](../types/intro)** - Learn Luau's powerful type system for safer, more maintainable code.
+- Continue to [2.1 Type Annotations & Inference](/types/intro)
+- Need a refresher? Review [Quick Reference](/quick-reference)
