@@ -51,7 +51,120 @@ end
 
 ---
 
+### Animation {#animation}
+
+A timeline-based sequence of keyframes that animates properties over time. Animations are controlled by <Term>State Machine</Term>s and can be blended together.
+
+```lua
+-- Animations are typically controlled via State Machine inputs
+-- bound to ViewModel properties
+local vm = context:viewModel()
+if vm then
+    vm:setNumber("progress", 0.5)  -- Control animation progress
+end
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
+### Array {#array}
+
+A table with sequential integer keys starting at 1. Use `ipairs()` to iterate.
+
+```lua
+local inventory = {"sword", "shield", "potion"}
+
+-- Access by index
+print(inventory[1])  -- "sword"
+
+-- Iterate in order
+for i, item in ipairs(inventory) do
+    print(`{i}: {item}`)
+end
+
+-- Get length
+print(#inventory)  -- 3
+```
+
+**Learn more:** [Tables](/fundamentals/tables)
+
+---
+
+## B
+
+### Bezier Curve {#bezier-curve}
+
+A smooth curve defined by control points. Used for path drawing and easing functions.
+
+```lua
+path:moveTo(Vector.xy(0, 0))
+path:cubicTo(
+    Vector.xy(50, 0),    -- First control point
+    Vector.xy(50, 100),  -- Second control point
+    Vector.xy(100, 100)  -- End point
+)
+```
+
+**Learn more:** [Procedural Graphics](/advanced/procedural)
+
+---
+
+### Boolean {#boolean}
+
+A type with only two values: `true` or `false`. Used for conditions and flags.
+
+```lua
+local isActive = true
+local hasKey = false
+
+if isActive and not hasKey then
+    print("Active but no key")
+end
+```
+
+**Learn more:** [Data Types](/fundamentals/data-types)
+
+---
+
 ## C
+
+### Callback {#callback}
+
+A function passed as an argument to be called later, often in response to events.
+
+```lua
+-- Listener callback
+scoreProp:addListener(function()
+    print("Score changed!")
+end)
+
+-- Timer callback pattern
+local function after(seconds, callback)
+    -- Call callback after delay
+end
+```
+
+**Learn more:** [Functions](/fundamentals/functions)
+
+---
+
+### Chaining {#chaining}
+
+Calling multiple methods in sequence by returning `self` from each method.
+
+```lua
+local builder = PathBuilder.new()
+builder
+    :moveTo(0, 0)
+    :lineTo(100, 0)
+    :lineTo(100, 100)
+    :close()
+```
+
+**Learn more:** [Self & Methods](/oop/self-and-methods)
+
+---
 
 ### Closure {#closure}
 
@@ -93,6 +206,25 @@ print(Color.red(red), Color.green(red), Color.blue(red), Color.alpha(red))
 
 ---
 
+### Colon Syntax {#colon-syntax}
+
+Method call syntax that automatically passes the table as the first argument (`self`).
+
+```lua
+-- These are equivalent:
+player:takeDamage(10)       -- Colon syntax
+player.takeDamage(player, 10)  -- Dot syntax
+
+-- Use colon for instance methods
+function Player:takeDamage(amount)
+    self.health -= amount
+end
+```
+
+**Learn more:** [Self & Methods](/oop/self-and-methods)
+
+---
+
 ### Compound Assignment {#compound-assignment}
 
 Shorthand operators that combine assignment with an operation: `+=`, `-=`, `*=`, `/=`, `//=`, `%=`, `^=`, `..=`
@@ -127,6 +259,21 @@ end
 
 ## D
 
+### Data Binding {#data-binding}
+
+The system that connects <Term>ViewModel</Term> properties to visual elements or script values. Changes propagate automatically.
+
+```lua
+-- ViewModel property bound to text in Rive Editor
+-- Script can read/write the bound value
+local nameProp = vm:getString("playerName")
+nameProp.value = "Hero"  -- Updates the bound text automatically
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
 ### Delta Time {#delta-time}
 
 The time elapsed since the last frame, passed as `seconds` to `advance()`. Essential for frame-rate-independent animations.
@@ -157,7 +304,97 @@ end
 
 ---
 
+### Dictionary {#dictionary}
+
+A table with string keys. Use `pairs()` to iterate.
+
+```lua
+local player = {
+    name = "Hero",
+    level = 5,
+    class = "Warrior",
+}
+
+-- Access by key
+print(player.name)    -- "Hero"
+print(player["level"]) -- 5
+
+-- Iterate (order not guaranteed)
+for key, value in pairs(player) do
+    print(`{key}: {value}`)
+end
+```
+
+**Learn more:** [Tables](/fundamentals/tables)
+
+---
+
+### Dot Syntax {#dot-syntax}
+
+Property or method access syntax. For methods, you must pass `self` explicitly.
+
+```lua
+-- Property access
+local x = player.health
+
+-- Method call (must pass self)
+player.takeDamage(player, 10)
+
+-- Prefer colon syntax for methods:
+player:takeDamage(10)
+```
+
+**Learn more:** [Self & Methods](/oop/self-and-methods)
+
+---
+
 ## E
+
+### Easing {#easing}
+
+A function that controls animation timing, making movements feel natural.
+
+```lua
+-- Common easing functions
+local function easeInOut(t: number): number
+    return t < 0.5
+        and 2 * t * t
+        or 1 - (-2 * t + 2)^2 / 2
+end
+
+local function easeOutBounce(t: number): number
+    if t < 1/2.75 then
+        return 7.5625 * t * t
+    elseif t < 2/2.75 then
+        t -= 1.5/2.75
+        return 7.5625 * t * t + 0.75
+    end
+    -- ...
+end
+```
+
+**Learn more:** [Procedural Graphics](/advanced/procedural)
+
+---
+
+### Event {#event}
+
+A signal that something happened, often from user interaction or animation.
+
+```lua
+-- Rive events from State Machine
+function init(self: MyScript, context: Context): boolean
+    -- Listen for Rive events
+    context:addEventListener("buttonClicked", function()
+        print("Button was clicked!")
+    end)
+    return true
+end
+```
+
+**Learn more:** [Listener Protocol](/rive/protocols/listener-protocol)
+
+---
 
 ### export type {#export-type}
 
@@ -176,6 +413,43 @@ export type MyScript = {
 ---
 
 ## F
+
+### Fill Rule {#fill-rule}
+
+Determines how the interior of complex paths is filled. Common rules: `nonZero` (default) and `evenOdd`.
+
+```lua
+local paint = Paint.with({
+    style = "fill",
+    color = Color.rgb(255, 0, 0),
+    fillRule = "evenOdd",  -- Alternating fill for overlapping paths
+})
+```
+
+**Learn more:** [Core Types](/advanced/core-types)
+
+---
+
+### Function Type {#function-type}
+
+A type annotation for functions, specifying parameters and return type.
+
+```lua
+-- Function type syntax: (params) -> returnType
+type Callback = () -> ()
+type Predicate = (number) -> boolean
+type Transform = (number, number) -> (number, number)
+
+-- In type definitions
+export type MyScript = {
+    onComplete: Callback,
+    isValid: Predicate,
+}
+```
+
+**Learn more:** [Custom Types](/types/custom-types)
+
+---
 
 ### Factory Function {#factory-function}
 
@@ -286,6 +560,34 @@ end
 
 ---
 
+### Inheritance {#inheritance}
+
+Creating a new class based on an existing one, reusing its properties and methods.
+
+```lua
+-- Parent class
+local Shape = {}
+Shape.__index = Shape
+
+function Shape.new(x, y)
+    return setmetatable({ x = x, y = y }, Shape)
+end
+
+-- Child class
+local Circle = setmetatable({}, { __index = Shape })
+Circle.__index = Circle
+
+function Circle.new(x, y, radius)
+    local self = Shape.new(x, y)
+    self.radius = radius
+    return setmetatable(self, Circle)
+end
+```
+
+**Learn more:** [Inheritance](/oop/inheritance)
+
+---
+
 ### Intersection Type {#intersection-type}
 
 Combines multiple types with `&`. The result has all properties from both types.
@@ -315,7 +617,112 @@ end
 
 ---
 
+## K
+
+### Keyframe {#keyframe}
+
+A specific point in time that defines a property's value in an <Term>Animation</Term>. The animation system interpolates between keyframes to create smooth transitions.
+
+**Learn more:** [Animation](#animation)
+
+---
+
 ## L
+
+### Layer {#layer}
+
+In Rive <Term>State Machine</Term>s, layers allow multiple animations to play simultaneously. Each layer can have its own states and transitions, enabling complex animation blending.
+
+**Learn more:** [State Machine](#state-machine)
+
+---
+
+### Lerp {#lerp}
+
+Short for **L**inear int**ERP**olation. A fundamental technique for smoothly transitioning between two values.
+
+```lua
+-- Linear interpolation: blend from a to b by factor t
+local function lerp(a: number, b: number, t: number): number
+    return a + (b - a) * t
+end
+
+-- Examples
+lerp(0, 100, 0)    -- 0 (start)
+lerp(0, 100, 0.5)  -- 50 (middle)
+lerp(0, 100, 1)    -- 100 (end)
+```
+
+**Learn more:** [Procedural Graphics](/advanced/procedural)
+
+---
+
+### Listener {#listener}
+
+A <Term>Callback</Term> function registered to respond when a value changes or an event occurs.
+
+```lua
+-- Add listener to ViewModel property
+local scoreProp = vm:getNumber("score")
+scoreProp:addListener(function()
+    print(`Score is now: {scoreProp.value}`)
+end)
+
+-- Listeners fire whenever the value changes
+scoreProp.value = 100  -- Triggers: "Score is now: 100"
+```
+
+**Learn more:** [ViewModels](/advanced/viewmodels)
+
+---
+
+### Local Variable {#local-variable}
+
+A variable declared with the `local` keyword, scoped to the current block. Always prefer `local` over globals.
+
+```lua
+local x = 10        -- Local to this scope
+local y, z = 1, 2   -- Multiple declarations
+
+do
+    local inner = 5  -- Only visible in this block
+end
+-- inner is not accessible here
+```
+
+**Learn more:** [Variables & Operators](/fundamentals/variables)
+
+---
+
+### Loop {#loop}
+
+Control structures for repeated execution. Luau has `for`, `while`, and `repeat-until` loops.
+
+```lua
+-- Numeric for loop
+for i = 1, 5 do
+    print(i)  -- 1, 2, 3, 4, 5
+end
+
+-- Iterator for loop
+for i, item in ipairs(items) do
+    print(item)
+end
+
+-- While loop
+while condition do
+    -- runs while condition is true
+end
+
+-- Repeat-until loop
+repeat
+    -- runs at least once
+until condition
+```
+
+**Learn more:** [Control Flow](/fundamentals/control-flow)
+
+---
 
 ### late() {#late}
 
@@ -415,7 +822,79 @@ A function in a metatable that defines special behavior. Common metamethods:
 
 ---
 
+### Module {#module}
+
+A reusable chunk of code that can be imported with `require()`. In Rive, <Term>Util Protocol</Term> scripts are modules.
+
+```lua
+-- math_utils.lua (Util Script)
+local MathUtils = {}
+
+function MathUtils.clamp(value: number, min: number, max: number): number
+    return math.max(min, math.min(max, value))
+end
+
+return MathUtils
+
+-- In another script
+local MathUtils = require("math_utils")
+local clamped = MathUtils.clamp(150, 0, 100)  -- 100
+```
+
+**Learn more:** [Util Scripts](/rive/protocols/util-protocol)
+
+---
+
 ## N
+
+### Nested Artboard {#nested-artboard}
+
+An <Term>Artboard</Term> instance placed inside another artboard. Allows reusable components with their own animations and scripts.
+
+```lua
+export type MyScript = {
+    -- Reference to a nested artboard's ViewModel
+    component: Input<Artboard<Data.ButtonVM>?>,
+}
+
+function init(self: MyScript): boolean
+    if self.component then
+        -- Access the nested artboard's ViewModel
+        local vm = self.component:viewModel()
+    end
+    return true
+end
+```
+
+**Learn more:** [Dynamic Instantiation](/advanced/instantiation)
+
+---
+
+### nil {#nil}
+
+Luau's value representing "nothing" or "no value". Variables are `nil` by default, and setting a table key to `nil` removes it.
+
+```lua
+local x          -- x is nil
+local y = nil    -- Explicit nil
+
+local t = { a = 1 }
+t.a = nil        -- Removes key 'a'
+
+-- Check for nil
+if value == nil then
+    print("Value is nil")
+end
+
+-- Shorthand (nil is falsy)
+if not value then
+    print("Value is nil or false")
+end
+```
+
+**Learn more:** [Data Types](/fundamentals/data-types)
+
+---
 
 ### Node Protocol {#node-protocol}
 
@@ -464,6 +943,26 @@ end
 ---
 
 ## P
+
+### pairs {#pairs}
+
+An iterator for tables that yields key-value pairs. Works with any table (arrays, dictionaries, mixed). Order is not guaranteed.
+
+```lua
+local player = { name = "Hero", level = 5, class = "Warrior" }
+
+for key, value in pairs(player) do
+    print(`{key}: {value}`)
+end
+-- Output (order may vary):
+-- name: Hero
+-- level: 5
+-- class: Warrior
+```
+
+**Learn more:** [Tables](/fundamentals/tables)
+
+---
 
 ### Paint {#paint}
 
@@ -548,6 +1047,56 @@ end)
 
 ## R
 
+### require {#require}
+
+Imports a <Term>Module</Term> by name. In Rive, use `require()` to load <Term>Util Protocol</Term> scripts.
+
+```lua
+-- Import a utility module
+local MathUtils = require("math_utils")
+local Colors = require("colors")
+
+-- Use the imported module
+local clamped = MathUtils.clamp(150, 0, 100)
+local primary = Colors.primary
+```
+
+**Learn more:** [Util Scripts](/rive/protocols/util-protocol)
+
+---
+
+### Return {#return}
+
+The keyword that exits a function and optionally provides a value. Luau functions can return multiple values.
+
+```lua
+-- Single return
+local function double(x: number): number
+    return x * 2
+end
+
+-- Multiple returns
+local function minMax(a: number, b: number): (number, number)
+    if a < b then
+        return a, b
+    else
+        return b, a
+    end
+end
+
+local min, max = minMax(5, 3)  -- min=3, max=5
+
+-- Early return for guard clauses
+local function process(data: Data?)
+    if not data then return end  -- Exit early
+    -- Process data...
+end
+```
+
+**Learn more:** [Functions](/fundamentals/functions)
+
+---
+
 ### Renderer {#renderer}
 
 The drawing context provided to `draw()` for custom rendering. Works like a <Term>State Machine</Term> with save/restore.
@@ -587,6 +1136,27 @@ end
 
 ---
 
+### Scope {#scope}
+
+The region of code where a variable is visible and accessible. Luau has block scope—variables exist only within their declaring block.
+
+```lua
+local global = "visible everywhere"
+
+if true then
+    local inner = "only in this block"
+    print(global)  -- Works
+    print(inner)   -- Works
+end
+
+print(global)      -- Works
+-- print(inner)    -- Error: inner is out of scope
+```
+
+**Learn more:** [Variables & Operators](/fundamentals/variables)
+
+---
+
 ### State Machine {#state-machine}
 
 Rive's logic layer that controls which animations play and when. State Machines contain inputs (Boolean, Number, Trigger), layers, states, and transitions with conditions. Scripts can interact with State Machines through ViewModel data binding.
@@ -623,7 +1193,80 @@ export type MyScript = {
 
 ---
 
+### String Interpolation {#string-interpolation}
+
+Luau's syntax for embedding expressions inside strings using backticks and curly braces.
+
+```lua
+local name = "Hero"
+local level = 5
+local damage = 12.5
+
+-- Interpolate variables
+print(`Welcome, {name}!`)           -- Welcome, Hero!
+
+-- Interpolate expressions
+print(`Level {level} ({level * 10} XP)`)  -- Level 5 (50 XP)
+
+-- Format numbers
+print(`Damage: {damage:.1f}`)        -- Damage: 12.5
+```
+
+**Learn more:** [Data Types](/fundamentals/data-types)
+
+---
+
 ## T
+
+### Table {#table}
+
+Luau's only data structure—a versatile container that can be an <Term>Array</Term>, <Term>Dictionary</Term>, or both.
+
+```lua
+-- Array (sequential integer keys)
+local items = {"sword", "shield", "potion"}
+
+-- Dictionary (string keys)
+local player = { name = "Hero", level = 5 }
+
+-- Mixed (both)
+local mixed = {
+    [1] = "first",
+    name = "example",
+}
+
+-- Nested tables
+local game = {
+    player = { x = 0, y = 0 },
+    enemies = { { x = 10, y = 5 }, { x = 20, y = 15 } },
+}
+```
+
+**Learn more:** [Tables](/fundamentals/tables)
+
+---
+
+### Truthiness {#truthiness}
+
+How values behave in boolean contexts. In Luau, only `false` and `nil` are **falsy**—everything else is **truthy** (including `0` and `""`).
+
+```lua
+-- Falsy values (only these two)
+if not false then print("false is falsy") end
+if not nil then print("nil is falsy") end
+
+-- Truthy values (everything else)
+if 0 then print("0 is truthy!") end
+if "" then print("empty string is truthy!") end
+if {} then print("empty table is truthy!") end
+
+-- Common pattern: nil check
+local name = getData() or "default"  -- Use "default" if getData() returns nil
+```
+
+**Learn more:** [Control Flow](/fundamentals/control-flow)
+
+---
 
 ### Trigger {#trigger}
 
@@ -657,6 +1300,53 @@ type Callback = (number) -> ()
 ```
 
 **Learn more:** [Custom Types](/types/custom-types)
+
+---
+
+### Type Guard {#type-guard}
+
+A runtime check that narrows a variable's type. Used to safely access properties of union or optional types.
+
+```lua
+-- Using typeof
+local function describe(value: string | number): string
+    if typeof(value) == "string" then
+        return `String: {value}`  -- value is string here
+    else
+        return `Number: {value}`  -- value is number here
+    end
+end
+
+-- Nil check narrows optional types
+local function greet(name: string?)
+    if name then
+        print(`Hello, {name}!`)  -- name is string here
+    end
+end
+```
+
+**Learn more:** [Advanced Types](/types/advanced-types)
+
+---
+
+### Type Narrowing {#type-narrowing}
+
+The process where the type checker automatically restricts a variable's type based on control flow (if statements, <Term>Type Guard</Term>s).
+
+```lua
+local value: string | number = getData()
+
+-- Before check: value is string | number
+if typeof(value) == "string" then
+    -- Narrowed: value is string
+    print(value:upper())
+else
+    -- Narrowed: value is number
+    print(value * 2)
+end
+```
+
+**Learn more:** [Advanced Types](/types/advanced-types)
 
 ---
 
@@ -777,11 +1467,15 @@ end
 | Category | Terms |
 |----------|-------|
 | **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [draw](#draw), [Lifecycle](#lifecycle) |
-| **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type) |
-| **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [late()](#late) |
+| **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type), [Type Alias](#type-alias), [Type Guard](#type-guard), [Type Narrowing](#type-narrowing) |
+| **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [late()](#late), [Data Binding](#data-binding), [Listener](#listener) |
 | **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector) |
-| **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue) |
-| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [Factory Function](#factory-function) |
+| **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue), [Inheritance](#inheritance), [Chaining](#chaining) |
+| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [Factory Function](#factory-function), [Module](#module), [require](#require) |
+| **Tables** | [Table](#table), [Array](#array), [Dictionary](#dictionary), [pairs](#pairs), [ipairs](#ipairs) |
+| **Language** | [Local Variable](#local-variable), [Scope](#scope), [Loop](#loop), [Return](#return), [nil](#nil), [Boolean](#boolean), [Truthiness](#truthiness), [String Interpolation](#string-interpolation), [Compound Assignment](#compound-assignment) |
+| **Animation** | [Animation](#animation), [Keyframe](#keyframe), [State Machine](#state-machine), [Layer](#layer), [Lerp](#lerp), [Easing](#easing), [Artboard](#artboard), [Nested Artboard](#nested-artboard) |
+| **Syntax** | [Colon Syntax](#colon-syntax), [Dot Syntax](#dot-syntax), [Strict Mode](#strict-mode) |
 
 ## Next Steps
 

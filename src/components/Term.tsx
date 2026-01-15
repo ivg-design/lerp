@@ -53,6 +53,30 @@ const termMappings: Record<string, string> = {
 
   // Glossary fallbacks
   'state machine': '/glossary#state-machine',
+  'listener': '/glossary#listener',
+  'lerp': '/glossary#lerp',
+  'callback': '/glossary#callback',
+  'closure': '/glossary#closure',
+  'upvalue': '/glossary#upvalue',
+  'array': '/glossary#array',
+  'dictionary': '/glossary#dictionary',
+  'table': '/glossary#table',
+  'module': '/glossary#module',
+  'scope': '/glossary#scope',
+  'keyframe': '/glossary#keyframe',
+  'layer': '/glossary#layer',
+  'easing': '/glossary#easing',
+  'nested artboard': '/glossary#nested-artboard',
+  'type guard': '/glossary#type-guard',
+  'type narrowing': '/glossary#type-narrowing',
+  'string interpolation': '/glossary#string-interpolation',
+  'truthiness': '/glossary#truthiness',
+  'truthy': '/glossary#truthiness',
+  'falsy': '/glossary#truthiness',
+  'data binding': '/glossary#data-binding',
+  'lifecycle': '/glossary#lifecycle',
+  'factory function': '/glossary#factory-function',
+  'delta time': '/glossary#delta-time',
 };
 
 export default function Term({ children, to, tooltip }: TermProps) {
