@@ -21,7 +21,7 @@ import Term from '@site/src/components/Term';
 
 ## Learning Objectives
 - Understand the three type checking modes in Luau
-- Know why `--!strict` is required for Rive scripts
+- Know why `--!strict` is recommended for Rive scripts
 - Recognize and fix common type errors caught by strict mode
 - Use strict mode effectively in your development workflow
 
@@ -35,7 +35,7 @@ If you're coming from After Effects expressions or JavaScript, understanding typ
 |---------|--------------|-------------|-------|
 | Type checking | None (runtime only) | `--!strict` (compile time) | Luau catches errors BEFORE running |
 | Untyped mode | Default | `--!nocheck` | Both skip type checking |
-| Strict mode | N/A | `--!strict` | Required for Rive |
+| Strict mode | N/A | `--!strict` | Recommended for Rive |
 | TypeScript | `tsc --strict` | `--!strict` | Similar concept |
 | Empty array | `[]` works | `{}` needs type | `local t: {string} = {}` |
 | Missing property | Runtime error | Compile error | Strict catches early |
@@ -78,7 +78,7 @@ When you write a <Term>Node</Term> Script, the Rive compiler expects proper type
 Luau supports three modes, controlled by a directive at the top of your file:
 
 ```lua
---!strict    -- Full type checking (REQUIRED for Rive)
+--!strict    -- Full type checking (RECOMMENDED for Rive)
 --!nonstrict -- Partial checking, allows 'any' inference
 --!nocheck   -- No type checking (default if no directive)
 ```
@@ -685,7 +685,7 @@ Your console output should display the adjusted value computed by multiplying th
   id="strict-q1"
   type="code"
   answer="--!strict"
-  explanation="The --!strict directive must be the first line of your script. It enables full type checking which is required for Rive scripts."
+  explanation="The --!strict directive should be the first line of your script. It enables full type checking which is strongly recommended for catching errors early."
 />
 
 <Quiz
@@ -771,7 +771,7 @@ Your console output should display the adjusted value computed by multiplying th
 
 ## Self-Assessment Checklist
 
-- [ ] I understand why `--!strict` is required for Rive scripts
+- [ ] I understand why `--!strict` is recommended for Rive scripts
 - [ ] I can fix "cannot infer type of empty table" errors
 - [ ] I know the difference between strict, nonstrict, and nocheck modes
 - [ ] I can properly annotate function signatures

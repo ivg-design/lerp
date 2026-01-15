@@ -539,22 +539,22 @@ end
 
 ### Update Flow Comparison
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Input<T> Update Flow                         │
-├─────────────────────────────────────────────────────────────────┤
-│   Editor Inspector          →    update(self)    →    rebuild  │
-│   (designer changes value)       (automatic)         (your code)│
-└─────────────────────────────────────────────────────────────────┘
+**Input&lt;T&gt; Update Flow:**
 
-┌─────────────────────────────────────────────────────────────────┐
-│               ViewModel Property Update Flow                    │
-├─────────────────────────────────────────────────────────────────┤
-│   External code             →    Listener fires   →   callback │
-│   (API, binding, script)        (if registered)      (your code)│
-│                                                                 │
-│   vm.property.value = 10    →    addListener(fn)  →   fn()     │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    A[Editor Inspector<br/>designer changes value] --> B[update self<br/>automatic]
+    B --> C[rebuild<br/>your code]
+```
+
+**ViewModel Property Update Flow:**
+
+```mermaid
+flowchart LR
+    A[External code<br/>API, binding, script] --> B[Listener fires<br/>if registered]
+    B --> C[callback<br/>your code]
+
+    D[vm.property.value = 10] --> E[addListener fn] --> F[fn]
 ```
 
 ### Choosing the Right One

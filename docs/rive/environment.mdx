@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | File access | `File.read()` (ExtendScript) | Not available (sandboxed) |
 | Network requests | `fetch()` or `XMLHttpRequest` | Not available (sandboxed) |
 | Module import | `import` or `require()` (Node.js) | `require("ScriptName")` |
-| Type checking | TypeScript (optional) | `--!strict` (required) |
+| Type checking | TypeScript (optional) | `--!strict` (recommended) |
 | Runtime | JavaScript (dynamic) | Luau (statically typed variant of Lua) |
 
 :::danger Critical Difference: Where Your Code Runs
@@ -88,10 +88,12 @@ Use `print()` liberally during development. Unlike browser console logs, these d
 -- Rive debugging
 print("Debug message")
 print(`Value is {myValue}`)  -- String interpolation
+```
 
--- JavaScript equivalent:
--- console.log("Debug message")
--- console.log(`Value is ${myValue}`)
+```javascript
+// JavaScript equivalent:
+console.log("Debug message");
+console.log(`Value is ${myValue}`);
 ```
 
 ---
@@ -769,15 +771,15 @@ When your script has errors:
 />
 
 <Quiz
-  question="Why is --!strict required at the top of Rive scripts?"
+  question="Why is --!strict recommended at the top of Rive scripts?"
   id="env-q3"
   options={[
     { text: "It makes the script run faster" },
-    { text: "It enables type checking and is required for recognition", correct: true },
+    { text: "It enables type checking which catches errors early", correct: true },
     { text: "It allows network access" },
-    { text: "It is not actually required" },
+    { text: "Scripts won't run without it" },
   ]}
-  explanation="--!strict enables Luau's type checking, which catches errors early and is required for Node scripts to be recognized by the Rive editor."
+  explanation="--!strict enables Luau's type checking, which catches errors before runtime. While scripts can run without it, using strict mode is strongly recommended for catching bugs early."
 />
 
 <Quiz
@@ -817,17 +819,66 @@ print("I appear in Rive's Console!")
 -- Data is passed into Rive through runtime API
 ```
 
-### 3. Forgetting --!strict
+### 3. Missing --!strict (Recommended)
 
 ```lua
--- WRONG: Missing strict directive
+-- WORKS but not recommended: Missing strict directive
 export type MyNode = {}
--- Script won't be recognized!
+-- Script runs, but type errors won't be caught
 
--- CORRECT: Always include --!strict
+-- RECOMMENDED: Include --!strict for type checking
 --!strict
 export type MyNode = {}
+-- Type checker catches errors before runtime
 ```
+
+---
+
+## Script Compilation Settings
+
+Rive provides compilation settings that affect debugging and performance. Find these in the **Design/Animate panel → Scripting section**.
+
+### Optimization Level
+
+Controls how aggressively the Luau compiler optimizes your code:
+
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| **None** | No optimizations. Code runs as-written. | Development - easier to debug |
+| **Medium** | Balanced tradeoff between performance and debuggability. | General development |
+| **Full** | Maximum optimizations. Best runtime performance. | Production - final export |
+
+### Debug Level
+
+Controls how much debug information is included in the compiled bytecode:
+
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| **None** | Smallest bytecode. No line numbers or stack traces. | Production - smallest file size |
+| **Medium** | Basic debug info. Line numbers for errors and stack traces. | General development |
+| **Full** | Full debug info. Line numbers, variable names, detailed error info. | Development - best error messages |
+
+### Recommended Settings
+
+**During development:**
+- Optimization: `None` or `Medium`
+- Debug: `Full`
+
+**For production export:**
+- Optimization: `Full`
+- Debug: `None` or `Medium`
+
+### Why It Matters
+
+```lua
+-- With Debug: None
+-- Error: "error in script"
+
+-- With Debug: Full
+-- Error: "error at line 42: attempt to index nil value 'myVariable'"
+```
+
+Higher debug levels give you detailed error messages with line numbers and variable names, making it much easier to find and fix bugs.
 
 ---
 
@@ -837,7 +888,8 @@ export type MyNode = {}
 - The Console panel shows all `print()` output and errors
 - Node scripts have a lifecycle (init, update, advance, draw)
 - Util scripts are reusable modules with no lifecycle
-- `--!strict` enables type safety and is required for recognition
+- `--!strict` enables type safety and is strongly recommended
+- Script compilation settings affect debugging (Debug Level) and performance (Optimization Level)
 - The sandbox restricts file I/O, network access, and dynamic code loading
 
 ---

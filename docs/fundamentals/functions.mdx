@@ -398,7 +398,7 @@ local function makeClickHandler(label: string)
     local count = 0
     return function()
         count += 1
-        print(`[${label}] Clicked {count} times`)
+        print(`[{label}] Clicked {count} times`)
     end
 end
 

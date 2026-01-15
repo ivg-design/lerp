@@ -28,41 +28,14 @@ This page explains **why** Rive scripts look the way they do. If you've never pr
 
 When you create a script in Rive, you'll see this. Here's what each part does:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  --!strict                          │ Enable type checking (REQUIRED)       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  export type MyNode = {             │ Define your script's data shape       │
-│      path: Path,                    │   - Rive objects (Path, Paint)        │
-│      time: number,                  │   - State variables                   │
-│      speed: Input<number>,          │   - Editor inputs (Input<T>)          │
-│  }                                  │                                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  function init(self: MyNode)        │ Runs ONCE at startup                  │
-│      -- Create objects here         │   - Create Path, Paint objects        │
-│      return true                    │   - Initialize state                  │
-│  end                                │   - Return true to continue           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  function advance(self, seconds)    │ Runs EVERY FRAME (optional)           │
-│      -- Update logic here           │   - Animation, physics                │
-│      return true                    │   - Return true to keep running       │
-│  end                                │                                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  function draw(self, renderer)      │ Runs EVERY FRAME (REQUIRED)           │
-│      -- Render here                 │   - Draw paths with renderer          │
-│  end                                │   - Apply transforms                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│  return function(): Node<MyNode>    │ Factory function (REQUIRED)           │
-│      return {                       │   - Creates fresh instance per node   │
-│          init = init,               │   - Wire up lifecycle functions       │
-│          advance = advance,         │   - Set Input<T> defaults             │
-│          draw = draw,               │   - Use late() for runtime values     │
-│          speed = 100,               │                                       │
-│          path = late(),             │                                       │
-│      }                              │                                       │
-│  end                                │                                       │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Code | Purpose |
+|------|---------|
+| `--!strict` | **Enable type checking (RECOMMENDED)** |
+| `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
+| `function init(self: MyNode) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, return true to continue |
+| `function advance(self, seconds) ... end` | **Runs EVERY FRAME (optional)** — Animation, physics, return true to keep running |
+| `function draw(self, renderer) ... end` | **Runs EVERY FRAME (REQUIRED)** — Draw paths with renderer, apply transforms |
+| `return function(): Node<MyNode> ... end` | **Factory function (REQUIRED)** — Creates fresh instance per node, wire up lifecycle functions, set `Input<T>` defaults, use `late()` for runtime values |
 
 ---
 
@@ -199,7 +172,7 @@ end
 
 **Why `--!` syntax?** In Lua, `--` starts a comment. The `!` immediately after makes it a *directive* - a special instruction to the compiler rather than regular code. It's like HTML's `<!DOCTYPE>` - a signal that affects how the file is processed.
 
-**Why it's required:** Rive Node scripts MUST start with `--!strict` to be recognized. Without it, Rive won't treat the file as a script.
+**Why it's recommended:** While scripts run without `--!strict`, using it enables full type checking which catches errors before runtime. It's strongly recommended for production scripts.
 
 **Coming from JavaScript?** This is like TypeScript's strict mode. Without it, you can write `const x = "hello"; x.toFixed(2)` and it fails at runtime. With strict mode, you catch it immediately.
 
@@ -582,43 +555,19 @@ end
 
 ## Lifecycle: When Things Run
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    RIVE STARTS YOUR SCRIPT                   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Factory Function                          │
-│    Creates a new table with your properties and functions    │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                         init()                               │
-│    Runs ONCE. Set up Rive objects and initial state.        │
-│    Return true to continue, false to abort.                  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-       ┌──────────────────────────────────────────┐
-       │         MAIN LOOP (every frame)          │
-       │                                          │
-       │  ┌────────────────────────────────────┐  │
-       │  │           advance()                │  │
-       │  │  Update logic, physics, animation  │  │
-       │  │  Return false to stop the script   │  │
-       │  └────────────────────────────────────┘  │
-       │                    │                     │
-       │                    ▼                     │
-       │  ┌────────────────────────────────────┐  │
-       │  │            draw()                  │  │
-       │  │  Render graphics using renderer    │  │
-       │  └────────────────────────────────────┘  │
-       │                    │                     │
-       │                    ▼                     │
-       │           (next frame...)               │
-       └──────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    A[RIVE STARTS YOUR SCRIPT] --> B[Factory Function]
+    B --> |Creates new table with<br/>properties and functions| C[init]
+    C --> |Runs ONCE<br/>Set up Rive objects<br/>Return true to continue| D{Success?}
+    D -->|false| E[Script Aborted]
+    D -->|true| F
+
+    subgraph F[MAIN LOOP - every frame]
+        G[advance] --> |Update logic, physics<br/>Return false to stop| H[draw]
+        H --> |Render graphics<br/>using renderer| I[next frame...]
+        I --> G
+    end
 ```
 
 ---

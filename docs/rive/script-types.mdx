@@ -263,27 +263,23 @@ If you need to **react to transitions or events**, use a Listener script. If you
 
 ## Quick Decision Guide
 
-```
-Need to animate or draw something?
-  └─ Yes → Node Script
+```mermaid
+flowchart TD
+    A{What do you need?} --> B{Animate or draw?}
+    A --> C{Custom layout?}
+    A --> D{Transform binding data?}
+    A --> E{Modify stroke geometry?}
+    A --> F{Shared helpers?}
+    A --> G{Respond to events?}
+    A --> H{Test utils?}
 
-Need custom layout positioning?
-  └─ Yes → Layout Script
-
-Need to transform data in bindings?
-  └─ Yes → Converter Script
-
-Need to modify stroke geometry?
-  └─ Yes → Path Effect Script
-
-Need shared helper functions?
-  └─ Yes → Util Script
-
-Need to respond to state machine events?
-  └─ Yes → Listener Script
-
-Need to test your Util Script?
-  └─ Yes → Test Script
+    B -->|Yes| B1[Node Script]
+    C -->|Yes| C1[Layout Script]
+    D -->|Yes| D1[Converter Script]
+    E -->|Yes| E1[Path Effect Script]
+    F -->|Yes| F1[Util Script]
+    G -->|Yes| G1[Listener Script]
+    H -->|Yes| H1[Test Script]
 ```
 
 ---

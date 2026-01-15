@@ -60,7 +60,8 @@ A timeline-based sequence of keyframes that animates properties over time. Anima
 -- bound to ViewModel properties
 local vm = context:viewModel()
 if vm then
-    vm:setNumber("progress", 0.5)  -- Control animation progress
+    local progress = vm:getNumber("progress")
+    if progress then progress.value = 0.5 end  -- Control animation progress
 end
 ```
 
@@ -382,12 +383,23 @@ end
 A signal that something happened, often from user interaction or animation.
 
 ```lua
--- Rive events from State Machine
+-- For pointer events, use the Listener protocol
+function pointerDown(self: MyScript, position: Vector): boolean
+    print("Pointer down at:", position.x, position.y)
+    return true  -- Event handled
+end
+
+-- For ViewModel triggers, use addListener
 function init(self: MyScript, context: Context): boolean
-    -- Listen for Rive events
-    context:addEventListener("buttonClicked", function()
-        print("Button was clicked!")
-    end)
+    local vm = context:viewModel()
+    if vm then
+        local trigger = vm:getTrigger("buttonClicked")
+        if trigger then
+            trigger:addListener(function()
+                print("Button was clicked!")
+            end)
+        end
+    end
     return true
 end
 ```
@@ -398,7 +410,7 @@ end
 
 ### export type {#export-type}
 
-Declares the type of your script instance (`self`). Required for all Rive scripts in strict mode.
+Declares the type of your script instance (`self`). Required when using `--!strict` mode.
 
 ```lua
 export type MyScript = {
@@ -1169,7 +1181,8 @@ Rive's logic layer that controls which animations play and when. State Machines 
 local vm = context:viewModel()
 if vm then
     -- This ViewModel property is bound to a State Machine input
-    vm:setNumber("health", 75)
+    local health = vm:getNumber("health")
+    if health then health.value = 75 end
 end
 ```
 
@@ -1179,7 +1192,7 @@ end
 
 ### Strict Mode {#strict-mode}
 
-Enabled with `--!strict`, this mode activates Luau's type checker. Required for all Rive scripts.
+Enabled with `--!strict`, this mode activates Luau's type checker. Strongly recommended for Rive scripts to catch errors early.
 
 ```lua
 --!strict  -- Must be first line

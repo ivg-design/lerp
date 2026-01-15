@@ -144,32 +144,23 @@ Call `markNeedsUpdate()` when external changes (like ViewModel property updates)
 
 ## Lifecycle Flow Diagram
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Script Attached                       │
-└─────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    init(self, context)                   │
-│         • Create paths, paints, listeners                │
-│         • Initialize state on self                       │
-│         • Return true to continue, false to disable      │
-└─────────────────────────────────────────────────────────┘
-                           │
-           ┌───────────────┴───────────────┐
-           │                               │
-           ▼                               ▼
-┌──────────────────────┐       ┌──────────────────────────┐
-│  Input Changed?      │       │   Frame Loop             │
-│                      │       │                          │
-│  update(self, ctx)   │       │  advance(self, dt, ctx)  │
-│  • Rebuild geometry  │       │  • Update timers         │
-│  • Recalc values     │       │  • Physics/movement      │
-└──────────────────────┘       │                          │
-                               │  draw(self, renderer)    │
-                               │  • Render commands only  │
-                               └──────────────────────────┘
+```mermaid
+flowchart TD
+    A[Script Attached] --> B[init self, context]
+    B --> |Create paths, paints, listeners<br/>Initialize state on self<br/>Return true to continue| C{Success?}
+    C -->|false| D[Script Disabled]
+    C -->|true| E[Runtime Loop]
+
+    E --> F{Input Changed?}
+    F -->|yes| G[update self, ctx]
+    G --> |Rebuild geometry<br/>Recalc values| H
+    F -->|no| H
+
+    subgraph H[Frame Loop]
+        I[advance self, dt, ctx] --> |Update timers<br/>Physics/movement| J[draw self, renderer]
+        J --> |Render commands only| K[next frame]
+        K --> I
+    end
 ```
 
 ---

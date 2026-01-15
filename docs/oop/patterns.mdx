@@ -389,9 +389,10 @@ end
 -- TODO: Implement CHEAP clone method
 -- 1. Create new object with setmetatable({}, Sprite)
 -- 2. Copy x, y, complexity fields
--- 3. Clone the path: copy.path = self.path:clone()
+-- 3. Create new path: copy.path = Path.new() and rebuild geometry
 -- 4. Create new paint: copy.paint = Paint.with({ style = "fill", color = self.paint.color })
 -- 5. Return (copy :: any) :: SpriteType
+-- NOTE: Path has no clone() method - you must create a new Path and rebuild
 function Sprite:clone(): SpriteType
     -- Replace with implementation
     return (self :: any) :: SpriteType

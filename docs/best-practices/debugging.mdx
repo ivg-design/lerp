@@ -22,11 +22,49 @@ Master the tools and techniques for finding and fixing issues in your Rive scrip
 Rive scripts run inside the Rive runtime, not in a traditional development environment. Debugging relies on:
 
 - **Console Panel** - View `print()` output and runtime messages
+- **Problems Tab** - See pre-execution errors (type mismatches, syntax errors)
 - **Strict Mode** - Catch type errors before runtime
 - **Systematic Logging** - Strategic print statements to trace execution
 
-:::tip Console Panel Location
-The Console panel is available in the Rive editor. Open it via **View > Console** or the panel menu to see `print()` output from your scripts.
+---
+
+## Script Panels
+
+Rive provides four panels for script development: **Console**, **Problems**, **Changes**, and **Testing**.
+
+### Console
+
+Shows all runtime output during playback:
+- `print()` statements from your scripts
+- Runtime error messages
+- Script lifecycle events
+
+**Features:**
+- Copy button - Copy console contents to clipboard
+- Clear button - Clear console output
+- Fullscreen - Expand for better visibility
+
+:::tip Console Location
+Open via **View > Console** or the panel menu to see `print()` output from your scripts.
+:::
+
+### Problems
+
+Shows pre-execution errors that are detected before your script runs:
+- **Type mismatches** - When types don't match (e.g., assigning string to number)
+- **Syntax errors** - Typos, missing keywords, invalid Luau syntax
+- **Binding errors** - Missing or incorrect input/output bindings
+
+**Features:**
+- Click an error to jump to the affected line in your script
+- Hover for explanations and suggested fixes
+- Errors update in real-time as you type
+
+:::tip Problems vs Console
+- **Problems**: Shows errors detected by the type checker BEFORE running (like TypeScript)
+- **Console**: Shows errors that occur DURING runtime (like JavaScript console)
+
+Check Problems first — if there are errors there, fix them before running your script.
 :::
 
 ---
@@ -114,7 +152,7 @@ local speed = self.speed
 
 -- ViewModel (has .value)
 local vm = context:viewModel()
-local speedProp = vm and vm:property("speed")
+local speedProp = vm and vm:getNumber("speed")
 if speedProp then
     speedProp.value = speedProp.value + 1
 end
@@ -210,7 +248,7 @@ function init(self: LifecycleTracer): boolean
     return true
 end
 
-function update(self: LifecycleTracer, context: Context)
+function update(self: LifecycleTracer)
     print(\`[{self.name}] update called - input changed\`)
 end
 
@@ -859,6 +897,7 @@ end
 - Initialize all fields before using them
 - Comment out code to isolate problems
 - Remove debug prints before finalizing
+- Set **Debug Level** to "Full" during development for detailed error messages (see [Script Compilation Settings](/rive/environment#script-compilation-settings))
 
 ---
 

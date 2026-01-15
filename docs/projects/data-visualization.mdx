@@ -41,6 +41,7 @@ export type BarChart = {
     a: Property<number>?,
     b: Property<number>?,
     c: Property<number>?,
+    context: Context?,  -- Store context for use in update()
 }
 
 local function clamp(value: number, minValue: number, maxValue: number): number
@@ -70,6 +71,7 @@ local function rebuild(self: BarChart)
 end
 
 function init(self: BarChart, context: Context): boolean
+    self.context = context  -- Store for use in update()
     self.paths = { Path.new(), Path.new(), Path.new() }
     self.paints = {
         Paint.with({ style = "fill", color = Color.rgb(255, 120, 90) }),
@@ -101,9 +103,11 @@ function init(self: BarChart, context: Context): boolean
     return true
 end
 
-function update(self: BarChart, context: Context)
+function update(self: BarChart)
     rebuild(self)
-    context:markNeedsUpdate()
+    if self.context then
+        self.context:markNeedsUpdate()
+    end
 end
 
 function draw(self: BarChart, renderer: Renderer)

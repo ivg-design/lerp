@@ -20,6 +20,7 @@ const config: Config = {
   onBrokenLinks: 'warn',
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -31,6 +32,7 @@ const config: Config = {
   },
 
   themes: [
+    '@docusaurus/theme-mermaid',
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
       {
@@ -138,6 +140,12 @@ const config: Config = {
         },
       ],
       copyright: `© ${new Date().getFullYear()} IVG Design. Built with Docusaurus.`,
+    },
+    mermaid: {
+      theme: {
+        dark: 'dark',
+        light: 'default',
+      },
     },
     prism: {
       theme: prismThemes.github,
