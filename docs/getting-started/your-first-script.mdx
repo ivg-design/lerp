@@ -1,0 +1,613 @@
+---
+sidebar_position: 2.5
+title: Your First Rive Script
+description: A gentle introduction to Rive scripting for complete beginners - no programming experience required
+keywords:
+  - rive
+  - luau
+  - scripting
+  - beginner
+  - first script
+  - introduction
+---
+
+import Quiz from '@site/src/components/Quiz';
+import FillBlanks from '@site/src/components/FillBlanks';
+import ParsonsProblem from '@site/src/components/ParsonsProblems';
+import Term from '@site/src/components/Term';
+
+# Your First Rive Script
+
+:::tip No Programming Experience? You're in the Right Place!
+This page teaches Rive scripting from scratch. We'll explain every concept as we go - no prior knowledge needed.
+
+**Already comfortable with programming?** Skip to [How Rive Scripts Work](/getting-started/how-rive-scripts-work) for the fast-track version with JavaScript/After Effects comparisons.
+:::
+
+---
+
+## What is a Script?
+
+A **script** is a set of instructions that tells a computer what to do. Think of it like a recipe:
+
+| Recipe | Script |
+|--------|--------|
+| "Add 2 cups of flour" | "Set the circle size to 50" |
+| "Stir for 3 minutes" | "Move the shape right by 10 pixels" |
+| "Repeat until smooth" | "Keep animating until stopped" |
+
+The difference? A recipe is for humans. A script is written in a **programming language** that computers understand.
+
+Rive uses a language called **Luau** (pronounced "loo-ow"). It's designed to be readable and beginner-friendly.
+
+<Quiz
+  question="What is a script?"
+  id="beginner-q1"
+  options={[
+    { text: "A movie screenplay" },
+    { text: "Instructions that tell a computer what to do", correct: true },
+    { text: "A type of font" },
+    { text: "A drawing tool" },
+  ]}
+  explanation="A script is a set of instructions written in a programming language. The computer reads and follows these instructions."
+/>
+
+---
+
+## Storing Information: Variables
+
+Imagine you have labeled boxes where you can store things:
+
+- A box labeled **"score"** containing the number `0`
+- A box labeled **"playerName"** containing the text `"Alex"`
+- A box labeled **"isGameOver"** containing `false` (meaning "no")
+
+In programming, these labeled boxes are called **variables**. Here's how you create them in Luau:
+
+```lua
+local score = 0
+local playerName = "Alex"
+local isGameOver = false
+```
+
+Let's break down `local score = 0`:
+
+| Part | Meaning |
+|------|---------|
+| `local` | "I'm creating a new variable" |
+| `score` | The name of the variable (the label on the box) |
+| `=` | "Put this value inside" |
+| `0` | The value being stored |
+
+**Why "local"?** It tells Luau this variable belongs to this specific part of your script. Always use `local` when creating variables.
+
+<FillBlanks
+  id="beginner-fill-1"
+  code={`-- Create a variable named "health" with value 100
+__BLANK__ health = 100
+
+-- Create a variable named "name" with text "Hero"
+local __BLANK__ = "Hero"`}
+  blanks={["local", "name"]}
+  hints={["The keyword that creates a new variable", "The label for this box"]}
+  explanation="'local' creates new variables. The name comes after 'local' and before the '=' sign."
+/>
+
+---
+
+## Types of Values
+
+Variables can hold different **types** of values:
+
+| Type | What it is | Examples |
+|------|-----------|----------|
+| **number** | Any numeric value | `42`, `3.14`, `-10`, `0` |
+| **string** | Text (always in quotes) | `"Hello"`, `"Player 1"`, `""` |
+| **boolean** | True or false | `true`, `false` |
+
+```lua
+local age = 25           -- number
+local greeting = "Hi!"   -- string (notice the quotes)
+local isReady = true     -- boolean
+```
+
+:::tip Why Does This Matter?
+Rive needs to know what type of value you're working with. You can't do math with text, and you can't display a true/false as a name. Types help prevent mistakes.
+:::
+
+<Quiz
+  question='What type of value is: "Game Over"'
+  id="beginner-q2"
+  options={[
+    { text: "number" },
+    { text: "boolean" },
+    { text: "string", correct: true },
+    { text: "variable" },
+  ]}
+  explanation="Text values are called 'strings' and are always wrapped in quotation marks."
+/>
+
+<Quiz
+  question="What type of value is: false"
+  id="beginner-q3"
+  options={[
+    { text: "number" },
+    { text: "boolean", correct: true },
+    { text: "string" },
+    { text: "error" },
+  ]}
+  explanation="'true' and 'false' are boolean values. They represent yes/no or on/off states."
+/>
+
+---
+
+## Reusable Instructions: Functions
+
+Sometimes you want to run the same instructions multiple times. Instead of writing them over and over, you put them in a **function** - a named block of instructions you can reuse.
+
+Think of a function like a recipe card with a name:
+
+```lua
+-- Define a function named "sayHello"
+local function sayHello()
+    print("Hello there!")
+    print("Welcome to Rive!")
+end
+```
+
+This creates a recipe called `sayHello`. The instructions inside (between `function` and `end`) don't run yet - they're just saved for later.
+
+To actually run those instructions, you **call** the function:
+
+```lua
+sayHello()  -- This runs the instructions inside
+```
+
+The `()` after the name means "run this function now."
+
+<Quiz
+  question="What does 'calling a function' mean?"
+  id="beginner-q4"
+  options={[
+    { text: "Naming the function" },
+    { text: "Deleting the function" },
+    { text: "Running the instructions inside the function", correct: true },
+    { text: "Creating a new function" },
+  ]}
+  explanation="Calling a function means executing (running) the instructions inside it. You call a function by writing its name followed by parentheses: functionName()"
+/>
+
+---
+
+## Functions That Take Input
+
+Functions become more powerful when they can receive information. These inputs are called **parameters**:
+
+```lua
+local function greet(name)
+    print("Hello, " .. name .. "!")
+end
+
+greet("Alex")    -- Prints: Hello, Alex!
+greet("Jordan")  -- Prints: Hello, Jordan!
+```
+
+Here, `name` is a parameter - a placeholder that gets filled in when you call the function.
+
+You can have multiple parameters:
+
+```lua
+local function add(a, b)
+    print(a + b)
+end
+
+add(5, 3)   -- Prints: 8
+add(10, 20) -- Prints: 30
+```
+
+<FillBlanks
+  id="beginner-fill-2"
+  code={`-- A function that takes a number and doubles it
+local function double(__BLANK__)
+    print(x * 2)
+end
+
+-- Call the function with the value 5
+__BLANK__(5)  -- Prints: 10`}
+  blanks={["x", "double"]}
+  hints={["The parameter name used inside the function", "The name of the function we defined"]}
+  explanation="Parameters go inside the parentheses when defining a function. To call it, use the function name followed by parentheses with your values."
+/>
+
+---
+
+## Functions That Give Back Values
+
+Some functions calculate something and **return** the result:
+
+```lua
+local function double(x)
+    return x * 2
+end
+
+local result = double(5)  -- result is now 10
+print(result)             -- Prints: 10
+```
+
+The `return` keyword sends a value back to wherever the function was called.
+
+<Quiz
+  question="What does 'return' do in a function?"
+  id="beginner-q5"
+  options={[
+    { text: "Stops the script completely" },
+    { text: "Prints a message" },
+    { text: "Sends a value back to where the function was called", correct: true },
+    { text: "Deletes the function" },
+  ]}
+  explanation="'return' sends a value back from the function. The code that called the function receives this value."
+/>
+
+---
+
+## Quick Review: The Building Blocks
+
+Before we look at Rive scripts, let's make sure we've got the basics:
+
+| Concept | What it is | Example |
+|---------|-----------|---------|
+| **Variable** | A named container for storing values | `local score = 0` |
+| **String** | Text data (in quotes) | `"Hello"` |
+| **Number** | Numeric data | `42` or `3.14` |
+| **Boolean** | True or false | `true` or `false` |
+| **Function** | A reusable block of instructions | `local function doSomething() ... end` |
+| **Parameter** | Input that a function receives | `function greet(name)` |
+| **Return** | Value that a function sends back | `return x * 2` |
+
+<Quiz
+  question="Which line correctly creates a variable named 'speed' with value 100?"
+  id="beginner-q6"
+  options={[
+    { text: "speed = 100" },
+    { text: "local speed = 100", correct: true },
+    { text: "var speed = 100" },
+    { text: "let speed = 100" },
+  ]}
+  explanation="In Luau, use 'local' to create variables. 'var' and 'let' are from other languages."
+/>
+
+---
+
+## Now Let's Look at a Rive Script
+
+Here's the simplest possible Rive script. Don't worry - we'll explain every line:
+
+```lua
+--!strict
+
+export type MyScript = {}
+
+function init(self: MyScript): boolean
+    print("Script started!")
+    return true
+end
+
+function draw(self: MyScript, renderer: Renderer)
+    -- Drawing code goes here
+end
+
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**That's a lot of code to do almost nothing!** But each part has a purpose. Let's go through them one by one.
+
+---
+
+## Part 1: Strict Mode
+
+```lua
+--!strict
+```
+
+This line turns on **strict mode** - a helper that checks your code for mistakes before it runs.
+
+- `--` normally starts a comment (text the computer ignores)
+- But `--!strict` is special - it's an instruction to enable checking
+
+**Think of it like a spell-checker** for your code. It underlines problems before you even run the script.
+
+:::tip
+Strict mode is optional but highly recommended. It catches typos and mistakes early!
+:::
+
+<Quiz
+  question="What does --!strict do?"
+  id="beginner-q7"
+  options={[
+    { text: "Makes the script run faster" },
+    { text: "Turns on checking that catches mistakes early", correct: true },
+    { text: "Adds strict security" },
+    { text: "Nothing, it's just a comment" },
+  ]}
+  explanation="--!strict enables the type checker, which analyzes your code and warns you about potential problems before you run it."
+/>
+
+---
+
+## Part 2: Defining Your Data
+
+```lua
+export type MyScript = {}
+```
+
+This line describes what data your script will store. Right now the `{}` is empty, but you'd add your variables here:
+
+```lua
+export type MyScript = {
+    score: number,      -- I'll store a number called "score"
+    playerName: string, -- I'll store text called "playerName"
+}
+```
+
+**Why do this?** Two reasons:
+1. **Documentation** - Anyone reading your code knows what data it uses
+2. **Error checking** - Strict mode can warn you if you try to use data you didn't declare
+
+The `export` keyword makes this type definition visible to Rive.
+
+<FillBlanks
+  id="beginner-fill-3"
+  code={`-- Define a script type that stores:
+-- - a number called "health"
+-- - a boolean called "isAlive"
+
+export type Player = {
+    health: __BLANK__,
+    isAlive: __BLANK__,
+}`}
+  blanks={["number", "boolean"]}
+  hints={["The type for numeric values", "The type for true/false values"]}
+  explanation="When defining your script's data, you specify the type of each value: number, string, or boolean."
+/>
+
+---
+
+## Part 3: The Init Function (Runs Once)
+
+```lua
+function init(self: MyScript): boolean
+    print("Script started!")
+    return true
+end
+```
+
+This function runs **once** when your script starts. It's where you set up initial values.
+
+Let's decode the first line:
+
+| Part | Meaning |
+|------|---------|
+| `function init` | We're defining a function called "init" |
+| `(self: MyScript)` | It receives your script's data as "self" |
+| `: boolean` | It must return true or false |
+
+**What is `self`?** It's your script's personal storage - all the variables you defined in your type. You access them with `self.variableName`.
+
+**Why return true or false?**
+- `return true` = "Everything is fine, keep running"
+- `return false` = "Something went wrong, stop the script"
+
+<Quiz
+  question="When does the init function run?"
+  id="beginner-q8"
+  options={[
+    { text: "Every frame (60 times per second)" },
+    { text: "Once, when the script first starts", correct: true },
+    { text: "When you click something" },
+    { text: "Never, it's just for show" },
+  ]}
+  explanation="init runs exactly once when your script starts. Use it to set up initial values and create objects you'll need later."
+/>
+
+<Quiz
+  question="What does 'return true' mean in init?"
+  id="beginner-q9"
+  options={[
+    { text: "The script calculated something true" },
+    { text: "Initialization succeeded, keep the script running", correct: true },
+    { text: "Debug mode is on" },
+    { text: "The script should restart" },
+  ]}
+  explanation="Returning true from init tells Rive that setup was successful and the script should continue running."
+/>
+
+---
+
+## Part 4: The Draw Function (Renders Graphics)
+
+```lua
+function draw(self: MyScript, renderer: Renderer)
+    -- Drawing code goes here
+end
+```
+
+This function is called when Rive needs to display your graphics. The `renderer` parameter is your tool for drawing shapes.
+
+**Important rules for draw:**
+- Only draw things here - don't change your data
+- It might be called multiple times per second
+- Even if you're not drawing anything, this function must exist
+
+<Quiz
+  question="What is the draw function for?"
+  id="beginner-q10"
+  options={[
+    { text: "Setting up initial values" },
+    { text: "Updating game logic" },
+    { text: "Rendering graphics to the screen", correct: true },
+    { text: "Handling user input" },
+  ]}
+  explanation="The draw function is specifically for rendering - telling Rive what to display on screen."
+/>
+
+---
+
+## Part 5: The Factory Function (Creates Instances)
+
+This is the trickiest part. Bear with me:
+
+```lua
+return function(): Node<MyScript>
+    return {
+        init = init,
+        draw = draw,
+    }
+end
+```
+
+**Why is this necessary?**
+
+Imagine you attach your script to 5 different shapes. Each shape needs its own separate data. If they shared the same variables, changing one would change all of them!
+
+The **factory function** creates a fresh copy of your script for each shape. Every time Rive needs a new instance, it calls this function to get one.
+
+Think of it like a cookie cutter:
+- The factory function is the cookie cutter
+- Each shape gets its own fresh cookie (instance)
+- They all look the same but are separate cookies
+
+<Quiz
+  question="Why does a Rive script need a factory function?"
+  id="beginner-q11"
+  options={[
+    { text: "To make the code run faster" },
+    { text: "To create separate data for each shape using the script", correct: true },
+    { text: "It's optional, just for style" },
+    { text: "To connect to the internet" },
+  ]}
+  explanation="The factory function creates a fresh set of data for each shape. Without it, all shapes would share the same variables!"
+/>
+
+---
+
+## Putting It All Together
+
+Now let's arrange these parts in the correct order:
+
+<ParsonsProblem
+  id="beginner-parsons-1"
+  title="Arrange the Script Parts"
+  description="Put these parts in the order they appear in a Rive script:"
+  blocks={[
+    "--!strict",
+    "export type MyScript = { }",
+    "function init(self: MyScript): boolean ... end",
+    "function draw(self: MyScript, renderer: Renderer) ... end",
+    "return function(): Node<MyScript> ... end"
+  ]}
+  hint="Start with strict mode, then type definition, then the functions, and finally the factory."
+  explanation="Rive scripts follow this order: strict mode directive, type definition, lifecycle functions, and finally the factory function that returns everything."
+/>
+
+---
+
+## A Real Example: Pulsing Circle
+
+Here's a complete script that draws a pulsing circle. Notice how each part we learned fits together:
+
+```lua
+--!strict
+
+export type PulsingCircle = {
+    time: number,           -- Tracks elapsed time
+    size: number,           -- Current circle size
+}
+
+function init(self: PulsingCircle): boolean
+    self.time = 0           -- Start at time 0
+    self.size = 50          -- Start at size 50
+    print("Circle ready!")
+    return true             -- Success!
+end
+
+function advance(self: PulsingCircle, elapsed: number): boolean
+    self.time = self.time + elapsed    -- Add time that passed
+    self.size = 50 + math.sin(self.time * 3) * 20  -- Pulse between 30 and 70
+    return true
+end
+
+function draw(self: PulsingCircle, renderer: Renderer)
+    -- Drawing code would go here
+    -- (We'll learn this in later lessons)
+end
+
+return function(): Node<PulsingCircle>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        time = 0,
+        size = 50,
+    }
+end
+```
+
+**New thing: `advance`** - This function runs repeatedly (every animation frame) for updating values over time. We'll cover this more in future lessons.
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What does 'self' represent in a Rive script?"
+  id="beginner-q12"
+  options={[
+    { text: "The Rive editor" },
+    { text: "The computer's memory" },
+    { text: "Your script's personal data storage", correct: true },
+    { text: "A reserved keyword that can't be changed" },
+  ]}
+  explanation="'self' is your script's data object. It contains all the variables defined in your type, and is passed to each function so you can read and update your data."
+/>
+
+<Quiz
+  question="Which parts are REQUIRED in every Node script?"
+  id="beginner-q13"
+  options={[
+    { text: "Just init" },
+    { text: "Just draw" },
+    { text: "init, draw, and the factory function", correct: true },
+    { text: "Only the factory function" },
+  ]}
+  explanation="Every Node script needs init (for setup), draw (for rendering), and the factory function (to create instances)."
+/>
+
+---
+
+## Summary: The Script Pattern
+
+Every Rive script follows this pattern:
+
+1. **`--!strict`** - Enable error checking (recommended)
+2. **`export type`** - Declare what data your script stores
+3. **`function init`** - Set up initial values (runs once)
+4. **`function draw`** - Render graphics (runs on repaint)
+5. **`return function()`** - Factory that creates instances
+
+Once this pattern clicks, you'll recognize it in every Rive script!
+
+---
+
+## What's Next?
+
+Now that you understand the basics, you have two paths:
+
+- **Continue learning step by step:** Go to [Variables, Types & Operators](/fundamentals/variables) to deepen your Luau knowledge
+- **See more script structure details:** Check [How Rive Scripts Work](/getting-started/how-rive-scripts-work) for comparisons to JavaScript and After Effects
+
+You've got this! 🎉

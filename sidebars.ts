@@ -19,6 +19,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/welcome',
         'getting-started/why-luau',
+        'getting-started/your-first-script',
         'getting-started/how-rive-scripts-work',
       ],
     },
