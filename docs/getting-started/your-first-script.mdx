@@ -14,6 +14,7 @@ keywords:
 import Quiz from '@site/src/components/Quiz';
 import FillBlanks from '@site/src/components/FillBlanks';
 import ParsonsProblem from '@site/src/components/ParsonsProblems';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
 # Your First Rive Script
@@ -516,46 +517,205 @@ Now let's arrange these parts in the correct order:
 
 ---
 
-## A Real Example: Pulsing Circle
+## Exercise: Your First Working Script ⭐ {#exercise-your-first-working-script}
 
-Here's a complete script that draws a pulsing circle. Notice how each part we learned fits together:
+### Premise
+
+Now it's time to create a real script in Rive! This exercise walks you through the complete process: creating a script, attaching it to a shape, and seeing it run.
+
+:::info Goal
+By the end of this exercise, you will have created and run your first Rive script, seen console output, and understood what happens when something goes wrong.
+:::
+
+### Use Case
+
+This is the foundation for everything you'll build in Rive scripts.
+
+**What you'll learn:**
+- How to create a Node Script in Rive
+- How to attach a script to a shape
+- How to see console output
+- What errors look like in the Problems panel
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create a new file** (or use an existing one)
+
+2. **Draw any shape:**
+   - Use the Rectangle or Ellipse tool to draw a shape on the Artboard
+   - This gives your script something to attach to
+
+3. **Create the script:**
+   - Go to the Assets panel (left side)
+   - Click `+` → Script → **Node Script**
+   - Name it `MyFirstScript`
+
+4. **Open the Console:**
+   - Menu: View → Console
+   - This is where `print()` messages appear
+
+5. **Open the Problems panel:**
+   - Menu: View → Problems
+   - This is where errors appear
+
+---
+
+### Starter Code
+
+Copy and paste this entire script into the Rive script editor:
 
 ```lua
 --!strict
 
-export type PulsingCircle = {
-    time: number,           -- Tracks elapsed time
-    size: number,           -- Current circle size
+export type MyFirstScript = {
+    message: string,
+    counter: number,
 }
 
-function init(self: PulsingCircle): boolean
-    self.time = 0           -- Start at time 0
-    self.size = 50          -- Start at size 50
-    print("Circle ready!")
-    return true             -- Success!
-end
+function init(self: MyFirstScript): boolean
+    -- This runs once when the script starts
+    print("=== MY FIRST SCRIPT ===")
+    print("init() is running!")
+    print("Message: " .. self.message)
 
-function advance(self: PulsingCircle, elapsed: number): boolean
-    self.time = self.time + elapsed    -- Add time that passed
-    self.size = 50 + math.sin(self.time * 3) * 20  -- Pulse between 30 and 70
+    self.counter = 0
+
+    print("Setup complete!")
+    print("ANSWER: success")
     return true
 end
 
-function draw(self: PulsingCircle, renderer: Renderer)
-    -- Drawing code would go here
-    -- (We'll learn this in later lessons)
+function advance(self: MyFirstScript, elapsed: number): boolean
+    -- This runs every frame
+    self.counter = self.counter + 1
+
+    -- Only print for the first 3 frames (to avoid spam)
+    if self.counter <= 3 then
+        print("advance() frame #" .. self.counter)
+    end
+
+    return true
 end
 
-return function(): Node<PulsingCircle>
+function draw(self: MyFirstScript, renderer: Renderer)
+    -- This runs when graphics need to be drawn
+    -- We're not drawing anything yet - that comes later!
+end
+
+return function(): Node<MyFirstScript>
     return {
         init = init,
         advance = advance,
         draw = draw,
-        time = 0,
-        size = 50,
+        message = "Hello from Rive!",
+        counter = 0,
     }
 end
 ```
+
+---
+
+### Assignment
+
+Complete these steps:
+
+1. **Paste the code** into your Node Script
+2. **Attach the script to your shape:**
+   - Select your shape on the Artboard
+   - In the Inspector (right panel), find "Scripts"
+   - Click `+` and select `MyFirstScript`
+3. **Press Play** (the ▶ button or spacebar)
+4. **Check the Console** - you should see the messages from `print()`
+5. **Find the `ANSWER:` line** and copy it into the validator
+
+---
+
+### Expected Output
+
+Your Console should show something like:
+
+```
+=== MY FIRST SCRIPT ===
+init() is running!
+Message: Hello from Rive!
+Setup complete!
+ANSWER: <your result>
+advance() frame #1
+advance() frame #2
+advance() frame #3
+```
+
+Copy the `ANSWER:` line from your Console into the validator below.
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="beginner-first-script-1"
+    expectedAnswer="ANSWER: success"
+/>
+
+---
+
+### What If Something Goes Wrong?
+
+Let's intentionally break the script to see what errors look like!
+
+#### Try This: Remove `return true`
+
+1. In your `init` function, delete the line `return true`
+2. Check the **Problems panel**
+
+You'll see an error like:
+```
+Type 'nil' could not be converted into 'boolean'
+```
+
+This is the type checker telling you: "You said init returns a boolean, but you're not returning anything!"
+
+**Fix it:** Add `return true` back.
+
+---
+
+#### Try This: Misspell a Variable
+
+1. Change `self.counter` to `self.countr` (typo!)
+2. Check the **Problems panel**
+
+You'll see:
+```
+Key 'countr' not found in type 'MyFirstScript'
+```
+
+The type checker caught your typo before you even ran the script!
+
+**Fix it:** Correct the spelling back to `self.counter`.
+
+---
+
+### Checklist
+
+- [ ] Script created and named
+- [ ] Script attached to a shape
+- [ ] Pressed Play and script ran
+- [ ] Console shows the expected messages
+- [ ] `ANSWER:` line appears in Console and validated successfully
+- [ ] (Bonus) Tried breaking the script and saw errors in Problems panel
+
+---
+
+### Key Points
+
+- **print()** sends messages to the Console - essential for debugging
+- **init()** runs once at startup - you'll see its messages first
+- **advance()** runs every frame - limit your prints to avoid spam!
+- **Problems panel** shows errors before you run - the type checker is your friend
+- **return true** in init means "everything worked, keep running"
 
 **New thing: `advance`** - This function runs repeatedly (every animation frame) for updating values over time. We'll cover this more in future lessons.
 
