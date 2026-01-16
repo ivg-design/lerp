@@ -12,6 +12,7 @@
 ../lerp-work/
 .dev-docs/
 .claude/
+test-scripts/
 
 # Misc
 .DS_Store
