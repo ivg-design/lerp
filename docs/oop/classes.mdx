@@ -39,13 +39,13 @@ import Term from '@site/src/components/Term';
 | Method definition | N/A | `method() { ... }` | `function MyClass:method() ... end` |
 | Access `this`/`self` | `this` | `this.x` | `self.x` |
 
-:::danger Critical Difference: The Double-Cast Pattern
-In Luau's strict mode, you can't directly return a table with a metatable as a typed object.
+:::info The Double-Cast Pattern
+In Luau's strict mode, the double-cast pattern helps the type checker understand metatable-based objects.
 
 **TypeScript** infers constructor return types automatically.
-**Luau** requires explicit type assertions: `(self :: any) :: MyType`.
+**Luau** benefits from explicit type assertions: `(self :: any) :: MyType`.
 
-This looks strange but is **required** for type safety. Think of it as telling Luau: "Trust me, this table is the shape I defined."
+This pattern is **recommended** for better type inference, though classes work at runtime without it. Think of it as telling Luau: "Trust me, this table is the shape I defined."
 :::
 
 ---
@@ -94,7 +94,7 @@ end
 return MyClass
 ```
 
-**Key detail:** In `--!strict`, the double cast `(self :: any) :: MyClass` is required so Luau accepts the metatable instance.
+**Key detail:** In `--!strict`, the double cast `(self :: any) :: MyClass` helps the type checker understand the metatable instance. While not strictly required at runtime, it improves type inference for methods.
 
 ---
 
@@ -843,16 +843,16 @@ obj.method()  -- self is nil!
 obj:method()  -- self is obj
 ```
 
-### 4. Missing Double Cast in Strict Mode
+### 4. Double Cast for Better Type Inference
 
 ```lua
--- WRONG: Strict mode rejects this
+-- Works at runtime, but may give type warnings
 function MyClass.new(): MyClass
     local self = setmetatable({}, MyClass)
-    return self  -- Type error!
+    return self  -- May show type warning in strict mode
 end
 
--- CORRECT: Double cast
+-- RECOMMENDED: Double cast for cleaner type checking
 function MyClass.new(): MyClass
     local self = setmetatable({}, MyClass)
     return (self :: any) :: MyClass

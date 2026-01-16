@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | Watch for changes | `posterizeTime()` or manual check | `update(self)` callback |
 | Default value | Set in Effect Controls Panel | Set in factory return table |
 | Property binding | Link expression to property | `context:viewModel()` |
-| Read-only input | N/A (AE controls are always editable) | `Input<T>` (read-only by design) |
+| Read-only input | N/A (AE controls are always editable) | `Input<T>` (read-only by convention, not runtime-enforced) |
 | Two-way binding | Not native (requires workarounds) | <Term>ViewModel</Term> `.value` setter |
 
 :::info Input Access in This Course
@@ -50,9 +50,10 @@ In this version of Rive scripting, inputs are read directly (e.g., `self.size`).
 Script inputs are how designers control your script from the Rive UI. You define them in the script type and provide defaults in the factory return table.
 
 **Key rules:**
-- Inputs are **read-only** in scripts (read them directly)
+- Inputs are **intended to be read-only** in scripts (read them directly, don't reassign)
+- While not runtime-enforced, writing to inputs bypasses the editor binding system
 - Use `update(self)` to respond to changes
-- Use `late()` for inputs that are assigned in the editor (ViewModel or <Term>Artboard</Term> inputs)
+- Use `late()` or `nil` for inputs that are assigned in the editor (ViewModel or <Term>Artboard</Term> inputs)
 
 ---
 
@@ -823,30 +824,27 @@ local half = self.size.value / 2
 local half = self.size / 2
 ```
 
-### 2. Using Regular Values Instead of late() for ViewModel Inputs
+### 2. ViewModel Inputs: late() vs nil
 
 ```lua
--- WRONG: ViewModel reference needs late()
+-- Both work at runtime:
 return function(): Node<MyNode>
     return {
-        character = nil,  -- Won't work!
-    }
-end
-
--- CORRECT: Use late() for editor-assigned inputs
-return function(): Node<MyNode>
-    return {
-        character = late(),
+        character = nil,    -- Works!
+        -- OR
+        character = late(), -- Also works (recommended for type safety)
     }
 end
 ```
 
-### 3. Trying to Set Input Values in Scripts
+**Note:** `late()` is recommended for type safety in `--!strict` mode, but `nil` works identically at runtime.
+
+### 3. Reassigning Input Values in Scripts
 
 ```lua
--- WRONG: Inputs are read-only
+-- NOT RECOMMENDED: Inputs are intended to be read-only
 function advance(self: MyNode, seconds: number): boolean
-    self.size = 100  -- ERROR: Cannot set Input value
+    self.size = 100  -- Works but bypasses editor binding
     return true
 end
 
@@ -857,6 +855,8 @@ function advance(self: MyNode, seconds: number): boolean
     return true
 end
 ```
+
+**Note:** While reassigning Input values doesn't cause a runtime error, it bypasses the editor's data binding system. Always use ViewModel properties for two-way binding.
 
 ### 4. Rebuilding in advance() Instead of update()
 

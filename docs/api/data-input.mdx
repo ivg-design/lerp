@@ -37,7 +37,7 @@ Input<Artboard<Data.ViewModelName>>
 
 ### Access
 
-Inputs are **read-only** from scripts and accessed directly (for example, `self.speed`, not `self.speed.value`).
+Inputs are **intended to be read-only** from scripts and accessed directly (for example, `self.speed`, not `self.speed.value`). While you can technically assign to Input fields at runtime, this is not enforced and doing so bypasses the editor's data binding.
 
 **Note:** ViewModel properties (`Property<T>`) use `.value`. Inputs do not.
 
@@ -45,7 +45,7 @@ Inputs are **read-only** from scripts and accessed directly (for example, `self.
 
 Use `update(self)` to react to input changes, or cache the previous value on `self` and compare it each update.
 
-**Note:** Scripts cannot modify input values directly. Use ViewModel properties for two-way binding.
+**Note:** While Input values can technically be reassigned at runtime, this bypasses the binding system. Use ViewModel properties (`Property<T>`) for two-way binding.
 
 **See Also:** [Property](#property), [ViewModel](#viewmodel)
 

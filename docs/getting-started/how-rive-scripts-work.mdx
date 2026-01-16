@@ -33,8 +33,8 @@ When you create a script in Rive, you'll see this. Here's what each part does:
 | `--!strict` | **Enable type checking (RECOMMENDED)** |
 | `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
 | `function init(self: MyNode) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, return true to continue |
-| `function advance(self, seconds) ... end` | **Runs EVERY FRAME (optional)** — Animation, physics, return true to keep running |
-| `function draw(self, renderer) ... end` | **Runs EVERY FRAME (REQUIRED)** — Draw paths with renderer, apply transforms |
+| `function advance(self, seconds) ... end` | **Runs every animation frame (optional)** — Animation, physics, return true to keep running |
+| `function draw(self, renderer) ... end` | **Runs when canvas repaints (REQUIRED)** — Draw paths with renderer, should be pure (no state changes) |
 | `return function(): Node<MyNode> ... end` | **Factory function (REQUIRED)** — Creates fresh instance per node, wire up lifecycle functions, set `Input<T>` defaults, use `late()` for runtime values |
 
 ---
@@ -252,7 +252,7 @@ function init(self /*: MyScript */) /*: boolean */ {
 
 ---
 
-### 4. `function draw(self: MyScript, renderer: Renderer)` — Rendering Every Frame
+### 4. `function draw(self: MyScript, renderer: Renderer)` — Rendering on Repaint
 
 ```lua
 function draw(self: MyScript, renderer: Renderer)
@@ -260,7 +260,7 @@ function draw(self: MyScript, renderer: Renderer)
 end
 ```
 
-**What it does:** Called every frame when Rive needs to draw your graphics.
+**What it does:** Called when Rive needs to repaint your graphics. This may happen multiple times per frame or less frequently depending on rendering needs.
 
 **Why it exists:** Rive's rendering system needs to know what to draw. The `renderer` parameter is how you tell Rive to draw shapes, paths, etc.
 
@@ -408,21 +408,25 @@ return function(): Node<MyScript>
 end
 ```
 
-**What it does:** `late()` is a placeholder that says "this value will be set later, in `init()`."
+**What it does:** `late()` is a type-safe placeholder that says "this value will be set later, in `init()`."
 
-**Why it exists:** The factory function runs BEFORE your script is fully attached to a node. At that moment:
-- You can't create Rive objects like `Path.new()` or `Paint.new()` yet
-- You don't know the actual input values from the Editor
-- You're just creating the data structure, not running the script
+**Why it exists:** The factory function runs BEFORE `init()`. While you CAN create objects like `Path.new()` in the factory, it's better to use `late()` because:
+- Objects created in factory are shared across instances
+- Creating in `init()` ensures each node gets unique objects
+- `late()` satisfies the type checker in `--!strict` mode
 
-So `late()` is like writing "TBD" — it satisfies the type checker while promising you'll fill in the real value in `init()`.
+So `late()` is like writing "TBD" — it's a type-safe placeholder for values you'll set in `init()`.
 
 **The simple rule:**
 
 | Type | In Factory | Why |
 |------|-----------|-----|
 | `Input<T>` | Direct value: `speed = 100` | Default shown in Editor |
-| Everything else | `late()` | Created in `init()` |
+| Objects for init() | `late()` (recommended) | Type-safe, created per-instance in `init()` |
+
+:::tip
+`nil` also works at runtime, but `late()` is preferred for type safety in strict mode.
+:::
 
 **Example:**
 ```lua
@@ -529,7 +533,7 @@ function advance(self: PulsingCircle, elapsed: number): boolean
     return true
 end
 
--- ⑤ Drawing (runs every frame)
+-- ⑤ Drawing (runs on canvas repaint - keep pure!)
 function draw(self: PulsingCircle, renderer: Renderer)
     renderer:drawPath(self.path, self.paint)
 end
@@ -576,7 +580,7 @@ flowchart TD
 
 | Concept | After Effects | Luau/Rive |
 |---------|--------------|-----------|
-| Run timing | Evaluates for each frame | `advance()` and `draw()` run each frame |
+| Run timing | Evaluates for each frame | `advance()` runs each frame, `draw()` on repaint |
 | Setup code | `if (time === 0)` check | `init()` function |
 | Persistent data | Not available | `self.variableName` |
 | Types | None | `export type`, annotations |

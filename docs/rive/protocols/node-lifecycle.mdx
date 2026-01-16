@@ -76,9 +76,9 @@ Rive calls your script functions in a specific order. Understanding this lets yo
 
 **Lifecycle order:**
 1. `init(self, context)` - runs once at startup
-2. `update(self, context)` - runs when any <Term>Input</Term> changes
-3. `advance(self, seconds, context)` - runs every frame (logic)
-4. `draw(self, renderer)` - runs every frame after `advance` (rendering)
+2. `update(self)` - runs when any <Term>Input</Term> changes (NO context param!)
+3. `advance(self, seconds)` - runs every animation frame (logic)
+4. `draw(self, renderer)` - runs on canvas repaint (rendering, keep pure!)
 
 Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user interacts with the script node.
 
@@ -90,11 +90,11 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 |----------|---------|-----------|------------------|
 | **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
 | **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
-| **advance** | Update time-based state (movement, physics, timers) | Every frame | `requestAnimationFrame` logic |
-| **draw** | Issue <Term>Renderer</Term> commands only | Every frame | Canvas `ctx.draw()` calls |
+| **advance** | Update time-based state (movement, physics, timers) | Every animation frame | `requestAnimationFrame` logic |
+| **draw** | Issue <Term>Renderer</Term> commands only (no state changes!) | On canvas repaint | Canvas `ctx.draw()` calls |
 
 :::tip Performance Rule
-Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry every frame wastes resources if inputs haven't changed.
+Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry in `advance` (called every frame) wastes resources if inputs haven't changed.
 :::
 
 ---
@@ -775,14 +775,14 @@ ANSWER: <your result>
     { text: "init, advance, update, draw" },
     { text: "update, init, draw, advance" },
   ]}
-  explanation="The lifecycle runs: init (once), then update (on input change), advance (every frame), and draw (every frame after advance)."
+  explanation="The lifecycle runs: init (once), then update (on input change), advance (every animation frame), and draw (on canvas repaint)."
 />
 
 <Quiz
   question="When should you rebuild geometry in a Node script?"
   id="lifecycle-q2"
   options={[
-    { text: "In draw, every frame" },
+    { text: "In draw, on every repaint" },
     { text: "In advance, every frame" },
     { text: "In update, when inputs change", correct: true },
     { text: "Never, geometry is immutable" },

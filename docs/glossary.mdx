@@ -293,7 +293,7 @@ end
 
 ### draw() {#draw}
 
-A lifecycle function for rendering. Called every frame after `advance()`. Must not modify state or rebuild paths—keep it lightweight.
+A lifecycle function for rendering. Called on canvas repaint (not necessarily every frame). Must not modify state or rebuild paths—keep it lightweight.
 
 ```lua
 function draw(self: MyScript, renderer: Renderer)
@@ -738,7 +738,7 @@ until condition
 
 ### late() {#late}
 
-A special Rive initializer for properties that will be set in `init()` rather than in the factory function. Required for Rive types like <Term>Path</Term>, Paint, and computed values.
+A type-safe placeholder for properties that will be set in `init()` rather than in the factory function. Recommended (not required) for <Term>Path</Term>, Paint, and computed values when using `--!strict` mode.
 
 ```lua
 export type MyScript = {
@@ -751,12 +751,14 @@ return function(): Node<MyScript>
     return {
         init = init,
         draw = draw,
-        path = late(),      -- Will be created in init()
-        paint = late(),     -- Will be created in init()
-        computed = late(),  -- Will be calculated in init()
+        path = late(),      -- Type-safe placeholder for init()
+        paint = late(),     -- Type-safe placeholder for init()
+        computed = late(),  -- Type-safe placeholder for init()
     }
 end
 ```
+
+**Note:** `nil` also works at runtime, but `late()` provides type safety in strict mode.
 
 **Learn more:** [The late() Initializer](/types/late-initializer)
 
@@ -770,8 +772,8 @@ The sequence of functions Rive calls on your script: `init` → `update` → `ad
 |----------|-------------|---------|
 | `init` | Once at start | Setup, create objects |
 | `update` | When inputs change | React to <Term>Input</Term> changes |
-| `advance` | Every frame | Animation, physics |
-| `draw` | Every frame | Rendering |
+| `advance` | Every animation frame | Animation, physics |
+| `draw` | On canvas repaint | Rendering (pure, no state changes) |
 
 **Learn more:** [The Lifecycle](/rive/protocols/node-lifecycle)
 
@@ -1195,7 +1197,7 @@ end
 Enabled with `--!strict`, this mode activates Luau's type checker. Strongly recommended for Rive scripts to catch errors early.
 
 ```lua
---!strict  -- Must be first line
+--!strict  -- Recommended near top of file
 
 export type MyScript = {
     count: number,  -- Type required

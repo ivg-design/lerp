@@ -136,10 +136,10 @@ Every Node script you write will follow this structure. The exported type define
 
 | Function | Required | Parameters | Return | Called When |
 |----------|----------|------------|--------|-------------|
-| `init` | ✅ Yes | `self`, `context?` | `boolean` | Once at startup |
-| `draw` | ✅ Yes | `self`, `renderer` | none | Every frame |
-| `update` | Optional | `self`, `context?` | none | <Term>Input</Term> changes |
-| `advance` | Optional | `self`, `seconds`, `context?` | `boolean` | Every frame (before draw) |
+| `init` | ✅ Yes | `self`, `context` | `boolean` | Once at startup |
+| `draw` | ✅ Yes | `self`, `renderer` | none | On canvas repaint |
+| `update` | Optional | `self` | none | <Term>Input</Term> changes |
+| `advance` | Optional | `self`, `seconds` | `boolean` | Every animation frame |
 | `pointerDown` | Optional | `self`, `position` | `boolean` | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `position` | `boolean` | Mouse/touch move |
 | `pointerUp` | Optional | `self`, `position` | `boolean` | Mouse/touch up |
@@ -675,7 +675,7 @@ ANSWER: <your result>
     { text: "In the advance function" },
     { text: "In the factory return table only" },
   ]}
-  explanation="Create long-lived objects like Path and Paint in init. Creating them in draw would waste resources by recreating them every frame."
+  explanation="Create long-lived objects like Path and Paint in init. Creating them in draw would waste resources by recreating them on every repaint."
 />
 
 <Quiz
@@ -739,32 +739,34 @@ return function(): Node<MyNode>
 end
 ```
 
-### 3. Using self Before init
+### 3. Factory vs init() Object Creation
 
 ```lua
--- WRONG: Trying to use self in factory
+-- WORKS but not recommended: Creating in factory
 return function(): Node<MyNode>
     return {
         init = init,
         draw = draw,
-        path = Path.new(),  -- ERROR: Can't call in factory
+        path = Path.new(),  -- Works, but shared across all instances!
     }
 end
 
--- CORRECT: Use late() and initialize in init()
+-- RECOMMENDED: Use late() and initialize in init()
 return function(): Node<MyNode>
     return {
         init = init,
         draw = draw,
-        path = late(),
+        path = late(),  -- Type-safe placeholder
     }
 end
 
 function init(self: MyNode): boolean
-    self.path = Path.new()  -- Create here
+    self.path = Path.new()  -- Each instance gets its own path
     return true
 end
 ```
+
+**Why init() is preferred:** Objects created in the factory are shared. Creating in `init()` ensures each node instance gets unique objects.
 
 ---
 

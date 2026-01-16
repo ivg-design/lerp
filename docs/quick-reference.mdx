@@ -57,9 +57,9 @@ end
 
 ## Lifecycle Order
 1. `init(self, context)` - once on start
-2. `update(self, context)` - when inputs change
-3. `advance(self, seconds, context)` - every frame
-4. `draw(self, renderer)` - every frame after advance
+2. `update(self)` - when inputs change (NO context param!)
+3. `advance(self, seconds)` - every animation frame
+4. `draw(self, renderer)` - on canvas repaint (keep pure, no state changes!)
 
 ---
 

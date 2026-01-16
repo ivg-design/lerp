@@ -49,11 +49,11 @@ In JavaScript, you typically use classes with constructors. In Rive, you use an 
 
 ## Rive Context
 
-Rive scripts run in `--!strict` mode by default. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
+Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended.
 
 **Why does this matter?** The Rive editor uses your `export type` to understand what properties your script has. This enables autocomplete, error checking, and proper input binding.
 
-**Why strict typing is enforced:** Rive scripts run inside an editor and runtime that must be safe and predictable. Strict typing prevents ambiguous state and catches errors before you hit Play, which is critical when scripts drive animation or user interaction.
+**Why use strict typing?** Rive scripts run inside an editor and runtime that should be safe and predictable. Strict typing prevents ambiguous state and catches errors before you hit Play, which is helpful when scripts drive animation or user interaction.
 
 Key rules in Rive:
 - Use `export type` to describe your script instance (`self`)
@@ -326,7 +326,7 @@ Your console output should display the computed range (max minus min) from the t
 
 ### Premise
 
-`Input<T>` values are editor-controlled and read-only in scripts. You provide defaults in the factory, then read them in init.
+`Input<T>` values are editor-controlled and intended to be read-only in scripts. You provide defaults in the factory, then read them in init.
 
 :::info Goal
 By the end of this exercise, you will declare `Input<T>` fields and read them safely.
@@ -733,11 +733,11 @@ Your console output should display the formatted result from the typed function 
   id="anno-q2"
   options={[
     { text: "They're the same thing" },
-    { text: "Input&lt;number&gt; is an editor-exposed, read-only input value", correct: true },
+    { text: "Input&lt;number&gt; is an editor-exposed input (read-only by convention)", correct: true },
     { text: "Input&lt;number&gt; is faster" },
     { text: "number can't be used in strict mode" },
   ]}
-  explanation="Input&lt;T&gt; values are controlled by the editor and are read-only in scripts, even though you read them directly."
+  explanation="Input&lt;T&gt; values are controlled by the editor and intended to be read-only in scripts. While reassignment is possible at runtime, it bypasses the binding system."
 />
 
 <Quiz
@@ -766,7 +766,7 @@ Your console output should display the formatted result from the typed function 
 
 :::danger Avoid These Errors
 
-1. **Forgetting `--!strict`**: Always add it as the first line
+1. **Forgetting `--!strict`**: Add it near the top of your file (recommended)
 
 2. **Using plain tables for Rive types**:
    ```lua

@@ -46,6 +46,18 @@ trigger:addListener(function() print("Triggered!") end)
 trigger:fire()  -- Fire from script
 ```
 
+### late() Usage (VERIFIED)
+
+`late()` is **recommended for type safety**, not required:
+```lua
+-- Both work at runtime:
+path = late(),  -- Type-safe placeholder for strict mode
+path = nil,     -- Works, but needs Path? type in strict mode
+
+-- Path.new() CAN be called in factory (it works!)
+-- But init() is preferred so each instance gets its own objects
+```
+
 ### Common Gotchas (ALWAYS CHECK FOR THESE)
 
 | Wrong | Correct |
@@ -56,6 +68,7 @@ trigger:fire()  -- Fire from script
 | `nestedProp:instance()` | `nestedProp.value` |
 | `context:addEventListener()` | Use vm:getTrigger() or Listener protocol |
 | `path:clone()` | Path has no clone - create new Path |
+| "late() is required" | late() is recommended, nil works too |
 
 ### Context Methods (Only 2 exist)
 - `context:viewModel()` - Get ViewModel

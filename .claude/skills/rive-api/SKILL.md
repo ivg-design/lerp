@@ -266,15 +266,17 @@ end
 ```lua
 return function(): Node<MyNode>
     return {
-        -- Input defaults
+        -- Input defaults (direct values)
         speed = 50,
         name = "default",
         enabled = true,
         color = Color.rgb(255, 0, 0),
 
         -- Runtime properties (created in init)
-        path = nil,
-        paint = nil,
+        -- Use late() for type safety in --!strict mode
+        -- Both late() and nil work at runtime
+        path = late(),   -- or nil with Path? type
+        paint = late(),  -- or nil with Paint? type
 
         -- Lifecycle functions
         init = init,
@@ -284,6 +286,11 @@ return function(): Node<MyNode>
     }
 end
 ```
+
+**Note:** `late()` vs `nil`:
+- `late()` — Type-safe placeholder for `--!strict` mode (recommended)
+- `nil` — Works at runtime, requires optional type (`Path?`) in strict mode
+- `Path.new()` — CAN be called in factory, but init() preferred for per-instance objects
 
 ## Online Documentation
 

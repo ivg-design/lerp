@@ -725,11 +725,11 @@ Your console output should display the percent value computed from the generic M
   id="gen-q2"
   options={[
     { text: "They're the same" },
-    { text: "Input&lt;number&gt; is an editor-exposed, read-only input value", correct: true },
+    { text: "Input&lt;number&gt; is an editor-exposed input (read-only by convention)", correct: true },
     { text: "Input&lt;number&gt; is faster" },
     { text: "number can't be used in Rive" },
   ]}
-  explanation="Input&lt;T&gt; values are controlled by the editor and are read-only in scripts, even though you read them directly."
+  explanation="Input&lt;T&gt; values are controlled by the editor and intended to be read-only in scripts. While reassignment is possible at runtime, it bypasses the binding system."
 />
 
 <Quiz

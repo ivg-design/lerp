@@ -53,7 +53,7 @@ If you're coming from After Effects expressions or JavaScript, here's how Luau's
 
 ## Rive Context
 
-Rive scripts run in `--!strict` mode by default. That means your script must define types for persistent state and inputs, and the engine enforces them.
+Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended because it catches type errors during development.
 
 **Why does this matter?** When your animation runs on a user's device, there's no debugger. Strict mode catches bugs during development so your animation works reliably everywhere.
 
@@ -84,7 +84,7 @@ In Module 1, you wrote code that worked—but how do you know it won't break whe
 ```
 
 :::tip Always Use Strict Mode
-Add `--!strict` as the first line of every Rive script. It catches bugs before they become runtime errors.
+Add `--!strict` near the top of every Rive script (recommended). It catches bugs before they become runtime errors.
 :::
 
 ## Basic Type Annotations
@@ -728,7 +728,7 @@ Your console output should display the three state fields with the assigned valu
   id="types-q1"
   type="code"
   answer="--!strict"
-  explanation="Add --!strict as the first line of your script to enable full type checking."
+  explanation="Add --!strict near the top of your script to enable full type checking (it doesn't have to be the first line)."
 />
 
 <Quiz
@@ -773,7 +773,7 @@ Your console output should display the three state fields with the assigned valu
 
 :::danger Avoid These Errors
 
-1. **Forgetting `--!strict`**: Always add it as the first line
+1. **Forgetting `--!strict`**: Add it near the top of your file (recommended)
    ```lua
    -- WRONG: No directive
    export type MyScript = {}

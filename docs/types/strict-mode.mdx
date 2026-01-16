@@ -53,14 +53,14 @@ let result = player.health - damage;  // No error until runtime!
 local result = player.health - damage  -- Error: health might be nil
 ```
 
-This is WHY Rive requires strict mode—your animations must work reliably everywhere, and there's no debugger when they run on users' devices.
+This is WHY strict mode is strongly recommended—your animations must work reliably everywhere, and there's no debugger when they run on users' devices.
 :::
 
 ---
 
 ## Rive Context
 
-Rive scripts run with `--!strict` mode enabled by default. This is not optional—it is a deliberate design choice that ensures:
+Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended because it ensures:
 
 1. **Type safety at compile time**: Errors are caught before your animation runs
 2. **Better editor integration**: Autocomplete knows exact types
@@ -585,7 +585,7 @@ Your console output should display the ratio computed from the typed stats table
 
 ### Premise
 
-`Input<T>` values are read-only, so strict mode will prevent you from assigning to them. Instead, derive writable state from inputs.
+`Input<T>` values are intended to be read-only. While not runtime-enforced, you should derive writable state from inputs rather than reassigning them.
 
 :::info Goal
 By the end of this exercise, you will compute a derived value from an input.
@@ -685,7 +685,7 @@ Your console output should display the adjusted value computed by multiplying th
   id="strict-q1"
   type="code"
   answer="--!strict"
-  explanation="The --!strict directive should be the first line of your script. It enables full type checking which is strongly recommended for catching errors early."
+  explanation="The --!strict directive enables full type checking. Place it near the top of your script (it doesn't have to be the first line). Strongly recommended for catching errors early."
 />
 
 <Quiz
@@ -728,11 +728,11 @@ Your console output should display the adjusted value computed by multiplying th
 
 ## Common Mistakes
 
-:::danger Avoid These Errors
+:::warning Common Issues
 
-1. **Forgetting `--!strict`**: Always add it as the first line—Rive requires it
+1. **Missing `--!strict`**: Add it near the top of your file for type checking (recommended, not required)
    ```lua
-   --!strict  -- MUST be first line
+   --!strict  -- Recommended at top of file
 
    export type MyScript = {}
    ```

@@ -11,6 +11,7 @@
 # Work directories
 ../lerp-work/
 .dev-docs/
+.claude/
 
 # Misc
 .DS_Store

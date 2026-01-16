@@ -138,11 +138,12 @@ end
 
 ### Loop Variable Scope
 
-The loop variable is local to the loop body and **cannot be modified**:
+The loop variable is local to the loop body. You **can** assign to it, but it **won't affect iteration**:
 
 ```lua
 for i = 1, 5 do
-    i = i + 10  -- ERROR: cannot modify loop variable
+    print(i)    -- Still prints 1, 2, 3, 4, 5
+    i = i + 10  -- Assignment works, but doesn't change next iteration
 end
 
 -- If you need to skip values, use continue instead:
@@ -1287,7 +1288,7 @@ Your console output should display the count of vowels (a, e, i, o, u) found in 
 :::danger Common Iteration Errors
 1. **Missing step for countdown** - `for i = 10, 1 do` won't run; need `for i = 10, 1, -1 do`
 2. **Forgetting 1-based indexing** - Arrays start at 1, not 0
-3. **Modifying loop variable** - Can't change `i` inside a numeric for loop
+3. **Expecting loop variable changes to affect iteration** - Assigning to `i` works but doesn't change the loop's progression
 4. **Infinite while loops** - Ensure condition can eventually become false
 5. **break in nested loops** - Only exits innermost loop
 6. **Assuming dictionary order** - Key-value iteration order is NOT guaranteed

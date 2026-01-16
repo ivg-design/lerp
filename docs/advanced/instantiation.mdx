@@ -33,7 +33,7 @@ Rive lets you instance Artboards from script inputs. This is how you build reusa
 **Core steps:**
 1. Add an `Input<Artboard<Data.YourVM>>` to reference a component <Term>Artboard</Term>
 2. Call `self.yourInput:instance()` to create a new instance
-3. Store instances and call `advance()` and `draw()` on them each frame
+3. Store instances and call `advance()` on them in your advance callback, and `draw()` in your draw callback
 
 ---
 
@@ -41,7 +41,7 @@ Rive lets you instance Artboards from script inputs. This is how you build reusa
 
 ### Premise
 
-Dynamic instantiation creates runtime copies of component artboards. You must call advance() and draw() on each instance every frame.
+Dynamic instantiation creates runtime copies of component artboards. You must call advance() on each instance in your advance callback, and draw() in your draw callback.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the spawn function to create instances, and the advance/draw functions to update and render them.
@@ -258,7 +258,7 @@ end
 - Dynamic instantiation bridges designer-built visuals with procedural logic
 - Use `Input<Artboard<Data.YourVM>>` to reference component artboards
 - Call `:instance()` to create new instances at runtime
-- Remember to call `advance()` and `draw()` on each instance every frame
+- Remember to call `advance()` and `draw()` on each instance in your respective callbacks
 - Use object pooling for frequently spawned/despawned objects
 
 ---

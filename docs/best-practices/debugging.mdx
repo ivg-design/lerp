@@ -267,7 +267,7 @@ function advance(self: LifecycleTracer, seconds: number): boolean
 end
 
 function draw(self: LifecycleTracer, renderer: Renderer)
-    -- Note: Avoid printing in draw - it runs every frame!
+    -- Note: Avoid printing in draw - it runs frequently on repaint!
     self.path:reset()
     self.path:moveTo(Vector.xy(-30, -30))
     self.path:lineTo(Vector.xy(30, -30))
@@ -332,7 +332,7 @@ ANSWER: <your result>
 **Key points:**
 - Print in `init` to confirm initialization
 - Limit prints in `advance` to avoid console spam
-- Never print in `draw` - it runs every frame
+- Never print in `draw` - it runs frequently on repaint
 
 ---
 
@@ -918,11 +918,11 @@ end
   id="debugging-q2"
   options={[
     { text: "It causes syntax errors" },
-    { text: "It runs every frame and floods the console", correct: true },
+    { text: "It runs frequently on repaint and floods the console", correct: true },
     { text: "draw() doesn't have access to print()" },
     { text: "It slows down rendering" },
   ]}
-  explanation="The draw function runs every frame (60+ times per second), so print() calls there will flood the console with thousands of messages quickly."
+  explanation="The draw function runs frequently (potentially many times per second on repaint), so print() calls there will flood the console with thousands of messages quickly."
 />
 
 <Quiz

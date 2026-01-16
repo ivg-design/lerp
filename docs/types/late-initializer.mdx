@@ -38,8 +38,8 @@ import Term from '@site/src/components/Term';
 | Factory pattern | `new Class()` or `createThing()` | Factory function returns `Node<T>` |
 | Constructor | `constructor() { this.x = new Path(); }` | `init(self)` lifecycle method |
 
-:::danger Critical Concept: Two-Phase Initialization
-**This is the #1 source of confusion for JavaScript developers!**
+:::info Two-Phase Initialization
+**Understanding factory vs init() timing**
 
 In JavaScript/TypeScript:
 ```javascript
@@ -50,21 +50,24 @@ class MyComponent {
 
 In Rive <Term>Node</Term> Scripts:
 ```lua
--- Factory runs FIRST (keep it lightweight)
+-- Factory runs FIRST
 return function(): Node<MyScript>
     return {
-        path = late(),  -- Placeholder: "I'll set this later"
+        path = late(),  -- Type-safe placeholder for strict mode
     }
 end
 
--- init() runs SECOND (full context - Rive APIs available)
+-- init() runs SECOND (full context available)
 function init(self: MyScript): boolean
-    self.path = Path.new()  -- NOW we can create the path
+    self.path = Path.new()  -- Create the path here
     return true
 end
 ```
 
-The factory function should stay lightweight and focus on defaults/inputs. In most scripts, you create `Path` and `Paint` objects in `init()` and use `late()` as a placeholder in the factory.
+**Note:** You CAN create `Path.new()` directly in the factory—it works! However, placing object creation in `init()` is the recommended pattern because:
+- It keeps factory functions focused on defaults
+- It ensures each instance gets its own objects
+- It makes the initialization order explicit
 :::
 
 ---
@@ -76,11 +79,19 @@ In Rive Node Scripts, objects are created in two phases:
 1. **Factory phase**: The factory function returns a table with property values
 2. **Init phase**: The `init()` function runs and can set up additional state
 
-The problem: Some values are best created after the factory runs. They are either:
+Some values are best created in `init()` rather than in the factory:
 - **Engine-provided**: Values the Rive engine supplies (like <Term>Artboard</Term>-bound inputs)
-- **Init-created**: Values you create or compute in `init()`
+- **Instance-specific**: Values that should be unique per node instance
 
-The `late()` function is a type-safe placeholder that tells the type system: "Trust me, this value will be provided later."
+The `late()` function is a **type-safe placeholder** for `--!strict` mode. It tells the type checker: "This value will be set later."
+
+:::tip late() vs nil
+At runtime, `late()` and `nil` behave identically. The difference is type safety:
+- `late()` — Satisfies the type checker in strict mode
+- `nil` — Works at runtime, but may cause type warnings in strict mode
+
+**Both approaches work!** Use `late()` when you want strict type checking.
+:::
 
 ```lua
 --!strict
@@ -94,7 +105,7 @@ return function(): Node<MyScript>
     return {
         init = init,
         draw = draw,
-        -- Use late() for values created in init()
+        -- late() provides type safety in strict mode
         path = late(),
         paint = late(),
     }
@@ -120,7 +131,9 @@ class MyScript {
 
 ## When to Use late()
 
-### Use late() for:
+`late()` is **recommended** (not required) for type safety in `--!strict` mode.
+
+### Recommended: Use late() for:
 
 1. **Rive objects created in init()**: `Path`, `Paint`, `Font`, etc.
 2. **Computed values**: Values calculated from inputs or other data in init()
@@ -131,6 +144,16 @@ class MyScript {
 1. **Input defaults**: `Input<T>` properties get direct default values
 2. **Constants**: Values known at compile time
 3. **Factory-provided defaults**: Values that don't change
+
+### Alternative: Use nil
+
+If you're not using `--!strict` mode (or using optional types like `Path?`), you can use `nil` instead:
+
+```lua
+-- Both work at runtime:
+path = late(),  -- Type-safe for strict mode
+path = nil,     -- Works, but requires Path? type in strict mode
+```
 
 ---
 
@@ -797,17 +820,17 @@ return function(): Node<MyScript>
 end
 ```
 
-### 2. Mixing Factory Defaults with init-created Objects
+### 2. Factory Creation vs init() Creation
 
 ```lua
--- AVOID: Keep factory light; create objects in init()
+-- WORKS but not recommended: Creating in factory
 return function(): Node<MyScript>
     return {
-        path = Path.new(),  -- Prefer late() + init() in this pattern
+        path = Path.new(),  -- This works, but all instances share the same path!
     }
 end
 
--- CORRECT: Use late() and create in init()
+-- RECOMMENDED: Use late() and create in init()
 return function(): Node<MyScript>
     return {
         path = late(),
@@ -815,10 +838,12 @@ return function(): Node<MyScript>
 end
 
 function init(self: MyScript): boolean
-    self.path = Path.new()  -- Allocate here
+    self.path = Path.new()  -- Each instance gets its own path
     return true
 end
 ```
+
+**Why init() is preferred:** Objects created in the factory are shared across all instances of the script. Creating in `init()` ensures each node gets its own unique `Path` or `Paint` object.
 
 ### 3. Forgetting to Initialize late() Values
 
@@ -886,17 +911,21 @@ enemyArtboard = late(),
 
 ## Summary
 
-| Property Type | Factory Value | Set In |
-|--------------|---------------|--------|
-| `Input<number>` | `100` | Factory (default) |
-| `Input<string>` | `"Hello"` | Factory (default) |
-| `Input<Color>` | `Color.rgba(...)` | Factory (default) |
-| `Input<Artboard<T>?>` | `late()` | Engine-bound |
-| `Path` | `late()` | `init()` |
-| `Paint` | `late()` | `init()` |
-| `Font` | `late()` | `init()` |
-| Computed values | `late()` | `init()` |
-| Collections | `late()` | `init()` |
+| Property Type | Factory Value | Set In | Notes |
+|--------------|---------------|--------|-------|
+| `Input<number>` | `100` | Factory (default) | Direct value required |
+| `Input<string>` | `"Hello"` | Factory (default) | Direct value required |
+| `Input<Color>` | `Color.rgba(...)` | Factory (default) | Direct value required |
+| `Input<Artboard<T>?>` | `late()` | Engine-bound | Engine provides value |
+| `Path` | `late()` or `nil` | `init()` | `late()` recommended for type safety |
+| `Paint` | `late()` or `nil` | `init()` | `late()` recommended for type safety |
+| `Font` | `late()` or `nil` | `init()` | `late()` recommended for type safety |
+| Computed values | `late()` or `nil` | `init()` | `late()` recommended for type safety |
+| Collections | `late()` or `nil` | `init()` | `late()` recommended for type safety |
+
+:::note
+`late()` and `nil` both work at runtime. Use `late()` for type safety in `--!strict` mode.
+:::
 
 ---
 
