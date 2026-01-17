@@ -383,10 +383,10 @@ end
 A signal that something happened, often from user interaction or animation.
 
 ```lua
--- For pointer events, use the Listener protocol
-function pointerDown(self: MyScript, position: Vector): boolean
-    print("Pointer down at:", position.x, position.y)
-    return true  -- Event handled
+-- For pointer events in Node scripts
+function pointerDown(self: MyScript, event: PointerEvent)
+    local pos = event.position
+    print("Pointer down at:", pos.x, pos.y)
 end
 
 -- For ViewModel triggers, use addListener

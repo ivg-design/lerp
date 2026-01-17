@@ -259,19 +259,19 @@ function init(self: StateMachineDemo): boolean
     self.machine.addTransition("walking", "running")
     self.machine.addTransition("running", "walking")
 
-    print(\`Initial: {self.machine.getState()}\`)
+    print(`Initial: {self.machine.getState()}`)
 
     self.machine.transition("walking")
-    print(\`After walking: {self.machine.getState()}\`)
+    print(`After walking: {self.machine.getState()}`)
 
     self.machine.transition("running")
-    print(\`After running: {self.machine.getState()}\`)
+    print(`After running: {self.machine.getState()}`)
 
     -- Try invalid transition (not defined!)
     self.machine.transition("jumping")
-    print(\`Final state: {self.machine.getState()}\`)
+    print(`Final state: {self.machine.getState()}`)
 
-    print(\`ANSWER: {self.machine.getState()}\`)
+    print(`ANSWER: {self.machine.getState()}`)
     return true
 end
 
@@ -419,7 +419,7 @@ export type SpringDemo = {
 function init(self: SpringDemo): boolean
     self.spring = createSpringController(0, 50, 8)
 
-    print(\`Initial position: {self.spring.getPosition()}\`)
+    print(`Initial position: {self.spring.getPosition()}`)
 
     -- Set target to 80
     self.spring.setTarget(80)
@@ -428,17 +428,17 @@ function init(self: SpringDemo): boolean
     for i = 1, 50 do
         self.spring.step(0.01)
     end
-    print(\`After 0.5s: position ~{math.floor(self.spring.getPosition())} (moving toward 80)\`)
+    print(`After 0.5s: position ~{math.floor(self.spring.getPosition())} (moving toward 80)`)
 
     -- Simulate another 0.5 seconds
     for i = 1, 50 do
         self.spring.step(0.01)
     end
-    print(\`After 1.0s: position ~{math.floor(self.spring.getPosition())} (nearly settled)\`)
+    print(`After 1.0s: position ~{math.floor(self.spring.getPosition())} (nearly settled)`)
 
     local status = if self.spring.isMoving() then "moving" else "settled"
-    print(\`Status: {status}\`)
-    print(\`ANSWER: {status}\`)
+    print(`Status: {status}`)
+    print(`ANSWER: {status}`)
 
     return true
 end
@@ -586,18 +586,18 @@ export type ConventionDemo = {
 
 function init(self: ConventionDemo): boolean
     self.sprite = Sprite.new(50, 50, Color.rgb(100, 200, 255))
-    print(\`Created sprite at ({self.sprite.x}, {self.sprite.y})\`)
-    print(\`Initial dirty: {self.sprite._dirty}\`)
+    print(`Created sprite at ({self.sprite.x}, {self.sprite.y})`)
+    print(`Initial dirty: {self.sprite._dirty}`)
 
     -- Trigger draw to call _rebuildPath
     self.sprite:_rebuildPath()
-    print(\`After draw, dirty: {self.sprite._dirty}\`)
+    print(`After draw, dirty: {self.sprite._dirty}`)
 
     -- Use PUBLIC API to change color
     self.sprite:setColor(Color.rgb(255, 100, 100))
     print("Color changed via public API")
 
-    print(\`ANSWER: dirty={self.sprite._dirty}\`)
+    print(`ANSWER: dirty={self.sprite._dirty}`)
     return true
 end
 
@@ -764,13 +764,13 @@ function init(self: ModuleDemo): boolean
     -- Emit particles
     self.system.emit(0, 0, 5)
     print("Emitted 5 particles")
-    print(\`Current count: {self.system.getCount()}\`)
+    print(`Current count: {self.system.getCount()}`)
 
     -- Update simulation
     self.system.update(0.5)
     print("After update (0.5s): some particles still alive")
 
-    print(\`ANSWER: {self.system.getCount()}\`)
+    print(`ANSWER: {self.system.getCount()}`)
     return true
 end
 
@@ -923,22 +923,22 @@ export type ReadOnlyDemo = {
 function init(self: ReadOnlyDemo): boolean
     self.state = createGameState()
 
-    print(\`Starting: Score={self.state.getScore()}, Level={self.state.getLevel()}, Lives={self.state.getLives()}\`)
+    print(`Starting: Score={self.state.getScore()}, Level={self.state.getLevel()}, Lives={self.state.getLives()}`)
 
     self.state.addScore(500)
-    print(\`After 500 points: Score={self.state.getScore()}\`)
+    print(`After 500 points: Score={self.state.getScore()}`)
 
     self.state.addScore(600)  -- Should trigger level up (total 1100)
-    print(\`After 600 more: Score={self.state.getScore()}, Level={self.state.getLevel()}\`)
+    print(`After 600 more: Score={self.state.getScore()}, Level={self.state.getLevel()}`)
 
     self.state.loseLife()
     self.state.loseLife()
-    print(\`After 2 hits: Lives={self.state.getLives()}\`)
+    print(`After 2 hits: Lives={self.state.getLives()}`)
 
     self.state.loseLife()  -- Should trigger game over
-    print(\`Game over: {self.state.isGameOver()}\`)
+    print(`Game over: {self.state.isGameOver()}`)
 
-    print(\`ANSWER: {self.state.isGameOver()}\`)
+    print(`ANSWER: {self.state.isGameOver()}`)
     return true
 end
 
@@ -1117,15 +1117,15 @@ function init(self: CombinedDemo): boolean
     self.countdown = Countdown.new(3)
     print("Created countdown timer (3 seconds)")
 
-    print(\`Initial: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+    print(`Initial: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}`)
 
     -- Simulate 1 second
     self.countdown:update(1)
-    print(\`After 1s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+    print(`After 1s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}`)
 
     -- Simulate another second
     self.countdown:update(1)
-    print(\`After 2s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}\`)
+    print(`After 2s: elapsed={self.countdown._timer.getElapsed()}, remaining={self.countdown._timer.getRemaining()}`)
 
     -- Simulate final second (should complete)
     if self.countdown:update(1) then
@@ -1133,8 +1133,8 @@ function init(self: CombinedDemo): boolean
     end
 
     local status = self.countdown:getStatus()
-    print(\`Final status: {status}\`)
-    print(\`ANSWER: {status}\`)
+    print(`Final status: {status}`)
+    print(`ANSWER: {status}`)
     return true
 end
 

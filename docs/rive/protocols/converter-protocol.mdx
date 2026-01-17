@@ -104,6 +104,43 @@ end
 
 ---
 
+## Type Signature Reference
+
+### Converter Protocol Functions
+
+| Function | Signature | Required | Description |
+|----------|-----------|----------|-------------|
+| `init` | `(self: T, context: Context): boolean` | No | Initialize converter state |
+| `convert` | `(self: T, input: DataInputs): DataOutput` | **Yes** | Transform source → target |
+| `reverseConvert` | `(self: T, input: DataOutput): DataInputs` | **Yes** | Transform target → source |
+
+### Factory Return Type
+
+```lua
+-- Define your input and output types
+type DataInputs = DataValueNumber
+type DataOutput = DataValueString
+
+return function(): Converter<YourConverterType, DataInputs, DataOutput>
+    return {
+        init = init,            -- Optional
+        convert = convert,      -- Required
+        reverseConvert = reverseConvert,  -- Required
+    }
+end
+```
+
+### DataValue Types
+
+| Type | Check Method | Cast Pattern |
+|------|--------------|--------------|
+| `DataValueNumber` | `input:isNumber()` | `(input :: DataValueNumber).value` |
+| `DataValueString` | `input:isString()` | `(input :: DataValueString).value` |
+| `DataValueBoolean` | `input:isBoolean()` | `(input :: DataValueBoolean).value` |
+| `DataValueColor` | `input:isColor()` | `(input :: DataValueColor).value` |
+
+---
+
 ## Key Functions
 
 ### `convert(self, input): DataOutput` — **REQUIRED**

@@ -91,6 +91,165 @@ All getters return `nil` if the property doesn't exist. Always check before usin
 
 ---
 
+## Context Type Reference
+
+The `Context` object is passed to `init()` and provides access to the script's environment.
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    -- Context methods available here
+    return true
+end
+```
+
+### Context Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `context:viewModel()` | `ViewModel?` | Get the artboard's bound ViewModel |
+| `context:artboard()` | `Artboard` | Get the artboard this script is attached to |
+| `context:node()` | `Node` | Get the node this script is attached to |
+
+### Context Usage Patterns
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    -- Get the ViewModel for data binding
+    local vm = context:viewModel()
+    if vm then
+        self.score = vm:getNumber("score")
+    end
+
+    -- Get artboard for dimensions or nested components
+    local artboard = context:artboard()
+
+    -- Get the node this script is attached to
+    local node = context:node()
+
+    return true
+end
+```
+
+:::tip Context is Only Available in init()
+The `context` parameter is only passed to `init()`. If you need ViewModel access in other callbacks, store the ViewModel reference in your script's state during init.
+:::
+
+---
+
+## Trigger Type Reference
+
+Triggers are one-shot signals in ViewModels. Unlike properties, they don't hold a value - they fire an event that listeners respond to.
+
+### Getting a Trigger
+
+```lua
+local trigger = vm:getTrigger("onClick")
+```
+
+### Trigger Methods
+
+| Method | Parameters | Description |
+|--------|------------|-------------|
+| `trigger:addListener(callback)` | `() -> ()` | Subscribe to trigger fires |
+| `trigger:removeListener(callback)` | `() -> ()` | Unsubscribe from trigger |
+| `trigger:fire()` | none | Manually fire the trigger |
+
+### Trigger Example
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    local vm = context:viewModel()
+    if not vm then return false end
+
+    local onClick = vm:getTrigger("onClick")
+    if onClick then
+        onClick:addListener(function()
+            print("Trigger fired!")
+            self.clickCount += 1
+        end)
+    end
+
+    return true
+end
+```
+
+### When to Use Triggers vs Properties
+
+| Use Case | Use Trigger | Use Property |
+|----------|-------------|--------------|
+| Button click | Yes | No |
+| Animation complete | Yes | No |
+| Score value | No | Yes (number) |
+| Toggle state | No | Yes (boolean) |
+| One-time events | Yes | No |
+| Persistent state | No | Yes |
+
+---
+
+## List Type Reference
+
+Lists are ordered collections of ViewModel instances. Each item in a list has its own set of properties defined by the list's item schema.
+
+### Getting a List
+
+```lua
+local items = vm:getList("inventory")
+```
+
+### List Properties and Methods
+
+| Property/Method | Returns | Description |
+|-----------------|---------|-------------|
+| `list.count` | `number` | Number of items in the list (read-only) |
+| `list:item(index)` | `ViewModel?` | Get item at index (1-based) |
+| `list:addListener(callback)` | `() -> ()` | Listen for list changes |
+| `list:removeListener(callback)` | `() -> ()` | Stop listening |
+
+### List Example
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    local vm = context:viewModel()
+    if not vm then return false end
+
+    local inventory = vm:getList("items")
+    if inventory then
+        print("Inventory has", inventory.count, "items")
+
+        -- Iterate through items
+        for i = 1, inventory.count do
+            local item = inventory:item(i)
+            if item then
+                local name = item:getString("name")
+                local qty = item:getNumber("quantity")
+                if name and qty then
+                    print(name.value, "x", qty.value)
+                end
+            end
+        end
+
+        -- Listen for changes
+        inventory:addListener(function()
+            print("Inventory changed! New count:", inventory.count)
+        end)
+    end
+
+    return true
+end
+```
+
+### List Indexing
+
+:::warning Lists Use 1-Based Indexing
+Like all Luau arrays, list indices start at 1, not 0.
+```lua
+local first = list:item(1)   -- First item
+local last = list:item(list.count)  -- Last item
+```
+:::
+
+---
+
 ### Exercise 1: Read and Display ViewModel Data ⭐⭐ {#exercise-1-read-and-display-viewmodel-data}
 
 ### Premise
@@ -155,7 +314,7 @@ function init(self: ScoreDisplay, context: Context): boolean
 
         if self.scoreProp then
             -- TODO 3: Read the value and set barWidth = value * 2
-            print(\`Score property found: {self.scoreProp.value}\`)
+            print(`Score property found: {self.scoreProp.value}`)
             print("ANSWER: viewmodel")
         end
     end
@@ -240,8 +399,8 @@ ANSWER: <your result>
 1. Create a ViewModel with a `score` number property (default: 50)
 2. Bind the ViewModel to your artboard
 
-:::warning <Term>Path</Term> Reset Location
-In this example, `path:reset()` is in `draw` for simplicity. For production code, move path updates to `advance` to avoid potential rendering artifacts.
+:::info <Term>Path</Term> Reset in Draw
+For this introductory exercise, `path:reset()` is in `draw()` to keep the code simple. Since the path is rebuilt completely each frame and only uses local state, this approach works fine. For more complex scenarios with path animations, consider moving rebuild logic to `advance()`.
 :::
 
 **Key points:**

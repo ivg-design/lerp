@@ -242,15 +242,15 @@ function init(self: ShapeDemo): boolean
     self.shapes = {}  -- Replace with actual shapes
 
     self.shapeCount = #self.shapes
-    print(\`Created {self.shapeCount} shapes\`)
+    print(`Created {self.shapeCount} shapes`)
 
     -- Verify inheritance works
     for i, shape in ipairs(self.shapes) do
-        print(\`Drawing shape {i}\`)
+        print(`Drawing shape {i}`)
         -- This will error if Triangle doesn't inherit draw from Shape!
     end
 
-    print(\`ANSWER: {self.shapeCount}\`)
+    print(`ANSWER: {self.shapeCount}`)
     return true
 end
 
@@ -427,7 +427,7 @@ function init(self: OutlineDemo): boolean
 
     -- Check if stroke property exists and is used
     self.hasStroke = if self.outlineRect.stroke then "stroke" else "none"
-    print(\`ANSWER: {self.hasStroke}\`)
+    print(`ANSWER: {self.hasStroke}`)
 
     return true
 end
@@ -548,11 +548,11 @@ function Enemy.new(name: string, health: number, damage: number): EnemyType
 end
 
 function Enemy:attack()
-    print(\`{self.name} attacks for {self.damage} damage!\`)
+    print(`{self.name} attacks for {self.damage} damage!`)
 end
 
 function Enemy:describe()
-    print(\`{self.name}: {self.health} HP, {self.damage} DMG\`)
+    print(`{self.name}: {self.health} HP, {self.damage} DMG`)
 end
 
 -- CHILD CLASS: Boss (extends Enemy)
@@ -590,7 +590,7 @@ end
 function Boss:nextPhase()
     self.phase += 1
     self.damage += 10
-    print(\`{self.name} enters phase {self.phase}!\`)
+    print(`{self.name} enters phase {self.phase}!`)
 end
 
 export type BossDemo = {
@@ -611,7 +611,7 @@ function init(self: BossDemo): boolean
     print("Phase 3 attack:")
     self.boss:attack()
 
-    print(\`ANSWER: {self.boss.damage}\`)
+    print(`ANSWER: {self.boss.damage}`)
 
     return true
 end
@@ -827,7 +827,7 @@ function init(self: HierarchyDemo): boolean
     self.objects = {}  -- Replace with actual objects
 
     self.objectCount = #self.objects
-    print(\`Created {self.objectCount} objects\`)
+    print(`Created {self.objectCount} objects`)
 
     -- Count active objects
     local activeCount = 0
@@ -836,8 +836,8 @@ function init(self: HierarchyDemo): boolean
             activeCount += 1
         end
     end
-    print(\`Active objects: {activeCount}\`)
-    print(\`ANSWER: {activeCount}\`)
+    print(`Active objects: {activeCount}`)
+    print(`ANSWER: {activeCount}`)
 
     return true
 end

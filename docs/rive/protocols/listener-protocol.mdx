@@ -1,33 +1,35 @@
 ---
-sidebar_position: 7
-title: Listener Protocol
-description: Learn about Listener scripts for event handling in Rive
+sidebar_position: 8
+title: Listeners
+description: Learn about Listener functions in Rive - property listeners, pointer events, and cross-script communication
 keywords:
   - rive
   - luau
   - scripting
-  - rive
   - listener
-  - protocol
-  - scripts
-  - event
+  - addListener
+  - removeListener
 ---
 
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
-# Other Protocols
+# Listeners
+
+:::danger This is NOT a Script Protocol
+Unlike Node, Layout, Converter, Path Effect, Util, and Test scripts, there is **no "Listener" script type**. `Listener<T>` is a **function signature** used with `addListener()`/`removeListener()` methods. This page covers how to use listeners within other scripts (primarily Node Scripts).
+:::
 
 ## AE/JS Syntax Comparison
 
 | Concept | After Effects | JavaScript | Luau (Rive) |
 |---------|---------------|------------|-------------|
-| Event listener | Layer markers + time | `element.addEventListener('click', fn)` | `function pointerDown(self, pos): boolean` |
-| Event callback | Expression on marker | `(event) => { ... }` | `function onEvent(self, name, props)` |
-| Mouse position | `thisComp.layer("Null").position` | `event.clientX, event.clientY` | `position: Vector` parameter |
+| Event listener | Layer markers + time | `element.addEventListener('click', fn)` | `property:addListener(callback)` |
+| Pointer events | N/A | `element.onclick = fn` | `function pointerDown(self, event: PointerEvent)` |
+| Mouse position | `thisComp.layer("Null").position` | `event.clientX, event.clientY` | `event.position: Vector` |
 | Drag state | Manual with sliders | `isDragging` variable | `self.isDragging: boolean` |
-| Event bubbling | N/A | `event.stopPropagation()` | `return true` (consumes event) |
+| Property changes | N/A | Observer pattern | `property:addListener(callback)` |
 | Custom events | N/A | `new CustomEvent('name')` | EventBus pattern via Util |
 | Animation state | `marker.key(1).time` | State variables | <Term>State Machine</Term> inputs |
 
@@ -36,16 +38,27 @@ import Term from '@site/src/components/Term';
 
 **JavaScript DOM**: Event-driven with bubbling and capturing phases. Events propagate through the DOM tree.
 
-**Luau (Rive)**: Hybrid approach - pointer events (`pointerDown`, `pointerMove`, `pointerUp`) return `boolean` to consume or propagate. Listener scripts receive Rive events via `onEvent`. No DOM tree, but events can be consumed.
+**Luau (Rive)**: Two event mechanisms:
+1. **Pointer events** - `pointerDown`, `pointerMove`, `pointerUp`, `pointerExit` receive a `PointerEvent` parameter
+2. **Property listeners** - Use `property:addListener(callback)` to react to ViewModel changes
 
 ```lua
--- Returning true = "I handled this, stop propagating"
--- Returning false = "I didn't handle this, let others try"
-function pointerDown(self: MyScript, position: Vector): boolean
-    if self:isHit(position) then
-        return true   -- Consume the event
+-- Pointer events receive PointerEvent with position property
+function pointerDown(self: MyScript, event: PointerEvent)
+    local pos = event.position
+    print("Clicked at: " .. pos.x .. ", " .. pos.y)
+end
+
+-- Property listeners use addListener in init()
+function init(self: MyScript, context: Context): boolean
+    local vm = context:viewModel()
+    local score = vm:getNumber("score")
+    if score then
+        score:addListener(function()
+            print("Score changed to: " .. score.value)
+        end)
     end
-    return false      -- Let other handlers try
+    return true
 end
 ```
 :::
@@ -54,38 +67,86 @@ end
 
 ## Rive Context: Beyond Node and Util Scripts
 
-While <Term>Node</Term> and Util scripts handle most use cases, Rive provides additional script types for specific interaction patterns. These protocols let you respond to events, listen for state changes, and create more dynamic animations.
+While <Term>Node</Term> and Util scripts handle most use cases, Rive provides mechanisms for responding to events and state changes.
 
-**Script types covered:**
-- **Listener scripts** - respond to Rive events from state machines
+**Topics covered:**
+- **Property listeners** - react to ViewModel property changes via `addListener()`
 - **Pointer events** - handle mouse/touch interaction in Node scripts
 - **State machine integration** - scripts that communicate with state machines
 - **Event patterns** - custom pub/sub and event bus architectures
 
 ---
 
-## Listener Scripts
+## Understanding Listener\<T\>
 
-Listener scripts respond to events fired from the Rive runtime or state machines. They follow a different pattern than Node scripts.
+:::warning Important Clarification
+`Listener<T>` is **NOT** a script return type like `Node<T>` or `Converter<T>`.
 
-### Listener Script Structure
+It's a **function type signature** used by the `addListener()` and `removeListener()` methods on ViewModel properties.
+:::
+
+### What Listener\<T\> Actually Is
+
+```lua
+-- Listener<T> is defined as:
+export type Listener<T> = <K>(self: T, obj: K, (K) -> ()) -> ()
+                        & (self: T, () -> ()) -> ()
+```
+
+This is the type signature for callback registration, not a script protocol.
+
+### How Scripts Actually Receive Events
+
+Scripts don't have a dedicated "event listener" protocol. Instead, use:
+
+1. **ViewModel Property Listeners** - Use `addListener()` on any `Property<T>` or `PropertyTrigger`
+2. **Pointer Events** - Handle `pointerDown`, `pointerUp`, `pointerMove`, `pointerExit` in `Node<T>` scripts
+
+### Correct Pattern: Property Listeners
 
 ```lua
 --!strict
 
-export type MyListener = {
-    eventCount: number,
+export type MyNode = {
+    context: Context?,
+    changeCount: number,
 }
 
-function onEvent(self: MyListener, eventName: string, properties: { [string]: any })
-    print(`Event received: {eventName}`)
-    self.eventCount += 1
+function init(self: MyNode, context: Context): boolean
+    self.context = context
+
+    local vm = context:viewModel()
+
+    -- Listen to a number property
+    local scoreProperty = vm:getNumber("score")
+    if scoreProperty then
+        scoreProperty:addListener(function()
+            print("Score changed to:", scoreProperty.value)
+            self.changeCount += 1
+        end)
+    end
+
+    -- Listen to a trigger property
+    local onClickTrigger = vm:getTrigger("onClick")
+    if onClickTrigger then
+        onClickTrigger:addListener(function()
+            print("onClick trigger fired!")
+        end)
+    end
+
+    return true
 end
 
-return function(): Listener<MyListener>
+function draw(self: MyNode, renderer: Renderer)
+    -- Your drawing code
+end
+
+return function(): Node<MyNode>
     return {
-        onEvent = onEvent,
-        eventCount = 0,
+        init = init,
+        draw = draw,
+        context = nil,
+        changeCount = 0,
     }
 end
 ```
@@ -93,54 +154,61 @@ end
 **JavaScript/TypeScript Equivalent:**
 
 ```typescript
-// In JavaScript, you'd add event listeners to elements
-class MyListener {
-    eventCount: number = 0;
+// Similar to adding event listeners in JavaScript
+class MyComponent {
+    changeCount: number = 0;
 
-    constructor() {
-        // Subscribe to custom events
-        document.addEventListener('riveEvent', (e: CustomEvent) => {
-            this.onEvent(e.detail.name, e.detail.properties);
+    constructor(viewModel: ViewModel) {
+        // Subscribe to property changes
+        viewModel.score.addListener(() => {
+            console.log("Score changed to:", viewModel.score.value);
+            this.changeCount++;
         });
-    }
 
-    onEvent(eventName: string, properties: Record<string, any>) {
-        console.log(`Event received: ${eventName}`);
-        this.eventCount++;
+        // Subscribe to triggers
+        viewModel.onClick.addListener(() => {
+            console.log("onClick trigger fired!");
+        });
     }
 }
 ```
 
-**Key differences from Node scripts:**
+### Valid Script Return Types
 
-| Node Script | Listener Script |
-|-------------|-----------------|
-| Returns `Node<T>` | Returns `Listener<T>` |
-| Has `init`, `draw`, `advance` | Has `onEvent` only |
-| Can render graphics | Cannot render anything |
-| Processes every frame | Only activates on events |
+| Type | Purpose |
+|------|---------|
+| `Node<T>` | Drawable nodes with `init`, `draw`, `advance`, pointer events |
+| `Layout<T>` | Layout-aware nodes with `measure`, `resize` |
+| `Converter<T, I, O>` | Data converters with `convert`, `reverseConvert` |
+| `PathEffect<T>` | Custom path effects |
+| `Util` | Utility modules (no generic) |
+| `Tests` | Test modules (no generic) |
+
+**Not a script type:**
+- `Listener<T>` - Function signature for `addListener()`/`removeListener()`
 
 ---
 
 ## Exercises
 
-### Exercise 1: Basic Event Logger ⭐ {#exercise-1-basic-event-logger}
+### Exercise 1: Property Change Logger ⭐ {#exercise-1-property-change-logger}
 
 ### Premise
 
-Listener scripts respond to events from state machines. They have an onEvent callback instead of init/draw/advance. This is fundamentally different from Node scripts and is used for analytics, debugging, and triggering external systems.
+ViewModel properties can be observed using `addListener()`. When a property's value changes, all registered callbacks are invoked. This is how scripts react to state machine changes, user inputs, and data binding updates.
 
 :::info Goal
-By the end of this exercise, you will be able to Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer.
+By the end of this exercise, you will be able to use `property:addListener()` to log property changes. After 3 changes, print the answer.
 :::
 
 ### Use Case
 
-This pattern shows up whenever you build behavior in Rive scripts.
+This pattern shows up whenever you build reactive behavior in Rive scripts.
 
 **Example scenarios:**
-- Debugging script behavior
-- Driving animation logic
+- Reacting to score changes in a game
+- Updating visuals when settings change
+- Logging analytics events
 
 ---
 
@@ -148,14 +216,19 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 #### In Rive Editor:
 
-1. **Create the script:**
+1. **Create a ViewModel:**
+   - Assets panel → `+` → ViewModel
+   - Add a Number property named `score`
+
+2. **Create the script:**
    - Assets panel → `+` → Script → Node Script
-   - Name it `Exercise1_Exercise1BasicEventLogger`
+   - Name it `Exercise1_PropertyChangeLogger`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+3. **Attach and run:**
+   - Attach script to any shape and press Play
+   - Change the `score` value in the ViewModel to trigger events
 
-3. **Open the Console:**
+4. **Open the Console:**
    - View → Console
 
 ---
@@ -164,30 +237,55 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 ```lua
 --!strict
--- A Listener script that logs all events from the state machine
+-- A Node script that logs ViewModel property changes
 
-export type EventLogger = {
-    events: { string },
+export type PropertyLogger = {
+    context: Context?,
+    changeCount: number,
+    lastValue: number,
 }
 
-function onEvent(self: EventLogger, eventName: string, properties: { [string]: any })
-    -- TODO 1: Store the event name in self.events using table.insert()
+function init(self: PropertyLogger, context: Context): boolean
+    self.context = context
+    self.changeCount = 0
+    self.lastValue = 0
 
-    -- TODO 2: Print the event header "=== Event: {eventName} ==="
+    local vm = context:viewModel()
+    if not vm then
+        print("ERROR: No ViewModel found!")
+        return false
+    end
 
-    -- TODO 3: Loop through all properties with pairs() and print each
-    -- Format: "  {key} = {tostring(value)}"
+    local scoreProperty = vm:getNumber("score")
+    if not scoreProperty then
+        print("ERROR: No 'score' property found in ViewModel!")
+        return false
+    end
 
-    -- TODO 4: Print the total events received: "Total events received: {#self.events}"
+    -- TODO 1: Add a listener to scoreProperty using addListener()
+    -- The callback should:
+    --   a) Increment self.changeCount by 1
+    --   b) Store scoreProperty.value in self.lastValue
+    --   c) Print "=== Score Changed ==="
+    --   d) Print "New value: {scoreProperty.value}"
+    --   e) Print "Total changes: {self.changeCount}"
+    --   f) When changeCount reaches 3, print "ANSWER: 3"
 
-    -- TODO 5: When total events reaches 3, print "ANSWER: 3"
-
+    print("PropertyLogger initialized - change 'score' to trigger events")
+    return true
 end
 
-return function(): Listener<EventLogger>
+function draw(self: PropertyLogger, renderer: Renderer)
+    -- Empty draw - this script just logs
+end
+
+return function(): Node<PropertyLogger>
     return {
-        onEvent = onEvent,
-        events = {},
+        init = init,
+        draw = draw,
+        context = nil,
+        changeCount = 0,
+        lastValue = 0,
     }
 end
 ```
@@ -198,8 +296,8 @@ end
 
 Complete these tasks:
 
-1. Complete the onEvent function to log events and their properties. After receiving 3 events, print the answer.
-2. Run the script and verify the console output
+1. Add a listener to the score property that logs changes
+2. Change the `score` value 3 times in the ViewModel panel
 3. Copy the `ANSWER:` line into the validator
 
 ---
@@ -207,8 +305,17 @@ Complete these tasks:
 ### Expected Output
 
 ```
-Console prints the relevant debug lines for this exercise.
-ANSWER: <your result>
+PropertyLogger initialized - change 'score' to trigger events
+=== Score Changed ===
+New value: 10
+Total changes: 1
+=== Score Changed ===
+New value: 20
+Total changes: 2
+=== Score Changed ===
+New value: 30
+Total changes: 3
+ANSWER: 3
 ```
 
 ---
@@ -224,22 +331,22 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
-- [ ] All TODOs are replaced with working code
-- [ ] Console output includes the `ANSWER:` line
+- [ ] ViewModel has a `score` number property
+- [ ] Script uses `property:addListener(callback)` pattern
+- [ ] Console output includes the `ANSWER:` line after 3 changes
 
 ---
 
 ---
 
-### Exercise 2: Filtered Event Handler ⭐⭐ {#exercise-2-filtered-event-handler}
+### Exercise 2: Trigger Handler ⭐⭐ {#exercise-2-trigger-handler}
 
 ### Premise
 
-Filtering events lets you create specialized handlers for specific interactions. This is similar to JavaScript's event delegation pattern where you only respond to events from certain sources.
+ViewModel Triggers are special properties that fire events without storing values. They're perfect for button clicks, state transitions, and one-shot events. Use `getTrigger()` and `addListener()` to handle them.
 
 :::info Goal
-By the end of this exercise, you will be able to Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events.
+By the end of this exercise, you will be able to handle trigger events from a ViewModel. After 2 trigger fires, print the answer.
 :::
 
 ### Use Case
@@ -247,8 +354,9 @@ By the end of this exercise, you will be able to Complete the onEvent function t
 This pattern shows up whenever you build behavior in Rive scripts.
 
 **Example scenarios:**
-- Debugging script behavior
-- Driving animation logic
+- Handling button clicks from state machines
+- Responding to animation events
+- Triggering sound effects
 
 ---
 
@@ -256,14 +364,19 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 #### In Rive Editor:
 
-1. **Create the script:**
+1. **Create a ViewModel:**
+   - Assets panel → `+` → ViewModel
+   - Add a Trigger property named `onClick`
+
+2. **Create the script:**
    - Assets panel → `+` → Script → Node Script
-   - Name it `Exercise2_Exercise2FilteredEventHandler`
+   - Name it `Exercise2_TriggerHandler`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+3. **Attach and run:**
+   - Attach script to any shape and press Play
+   - Click the trigger in the ViewModel panel to fire events
 
-3. **Open the Console:**
+4. **Open the Console:**
    - View → Console
 
 ---
@@ -272,31 +385,46 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 ```lua
 --!strict
--- A Listener that only responds to specific events by name
+-- A Node script that handles ViewModel trigger events
 
-export type FilteredListener = {
-    targetEvent: string,
+export type TriggerHandler = {
+    context: Context?,
     triggerCount: number,
 }
 
-function onEvent(self: FilteredListener, eventName: string, properties: { [string]: any })
-    -- TODO 1: Check if eventName ~= self.targetEvent
-    -- If they don't match, print "Ignoring event: {eventName}" and return early
+function init(self: TriggerHandler, context: Context): boolean
+    self.context = context
+    self.triggerCount = 0
 
-    -- TODO 2: Increment triggerCount by 1
+    local vm = context:viewModel()
+    if not vm then
+        print("ERROR: No ViewModel found!")
+        return false
+    end
 
-    -- TODO 3: Print "Target event "{self.targetEvent}" triggered!"
+    -- TODO 1: Get the "onClick" trigger using vm:getTrigger("onClick")
 
-    -- TODO 4: Print "Trigger count: {self.triggerCount}"
+    -- TODO 2: Check if the trigger exists (if not onClickTrigger then ... end)
 
-    -- TODO 5: When triggerCount reaches 2, print "ANSWER: 2"
+    -- TODO 3: Add a listener to the trigger that:
+    --   a) Increments self.triggerCount by 1
+    --   b) Prints "🔔 Trigger fired!"
+    --   c) Prints "Trigger count: {self.triggerCount}"
+    --   d) When triggerCount reaches 2, prints "ANSWER: 2"
 
+    print("TriggerHandler initialized - fire 'onClick' trigger to test")
+    return true
 end
 
-return function(): Listener<FilteredListener>
+function draw(self: TriggerHandler, renderer: Renderer)
+    -- Empty draw - this script just handles triggers
+end
+
+return function(): Node<TriggerHandler>
     return {
-        onEvent = onEvent,
-        targetEvent = "ButtonClicked",
+        init = init,
+        draw = draw,
+        context = nil,
         triggerCount = 0,
     }
 end
@@ -308,8 +436,8 @@ end
 
 Complete these tasks:
 
-1. Complete the onEvent function to filter events by name. Only respond to events matching targetEvent and print the answer after 2 matching events.
-2. Run the script and verify the console output
+1. Get and listen to the `onClick` trigger
+2. Fire the trigger 2 times from the ViewModel panel
 3. Copy the `ANSWER:` line into the validator
 
 ---
@@ -317,8 +445,12 @@ Complete these tasks:
 ### Expected Output
 
 ```
-Console prints the relevant debug lines for this exercise.
-ANSWER: <your result>
+TriggerHandler initialized - fire 'onClick' trigger to test
+🔔 Trigger fired!
+Trigger count: 1
+🔔 Trigger fired!
+Trigger count: 2
+ANSWER: 2
 ```
 
 ---
@@ -334,9 +466,9 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
-- [ ] All TODOs are replaced with working code
-- [ ] Console output includes the `ANSWER:` line
+- [ ] ViewModel has an `onClick` trigger property
+- [ ] Script uses `vm:getTrigger()` and `trigger:addListener()` pattern
+- [ ] Console output includes the `ANSWER:` line after 2 triggers
 
 ---
 
@@ -350,37 +482,23 @@ Node scripts can respond to mouse/touch <Term>Input</Term> through pointer handl
 
 | Function | When It's Called | Parameters | Return |
 |----------|-----------------|------------|--------|
-| `pointerDown` | Mouse button pressed / touch start | `position: Vector` | `boolean` |
-| `pointerMove` | Mouse/touch moved | `position: Vector` | `boolean` |
-| `pointerUp` | Mouse button released / touch end | `position: Vector` | `boolean` |
+| `pointerDown` | Mouse button pressed / touch start | `event: PointerEvent` | (optional) |
+| `pointerMove` | Mouse/touch moved | `event: PointerEvent` | (optional) |
+| `pointerUp` | Mouse button released / touch end | `event: PointerEvent` | (optional) |
+| `pointerExit` | Pointer left the element | `event: PointerEvent` | (optional) |
 
-**Return Value Meaning:**
-- `return true` = "I handled this event, consume it"
-- `return false` = "I didn't handle it, let others try"
+**PointerEvent Properties:**
+- `event.position` - `Vector` with x, y coordinates
 
-:::danger Critical Difference: Return Boolean for Event Consumption
-
-**JavaScript DOM**: Uses `event.stopPropagation()` and `event.preventDefault()` as methods.
-
-```javascript
-element.addEventListener('click', (event) => {
-    event.stopPropagation();  // Stop bubbling
-    event.preventDefault();   // Prevent default action
-});
-```
-
-**Luau (Rive)**: Uses boolean return value.
+:::tip Pointer Event Signature
+Pointer events receive a `PointerEvent` object, not a raw `Vector`. Access the position via `event.position`.
 
 ```lua
-function pointerDown(self: MyScript, position: Vector): boolean
-    if self:wasClicked(position) then
-        return true   -- Equivalent to stopPropagation()
-    end
-    return false      -- Let event continue
+function pointerDown(self: MyScript, event: PointerEvent)
+    local pos = event.position
+    print("Clicked at: " .. pos.x .. ", " .. pos.y)
 end
 ```
-
-Forgetting to return `true` when you handle an event lets it "fall through" to elements behind yours!
 :::
 
 ---
@@ -389,19 +507,20 @@ Forgetting to return `true` when you handle an event lets it "fall through" to e
 
 ### Premise
 
-Pointer events use boolean returns: true consumes the event (like stopPropagation), false lets it propagate. Combining pointerDown with advance creates interactive elements with visual feedback.
+Pointer events receive a `PointerEvent` parameter with position information. Combining `pointerDown` with `advance` creates interactive elements with visual feedback.
 
 :::info Goal
-By the end of this exercise, you will be able to Complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks.
+By the end of this exercise, you will be able to complete the pointerDown and advance functions to create a click counter with pop animation. Print the answer after 3 clicks.
 :::
 
 ### Use Case
 
-This pattern shows up whenever you build behavior in Rive scripts.
+This pattern shows up whenever you build interactive behavior in Rive scripts.
 
 **Example scenarios:**
-- Debugging script behavior
-- Driving animation logic
+- Interactive buttons
+- Click tracking
+- Visual feedback animations
 
 ---
 
@@ -411,7 +530,7 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 1. **Create the script:**
    - Assets panel → `+` → Script → Node Script
-   - Name it `Exercise3_Exercise3ClickCounterWithVisualFeedback`
+   - Name it `Exercise3_ClickCounter`
 
 2. **Attach and run:**
    - Attach to any shape and press Play
@@ -450,7 +569,8 @@ function init(self: ClickCounter): boolean
     return true
 end
 
-function pointerDown(self: ClickCounter, position: Vector): boolean
+function pointerDown(self: ClickCounter, event: PointerEvent)
+    local position = event.position
     -- TODO 1: Check if click is within bounds (|x| <= 60 and |y| <= 30)
     -- Use math.abs(position.x) and math.abs(position.y)
 
@@ -463,10 +583,6 @@ function pointerDown(self: ClickCounter, position: Vector): boolean
 
         -- TODO 5: When clickCount reaches 3, print "ANSWER: clicked"
 
-        -- TODO 6: Return true to consume the event
-
-    -- TODO 7: Return false if click was outside bounds
-    return false
 end
 
 function advance(self: ClickCounter, seconds: number): boolean
@@ -617,7 +733,8 @@ function init(self: Draggable): boolean
     return true
 end
 
-function pointerDown(self: Draggable, position: Vector): boolean
+function pointerDown(self: Draggable, event: PointerEvent)
+    local position = event.position
     local half = self.size / 2
     local dx = math.abs(position.x - self.posX)
     local dy = math.abs(position.y - self.posY)
@@ -632,39 +749,31 @@ function pointerDown(self: Draggable, position: Vector): boolean
         -- TODO 3: Change color to highlight (255, 180, 120)
 
         -- TODO 4: Print "Drag started"
-
-        -- TODO 5: Return true to consume
-        return false
     end
-    return false
 end
 
-function pointerMove(self: Draggable, position: Vector): boolean
-    -- TODO 6: If not isDragging, return false
+function pointerMove(self: Draggable, event: PointerEvent)
+    local position = event.position
+    -- TODO 5: If not isDragging, return early
 
-    -- TODO 7: Update position using offset
+    -- TODO 6: Update position using offset
     -- self.posX = position.x - self.offsetX
     -- self.posY = position.y - self.offsetY
 
-    -- TODO 8: Call rebuildPath(self)
-
-    -- TODO 9: Return true while dragging
-    return false
+    -- TODO 7: Call rebuildPath(self)
 end
 
-function pointerUp(self: Draggable, position: Vector): boolean
-    -- TODO 10: If not isDragging, return false
+function pointerUp(self: Draggable, event: PointerEvent)
+    local position = event.position
+    -- TODO 8: If not isDragging, return early
 
-    -- TODO 11: Set isDragging to false
+    -- TODO 9: Set isDragging to false
 
-    -- TODO 12: Reset color to normal (255, 120, 80)
+    -- TODO 10: Reset color to normal (255, 120, 80)
 
-    -- TODO 13: Print "Dropped at ({self.posX:.1f}, {self.posY:.1f})"
+    -- TODO 11: Print "Dropped at ({self.posX:.1f}, {self.posY:.1f})"
 
-    -- TODO 14: If not hasDragged, set it true and print "ANSWER: dragged"
-
-    -- TODO 15: Return true
-    return false
+    -- TODO 12: If not hasDragged, set it true and print "ANSWER: dragged"
 end
 
 function draw(self: Draggable, renderer: Renderer)
@@ -1076,26 +1185,31 @@ ANSWER: <your result>
 |----------|----------|-----|
 | Drawing and animation | Node script | Has `draw`, `advance` for rendering |
 | Reusable logic | Util script | No lifecycle, shared via `require()` |
-| Responding to Rive events | Listener script | Has `onEvent` callback |
-| User interaction | Node script with pointer handlers | Has `pointerDown/Move/Up` |
+| Responding to property changes | Node script with `addListener()` | Subscribe to ViewModel changes |
+| User interaction | Node script with pointer handlers | Has `pointerDown/Move/Up/Exit` |
 | Cross-script communication | Util script as EventBus | Shared state across scripts |
 
 ### Event Handling Patterns
 
 ```lua
--- GOOD: Check bounds before consuming
-function pointerDown(self: MyScript, position: Vector): boolean
-    if self:isWithinBounds(position) then
+-- GOOD: Check bounds in pointer handler
+function pointerDown(self: MyScript, event: PointerEvent)
+    local pos = event.position
+    if self:isWithinBounds(pos) then
         self:handleClick()
-        return true  -- Consume only when actually handled
     end
-    return false  -- Let others handle it
 end
 
--- BAD: Always consuming (blocks everything below)
-function pointerDown(self: MyScript, position: Vector): boolean
-    self:handleClick()
-    return true  -- This blocks ALL clicks!
+-- Using property listeners for ViewModel changes
+function init(self: MyScript, context: Context): boolean
+    local vm = context:viewModel()
+    local score = vm:getNumber("score")
+    if score then
+        score:addListener(function()
+            print("Score changed!")
+        end)
+    end
+    return true
 end
 ```
 
@@ -1117,38 +1231,39 @@ EventBus.publish("e", {})
 
 ## Common Mistakes
 
-### Mistake 1: Forgetting to Return Boolean from Pointer Events
+### Mistake 1: Wrong Pointer Event Signature
 
 ```lua
--- WRONG: Missing return value
-function pointerDown(self: MyScript, position: Vector)  -- Missing : boolean!
-    print("Clicked!")
-    -- No return statement!
-end
-
--- RIGHT: Always return boolean
+-- WRONG: Using Vector directly (old pattern)
 function pointerDown(self: MyScript, position: Vector): boolean
     print("Clicked!")
-    return true  -- or false
+    return true
+end
+
+-- RIGHT: Use PointerEvent parameter
+function pointerDown(self: MyScript, event: PointerEvent)
+    local pos = event.position
+    print("Clicked at: " .. pos.x .. ", " .. pos.y)
 end
 ```
 
-### Mistake 2: Not Checking Bounds Before Consuming
+### Mistake 2: Thinking Listener\<T\> is a Script Type
 
 ```lua
--- WRONG: Consumes ALL clicks everywhere
-function pointerDown(self: MyScript, position: Vector): boolean
-    self.clicked = true
-    return true  -- Blocks everything!
+-- WRONG: Listener<T> is NOT a valid script return type!
+return function(): Listener<MyType>  -- This will cause compile errors!
+    return {
+        onEvent = onEvent,  -- This pattern doesn't exist
+    }
 end
 
--- RIGHT: Only consume clicks on your element
-function pointerDown(self: MyScript, position: Vector): boolean
-    if self:isHit(position) then
-        self.clicked = true
-        return true
-    end
-    return false  -- Let others handle
+-- RIGHT: Use Node<T> with property:addListener()
+return function(): Node<MyType>
+    return {
+        init = init,
+        draw = draw,
+        -- Use property:addListener() in init() to listen for changes
+    }
 end
 ```
 
@@ -1196,15 +1311,15 @@ return MyUtil
 ## Knowledge Check
 
 <Quiz
-  question="What is the main difference between a Listener script and a Node script?"
+  question="What is Listener<T> in Rive scripting?"
   id="other-q1"
   options={[
-    { text: "Listener scripts are faster" },
-    { text: "Listener scripts respond to events and don't render", correct: true },
-    { text: "Listener scripts can only be used with state machines" },
-    { text: "Listener scripts have more lifecycle functions" },
+    { text: "A script return type like Node<T>" },
+    { text: "A function type signature for addListener/removeListener callbacks", correct: true },
+    { text: "A way to receive state machine events" },
+    { text: "A faster version of Node<T>" },
   ]}
-  explanation="Listener scripts have an onEvent callback instead of init/draw/advance. They respond to Rive events from state machines but don't render anything to the <Term>Artboard</Term>. Use them for analytics, triggering sounds, or coordinating external systems."
+  explanation="Listener<T> is NOT a script return type. It's a function type alias that describes the signature of addListener() and removeListener() methods on ViewModel properties. To listen for changes, use property:addListener(callback) in your Node<T> script's init() function."
 />
 
 <Quiz
@@ -1220,15 +1335,15 @@ return MyUtil
 />
 
 <Quiz
-  question="What should a pointer event handler return to consume the event?"
+  question="How do you listen for ViewModel property changes in Rive?"
   id="other-q3"
   options={[
-    { text: "nil" },
-    { text: "false" },
-    { text: "true", correct: true },
-    { text: "The event object" },
+    { text: "Use the onEvent callback" },
+    { text: "Return Listener<T> from your script" },
+    { text: "Call property:addListener(callback) in init()", correct: true },
+    { text: "Use the update() function" },
   ]}
-  explanation="Returning true from a pointer handler consumes the event, preventing it from propagating to other handlers. Returning false lets it continue to elements behind yours. This is similar to event.stopPropagation() in JavaScript."
+  explanation="To react to property changes, get the property from viewModel (e.g., vm:getNumber('score')) and call addListener() with a callback function. The callback fires whenever the property value changes."
 />
 
 <Quiz
@@ -1259,19 +1374,19 @@ return MyUtil
 
 ## Summary
 
-| Protocol | Purpose | Key Feature |
-|----------|---------|-------------|
-| **Node Script** | Rendering, animation, interaction | `init`, `draw`, `advance`, pointer events |
-| **Listener Script** | Respond to Rive events | `onEvent(name, properties)` |
-| **Util Script** | Shared code, EventBus patterns | `require()`, module-level state |
+| Script Type | Purpose | Key Feature |
+|-------------|---------|-------------|
+| `Node<T>` | Rendering, animation, interaction | `init`, `draw`, `advance`, pointer events |
+| `Util` | Shared code, EventBus patterns | `require()`, module-level state |
+| `Listener<T>` | *(Not a script type!)* | Function signature for `addListener()` |
 
 ### Key Patterns Learned
 
-1. **Pointer events** return `boolean` to consume or propagate
-2. **Hit testing** before consuming events prevents blocking
-3. **EventBus pattern** enables decoupled component communication
-4. **State machine inputs** create bidirectional data flow
-5. **Drag requires** all three pointer events working together
+1. **Property listeners** - Use `property:addListener(callback)` to react to ViewModel changes
+2. **Pointer events** - Use `PointerEvent` parameter with `event.position`
+3. **EventBus pattern** - Util scripts enable decoupled component communication
+4. **State machine inputs** - Create bidirectional data flow with inputs
+5. **Drag behavior** - Requires `pointerDown`, `pointerMove`, and `pointerUp` together
 
 ---
 

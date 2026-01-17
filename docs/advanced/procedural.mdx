@@ -114,7 +114,7 @@ local function buildPolygon(self: Polygon)
     -- TODO 4: If i == 0, moveTo; otherwise lineTo
 
     self.path:close()
-    print(\`Building {n}-sided polygon...\`)
+    print(`Building {n}-sided polygon...`)
     print("Polygon built!")
     print("ANSWER: polygon")
 end
@@ -861,7 +861,7 @@ function init(self: ProgressRing): boolean
     local r = self.radius
     buildArc(self.bgPath, r, 0, math.pi * 2, 64)
     print("Progress ring initialized")
-    print(\`Progress at {math.floor(self.progress * 100)}%\`)
+    print(`Progress at {math.floor(self.progress * 100)}%`)
     print("ANSWER: ring")
     return true
 end
@@ -1001,7 +1001,7 @@ function init(self: BarChart): boolean
     self.values = { 0, 0, 0, 0, 0 }
     self.targetValues = { 60, 80, 45, 90, 70 }
     self.animating = true
-    print(\`Bar chart initialized with {#self.targetValues} bars\`)
+    print(`Bar chart initialized with {#self.targetValues} bars`)
     return true
 end
 

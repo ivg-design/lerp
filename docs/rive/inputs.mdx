@@ -43,6 +43,26 @@ import Term from '@site/src/components/Term';
 In this version of Rive scripting, inputs are read directly (e.g., `self.size`). The editor still treats them as inputs, but you do not access a `.value` field.
 :::
 
+:::tip Inputs vs ViewModel Properties
+Don't confuse these two access patterns:
+
+**Editor Inputs** (`Input<T>`) — Read directly, no `.value`:
+```lua
+local size = self.width  -- Direct access
+```
+
+**ViewModel Properties** (`Property<T>`) — Use `.value` to read/write:
+```lua
+local score = vm:getNumber("score")
+if score then
+    print(score.value)      -- Read with .value
+    score.value = 100       -- Write with .value
+end
+```
+
+The key difference: Inputs come from the editor inspector; Properties come from ViewModels.
+:::
+
 ---
 
 ## Rive Context: Inputs Are Your Editor Controls
@@ -168,7 +188,7 @@ local function rebuild(self: InputSquare)
     -- Use self.path:reset() first
     -- Then moveTo(-half, -half), lineTo corners, and close()
 
-    print(\`Rebuilt: size={self.size}\`)
+    print(`Rebuilt: size={self.size}`)
     print("ANSWER: rebuilt")
 end
 
@@ -304,7 +324,7 @@ function advance(self: AnimationDriver, seconds: number): boolean
 
     -- Log progress (every ~30 frames)
     if math.floor(self.time * 60) % 30 == 0 and self.time > 0.1 then
-        print(\`Time: {string.format("%.1f", self.time)}s, Position: {string.format("%.1f", self.position)}\`)
+        print(`Time: {string.format("%.1f", self.time)}s, Position: {string.format("%.1f", self.position)}`)
     end
 
     -- Print answer after 2 seconds
@@ -679,9 +699,9 @@ local function rebuild(self: ProgressBar)
     -- Add moveTo, lineTo, lineTo, lineTo, close
 
     -- Print status
-    print(\`Current: {self.current} / Max: {self.max}\`)
-    print(\`Fill percentage: {math.floor(percent * 100)}%\`)
-    print(\`ANSWER: {math.floor(percent * 100)}%\`)
+    print(`Current: {self.current} / Max: {self.max}`)
+    print(`Fill percentage: {math.floor(percent * 100)}%`)
+    print(`ANSWER: {math.floor(percent * 100)}%`)
 end
 
 function init(self: ProgressBar): boolean

@@ -83,8 +83,8 @@ In Module 1, you wrote code that worked—but how do you know it won't break whe
 --!nocheck   -- No type checking (default if no directive)
 ```
 
-:::tip Always Use Strict Mode
-Add `--!strict` near the top of every Rive script (recommended). It catches bugs before they become runtime errors.
+:::tip Strict Mode is Default in Rive
+Rive scripts run in strict mode by default—you don't need to add `--!strict` explicitly. However, adding it doesn't hurt and makes the intent clear to other developers.
 :::
 
 ## Basic Type Annotations
@@ -827,7 +827,7 @@ Your console output should display the three state fields with the assigned valu
 
 ## Self-Assessment Checklist
 
-- [ ] I always add `--!strict` to my Rive scripts
+- [ ] I understand Rive scripts run in strict mode by default
 - [ ] I can annotate variables: `local x: number = 5`
 - [ ] I can annotate functions: `function(a: string): boolean`
 - [ ] I understand when Luau can infer types automatically

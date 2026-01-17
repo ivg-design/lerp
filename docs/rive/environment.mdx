@@ -150,7 +150,7 @@ class MyNode {
 
 ### Util Scripts
 
-Util scripts are reusable modules with no lifecycle:
+Util scripts are reusable modules with no lifecycle. To create one, select **Blank Script** in the editor dropdown—there is no dedicated "Util Script" option. See the [Rive docs](https://rive.app/docs/scripting/protocols/util-scripts) for the full pattern.
 
 ```lua
 --!strict
@@ -326,23 +326,24 @@ ANSWER: <your result>
 
 ---
 
-### Exercise 2: Understanding the Sandbox ⭐ {#exercise-2-understanding-the-sandbox}
+### Exercise 2: Using Vector Constructors ⭐ {#exercise-2-using-vector-constructors}
 
 ### Premise
 
-Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available (and what isn't, like file I/O or network) helps you design scripts correctly.
+Rive provides `Vector` as a core type with multiple constructors. Understanding these constructors is essential for positioning, scaling, and movement calculations in your animations.
 
 :::info Goal
-By the end of this exercise, you will be able to Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox.
+By the end of this exercise, you will create vectors using different constructors and calculate a distance.
 :::
 
 ### Use Case
 
-This pattern shows up whenever you build behavior in Rive scripts.
+Vectors are fundamental to all positioning and movement in Rive scripts.
 
 **Example scenarios:**
-- Debugging script behavior
-- Driving animation logic
+- Positioning elements on the artboard
+- Calculating distances between points
+- Defining directions for movement
 
 ---
 
@@ -352,7 +353,7 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 1. **Create the script:**
    - Assets panel → `+` → Script → Node Script
-   - Name it `Exercise2_Exercise2UnderstandingTheSandbox`
+   - Name it `Exercise2_VectorConstructors`
 
 2. **Attach and run:**
    - Attach to any shape and press Play
@@ -366,40 +367,39 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 ```lua
 --!strict
--- This script probes the Rive environment to discover available APIs
+-- Practice using Vector constructors
 
-export type EnvironmentProbe = {
-    availableCount: number,
-}
+export type VectorPractice = {}
 
-function init(self: EnvironmentProbe): boolean
-    print("=== Environment Probe ===")
-    print("Checking APIs...")
-    self.availableCount = 0
+function init(self: VectorPractice): boolean
+    print("=== Vector Constructors ===")
 
-    -- TODO 1: Check if Vector exists (Vector ~= nil)
-    -- If it does, add 1 to availableCount and print "Vector: true"
-    -- Otherwise print "Vector: false"
+    -- TODO 1: Create a vector at position (100, 50) using Vector.xy()
+    local start = Vector.xy(0, 0)  -- Replace with correct values
 
-    -- TODO 2: Check if Path exists (same pattern)
+    -- TODO 2: Create another vector at position (100, 150) using Vector.xy()
+    local finish = Vector.xy(0, 0)  -- Replace with correct values
 
-    -- TODO 3: Check if Paint exists (same pattern)
+    -- TODO 3: Calculate the difference (finish - start)
+    local diff = finish - start
 
-    -- TODO 4: Check if Color exists (same pattern)
+    -- TODO 4: Calculate the distance using diff:length()
+    local distance = diff:length()
 
-    -- Print the final count
-    print(\`ANSWER: {self.availableCount}\`)
+    print(`Start: ({start.x}, {start.y})`)
+    print(`Finish: ({finish.x}, {finish.y})`)
+    print(`Distance: {distance}`)
+    print(`ANSWER: {distance}`)
     return true
 end
 
-function draw(self: EnvironmentProbe, renderer: Renderer)
+function draw(self: VectorPractice, renderer: Renderer)
 end
 
-return function(): Node<EnvironmentProbe>
+return function(): Node<VectorPractice>
     return {
         init = init,
         draw = draw,
-        availableCount = 0,
     }
 end
 ```
@@ -410,17 +410,21 @@ end
 
 Complete these tasks:
 
-1. Complete the API availability checks and count how many of the 4 core graphics APIs (Vector, Path, Paint, Color) exist in the Rive sandbox.
-2. Run the script and verify the console output
-3. Copy the `ANSWER:` line into the validator
+1. Create `start` at position (100, 50)
+2. Create `finish` at position (100, 150)
+3. Calculate the distance between them
+4. Copy the `ANSWER:` line into the validator
 
 ---
 
 ### Expected Output
 
 ```
-Console prints the relevant debug lines for this exercise.
-ANSWER: <your result>
+=== Vector Constructors ===
+Start: (100, 50)
+Finish: (100, 150)
+Distance: 100
+ANSWER: 100
 ```
 
 ---
@@ -429,7 +433,7 @@ ANSWER: <your result>
 
 <ExerciseValidator
     exerciseId="rive-env-2"
-    expectedAnswer="ANSWER: 4"
+    expectedAnswer="ANSWER: 100"
 />
 
 ---
@@ -503,9 +507,9 @@ function init(self: Player): boolean
 
     -- Print the typed values
     print("Player created:")
-    print(\`  name = {self.name}\`)
-    print(\`  health = {self.health}\`)
-    print(\`  position = ({self.position.x}, {self.position.y})\`)
+    print(`  name = {self.name}`)
+    print(`  health = {self.health}`)
+    print(`  position = ({self.position.x}, {self.position.y})`)
     print("ANSWER: typed")
 
     return true
@@ -626,12 +630,12 @@ function init(self: SandboxDemo): boolean
     self.cosValue = 0
 
     -- Print results (these will use your calculated values)
-    print(\`Radians: {string.format("%.3f", self.angle)}\`)
-    print(\`Sin: {string.format("%.3f", self.sinValue)}\`)
-    print(\`Cos: {string.format("%.3f", self.cosValue)}\`)
+    print(`Radians: {string.format("%.3f", self.angle)}`)
+    print(`Sin: {string.format("%.3f", self.sinValue)}`)
+    print(`Cos: {string.format("%.3f", self.cosValue)}`)
 
     -- TODO 3: Print the answer (cos value rounded to 3 decimals)
-    -- Format: print(\`ANSWER: {string.format("%.3f", self.cosValue)}\`)
+    -- Format: print(`ANSWER: {string.format("%.3f", self.cosValue)}`)
 
     return true
 end

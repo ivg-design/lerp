@@ -16,7 +16,7 @@ import Term from '@site/src/components/Term';
 
 # Script Types Overview
 
-Rive provides **7 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
+Rive provides **6 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
 :::tip Coming from Part 1?
 If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-work) yet, start there first. It explains WHY scripts have the structure they do — the "protocol" concept, factory functions, and lifecycle callbacks.
@@ -24,7 +24,7 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 
 ---
 
-## The 7 Script Types
+## The 6 Script Types
 
 | Script Type | Primary Purpose | Attach To |
 |-------------|-----------------|-----------|
@@ -33,8 +33,11 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
 | **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |
-| **[Listener Script](#listener-script)** | Event handling | State machines, events |
 | **[Test Script](#test-script)** | Unit testing Util Scripts | Nothing (run manually) |
+
+:::info Listeners
+`Listener<T>` is a **function signature**, not a script type. See [Listeners](./protocols/listener-protocol) for details.
+:::
 
 ---
 
@@ -151,6 +154,10 @@ end
 
 **Use when:** You have shared code (math functions, constants, helpers) used by multiple scripts.
 
+:::tip Creating a Util Script
+In the Rive editor, select **Blank Script** from the script type dropdown. There is no dedicated "Util Script" option—you create one by selecting Blank Script and following the Util Script pattern described below and in the [official Rive docs](https://rive.app/docs/scripting/protocols/util-scripts).
+:::
+
 **Key features:**
 - No lifecycle callbacks — just a module table
 - Imported with `require("UtilName")`
@@ -179,31 +186,36 @@ return MathUtils
 
 ---
 
-## Listener Script
+## Event Listening (Not a Script Type)
 
-**Use when:** You need to handle events from state machines or custom event buses.
+:::warning `Listener<T>` is NOT a Script Type
+`Listener<T>` is a **function signature** for `addListener()`/`removeListener()` methods, not a script return type.
+:::
 
-**Key features:**
-- Event-driven (not frame-based)
-- Responds to <Term>State Machine</Term> events
-- Can handle pointer events on specific nodes
-- Useful for decoupled event handling
+**To handle events in Rive, use these patterns:**
 
-**Typical use cases:**
-- Respond to state machine transitions
-- Handle clicks on multiple elements
-- Event bus patterns
-- Cross-component communication
-
-**Factory return type:** `Listener<T>`
-
+**1. ViewModel Property Listeners (in Node scripts):**
 ```lua
-return function(): Listener<MyListener>
-    return { init = init, onEvent = onEvent }
+function init(self: MyNode, context: Context): boolean
+    local vm = context:viewModel()
+    local score = vm:getNumber("score")
+    if score then
+        score:addListener(function()
+            print("Score changed to: " .. score.value)
+        end)
+    end
+    return true
 end
 ```
 
-**Learn more:** [Listener Script Protocol →](./protocols/listener-protocol)
+**2. Pointer Events (in Node scripts):**
+```lua
+function pointerDown(self: MyNode, event: PointerEvent)
+    print("Clicked at: " .. event.position.x)
+end
+```
+
+**Learn more:** [Listeners →](./protocols/listener-protocol)
 
 ---
 
@@ -249,7 +261,7 @@ Rive state machines decide **what state an animation is in**. Scripts decide **h
 
 **How they connect:**
 - **Inputs** are the bridge. Bind state machine inputs to script inputs or <Term>ViewModel</Term> properties.
-- **Listener scripts** respond to state machine events (transitions, triggers, custom events).
+- **Property listeners** (`addListener()`) respond to ViewModel property changes triggered by state machines.
 - **Node scripts** render visuals and can **read** inputs or ViewModel values to drive drawing.
 
 **Typical flow:**
@@ -257,7 +269,7 @@ Rive state machines decide **what state an animation is in**. Scripts decide **h
 2. Script reads that input in `update()` or `advance()`
 3. Script changes visuals in `draw()` or updates ViewModel data
 
-If you need to **react to transitions or events**, use a Listener script. If you need to **render or animate based on inputs**, use a Node script.
+If you need to **react to property changes**, use `property:addListener()` in a Node script. If you need to **render or animate based on inputs**, use `update()` or `advance()` callbacks.
 
 ---
 
@@ -270,7 +282,7 @@ flowchart TD
     A --> D{Transform binding data?}
     A --> E{Modify stroke geometry?}
     A --> F{Shared helpers?}
-    A --> G{Respond to events?}
+    A --> G{React to property changes?}
     A --> H{Test utils?}
 
     B -->|Yes| B1[Node Script]
@@ -278,7 +290,7 @@ flowchart TD
     D -->|Yes| D1[Converter Script]
     E -->|Yes| E1[Path Effect Script]
     F -->|Yes| F1[Util Script]
-    G -->|Yes| G1[Listener Script]
+    G -->|Yes| G1[Node + addListener]
     H -->|Yes| H1[Test Script]
 ```
 

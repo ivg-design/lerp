@@ -240,7 +240,7 @@ export type LifecycleTracer = {
 
 function init(self: LifecycleTracer): boolean
     -- TODO 1: Print that init was called, include self.name
-    -- Example: print(\`[{self.name}] init called\`)
+    -- Example: print(`[{self.name}] init called`)
 
     self.frameCount = 0
     self.path = Path.new()
@@ -249,7 +249,7 @@ function init(self: LifecycleTracer): boolean
 end
 
 function update(self: LifecycleTracer)
-    print(\`[{self.name}] update called - input changed\`)
+    print(`[{self.name}] update called - input changed`)
 end
 
 function advance(self: LifecycleTracer, seconds: number): boolean
@@ -660,7 +660,7 @@ function init(self: BuggyCircle): boolean
     -- TODO: Fix the property name and use Paint.with({...})
     self.colour = Color.rgb(255, 100, 100)
 
-    print(\`Circle initialized with radius: {r}\`)
+    print(`Circle initialized with radius: {r}`)
     return true
 end
 

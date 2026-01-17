@@ -1,6 +1,6 @@
 ---
 sidebar_position: 6
-title: Util Protocol
+title: Util Script Protocol
 description: Learn how to create reusable Util scripts for sharing code across Node scripts in Rive
 keywords:
   - rive
@@ -17,13 +17,13 @@ import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
-# Util Protocol
+# Util Script Protocol
 
 ## Learning Objectives
-- Create reusable Util scripts
+- Create reusable utility modules using Blank Script
 - Share functions and types across Node scripts
 - Use `require()` to import utilities
-- Avoid common Util script pitfalls
+- Avoid common utility script pitfalls
 
 ---
 
@@ -129,7 +129,11 @@ local value = MyUtil.clamp(120, { min = 0, max = 100 })
 
 ## Creating a Util Script
 
-1. Assets panel → **+** → Script → **Util**
+:::info Editor vs Documentation
+The Rive editor dropdown shows **Blank Script**—there is no "Util Script" option. To create a Util Script, select **Blank Script** and follow the pattern below. The [official Rive documentation](https://rive.app/docs/scripting/protocols/util-scripts) describes this as the "Util Script" protocol.
+:::
+
+1. Assets panel → **+** → Script → **Blank Script**
 2. Name your script (e.g., "MathUtils")
 3. Define your module table and functions
 4. Return the module table

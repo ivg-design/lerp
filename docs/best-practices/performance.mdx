@@ -105,7 +105,7 @@ function update(self: CachedCircle)
     -- self.path:quadTo(Vector.xy(0, r), Vector.xy(-r, 0))
     -- self.path:close()
 
-    print(\`Path rebuilt with radius: {r}\`)
+    print(`Path rebuilt with radius: {r}`)
 end
 
 function draw(self: CachedCircle, renderer: Renderer)
@@ -248,13 +248,13 @@ function init(self: EfficientRect): boolean
     self.buildCount = 0
 
     -- TODO 2: Call rebuild for initial state
-    print(\`Initial build: {self.width}x{self.height}\`)
+    print(`Initial build: {self.width}x{self.height}`)
     return true
 end
 
 function update(self: EfficientRect)
     -- TODO 3: Call rebuild when inputs change
-    print(\`Geometry rebuilt on input change: {self.width}x{self.height}\`)
+    print(`Geometry rebuilt on input change: {self.width}x{self.height}`)
 end
 
 function draw(self: EfficientRect, renderer: Renderer)

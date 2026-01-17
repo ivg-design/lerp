@@ -161,28 +161,28 @@ export type DotColonDemo = {
 
 function init(self: DotColonDemo): boolean
     self.counter = Counter.new(10)
-    print(\`Initial: {self.counter.value}\`)
+    print(`Initial: {self.counter.value}`)
 
     -- TODO 1: Call increment using COLON syntax
     -- (colon automatically passes self.counter as self)
 
-    print(\`After :increment(): {self.counter.value}\`)
+    print(`After :increment(): {self.counter.value}`)
 
     -- TODO 2: Call increment using DOT syntax
     -- (dot requires you to pass self.counter manually)
 
-    print(\`After .increment(counter): {self.counter.value}\`)
+    print(`After .increment(counter): {self.counter.value}`)
 
     -- TODO 3: Call add(5) using COLON syntax
 
-    print(\`After :add(5): {self.counter.value}\`)
+    print(`After :add(5): {self.counter.value}`)
 
     -- TODO 4: Call add(3) using DOT syntax
 
-    print(\`After .add(counter, 3): {self.counter.value}\`)
+    print(`After .add(counter, 3): {self.counter.value}`)
 
     -- Print the ANSWER line for validation
-    print(\`ANSWER: {self.counter.value}\`)
+    print(`ANSWER: {self.counter.value}`)
 
     return true
 end
@@ -298,7 +298,7 @@ function Sprite.new(id: string, x: number, y: number): SpriteType
 end
 
 function Sprite:report()
-    print(\`I am {self.id} at ({self.x}, {self.y})\`)
+    print(`I am {self.id} at ({self.x}, {self.y})`)
 end
 
 export type SelfIdentityDemo = {
@@ -328,7 +328,7 @@ function init(self: SelfIdentityDemo): boolean
     -- TODO 4: Use reportFunc with DOT syntax to report spriteB
     -- Then increment reportCount
 
-    print(\`ANSWER: {self.reportCount}\`)
+    print(`ANSWER: {self.reportCount}`)
 
     return true
 end
@@ -446,7 +446,7 @@ function Widget.new(name: string, width: number, height: number): WidgetType
 end
 
 function Widget:describe(): string
-    return \`{self.name}: {self.width}x{self.height}\`
+    return `{self.name}: {self.width}x{self.height}`
 end
 
 function Widget:resize(w: number, h: number)
@@ -660,7 +660,7 @@ function init(self: MethodPatternsDemo): boolean
     for i = 1, 5 do
         table.insert(self.particles, Particle.new(0, 0))
     end
-    print(\`Spawned {#self.particles} particles\`)
+    print(`Spawned {#self.particles} particles`)
 
     -- Simulate one update cycle
     local alive = {}
@@ -672,8 +672,8 @@ function init(self: MethodPatternsDemo): boolean
         end
     end
 
-    print(\`After update: {#alive} alive\`)
-    print(\`ANSWER: {#alive}\`)
+    print(`After update: {#alive} alive`)
+    print(`ANSWER: {#alive}`)
 
     return true
 end
@@ -827,8 +827,8 @@ function init(self: ChainingDemo): boolean
 
     self.commandCount = count
 
-    print(\`Path commands: {count}\`)
-    print(\`ANSWER: {count}\`)
+    print(`Path commands: {count}`)
+    print(`ANSWER: {count}`)
 
     return true
 end
@@ -942,7 +942,7 @@ function Button.new(label: string): ButtonType
 end
 
 function Button:handleClick()
-    print(\`{self.label} was clicked!\`)
+    print(`{self.label} was clicked!`)
 end
 
 export type CallbackDemo = {
@@ -978,7 +978,7 @@ function init(self: CallbackDemo): boolean
         end
     end
 
-    print(\`ANSWER: {self.clickCount}\`)
+    print(`ANSWER: {self.clickCount}`)
 
     return true
 end

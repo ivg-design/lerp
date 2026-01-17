@@ -19,14 +19,18 @@ Organize your Rive scripts for maintainability, reusability, and clarity.
 
 ## Rive Context
 
-Rive provides two distinct script types with different purposes:
+Rive scripts fall into two patterns based on their purpose:
 
-| Script Type | Purpose | Has Lifecycle | Returns |
-|-------------|---------|---------------|---------|
-| **<Term>Node</Term>** | Visual behavior attached to <Term>Artboard</Term> nodes | Yes (`init`, `advance`, `draw`) | Factory function |
-| **Util** | Reusable code shared across scripts | No | Module table |
+| Script Pattern | Purpose | Has Lifecycle | Returns | Editor Option |
+|----------------|---------|---------------|---------|---------------|
+| **<Term>Node</Term> Script** | Visual behavior attached to <Term>Artboard</Term> nodes | Yes (`init`, `advance`, `draw`) | Factory function | Node Script |
+| **Util Script** | Reusable code shared across scripts | No | Module table | Blank Script |
 
-Understanding when to use each type is fundamental to writing clean, maintainable Rive projects.
+:::tip Creating Util Scripts
+The editor dropdown shows **Blank Script**—select this to create a Util Script. The [Rive docs](https://rive.app/docs/scripting/protocols/util-scripts) describe the Util Script pattern you implement.
+:::
+
+Understanding when to use each pattern is fundamental to writing clean, maintainable Rive projects.
 
 ---
 
@@ -55,7 +59,7 @@ Understanding when to use each type is fundamental to writing clean, maintainabl
 Single Responsibility Principle keeps code maintainable. Util scripts hold pure functions with no side effects, while Node scripts handle visual behavior and state.
 
 :::info Goal
-By the end of this exercise, you will be able to Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
+By the end of this exercise, you will be able to complete the Easing Util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
 :::
 
 ### Use Case
@@ -137,7 +141,7 @@ function init(self: AnimatedSquare): boolean
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 180, 255) })
     print("Animation started")
-    print(\`Position: {self.x:.2f} (eased: 0.00)\`)
+    print(`Position: {self.x:.2f} (eased: 0.00)`)
     return true
 end
 
@@ -149,7 +153,7 @@ function advance(self: AnimatedSquare, seconds: number): boolean
     -- TODO 3: Calculate self.x using Easing.lerp(self.startX, self.endX, eased)
 
     if t >= 1 then
-        print(\`Position: {self.x:.2f} (eased: 1.00)\`)
+        print(`Position: {self.x:.2f} (eased: 1.00)`)
         print("ANSWER: separation")
     end
 
@@ -190,7 +194,7 @@ end
 
 Complete these tasks:
 
-1. Complete the Easing util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
+1. Complete the Easing Util script by adding a lerp function, then use Easing.easeInOutQuad and Easing.lerp in the Node script's advance function.
 2. Run the script and verify the console output
 3. Copy the `ANSWER:` line into the validator
 
@@ -310,8 +314,8 @@ local function setState(self: InteractiveButton, newState: ButtonState)
     -- TODO 1: Set self.targetScale using SCALE_BY_STATE lookup table
     -- TODO 2: Set self.paint using Paint.with and COLOR_BY_STATE lookup table
 
-    print(\`State changed to: {newState}\`)
-    print(\`Scale target: {self.targetScale:.2f}, Color updated\`)
+    print(`State changed to: {newState}`)
+    print(`Scale target: {self.targetScale:.2f}, Color updated`)
 
     if newState == "pressed" then
         print("ANSWER: statemachine")
@@ -325,7 +329,7 @@ function init(self: InteractiveButton): boolean
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = COLOR_BY_STATE.idle })
     rebuildPath(self)
-    print(\`Button initialized: {self.state}\`)
+    print(`Button initialized: {self.state}`)
 
     -- Simulate state changes for demonstration
     setState(self, "hover")
@@ -516,7 +520,7 @@ function advance(self: ParticleSystem, seconds: number): boolean
         if #self.particles < Config.PARTICLE_COUNT and self.spawnCount < 3 then
             table.insert(self.particles, Particle.new(0, 0))
             self.spawnCount += 1
-            print(\`Spawned particle {self.spawnCount}\`)
+            print(`Spawned particle {self.spawnCount}`)
         end
     end
 
@@ -528,8 +532,8 @@ function advance(self: ParticleSystem, seconds: number): boolean
     self.particles = alive
 
     if self.spawnCount >= 3 and #self.particles > 0 then
-        print(\`Updating {#self.particles} particles...\`)
-        print(\`Particles alive: {#self.particles}\`)
+        print(`Updating {#self.particles} particles...`)
+        print(`Particles alive: {#self.particles}`)
         print("ANSWER: layered")
     end
 

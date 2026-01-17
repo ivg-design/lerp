@@ -21,7 +21,7 @@ import Term from '@site/src/components/Term';
 
 ## Learning Objectives
 - Understand the three type checking modes in Luau
-- Know why `--!strict` is recommended for Rive scripts
+- Know that Rive scripts run in strict mode by default
 - Recognize and fix common type errors caught by strict mode
 - Use strict mode effectively in your development workflow
 
@@ -60,7 +60,7 @@ This is WHY strict mode is strongly recommended—your animations must work reli
 
 ## Rive Context
 
-Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended because it ensures:
+Rive scripts run in strict mode by default for type safety. This means all the benefits below are enabled automatically:
 
 1. **Type safety at compile time**: Errors are caught before your animation runs
 2. **Better editor integration**: Autocomplete knows exact types
@@ -80,7 +80,7 @@ Luau supports three modes, controlled by a directive at the top of your file:
 ```lua
 --!strict    -- Full type checking (RECOMMENDED for Rive)
 --!nonstrict -- Partial checking, allows 'any' inference
---!nocheck   -- No type checking (default if no directive)
+--!nocheck   -- No type checking
 ```
 
 ### Mode Comparison
@@ -681,11 +681,15 @@ Your console output should display the adjusted value computed by multiplying th
 ## Knowledge Check
 
 <Quiz
-  question="What directive enables full type checking in Rive scripts?"
+  question="What directive enables full type checking in Luau scripts?"
   id="strict-q1"
-  type="code"
-  answer="--!strict"
-  explanation="The --!strict directive enables full type checking. Place it near the top of your script (it doesn't have to be the first line). Strongly recommended for catching errors early."
+  options={[
+    { text: "--!strict", correct: true },
+    { text: "--!nonstrict" },
+    { text: "--!nocheck" },
+    { text: "No directive needed (strict is always on)" },
+  ]}
+  explanation="The --!strict directive enables full type checking. In Rive, strict mode is enabled by default, so you don't need to add this directive manually—but you can include it for clarity."
 />
 
 <Quiz
@@ -713,7 +717,7 @@ Your console output should display the adjusted value computed by multiplying th
 />
 
 <Quiz
-  question="Why does Rive require --!strict mode?"
+  question="Why does Rive use strict mode by default?"
   id="strict-q4"
   options={[
     { text: "It makes the code run faster" },
@@ -721,7 +725,7 @@ Your console output should display the adjusted value computed by multiplying th
     { text: "It is a Luau requirement" },
     { text: "It allows more flexible coding" },
   ]}
-  explanation="Strict mode catches type errors before your animation runs, provides better autocomplete in the editor, and ensures more reliable runtime behavior."
+  explanation="Strict mode catches type errors before your animation runs, provides better autocomplete in the editor, and ensures more reliable runtime behavior. Rive enables this by default for all scripts."
 />
 
 ---
@@ -730,9 +734,10 @@ Your console output should display the adjusted value computed by multiplying th
 
 :::warning Common Issues
 
-1. **Missing `--!strict`**: Add it near the top of your file for type checking (recommended, not required)
+1. **Strict mode is default**: Rive scripts run in strict mode by default. You can add `--!strict` explicitly for clarity, but it's not required.
    ```lua
-   --!strict  -- Recommended at top of file
+   -- Strict mode is already enabled by default in Rive
+   -- Adding --!strict is optional but makes intent clear
 
    export type MyScript = {}
    ```
@@ -771,7 +776,7 @@ Your console output should display the adjusted value computed by multiplying th
 
 ## Self-Assessment Checklist
 
-- [ ] I understand why `--!strict` is recommended for Rive scripts
+- [ ] I understand that Rive scripts run in strict mode by default
 - [ ] I can fix "cannot infer type of empty table" errors
 - [ ] I know the difference between strict, nonstrict, and nocheck modes
 - [ ] I can properly annotate function signatures

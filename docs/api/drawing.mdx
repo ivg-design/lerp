@@ -166,11 +166,37 @@ local pos, tan = measure:positionAndTangent(measure.length / 2)
 
 #### `measure:warp(point)`
 
-Warps a point onto the path. X = distance along path, Y = perpendicular offset.
+Transforms a point from "path space" coordinates to world coordinates along the path.
 
 ```lua
 measure:warp(point: Vector): Vector
 ```
+
+**How it works:**
+- **X coordinate** = Distance along the path (0 = start, `measure.length` = end)
+- **Y coordinate** = Perpendicular offset from the path centerline
+  - **Positive Y** = Offset to the **left** of the path direction
+  - **Negative Y** = Offset to the **right** of the path direction
+
+**Example: Text Along a Curve**
+```lua
+-- Place points along a wavy path
+local measure = curvePath:measure()
+
+-- Point at 50% along path, centered on path
+local center = measure:warp(Vector.xy(measure.length * 0.5, 0))
+
+-- Point at 50% along path, 10 units to the left
+local leftOffset = measure:warp(Vector.xy(measure.length * 0.5, 10))
+
+-- Point at 50% along path, 10 units to the right
+local rightOffset = measure:warp(Vector.xy(measure.length * 0.5, -10))
+```
+
+**Use Cases:**
+- Placing text or objects along a curved path
+- Creating parallel offset paths
+- Animating elements that follow a trajectory
 
 #### `measure:extract(start, end, dest, startWithMove?)`
 
@@ -239,6 +265,22 @@ Creates a paint with multiple properties at once.
 ```lua
 Paint.with(definition: PaintDefinition): Paint
 ```
+
+**PaintDefinition Type:**
+```lua
+type PaintDefinition = {
+    style: ("fill" | "stroke")?,      -- Rendering style (default: "fill")
+    color: Color?,                     -- Fill or stroke color
+    thickness: number?,                -- Stroke width (stroke only)
+    cap: ("round" | "butt" | "square")?,  -- Line endings (stroke only)
+    join: ("round" | "bevel" | "miter")?, -- Corner style (stroke only)
+    blendMode: BlendMode?,             -- Compositing mode
+    feather: number?,                  -- Feathering amount
+    gradient: Gradient?,               -- Applied gradient
+}
+```
+
+All fields are optional. Unspecified fields use Paint defaults.
 
 **Example:**
 ```lua

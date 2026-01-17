@@ -112,6 +112,35 @@ end
 
 ---
 
+## Type Signature Reference
+
+### Layout Protocol Functions
+
+| Function | Signature | Required | Description |
+|----------|-----------|----------|-------------|
+| `init` | `(self: T, context: Context): boolean` | Yes | Initialize layout state |
+| `resize` | `(self: T, size: Vector)` | **Yes** | React to container size changes |
+| `measure` | `(self: T): Vector` | No | Propose ideal size (Hug fit only) |
+| `update` | `(self: T)` | No | Respond to input changes |
+| `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
+| `draw` | `(self: T, renderer: Renderer)` | No | Custom rendering |
+
+### Factory Return Type
+
+```lua
+return function(): Layout<YourLayoutType>
+    return {
+        init = init,
+        resize = resize,    -- Required
+        measure = measure,  -- Optional
+        update = update,    -- Optional
+        -- ... your inputs with defaults
+    }
+end
+```
+
+---
+
 ## Lifecycle Functions
 
 ### `resize(self, size: Vector)` — **REQUIRED**

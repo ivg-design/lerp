@@ -72,7 +72,7 @@ const sidebars: SidebarsConfig = {
         'rive/inputs',
         {
           type: 'category',
-          label: 'Protocols',
+          label: 'Script Protocols',
           items: [
             'rive/protocols/node-protocol',
             'rive/protocols/node-lifecycle',
@@ -80,7 +80,6 @@ const sidebars: SidebarsConfig = {
             'rive/protocols/converter-protocol',
             'rive/protocols/path-effect-protocol',
             'rive/protocols/util-protocol',
-            'rive/protocols/listener-protocol',
             'rive/protocols/test-protocol',
           ],
         },
@@ -88,11 +87,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Part 6: Advanced Techniques',
+      label: 'Part 6: Advanced Rive Scripting',
       items: [
         'advanced/core-types',
         'advanced/drawing-api',
         'advanced/viewmodels',
+        'rive/protocols/listener-protocol',
         'advanced/game-logic',
         'advanced/instantiation',
         'advanced/procedural',

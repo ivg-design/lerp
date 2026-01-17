@@ -152,12 +152,12 @@ flowchart TD
     C -->|true| E[Runtime Loop]
 
     E --> F{Input Changed?}
-    F -->|yes| G[update self, ctx]
+    F -->|yes| G[update self]
     G --> |Rebuild geometry<br/>Recalc values| H
     F -->|no| H
 
     subgraph H[Frame Loop]
-        I[advance self, dt, ctx] --> |Update timers<br/>Physics/movement| J[draw self, renderer]
+        I[advance self, seconds] --> |Update timers<br/>Physics/movement| J[draw self, renderer]
         J --> |Render commands only| K[next frame]
         K --> I
     end
@@ -346,7 +346,7 @@ local function rebuild(self: OnDemandShape)
     -- TODO 3: Build rectangle path using reset, moveTo, lineTo, close
 
     -- Print rebuild info
-    print(\`Rebuild #{self.rebuildCount}: {self.width} x {self.height}\`)
+    print(`Rebuild #{self.rebuildCount}: {self.width} x {self.height}`)
 
     -- TODO 4: When rebuildCount reaches 2, print "ANSWER: efficient"
 end
@@ -506,7 +506,7 @@ function advance(self: AnimatedShape, seconds: number): boolean
 
     -- Log pulse every second
     if math.floor(self.time) > math.floor(self.time - seconds) and self.time > 0 then
-        print(\`advance: pulse = {string.format("%.2f", pulse)}\`)
+        print(`advance: pulse = {string.format("%.2f", pulse)}`)
     end
 
     -- TODO 5: After 2 seconds, print "ANSWER: pulsing"
@@ -577,17 +577,17 @@ ANSWER: <your result>
 Node scripts can also respond to pointer interactions. These are like DOM event handlers in JavaScript.
 
 ```lua
-function pointerDown(self: MyNode, position: Vector): boolean
-    print(`Clicked at {position.x}, {position.y}`)
-    return true  -- Return true to consume the event
+function pointerDown(self: MyNode, event: PointerEvent)
+    local pos = event.position
+    print(`Clicked at {pos.x}, {pos.y}`)
 end
 
-function pointerMove(self: MyNode, position: Vector): boolean
-    return false  -- Return false to let the event propagate
+function pointerMove(self: MyNode, event: PointerEvent)
+    -- Handle mouse/touch movement
 end
 
-function pointerUp(self: MyNode, position: Vector): boolean
-    return true
+function pointerUp(self: MyNode, event: PointerEvent)
+    -- Handle mouse/touch release
 end
 ```
 
@@ -683,7 +683,7 @@ function init(self: ClickCounter): boolean
     return true
 end
 
-function pointerDown(self: ClickCounter, position: Vector): boolean
+function pointerDown(self: ClickCounter, event: PointerEvent)
     -- TODO 1: Increment clickCount
 
     -- TODO 2: Set displayScale to 1.2 for pop effect
@@ -692,8 +692,6 @@ function pointerDown(self: ClickCounter, position: Vector): boolean
 
     -- TODO 4: When clickCount reaches 3, print "ANSWER: interactive"
 
-    -- TODO 5: Return true to consume the event
-    return false
 end
 
 function advance(self: ClickCounter, seconds: number): boolean
@@ -867,19 +865,19 @@ function update(self: MyNode)
 end
 ```
 
-### 3. Forgetting to Return from Pointer Handlers
+### 3. Using Wrong Pointer Event Signature
 
 ```lua
--- WRONG: Missing return value
-function pointerDown(self: MyNode, position: Vector)
-    print("Clicked!")
-    -- No return - behavior undefined
-end
-
--- CORRECT: Always return a boolean
+-- WRONG: Old Vector parameter pattern
 function pointerDown(self: MyNode, position: Vector): boolean
     print("Clicked!")
-    return true  -- Consume the event
+    return true
+end
+
+-- CORRECT: Use PointerEvent parameter
+function pointerDown(self: MyNode, event: PointerEvent)
+    local pos = event.position
+    print("Clicked at: " .. pos.x .. ", " .. pos.y)
 end
 ```
 

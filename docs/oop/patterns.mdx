@@ -169,7 +169,7 @@ function Circle.new(x: number, y: number, radius: number): ShapeType
 end
 
 function Circle:draw(renderer: Renderer)
-    print(\`Drawing circle at ({self.x}, {self.y})\`)
+    print(`Drawing circle at ({self.x}, {self.y})`)
 end
 
 -- Simple Rectangle class
@@ -185,7 +185,7 @@ function Rectangle.new(x: number, y: number, width: number, height: number): Sha
 end
 
 function Rectangle:draw(renderer: Renderer)
-    print(\`Drawing rectangle at ({self.x}, {self.y})\`)
+    print(`Drawing rectangle at ({self.x}, {self.y})`)
 end
 
 -- Simple Triangle class
@@ -201,7 +201,7 @@ function Triangle.new(x: number, y: number, size: number): ShapeType
 end
 
 function Triangle:draw(renderer: Renderer)
-    print(\`Drawing triangle at ({self.x}, {self.y})\`)
+    print(`Drawing triangle at ({self.x}, {self.y})`)
 end
 
 -- THE FACTORY
@@ -244,13 +244,13 @@ function init(self: FactoryDemo): boolean
     for _, config in ipairs(configs) do
         local shape = ShapeFactory.create(config)
         if shape then
-            print(\`Created {config.type} at ({config.x}, {config.y})\`)
+            print(`Created {config.type} at ({config.x}, {config.y})`)
             table.insert(self.shapes, shape)
         end
     end
 
-    print(\`Total shapes created: {#self.shapes}\`)
-    print(\`ANSWER: {#self.shapes}\`)
+    print(`Total shapes created: {#self.shapes}`)
+    print(`ANSWER: {#self.shapes}`)
     return true
 end
 
@@ -382,7 +382,7 @@ function Sprite.new(complexity: number): SpriteType
     self.path:close()
 
     self.paint = Paint.with({ style = "fill", color = Color.rgb(255, 200, 100) })
-    print(\`Template created with complexity {complexity}\`)
+    print(`Template created with complexity {complexity}`)
     return (self :: any) :: SpriteType
 end
 
@@ -419,12 +419,12 @@ function init(self: PrototypeDemo): boolean
         local clone = template:clone()
         local x = -80 + (i - 1) * 40
         clone:setPosition(x, 0)
-        print(\`Clone {i} spawned at ({x}, 0)\`)
+        print(`Clone {i} spawned at ({x}, 0)`)
         table.insert(self.sprites, clone)
     end
 
-    print(\`Total sprites: {#self.sprites}\`)
-    print(\`ANSWER: {#self.sprites}\`)
+    print(`Total sprites: {#self.sprites}`)
+    print(`ANSWER: {#self.sprites}`)
     return true
 end
 
@@ -552,16 +552,16 @@ function init(self: ModuleDemo): boolean
     print("Testing MathUtils module...")
 
     local lerpResult = MathUtils.lerp(0, 100, 0.5)
-    print(\`lerp(0, 100, 0.5) = {lerpResult}\`)
+    print(`lerp(0, 100, 0.5) = {lerpResult}`)
 
     local clampResult = MathUtils.clamp(150, 0, 100)
-    print(\`clamp(150, 0, 100) = {clampResult}\`)
+    print(`clamp(150, 0, 100) = {clampResult}`)
 
     local invResult = MathUtils.inverseLerp(0, 100, 25)
-    print(\`inverseLerp(0, 100, 25) = {invResult}\`)
+    print(`inverseLerp(0, 100, 25) = {invResult}`)
 
     print("All functions work!")
-    print(\`ANSWER: {lerpResult}\`)
+    print(`ANSWER: {lerpResult}`)
     return true
 end
 
@@ -699,10 +699,10 @@ function init(self: SingletonDemo): boolean
     end)
 
     local stats = AssetCache.getStats()
-    print(\`Cache stats: hits={stats.hits}, misses={stats.misses}, size={stats.size}\`)
+    print(`Cache stats: hits={stats.hits}, misses={stats.misses}, size={stats.size}`)
 
-    print(\`Both paths are same reference: {path1 == path2}\`)
-    print(\`ANSWER: {stats.size}\`)
+    print(`Both paths are same reference: {path1 == path2}`)
+    print(`ANSWER: {stats.size}`)
     return true
 end
 
@@ -837,7 +837,7 @@ function init(self: ObserverDemo): boolean
 
     print("Subscribing observer...")
     local unsubscribe = health.observe(function(newVal, oldVal)
-        print(\`Observer called: {oldVal} -> {newVal}\`)
+        print(`Observer called: {oldVal} -> {newVal}`)
     end)
 
     print("Setting value to 75...")
@@ -849,8 +849,8 @@ function init(self: ObserverDemo): boolean
     print("Setting same value (50) - no notification")
     health.set(50)  -- Should NOT trigger observer
 
-    print(\`Final value: {health.get()}\`)
-    print(\`ANSWER: {health.get()}\`)
+    print(`Final value: {health.get()}`)
+    print(`ANSWER: {health.get()}`)
     return true
 end
 

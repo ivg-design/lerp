@@ -107,13 +107,13 @@ end
 
 function init(self: SpawnDemo): boolean
     self.items = {}
-    print(\`Spawning {self.count} stars...\`)
+    print(`Spawning {self.count} stars...`)
 
     for _ = 1, self.count do
         spawn(self)
     end
 
-    print(\`{#self.items} stars spawned!\`)
+    print(`{#self.items} stars spawned!`)
     print("ANSWER: spawned")
     return true
 end

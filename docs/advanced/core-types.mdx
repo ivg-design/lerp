@@ -514,9 +514,12 @@ function init(self: GradientDemo): boolean
     self.path:close()
 
     -- TODO 1: Create a linear gradient from left (-90, 0) to right (90, 0)
-    -- Use Gradient.linear(startVec, endVec, colorStops)
-    -- Color stops: { position = 0, color = Color.rgb(255, 80, 80) } (red)
-    --              { position = 1, color = Color.rgb(80, 120, 255) } (blue)
+    -- Use Gradient.linear(startVec, endVec, {colorStops})
+    -- Color stops must be in a table:
+    -- {
+    --   { position = 0, color = Color.rgb(255, 80, 80) },  -- red
+    --   { position = 1, color = Color.rgb(80, 120, 255) }  -- blue
+    -- }
     local gradient = nil  -- Replace with Gradient.linear(...)
 
     -- TODO 2: Create a fill Paint with the gradient

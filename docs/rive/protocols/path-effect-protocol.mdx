@@ -121,6 +121,43 @@ end
 
 ---
 
+## Type Signature Reference
+
+### Path Effect Protocol Functions
+
+| Function | Signature | Required | Description |
+|----------|-----------|----------|-------------|
+| `init` | `(self: T, context: Context): boolean` | No | Initialize effect state |
+| `update` | `(self: T, inPath: PathData): PathData` | **Yes** | Transform path geometry |
+| `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
+
+### Factory Return Type
+
+```lua
+return function(): PathEffect<YourEffectType>
+    return {
+        init = init,      -- Optional
+        update = update,  -- Required
+        advance = advance, -- Optional (for animated effects)
+        context = late(),
+        time = 0,
+        -- ... your inputs
+    }
+end
+```
+
+### PathData Command Types
+
+| Command Type | Array Indices | Description |
+|--------------|---------------|-------------|
+| `CommandType.moveTo` | `[1]=x, [2]=y` | Move to point |
+| `CommandType.lineTo` | `[1]=x, [2]=y` | Line to point |
+| `CommandType.quadTo` | `[1-2]=control, [3-4]=end` | Quadratic curve |
+| `CommandType.cubicTo` | `[1-2]=cp1, [3-4]=cp2, [5-6]=end` | Cubic curve |
+| `CommandType.close` | (none) | Close path |
+
+---
+
 ## Key Functions
 
 ### `update(self, inPath: PathData): PathData` — **REQUIRED**
@@ -278,7 +315,7 @@ function update(self: Exercise1, inPath: PathData): PathData
 
         elseif cmd.type == CommandType.cubicTo then
             -- TODO: Copy cubicTo with all 3 vectors
-            -- Hint: cp1 = cmd[1,2], cp2 = cmd[3,4], end = cmd[5,6]
+            -- Hint: cp1 = cmd[1], cmd[2]; cp2 = cmd[3], cmd[4]; end = cmd[5], cmd[6]
 
         elseif cmd.type == CommandType.close then
             path:close()

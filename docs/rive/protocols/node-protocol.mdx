@@ -81,6 +81,89 @@ If `draw` is missing, the script will not appear in the add-to-scene menu. This 
 
 ---
 
+## The `late()` Initializer
+
+When your script needs objects that are created in `init()` (like `Path`, `Paint`, or ViewModel references), use `late()` as a placeholder in the factory return.
+
+### Why `late()` Exists
+
+The factory function runs **before** `init()`. At that point, you can't call `Path.new()` or access context. But Luau's type system needs to know that these fields exist. `late()` tells Rive: "This field will be assigned later in init()."
+
+```lua
+export type MyNode = {
+    path: Path,      -- Will be created in init()
+    paint: Paint,    -- Will be created in init()
+    score: number,   -- Has a default value
+}
+
+function init(self: MyNode): boolean
+    self.path = Path.new()           -- Assign the late() fields
+    self.paint = Paint.new()
+    return true
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),   -- Placeholder for Path
+        paint = late(),  -- Placeholder for Paint
+        score = 0,       -- Regular default value
+    }
+end
+```
+
+### When to Use `late()` vs Default Values
+
+| Scenario | Use | Example |
+|----------|-----|---------|
+| Numbers, booleans, strings with defaults | Default value | `speed = 1.5` |
+| Objects created in init() | `late()` | `path = late()` |
+| ViewModel properties | `late()` | `scoreProp = late()` |
+| Editor-assigned inputs | `late()` | `artboard = late()` |
+| Optional fields (may be nil) | `nil` | `callback = nil` |
+
+### Common `late()` Use Cases
+
+```lua
+export type MyNode = {
+    -- Objects created in init()
+    path: Path,
+    paint: Paint,
+
+    -- ViewModel references
+    vm: ViewModel?,
+    scoreProp: Property<number>?,
+
+    -- Editor inputs (Artboard references)
+    component: Input<Artboard<Data.MyVM>>,
+
+    -- Regular defaults (not late)
+    time: number,
+    isActive: boolean,
+}
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        draw = draw,
+        path = late(),
+        paint = late(),
+        vm = nil,
+        scoreProp = nil,
+        component = late(),  -- Assigned by editor
+        time = 0,
+        isActive = true,
+    }
+end
+```
+
+:::tip Rule of Thumb
+If a field's value comes from calling a constructor or accessing context, use `late()`. If it has a simple default value, just assign that value.
+:::
+
+---
+
 ## Standard Node Script Template
 
 ```lua
@@ -140,9 +223,9 @@ Every Node script you write will follow this structure. The exported type define
 | `draw` | ✅ Yes | `self`, `renderer` | none | On canvas repaint |
 | `update` | Optional | `self` | none | <Term>Input</Term> changes |
 | `advance` | Optional | `self`, `seconds` | `boolean` | Every animation frame |
-| `pointerDown` | Optional | `self`, `position` | `boolean` | Mouse/touch down |
-| `pointerMove` | Optional | `self`, `position` | `boolean` | Mouse/touch move |
-| `pointerUp` | Optional | `self`, `position` | `boolean` | Mouse/touch up |
+| `pointerDown` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch down |
+| `pointerMove` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch move |
+| `pointerUp` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch up |
 
 ---
 
@@ -584,14 +667,13 @@ function advance(self: CompleteDemo, seconds: number): boolean
     return true
 end
 
-function pointerDown(self: CompleteDemo, position: Vector): boolean
+function pointerDown(self: CompleteDemo, event: PointerEvent)
     -- TODO 3: Increment clickCount
 
     -- TODO 4: Print "Click #{clickCount}"
 
     -- TODO 5: When clickCount reaches 3, print "ANSWER: complete"
 
-    return true
 end
 
 function draw(self: CompleteDemo, renderer: Renderer)
