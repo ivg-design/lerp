@@ -21,7 +21,7 @@ import Term from '@site/src/components/Term';
 
 ## Learning Objectives
 - Understand the three type checking modes in Luau
-- Know that Rive scripts run in strict mode by default
+- Know why Rive enforces strict typing and why `--!strict` is recommended
 - Recognize and fix common type errors caught by strict mode
 - Use strict mode effectively in your development workflow
 
@@ -35,7 +35,7 @@ If you're coming from After Effects expressions or JavaScript, understanding typ
 |---------|--------------|-------------|-------|
 | Type checking | None (runtime only) | `--!strict` (compile time) | Luau catches errors BEFORE running |
 | Untyped mode | Default | `--!nocheck` | Both skip type checking |
-| Strict mode | N/A | `--!strict` | Recommended for Rive |
+| Strict mode | N/A | `--!strict` | Recommended; Rive enforces strict typing |
 | TypeScript | `tsc --strict` | `--!strict` | Similar concept |
 | Empty array | `[]` works | `{}` needs type | `local t: {string} = {}` |
 | Missing property | Runtime error | Compile error | Strict catches early |
@@ -53,14 +53,14 @@ let result = player.health - damage;  // No error until runtime!
 local result = player.health - damage  -- Error: health might be nil
 ```
 
-This is WHY strict mode is strongly recommended—your animations must work reliably everywhere, and there's no debugger when they run on users' devices.
+This is why Rive enforces strict typing—your animations must work reliably everywhere, and there's no debugger when they run on users' devices.
 :::
 
 ---
 
 ## Rive Context
 
-Rive scripts run in strict mode by default for type safety. This means all the benefits below are enabled automatically:
+Rive enforces strict type checking by default. The `--!strict` directive is optional, but Rive still expects strict typing and will type-check as if strict is on. Use `--!strict` to make that explicit and keep scripts consistent across tools. This design ensures:
 
 1. **Type safety at compile time**: Errors are caught before your animation runs
 2. **Better editor integration**: Autocomplete knows exact types
@@ -78,9 +78,9 @@ When you write a <Term>Node</Term> Script, the Rive compiler expects proper type
 Luau supports three modes, controlled by a directive at the top of your file:
 
 ```lua
---!strict    -- Full type checking (RECOMMENDED for Rive)
+--!strict    -- Full type checking (recommended; Rive enforces strict typing)
 --!nonstrict -- Partial checking, allows 'any' inference
---!nocheck   -- No type checking
+--!nocheck   -- No type checking (default if no directive)
 ```
 
 ### Mode Comparison
@@ -90,7 +90,9 @@ Luau supports three modes, controlled by a directive at the top of your file:
 | Type inference | No | Partial | Full |
 | Errors on type mismatch | No | Some | Yes |
 | Requires annotations | No | Sometimes | Yes (for functions) |
-| Used in Rive | **No** | **No** | **Yes** |
+| Used in Rive | **No** | **No** | **Yes (enforced)** |
+
+Even if you omit `--!strict`, Rive still enforces strict typing. The directive is optional but recommended for clarity.
 
 ---
 
@@ -681,15 +683,11 @@ Your console output should display the adjusted value computed by multiplying th
 ## Knowledge Check
 
 <Quiz
-  question="What directive enables full type checking in Luau scripts?"
+  question="What directive enables full type checking in Rive scripts?"
   id="strict-q1"
-  options={[
-    { text: "--!strict", correct: true },
-    { text: "--!nonstrict" },
-    { text: "--!nocheck" },
-    { text: "No directive needed (strict is always on)" },
-  ]}
-  explanation="The --!strict directive enables full type checking. In Rive, strict mode is enabled by default, so you don't need to add this directive manually—but you can include it for clarity."
+  type="code"
+  answer="--!strict"
+  explanation="The --!strict directive enables explicit strict type checking. In Rive it is optional because strict typing is enforced anyway, but keep it as the first line if you include it."
 />
 
 <Quiz
@@ -717,7 +715,7 @@ Your console output should display the adjusted value computed by multiplying th
 />
 
 <Quiz
-  question="Why does Rive use strict mode by default?"
+  question="Why does Rive enforce strict typing (and recommend --!strict)?"
   id="strict-q4"
   options={[
     { text: "It makes the code run faster" },
@@ -725,19 +723,18 @@ Your console output should display the adjusted value computed by multiplying th
     { text: "It is a Luau requirement" },
     { text: "It allows more flexible coding" },
   ]}
-  explanation="Strict mode catches type errors before your animation runs, provides better autocomplete in the editor, and ensures more reliable runtime behavior. Rive enables this by default for all scripts."
+  explanation="Strict typing catches type errors before your animation runs, provides better autocomplete in the editor, and ensures more reliable runtime behavior."
 />
 
 ---
 
 ## Common Mistakes
 
-:::warning Common Issues
+:::danger Avoid These Errors
 
-1. **Strict mode is default**: Rive scripts run in strict mode by default. You can add `--!strict` explicitly for clarity, but it's not required.
+1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit (Rive enforces strict typing regardless)
    ```lua
-   -- Strict mode is already enabled by default in Rive
-   -- Adding --!strict is optional but makes intent clear
+   --!strict  -- Recommended first line if included
 
    export type MyScript = {}
    ```
@@ -776,7 +773,7 @@ Your console output should display the adjusted value computed by multiplying th
 
 ## Self-Assessment Checklist
 
-- [ ] I understand that Rive scripts run in strict mode by default
+- [ ] I understand why `--!strict` is optional but recommended in Rive
 - [ ] I can fix "cannot infer type of empty table" errors
 - [ ] I know the difference between strict, nonstrict, and nocheck modes
 - [ ] I can properly annotate function signatures

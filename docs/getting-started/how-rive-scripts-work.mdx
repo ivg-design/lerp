@@ -34,7 +34,7 @@ When you create a script in Rive, you'll see this. Here's what each part does:
 
 | Code | Purpose |
 |------|---------|
-| `--!strict` | **Enable type checking (RECOMMENDED)** |
+| `--!strict` | **Enable strict type checking (optional directive; enforced by Rive)** |
 | `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
 | `function init(self: MyNode) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, return true to continue |
 | `function advance(self, seconds) ... end` | **Runs every animation frame (optional)** — Animation, physics, return true to keep running |
@@ -176,7 +176,7 @@ end
 
 **Why `--!` syntax?** In Lua, `--` starts a comment. The `!` immediately after makes it a *directive* - a special instruction to the compiler rather than regular code. It's like HTML's `<!DOCTYPE>` - a signal that affects how the file is processed.
 
-**Why it's recommended:** While scripts run without `--!strict`, using it enables full type checking which catches errors before runtime. It's strongly recommended for production scripts.
+**Why it's recommended:** Rive enforces strict typing either way, but including `--!strict` makes the intent explicit and keeps scripts consistent across tools.
 
 **Coming from JavaScript?** This is like TypeScript's strict mode. Without it, you can write `const x = "hello"; x.toFixed(2)` and it fails at runtime. With strict mode, you catch it immediately.
 
@@ -492,7 +492,7 @@ end
 Here's how everything fits together - a pulsing circle that demonstrates all the key concepts:
 
 ```lua
---!strict  -- ① Turn on type checking
+--!strict  -- ① Optional: make strict typing explicit
 
 -- ② Define what data your script stores
 export type PulsingCircle = {
@@ -681,7 +681,7 @@ flowchart TD
 
 Every Rive script follows this pattern:
 
-1. **Enable strict mode** (`--!strict`)
+1. **Optional: declare strict mode** (`--!strict`)
 2. **Define your data type** (`export type`)
 3. **Implement lifecycle functions** (`init`, `draw`, optionally `advance`)
 4. **Return a factory function** that creates instances

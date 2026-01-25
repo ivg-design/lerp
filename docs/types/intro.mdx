@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: "2.1 Type Annotations & Inference"
-description: Enable strict mode, add type annotations, and understand type inference
+description: Understand strict mode (optional --!strict directive), add type annotations, and understand type inference
 keywords:
   - rive
   - luau
@@ -20,7 +20,7 @@ import Term from '@site/src/components/Term';
 # Lesson 2.1: Type Annotations & Inference
 
 ## Learning Objectives
-- Enable and understand `--!strict` mode
+- Understand strict mode and the optional `--!strict` directive
 - Add type annotations to variables and functions
 - Understand type inference and when to rely on it
 - Use type refinement with control flow
@@ -46,14 +46,14 @@ If you're coming from After Effects expressions or JavaScript, here's how Luau's
 :::danger Critical Difference
 **JavaScript has NO compile-time type checking.** Errors happen at runtime when your code runs.
 
-**Luau with `--!strict` catches type errors BEFORE your code runs.** This is why Rive requires strict mode—bugs are caught during development, not when users see your animation.
+**Luau with `--!strict` catches type errors BEFORE your code runs.** This is why Rive enforces strict typing—bugs are caught during development, not when users see your animation.
 :::
 
 ---
 
 ## Rive Context
 
-Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended because it catches type errors during development.
+Rive enforces strict type checking by default. The `--!strict` directive is optional but recommended; strict typing is enforced either way. Your script must define types for persistent state and inputs, and the engine enforces them.
 
 **Why does this matter?** When your animation runs on a user's device, there's no debugger. Strict mode catches bugs during development so your animation works reliably everywhere.
 
@@ -78,13 +78,13 @@ In Module 1, you wrote code that worked—but how do you know it won't break whe
 ## Mode Directives
 
 ```lua
---!strict    -- Full type checking (recommended for Rive)
+--!strict    -- Full type checking (recommended; Rive enforces strict typing)
 --!nonstrict -- Partial checking, allows 'any' inference
 --!nocheck   -- No type checking (default if no directive)
 ```
 
-:::tip Strict Mode is Default in Rive
-Rive scripts run in strict mode by default—you don't need to add `--!strict` explicitly. However, adding it doesn't hurt and makes the intent clear to other developers.
+:::tip Optional but Recommended
+Add `--!strict` as the first line to make strict typing explicit. Rive enforces strict typing even if you omit the directive.
 :::
 
 ## Basic Type Annotations
@@ -224,7 +224,7 @@ Your console output should display the remaining health after applying damage. T
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
+- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] `damage` is a number
 - [ ] Output matches the expected line
 
@@ -728,7 +728,7 @@ Your console output should display the three state fields with the assigned valu
   id="types-q1"
   type="code"
   answer="--!strict"
-  explanation="Add --!strict near the top of your script to enable full type checking (it doesn't have to be the first line)."
+  explanation="Add --!strict as the first line to make strict typing explicit. Rive enforces strict typing even if you omit the directive."
 />
 
 <Quiz
@@ -773,7 +773,7 @@ Your console output should display the three state fields with the assigned valu
 
 :::danger Avoid These Errors
 
-1. **Forgetting `--!strict`**: Add it near the top of your file (recommended)
+1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit
    ```lua
    -- WRONG: No directive
    export type MyScript = {}
@@ -827,7 +827,7 @@ Your console output should display the three state fields with the assigned valu
 
 ## Self-Assessment Checklist
 
-- [ ] I understand Rive scripts run in strict mode by default
+- [ ] I prefer to include `--!strict` for clarity (optional; strict typing enforced)
 - [ ] I can annotate variables: `local x: number = 5`
 - [ ] I can annotate functions: `function(a: string): boolean`
 - [ ] I understand when Luau can infer types automatically

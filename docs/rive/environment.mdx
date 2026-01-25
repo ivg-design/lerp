@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | File access | `File.read()` (ExtendScript) | Not available (sandboxed) |
 | Network requests | `fetch()` or `XMLHttpRequest` | Not available (sandboxed) |
 | Module import | `import` or `require()` (Node.js) | `require("ScriptName")` |
-| Type checking | TypeScript (optional) | `--!strict` (recommended) |
+| Type checking | TypeScript (optional) | `--!strict` (optional; strict typing enforced) |
 | Runtime | JavaScript (dynamic) | Luau (statically typed variant of Lua) |
 
 :::danger Critical Difference: Where Your Code Runs
@@ -318,7 +318,7 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
+- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -440,7 +440,7 @@ ANSWER: 100
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
+- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -452,7 +452,7 @@ ANSWER: 100
 
 ### Premise
 
-Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Without --!strict, Node scripts won't be recognized by Rive.
+Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Rive enforces strict typing either way; `--!strict` is optional but recommended for clarity.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector.
@@ -561,7 +561,7 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
+- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -686,7 +686,7 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] `--!strict` is at the top
+- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -779,11 +779,11 @@ When your script has errors:
   id="env-q3"
   options={[
     { text: "It makes the script run faster" },
-    { text: "It enables type checking which catches errors early", correct: true },
+    { text: "It makes strict typing explicit (Rive enforces it anyway)", correct: true },
     { text: "It allows network access" },
-    { text: "Scripts won't run without it" },
+    { text: "It changes runtime performance" },
   ]}
-  explanation="--!strict enables Luau's type checking, which catches errors before runtime. While scripts can run without it, using strict mode is strongly recommended for catching bugs early."
+  explanation="--!strict makes strict typing explicit for the Luau toolchain. Rive enforces strict typing regardless, so the directive is optional but recommended."
 />
 
 <Quiz
@@ -823,14 +823,14 @@ print("I appear in Rive's Console!")
 -- Data is passed into Rive through runtime API
 ```
 
-### 3. Missing --!strict (Recommended)
+### 3. Omitting --!strict
 
 ```lua
--- WORKS but not recommended: Missing strict directive
+-- Strict typing is still enforced, but clarity is reduced
 export type MyNode = {}
--- Script runs, but type errors won't be caught
+-- Script runs with strict typing enforced
 
--- RECOMMENDED: Include --!strict for type checking
+-- RECOMMENDED: Include --!strict for clarity
 --!strict
 export type MyNode = {}
 -- Type checker catches errors before runtime
@@ -892,7 +892,7 @@ Higher debug levels give you detailed error messages with line numbers and varia
 - The Console panel shows all `print()` output and errors
 - Node scripts have a lifecycle (init, update, advance, draw)
 - Util scripts are reusable modules with no lifecycle
-- `--!strict` enables type safety and is strongly recommended
+- `--!strict` makes strict typing explicit (Rive enforces strict typing regardless)
 - Script compilation settings affect debugging (Debug Level) and performance (Optimization Level)
 - The sandbox restricts file I/O, network access, and dynamic code loading
 

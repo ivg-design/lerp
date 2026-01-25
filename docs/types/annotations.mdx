@@ -49,7 +49,7 @@ In JavaScript, you typically use classes with constructors. In Rive, you use an 
 
 ## Rive Context
 
-Rive scripts support `--!strict` mode for type safety. While scripts can run without it, strict mode is strongly recommended.
+Rive enforces strict type checking by default. The `--!strict` directive is optional but recommended; strict typing is enforced either way. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
 
 **Why does this matter?** The Rive editor uses your `export type` to understand what properties your script has. This enables autocomplete, error checking, and proper input binding.
 
@@ -87,7 +87,7 @@ end
 ```
 
 **Key elements:**
-1. `--!strict` - Enables type checking
+1. `--!strict` - Explicitly enables strict type checking (optional but recommended)
 2. `export type` - Defines the shape of `self`
 3. `function init(self: MyScript)` - The `self` parameter is annotated
 4. `Node<MyScript>` - The factory return type uses your script type
@@ -766,7 +766,7 @@ Your console output should display the formatted result from the typed function 
 
 :::danger Avoid These Errors
 
-1. **Forgetting `--!strict`**: Add it near the top of your file (recommended)
+1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit
 
 2. **Using plain tables for Rive types**:
    ```lua

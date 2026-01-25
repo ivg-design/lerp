@@ -1194,10 +1194,10 @@ end
 
 ### Strict Mode {#strict-mode}
 
-Enabled with `--!strict`, this mode activates Luau's type checker. Strongly recommended for Rive scripts to catch errors early.
+Enabled with `--!strict`, this mode activates Luau's type checker. In Rive, the directive is optional but recommended because strict typing is enforced either way.
 
 ```lua
---!strict  -- Recommended near top of file
+--!strict  -- Recommended first line if included
 
 export type MyScript = {
     count: number,  -- Type required
