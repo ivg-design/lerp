@@ -1,7 +1,7 @@
 ---
 sidebar_position: 6
 title: Path Effect Script Protocol
-description: Real-time manipulation of path geometry for stroke effects
+description: Real-time manipulation of path geometry for stroke and fill effects
 keywords:
   - rive
   - luau
@@ -49,7 +49,7 @@ Path Effect Scripts receive the **original path** and return a **transformed pat
 Path Effect Scripts enable **real-time manipulation of path geometry**. They give you programmatic control over the shape and structure of paths for effects like warping, distortion, animation, and procedural modifications.
 
 **When to use Path Effect Scripts:**
-- Custom stroke effects (waves, distortions, warps)
+- Custom stroke and fill effects (waves, distortions, warps)
 - Procedural path generation
 - Animated path modifications
 - Geometric transformations on existing paths
@@ -246,7 +246,7 @@ end
 ## How to Apply Path Effects
 
 1. Create a Path Effect Script
-2. In Editor: Select a stroke → Effects Tab
+2. In Editor: Select a stroke or fill → Effects Tab
 3. Add **Script Effect** → Choose your script
 4. Configure any custom inputs
 
@@ -279,7 +279,7 @@ You're building a debugging tool to verify path data is being processed correctl
    - Name it `Exercise1_PassThrough`
 
 2. **Apply to a shape:**
-   - Select any path/shape with a stroke
+   - Select any path/shape with a stroke or fill
    - Effects tab → Add Script Effect → Choose your script
 
 ---

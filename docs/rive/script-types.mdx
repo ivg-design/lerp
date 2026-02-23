@@ -31,7 +31,7 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 | **[<Term>Node</Term> Script](#node-script)** | Animation logic, custom rendering | Any node |
 | **[Layout Script](#layout-script)** | Custom layout behavior | Layout components |
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
-| **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes |
+| **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes & Fills |
 | **[ListenerAction Script](#listeneraction-script)** | Custom logic on state machine listener events | State machine listeners |
 | **[TransitionCondition Script](#transitioncondition-script)** | Custom transition evaluation logic | State machine transitions |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |
@@ -127,7 +127,7 @@ end
 
 ## Path Effect Script
 
-**Use when:** You need to modify the geometry of a path in real-time (stroke effects, distortions).
+**Use when:** You need to modify the geometry of a path in real-time (stroke effects, fill distortions, warps).
 
 **Key features:**
 - `update(inPath)` - Receives original PathData, returns modified PathData
@@ -138,7 +138,7 @@ end
 - Wave/wobble distortion effects
 - Custom dash patterns
 - Procedural path generation
-- Animated stroke effects
+- Animated stroke and fill effects
 
 **Factory return type:** `PathEffect<T>`
 
@@ -334,7 +334,7 @@ flowchart TD
     A{What do you need?} --> B{Animate or draw?}
     A --> C{Custom layout?}
     A --> D{Transform binding data?}
-    A --> E{Modify stroke geometry?}
+    A --> E{Modify path geometry?}
     A --> F{Shared helpers?}
     A --> G{React to property changes?}
     A --> H{Test utils?}
