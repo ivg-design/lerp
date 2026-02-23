@@ -48,8 +48,6 @@ ViewModels are Rive's data binding system. They let you expose properties (numbe
 Every artboard can have a ViewModel bound to it. Access it through the `context` parameter in `init`.
 
 ```lua
---!strict
-
 export type VMReader = {}
 
 function init(self: VMReader, context: Context): boolean
@@ -289,7 +287,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Read a score property from the main ViewModel
 
 export type ScoreDisplay = {
@@ -389,7 +386,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -449,7 +445,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Drive ViewModel position properties from script
 
 export type PositionDriver = {
@@ -541,7 +536,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -597,7 +591,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- React to ViewModel property changes with listeners
 
 export type ChangeListener = {
@@ -690,7 +683,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -746,7 +738,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Use triggers for one-shot events
 
 export type TriggerDemo = {
@@ -845,7 +836,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -901,7 +891,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Control a nested ViewModel using script inputs
 
 export type CharacterController = {
@@ -979,7 +968,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 

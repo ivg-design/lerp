@@ -41,13 +41,15 @@ local pointCount = #command
 ```
 
 **Point counts by type:**
-| Type | Points |
-|------|--------|
-| `moveTo` | 2 |
-| `lineTo` | 2 |
-| `quadTo` | 4 |
-| `cubicTo` | 6 |
-| `close` | 0 |
+| Type | Points | Description |
+|------|--------|-------------|
+| `moveTo` | 1 | 1 Vector (destination) |
+| `lineTo` | 1 | 1 Vector (endpoint) |
+| `quadTo` | 2 | 2 Vectors (control, endpoint) |
+| `cubicTo` | 3 | 3 Vectors (controlOut, controlIn, endpoint) |
+| `close` | 0 | No points |
+
+> **Note:** Points are `Vector` objects accessed by index (e.g., `cmd[1]`), not raw number pairs.
 
 **See Also:** [CommandType](#commandtype), [PathData](#pathdata)
 
@@ -100,24 +102,24 @@ Scripted effect applied to a path. Use for custom path transformations.
 
 ### Protocol Methods
 
-#### `init(self): boolean`
+#### `init(self, context): boolean`
 
 Called once when the effect is created.
 
 ```lua
-function init(self: MyEffect): boolean
+function init(self: MyEffect, context: Context): boolean
     -- Setup logic
     return true  -- Return true to keep effect active
 end
 ```
 
-#### `update(self, pathData): PathData`
+#### `update(self, pathData, node): PathData`
 
-Receives the original path data and returns a modified path.
+Receives the original path data and the host node's read-only data, and returns a modified path.
 
 ```lua
-function update(self: MyEffect, pathData: PathData): PathData
-    -- Transform the path
+function update(self: MyEffect, pathData: PathData, node: NodeReadData): PathData
+    -- Transform the path using node context
     return modifiedPathData
 end
 ```

@@ -65,10 +65,11 @@ The property value. **Type:** `T` (read/write)
 
 #### `property:addListener(callback)`
 
-Registers a change callback.
+Registers a change callback. Can be called with or without a bound object.
 
 ```lua
 property:addListener(callback: () -> ())
+property:addListener(obj: any, callback: (any) -> ())
 ```
 
 #### `property:removeListener(callback)`
@@ -85,7 +86,7 @@ property:removeListener(callback: () -> ())
 
 ## Context
 
-Runtime context available in lifecycle functions.
+Runtime context passed to `init()` in all script protocols.
 
 ### Methods
 
@@ -97,6 +98,46 @@ Gets the main <Term>Artboard</Term>'s ViewModel.
 context:viewModel(): ViewModel?
 ```
 
+#### `context:rootViewModel()`
+
+Gets the root ViewModel of the artboard hierarchy.
+
+```lua
+context:rootViewModel(): ViewModel?
+```
+
+#### `context:dataContext()`
+
+Gets the DataContext for hierarchy traversal.
+
+```lua
+context:dataContext(): DataContext?
+```
+
+#### `context:image(name)`
+
+Gets an image asset by name.
+
+```lua
+context:image(name: string): Image?
+```
+
+#### `context:blob(name)`
+
+Gets a blob (binary data) asset by name.
+
+```lua
+context:blob(name: string): Blob?
+```
+
+#### `context:audio(name)`
+
+Gets an audio source asset by name.
+
+```lua
+context:audio(name: string): AudioSource?
+```
+
 #### `context:markNeedsUpdate()`
 
 Requests an update on the next frame.
@@ -105,7 +146,7 @@ Requests an update on the next frame.
 context:markNeedsUpdate()
 ```
 
-**See Also:** [ViewModel](#viewmodel)
+**See Also:** [ViewModel](#viewmodel), [DataContext](#datacontext), [Image](./assets#image), [Blob](./assets#blob), [AudioSource](./assets#audiosource)
 
 ---
 
@@ -171,10 +212,10 @@ viewModel:getList(name: string): PropertyList?
 
 #### `viewModel:getViewModel(name)`
 
-Gets a nested ViewModel by name.
+Gets a nested ViewModel by name. Returns a `PropertyViewModel` wrapper (access the ViewModel via `.value`).
 
 ```lua
-viewModel:getViewModel(name: string): ViewModel?
+viewModel:getViewModel(name: string): PropertyViewModel?
 ```
 
 #### `viewModel:getEnum(name)`
@@ -196,7 +237,7 @@ viewModel:instance(): ViewModel
 ### Example
 
 ```lua
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     local vm = context:viewModel()
 
     -- Get typed properties
@@ -221,6 +262,32 @@ end
 ```
 
 **See Also:** [Property](#property), [Context](#context), [PropertyTrigger](./data-values#propertytrigger)
+
+---
+
+## DataContext
+
+Provides hierarchy traversal for data binding contexts. Obtained via `context:dataContext()`.
+
+### Methods
+
+#### `dataContext:parent()`
+
+Gets the parent DataContext, or nil if at the root.
+
+```lua
+dataContext:parent(): DataContext?
+```
+
+#### `dataContext:viewModel()`
+
+Gets the ViewModel associated with this context level.
+
+```lua
+dataContext:viewModel(): ViewModel?
+```
+
+**See Also:** [Context](#context), [ViewModel](#viewmodel)
 
 ## Next Steps
 

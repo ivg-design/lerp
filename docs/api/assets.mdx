@@ -43,7 +43,7 @@ Defines image sampling behavior during scaling or transformation.
 
 | Value | Description |
 |-------|-------------|
-| `trilinear` | Smooth filtering (default) |
+| `bilinear` | Smooth filtering (default) |
 | `nearest` | Pixel-perfect, no interpolation |
 
 **See Also:** [Image](#image), [ImageSampler](#imagesampler)
@@ -52,17 +52,23 @@ Defines image sampling behavior during scaling or transformation.
 
 ## ImageSampler
 
-Sampling parameters applied when drawing an image, including wrapping and filtering behavior.
+Sampling parameters applied when drawing an image, combining wrapping and filtering behavior.
 
-**Note:** The official scripting docs do not list concrete `ImageSampler` values. Use editor autocomplete to confirm what your build supports.
+### Constructor
 
-### Usage
+#### `ImageSampler(wrapX, wrapY, filter)`
 
-ImageSampler is passed to `renderer:drawImage()` to control how images are rendered:
+Creates an ImageSampler with the specified wrapping and filtering options.
 
 ```lua
-local sampler = ImageSampler.someValue -- Use a value supported by your build (check autocomplete)
-renderer:drawImage(image, sampler, BlendMode.srcOver, 1.0)
+ImageSampler(wrapX: ImageWrap, wrapY: ImageWrap, filter: ImageFilter): ImageSampler
+```
+
+### Example
+
+```lua
+local sampler = ImageSampler("clamp", "clamp", "bilinear")
+renderer:drawImage(image, sampler, "srcOver", 1.0)
 ```
 
 **See Also:** [ImageFilter](#imagefilter), [ImageWrap](#imagewrap)
@@ -82,6 +88,94 @@ Defines how texture coordinates outside the [0, 1] range are handled.
 | `mirror` | Mirrors the texture at boundaries |
 
 **See Also:** [ImageSampler](#imagesampler), [Image](#image)
+
+---
+
+## Blob
+
+Binary data asset accessed via `context:blob(name)`.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `name` | string | Asset name (read-only) |
+| `size` | number | Data size in bytes (read-only) |
+| `data` | buffer | Raw binary data (read-only) |
+
+**See Also:** [Context](./data-input#context)
+
+---
+
+## AudioSource
+
+Opaque audio asset reference obtained via `context:audio(name)`. Pass to `Audio.play()` to produce an [AudioSound](#audiosound).
+
+**See Also:** [Audio](./system#audio), [AudioSound](#audiosound), [Context](./data-input#context)
+
+---
+
+## AudioSound
+
+A playing audio instance returned by `Audio.play()` and related methods.
+
+### Attributes
+
+| Attribute | Type | Access | Description |
+|-----------|------|--------|-------------|
+| `volume` | number | read/write | Playback volume |
+
+### Methods
+
+#### `sound:stop()`
+
+Stops playback.
+
+```lua
+sound:stop()
+```
+
+#### `sound:seek(seconds)`
+
+Seeks to a specific time in seconds.
+
+```lua
+sound:seek(seconds: number)
+```
+
+#### `sound:seekFrame(frame)`
+
+Seeks to a specific frame.
+
+```lua
+sound:seekFrame(frame: number)
+```
+
+#### `sound:completed()`
+
+Returns true if playback has finished.
+
+```lua
+sound:completed(): boolean
+```
+
+#### `sound:time()`
+
+Returns current playback time in seconds.
+
+```lua
+sound:time(): number
+```
+
+#### `sound:timeFrame()`
+
+Returns current playback time in frames.
+
+```lua
+sound:timeFrame(): number
+```
+
+**See Also:** [Audio](./system#audio), [AudioSource](#audiosource)
 
 ## Next Steps
 

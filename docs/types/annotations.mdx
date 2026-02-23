@@ -49,7 +49,7 @@ In JavaScript, you typically use classes with constructors. In Rive, you use an 
 
 ## Rive Context
 
-Rive enforces strict type checking by default. The `--!strict` directive is optional but recommended; strict typing is enforced either way. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
+Rive enforces strict type checking by default. Your script must define types for persistent state and inputs, and the engine enforces them at compile time.
 
 **Why does this matter?** The Rive editor uses your `export type` to understand what properties your script has. This enables autocomplete, error checking, and proper input binding.
 
@@ -67,8 +67,6 @@ Key rules in Rive:
 Every Rive Node Script follows this pattern:
 
 ```lua
---!strict
-
 export type MyScript = {}
 
 function init(self: MyScript): boolean
@@ -87,10 +85,9 @@ end
 ```
 
 **Key elements:**
-1. `--!strict` - Explicitly enables strict type checking (optional but recommended)
-2. `export type` - Defines the shape of `self`
-3. `function init(self: MyScript)` - The `self` parameter is annotated
-4. `Node<MyScript>` - The factory return type uses your script type
+1. `export type` - Defines the shape of `self`
+2. `function init(self: MyScript)` - The `self` parameter is annotated
+3. `Node<MyScript>` - The factory return type uses your script type
 
 :::note Why the `init(self: T): boolean` syntax?
 Luau doesn’t use classes for scripts. The engine calls plain functions and passes the script instance in as `self`. The `: boolean` return type is required so Rive can enable/disable the script based on success (`return true` keeps it running). If you’re coming from JavaScript, read it as: `function init(self /*: MyScript */): boolean`.
@@ -153,8 +150,6 @@ You are building a small overlay with a label, opacity, and enabled flag. These 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {
     label: string,
     opacity: number,
@@ -256,8 +251,6 @@ You are clamping motion in a small range before driving a Rive animation. A type
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 type Range = {
@@ -358,8 +351,6 @@ A designer tweaks speed and enablement from the editor. Your script reads those 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {
     speed: Input<number>,
     enabled: Input<boolean>,
@@ -458,8 +449,6 @@ A speed input comes from the editor, but your script stores a smoothed version f
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {
     speed: Input<number>,
     smoothed: number,
@@ -556,8 +545,6 @@ A designer supplies a label in the editor. Your script adds a status suffix befo
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {
     label: Input<string>,
     status: string,
@@ -654,8 +641,6 @@ You want a reusable formatter that converts a label and value into a single stri
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {
     format: (label: string, value: number) -> string,
 }
@@ -766,9 +751,7 @@ Your console output should display the formatted result from the typed function 
 
 :::danger Avoid These Errors
 
-1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit
-
-2. **Using plain tables for Rive types**:
+1. **Using plain tables for Rive types**:
    ```lua
    -- WRONG
    self.position = {x = 100, y = 50}
@@ -777,7 +760,7 @@ Your console output should display the formatted result from the typed function 
    self.position = Vector.xy(100, 50)
    ```
 
-3. **Missing `late()`**: Properties set in `init()` need `late()` in the factory
+2. **Missing `late()`**: Properties set in `init()` need `late()` in the factory
    ```lua
    -- Factory for properties set in init()
    return {
@@ -787,7 +770,7 @@ Your console output should display the formatted result from the typed function 
    }
    ```
 
-4. **Using `.value` on Inputs**:
+3. **Using `.value` on Inputs**:
    ```lua
    -- WRONG: .value does not exist on inputs here
    local x = self.speed.value * 2
@@ -796,7 +779,7 @@ Your console output should display the formatted result from the typed function 
    local x = self.speed * 2
    ```
 
-5. **Empty tables without types**:
+4. **Empty tables without types**:
    ```lua
    -- WRONG
    local t = {}

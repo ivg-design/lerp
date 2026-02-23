@@ -1,0 +1,135 @@
+---
+sidebar_position: 10
+title: TransitionCondition Script Protocol
+description: Custom state machine transition evaluation logic
+keywords:
+  - rive
+  - luau
+  - scripting
+  - transition
+  - condition
+  - state machine
+  - protocol
+---
+
+import Term from '@site/src/components/Term';
+
+# TransitionCondition Script Protocol
+
+## Overview
+
+TransitionCondition scripts provide custom logic for evaluating whether a <Term>State Machine</Term> transition should fire. The `evaluate` function is called each frame and returns `true` to allow the transition or `false` to block it.
+
+**When to use TransitionCondition scripts:**
+- Complex transition conditions that depend on multiple inputs
+- Conditions that require script-level computation (math, comparisons)
+- Time-based or physics-based transition logic
+- Threshold checks against ViewModel data
+
+---
+
+## Type Definition
+
+```lua
+export type TransitionCondition<T> = {
+    init:     ((self: T, context: Context) -> boolean)?,
+    evaluate: (self: T) -> boolean,
+} & T
+```
+
+---
+
+## Protocol Methods
+
+| Function | Signature | Required | Description |
+|----------|-----------|----------|-------------|
+| `init` | `(self: T, context: Context): boolean` | No | One-time initialization |
+| `evaluate` | `(self: T): boolean` | **Yes** | Returns whether the transition should fire |
+
+### `evaluate(self)` — **REQUIRED**
+
+Called each frame to determine if the transition should be taken. Return `true` to allow the transition, `false` to block it.
+
+```lua
+function evaluate(self: MyCondition): boolean
+    if self.score then
+        return self.score.value >= self.threshold
+    end
+    return false
+end
+```
+
+### `init(self, context)` — Optional
+
+Called once when the condition is created. Use for setup and caching ViewModel property references.
+
+```lua
+function init(self: MyCondition, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        self.score = vm:getNumber("score")
+    end
+    return true
+end
+```
+
+---
+
+## Template
+
+```lua
+export type ScoreGate = {
+    threshold: Input<number>,
+    score: Property<number>?,
+}
+
+function init(self: ScoreGate, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        self.score = vm:getNumber("score")
+    end
+    return true
+end
+
+function evaluate(self: ScoreGate): boolean
+    if self.score then
+        return self.score.value >= self.threshold
+    end
+    return false
+end
+
+return function(): TransitionCondition<ScoreGate>
+    return {
+        threshold = 100,
+        init = init,
+        evaluate = evaluate,
+    }
+end
+```
+
+---
+
+## How to Apply
+
+1. Create a TransitionCondition script in the Assets panel
+2. In the State Machine editor, select a transition between states
+3. Add the script as a condition on the transition
+4. The `evaluate` function will be checked each frame
+
+---
+
+## Key Differences from Other Scripts
+
+| Feature | Node Script | TransitionCondition |
+|---------|-------------|---------------------|
+| Lifecycle | `init`, `advance`, `update`, `draw` | `init`, `evaluate` |
+| Rendering | Has `draw()` and Renderer access | No rendering |
+| Return semantics | `advance` returns whether to continue | `evaluate` returns whether to transition |
+| When it runs | Every frame | Every frame (while transition is possible) |
+
+**See Also:** [ListenerAction Protocol](./listener-action-protocol), [Script Types Overview](/rive/script-types)
+
+## Next Steps
+
+- Return to [Script Types Overview](/rive/script-types)
+- Need a refresher? Review [Quick Reference](/quick-reference)

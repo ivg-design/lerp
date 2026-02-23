@@ -218,15 +218,47 @@ measure:extract(0, measure.length * progress, displayPath, true)
 
 ## ContourMeasure
 
-Iterator for individual contours within a path. Use with `path:contours()` to iterate through multi-contour paths.
+Measurement and manipulation for individual contours within a path. ContourMeasure has all the capabilities of [PathMeasure](#pathmeasure) plus the ability to iterate through multi-contour paths via the `next` property.
 
 ### Attributes
+
+#### `contour.length`
+
+Total length of this contour. **Type:** `number` (read-only)
+
+#### `contour.isClosed`
+
+True if this contour is closed. **Type:** `boolean` (read-only)
 
 #### `contour.next`
 
 Next contour, or nil if this is the last. **Type:** `ContourMeasure?` (read-only)
 
-> **Note:** ContourMeasure provides iteration only. For length measurement and path manipulation, use [PathMeasure](#pathmeasure) instead.
+### Methods
+
+#### `contour:positionAndTangent(distance)`
+
+Returns the position and tangent at a distance along this contour.
+
+```lua
+contour:positionAndTangent(distance: number): Vector, Vector
+```
+
+#### `contour:warp(point)`
+
+Transforms a point from "path space" coordinates to world coordinates along this contour. See [PathMeasure.warp](#measurewarppoint) for details.
+
+```lua
+contour:warp(point: Vector): Vector
+```
+
+#### `contour:extract(start, end, dest, startWithMove?)`
+
+Extracts a segment of this contour into a destination path.
+
+```lua
+contour:extract(startDist: number, endDist: number, dest: Path, startWithMove?: boolean)
+```
 
 ### Example: Iterating Contours
 
@@ -234,10 +266,22 @@ Next contour, or nil if this is the last. **Type:** `ContourMeasure?` (read-only
 local contour = path:contours()
 local count = 0
 while contour do
+    print("Contour length:", contour.length)
     count += 1
     contour = contour.next
 end
 print("Path has", count, "contours")
+```
+
+### Example: Measuring Each Contour
+
+```lua
+local contour = path:contours()
+while contour do
+    local pos, tan = contour:positionAndTangent(contour.length / 2)
+    print("Midpoint:", pos.x, pos.y)
+    contour = contour.next
+end
 ```
 
 **See Also:** [PathMeasure](#pathmeasure)
@@ -394,9 +438,17 @@ Draws an image.
 renderer:drawImage(image: Image, sampler: ImageSampler, blend: BlendMode, opacity: number)
 ```
 
-#### `renderer:drawImageMesh(image, vertices, uvs, indices)`
+#### `renderer:drawImageMesh(image, sampler, vertices, uvs, triangles, blendMode, opacity)`
 
-Draws an image using mesh data (vertices, UVs, and triangle indices).
+Draws an image mapped onto a triangle mesh.
+
+```lua
+renderer:drawImageMesh(image: Image, sampler: ImageSampler,
+    vertices: VertexBuffer, uvs: VertexBuffer, triangles: TriangleBuffer,
+    blendMode: BlendMode, opacity: number)
+```
+
+**When to use:** Advanced image warping onto custom geometry, cloth simulation, terrain rendering.
 
 #### `renderer:save()`
 

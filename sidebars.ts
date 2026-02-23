@@ -70,6 +70,7 @@ const sidebars: SidebarsConfig = {
         'rive/environment',
         'rive/script-types',
         'rive/inputs',
+        'rive/ai-agent',
         {
           type: 'category',
           label: 'Script Protocols',
@@ -79,6 +80,8 @@ const sidebars: SidebarsConfig = {
             'rive/protocols/layout-protocol',
             'rive/protocols/converter-protocol',
             'rive/protocols/path-effect-protocol',
+            'rive/protocols/listener-action-protocol',
+            'rive/protocols/transition-condition-protocol',
             'rive/protocols/util-protocol',
             'rive/protocols/test-protocol',
           ],

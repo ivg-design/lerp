@@ -62,18 +62,16 @@ DataValue.color(): DataValueColor
 
 | Method | Returns true when... |
 |--------|---------------------|
-| `isNumber` | Container holds a number |
-| `isString` | Container holds a string |
-| `isBoolean` | Container holds a boolean |
-| `isColor` | Container holds a Color |
-
-**Note:** The official docs show both `dv.isNumber` and `dv:isNumber()` forms. Use the form your editor accepts.
+| `dv:isNumber()` | Container holds a number |
+| `dv:isString()` | Container holds a string |
+| `dv:isBoolean()` | Container holds a boolean |
+| `dv:isColor()` | Container holds a Color |
 
 **Example:**
 ```lua
 local val = DataValue.number()
-print(val.isNumber)   -- true
-print(val.isString)   -- false
+print(val:isNumber())   -- true
+print(val:isString())   -- false
 ```
 
 **See Also:** [Converter](#converter), [DataValueNumber](#datavaluenumber)
@@ -185,12 +183,12 @@ Transforms values between ViewModel data bindings and Rive properties.
 
 ### Protocol Methods
 
-#### `init(self): boolean`
+#### `init(self, context): boolean`
 
 Called once when converter is created.
 
 ```lua
-function init(self: MyConverter): boolean
+function init(self: MyConverter, context: Context): boolean
     return true
 end
 ```
@@ -247,13 +245,33 @@ Removes and returns last item.
 
 Removes and returns first item.
 
-#### `list:insert(index, item)`
+#### `list:insert(vm, index)`
 
-Inserts item at specific position.
+Inserts a ViewModel instance at the specified position.
+
+```lua
+list:insert(vm: ViewModel, index: number)
+```
 
 #### `list:swap(indexA, indexB)`
 
 Exchanges two items' positions.
+
+#### `list:addListener(callback)`
+
+Registers a callback for list change notifications.
+
+```lua
+list:addListener(callback: () -> ())
+```
+
+#### `list:removeListener(callback)`
+
+Removes a previously registered list change callback.
+
+```lua
+list:removeListener(callback: () -> ())
+```
 
 ---
 
@@ -317,7 +335,7 @@ ViewModel property wrapper (exposes the nested ViewModel via `.value`).
 
 #### `property.value`
 
-The property value. **Type:** varies by ViewModel definition
+The nested ViewModel. **Type:** `ViewModel`
 
 **See Also:** [ViewModel](./data-input#viewmodel), [Property](./data-input#property)
 

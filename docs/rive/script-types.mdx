@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
 title: Script Types Overview
-description: All 7 Rive script types at a glance - when to use each one
+description: All 8 Rive script types at a glance - when to use each one
 keywords:
   - rive
   - luau
@@ -16,7 +16,7 @@ import Term from '@site/src/components/Term';
 
 # Script Types Overview
 
-Rive provides **6 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
+Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
 :::tip Coming from Part 1?
 If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-work) yet, start there first. It explains WHY scripts have the structure they do — the "protocol" concept, factory functions, and lifecycle callbacks.
@@ -24,7 +24,7 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 
 ---
 
-## The 6 Script Types
+## The 8 Script Types
 
 | Script Type | Primary Purpose | Attach To |
 |-------------|-----------------|-----------|
@@ -32,6 +32,8 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 | **[Layout Script](#layout-script)** | Custom layout behavior | Layout components |
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
 | **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes |
+| **[ListenerAction Script](#listeneraction-script)** | Custom logic on state machine listener events | State machine listeners |
+| **[TransitionCondition Script](#transitioncondition-script)** | Custom transition evaluation logic | State machine transitions |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |
 | **[Test Script](#test-script)** | Unit testing Util Scripts | Nothing (run manually) |
 
@@ -147,6 +149,58 @@ end
 ```
 
 **Learn more:** [Path Effect Script Protocol →](./protocols/path-effect-protocol)
+
+---
+
+## ListenerAction Script
+
+**Use when:** You need custom logic to run when a state machine listener event fires.
+
+**Key features:**
+- `init(self, context)` - One-time initialization
+- `perform(self)` - Executed when the listener action triggers
+- Attached to state machine listener events
+
+**Typical use cases:**
+- Custom side-effects when a state transition fires a listener
+- Triggering audio, analytics, or other actions from state machine events
+- Complex logic that can't be expressed with simple state machine outputs
+
+**Factory return type:** `ListenerAction<T>`
+
+```lua
+return function(): ListenerAction<MyAction>
+    return { init = init, perform = perform }
+end
+```
+
+**Learn more:** [ListenerAction Script Protocol →](./protocols/listener-action-protocol)
+
+---
+
+## TransitionCondition Script
+
+**Use when:** You need custom logic to evaluate whether a state machine transition should fire.
+
+**Key features:**
+- `init(self, context)` - One-time initialization
+- `evaluate(self)` - Returns true/false to allow/block the transition
+- Attached to state machine transitions
+
+**Typical use cases:**
+- Complex transition conditions that depend on multiple inputs
+- Time-based or physics-based transition logic
+- Conditions that require script-level computation
+
+**Factory return type:** `TransitionCondition<T>`
+
+```lua
+return function(): TransitionCondition<MyCondition>
+    return { init = init, evaluate = evaluate }
+end
+```
+
+**Learn more:** [TransitionCondition Script Protocol →](./protocols/transition-condition-protocol)
 
 ---
 
@@ -284,6 +338,8 @@ flowchart TD
     A --> F{Shared helpers?}
     A --> G{React to property changes?}
     A --> H{Test utils?}
+    A --> I{Custom listener action?}
+    A --> J{Custom transition logic?}
 
     B -->|Yes| B1[Node Script]
     C -->|Yes| C1[Layout Script]
@@ -292,6 +348,8 @@ flowchart TD
     F -->|Yes| F1[Util Script]
     G -->|Yes| G1[Node + addListener]
     H -->|Yes| H1[Test Script]
+    I -->|Yes| I1[ListenerAction Script]
+    J -->|Yes| J1[TransitionCondition Script]
 ```
 
 ---
@@ -306,7 +364,8 @@ Remember from [Part 1](/getting-started/how-rive-scripts-work#5-return-function-
 | Layout | `Layout<T>` |
 | Converter | `Converter<T, In, Out>` |
 | Path Effect | `PathEffect<T>` |
-| Listener | `Listener<T>` |
+| ListenerAction | `ListenerAction<T>` |
+| TransitionCondition | `TransitionCondition<T>` |
 | Util | Module table (no factory) |
 | Test | `Tests` function (no factory) |
 

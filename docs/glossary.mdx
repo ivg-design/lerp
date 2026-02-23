@@ -111,6 +111,53 @@ path:cubicTo(
 
 ---
 
+### AudioSource {#audiosource}
+
+An opaque reference to an audio asset, obtained via `context:audio(name)`. Pass to `Audio.play()` to create an [AudioSound](#audiosound).
+
+```lua
+local source = context:audio("click_sound")
+if source then
+    Audio.play(source)
+end
+```
+
+**Learn more:** [Assets — AudioSource](/api/assets#audiosource)
+
+---
+
+### AudioSound {#audiosound}
+
+A playing audio instance returned by `Audio.play()`. Provides playback control including `stop()`, `seek()`, `volume`, and `completed()`.
+
+```lua
+local sound = Audio.play(source)
+sound.volume = 0.8
+-- Later...
+if sound:completed() then
+    print("Playback finished")
+end
+```
+
+**Learn more:** [Assets — AudioSound](/api/assets#audiosound)
+
+---
+
+### Blob {#blob}
+
+A binary data asset accessed via `context:blob(name)`. Provides `name`, `size`, and `data` (buffer) attributes.
+
+```lua
+local blob = context:blob("myData")
+if blob then
+    print(blob.name, blob.size)
+end
+```
+
+**Learn more:** [Assets — Blob](/api/assets#blob)
+
+---
+
 ### Boolean {#boolean}
 
 A type with only two values: `true` or `false`. Used for conditions and flags.
@@ -259,6 +306,22 @@ end
 ---
 
 ## D
+
+### DataContext {#datacontext}
+
+Provides hierarchy traversal for data binding contexts. Obtained via `context:dataContext()`, with methods `parent()` and `viewModel()` for navigating the ViewModel hierarchy.
+
+```lua
+local dc = context:dataContext()
+if dc then
+    local parentDC = dc:parent()
+    local vm = dc:viewModel()
+end
+```
+
+**Learn more:** [Data & Input — DataContext](/api/data-input#datacontext)
+
+---
 
 ### Data Binding {#data-binding}
 
@@ -410,7 +473,7 @@ end
 
 ### export type {#export-type}
 
-Declares the type of your script instance (`self`). Required when using `--!strict` mode.
+Declares the type of your script instance (`self`). Required for Rive's strict type checking.
 
 ```lua
 export type MyScript = {
@@ -572,6 +635,19 @@ end
 
 ---
 
+### ImageSampler {#imagesampler}
+
+Sampling parameters for image rendering, combining wrapping and filtering. Created with the constructor function `ImageSampler(wrapX, wrapY, filter)`.
+
+```lua
+local sampler = ImageSampler("clamp", "clamp", "bilinear")
+renderer:drawImage(image, sampler, "srcOver", 1.0)
+```
+
+**Learn more:** [Assets — ImageSampler](/api/assets#imagesampler)
+
+---
+
 ### Inheritance {#inheritance}
 
 Creating a new class based on an existing one, reusing its properties and methods.
@@ -669,6 +745,20 @@ lerp(0, 100, 1)    -- 100 (end)
 
 ---
 
+### ListenerAction {#listeneraction}
+
+A script type for custom logic that runs when a state machine listener event fires. Uses `init` and `perform` protocol methods.
+
+```lua
+return function(): ListenerAction<MyAction>
+    return { init = init, perform = perform }
+end
+```
+
+**Learn more:** [ListenerAction Protocol](/rive/protocols/listener-action-protocol)
+
+---
+
 ### Listener {#listener}
 
 A <Term>Callback</Term> function registered to respond when a value changes or an event occurs.
@@ -738,7 +828,7 @@ until condition
 
 ### late() {#late}
 
-A type-safe placeholder for properties that will be set in `init()` rather than in the factory function. Recommended (not required) for <Term>Path</Term>, Paint, and computed values when using `--!strict` mode.
+A type-safe placeholder for properties that will be set in `init()` rather than in the factory function. Recommended (not required) for <Term>Path</Term>, Paint, and computed values for type safety.
 
 ```lua
 export type MyScript = {
@@ -915,7 +1005,6 @@ end
 The primary Rive script type that attaches to scene nodes. Implements lifecycle functions (`init`, `advance`, `draw`) and can perform custom rendering.
 
 ```lua
---!strict
 export type MyScript = {}
 
 function init(self: MyScript): boolean
@@ -935,6 +1024,20 @@ end
 ---
 
 ## O
+
+### Output {#output}
+
+`Output<T>` is a type alias (`Output<T> = T`) that marks a field as an output exposed to the Rive runtime. The runtime reads output values each frame.
+
+```lua
+export type MyScript = {
+    result: Output<number>,
+}
+```
+
+**Learn more:** [System — Output](/api/system#output)
+
+---
 
 ### Optional Type {#optional-type}
 
@@ -1194,11 +1297,9 @@ end
 
 ### Strict Mode {#strict-mode}
 
-Enabled with `--!strict`, this mode activates Luau's type checker. In Rive, the directive is optional but recommended because strict typing is enforced either way.
+Rive enforces strict type checking by default. This mode activates Luau's type checker, catching errors at compile time rather than runtime.
 
 ```lua
---!strict  -- Recommended first line if included
-
 export type MyScript = {
     count: number,  -- Type required
 }
@@ -1280,6 +1381,20 @@ local name = getData() or "default"  -- Use "default" if getData() returns nil
 ```
 
 **Learn more:** [Control Flow](/fundamentals/control-flow)
+
+---
+
+### TransitionCondition {#transitioncondition}
+
+A script type for custom state machine transition evaluation logic. Uses `init` and `evaluate` protocol methods. Returns true/false to allow/block transitions.
+
+```lua
+return function(): TransitionCondition<MyCondition>
+    return { init = init, evaluate = evaluate }
+end
+```
+
+**Learn more:** [TransitionCondition Protocol](/rive/protocols/transition-condition-protocol)
 
 ---
 
@@ -1417,7 +1532,6 @@ end
 A Rive script type for creating reusable modules. Cannot draw or have lifecycle functions—just exports values and functions.
 
 ```lua
---!strict
 
 local MathUtils = {}
 
@@ -1483,13 +1597,13 @@ end
 |----------|-------|
 | **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [draw](#draw), [Lifecycle](#lifecycle) |
 | **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type), [Type Alias](#type-alias), [Type Guard](#type-guard), [Type Narrowing](#type-narrowing) |
-| **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [late()](#late), [Data Binding](#data-binding), [Listener](#listener) |
-| **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector) |
+| **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [Output](#output), [late()](#late), [Data Binding](#data-binding), [DataContext](#datacontext), [Listener](#listener) |
+| **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector), [ImageSampler](#imagesampler) |
 | **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue), [Inheritance](#inheritance), [Chaining](#chaining) |
-| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [Factory Function](#factory-function), [Module](#module), [require](#require) |
+| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [ListenerAction](#listeneraction), [TransitionCondition](#transitioncondition), [Factory Function](#factory-function), [Module](#module), [require](#require) |
 | **Tables** | [Table](#table), [Array](#array), [Dictionary](#dictionary), [pairs](#pairs), [ipairs](#ipairs) |
 | **Language** | [Local Variable](#local-variable), [Scope](#scope), [Loop](#loop), [Return](#return), [nil](#nil), [Boolean](#boolean), [Truthiness](#truthiness), [String Interpolation](#string-interpolation), [Compound Assignment](#compound-assignment) |
-| **Animation** | [Animation](#animation), [Keyframe](#keyframe), [State Machine](#state-machine), [Layer](#layer), [Lerp](#lerp), [Easing](#easing), [Artboard](#artboard), [Nested Artboard](#nested-artboard) |
+| **Animation** | [Animation](#animation), [Keyframe](#keyframe), [State Machine](#state-machine), [Layer](#layer), [Lerp](#lerp), [Easing](#easing), [Artboard](#artboard), [Nested Artboard](#nested-artboard), [AudioSource](#audiosource), [AudioSound](#audiosound), [Blob](#blob) |
 | **Syntax** | [Colon Syntax](#colon-syntax), [Dot Syntax](#dot-syntax), [Strict Mode](#strict-mode) |
 
 ## Next Steps

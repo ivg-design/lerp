@@ -43,7 +43,7 @@ Partial set of paint properties for initializing or updating a Paint. All fields
 local paint = Paint.with({
     style = "fill",
     color = Color.rgb(255, 0, 0),
-    blendMode = BlendMode.multiply,
+    blendMode = "multiply",
 })
 
 -- Update with copy
@@ -103,13 +103,15 @@ Defines how paint color is composited with content behind it.
 | `color` | Applies source hue and saturation |
 | `luminosity` | Applies source luminosity |
 
+BlendMode values are **string literals**, not namespaced constants.
+
 ### Example
 
 ```lua
 local paint = Paint.with({
     style = "fill",
     color = Color.rgba(255, 0, 0, 128),
-    blendMode = BlendMode.multiply,
+    blendMode = "multiply",
 })
 ```
 

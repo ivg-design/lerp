@@ -72,9 +72,13 @@ end
 
 ## Trigger
 
-Fires actions in the runtime.
+A type alias used in `Input<T>` declarations to mark a trigger input.
 
-**Note:** The official scripting docs do not list methods on `Trigger` directly. In practice, triggers are usually accessed via `viewModel:getTrigger(...)`, which returns a `PropertyTrigger` with `fire()` and listener methods.
+```lua
+export type Trigger = (any) -> ()
+```
+
+In practice, triggers are accessed via `viewModel:getTrigger(...)`, which returns a [PropertyTrigger](./data-values#propertytrigger) with `fire()` and listener methods. The `Trigger` type itself is primarily used when declaring `Input<Trigger>` fields on script types.
 
 **See Also:** [PropertyTrigger](./data-values#propertytrigger)
 

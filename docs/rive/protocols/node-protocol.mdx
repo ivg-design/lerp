@@ -70,10 +70,9 @@ Why? This pattern lets Rive:
 Node scripts run **inside Rive** and must follow a protocol. The editor only lists scripts that return a factory function with at least `init` and `draw`.
 
 **Minimum requirements:**
-1. Optional: `--!strict` at the top (Rive enforces strict typing)
-2. Exported type for script state (`export type`)
-3. `init(self)` and `draw(self, renderer)` functions
-4. `return function(): Node<YourType>` factory function
+1. Exported type for script state (`export type`)
+2. `init(self)` and `draw(self, renderer)` functions
+3. `return function(): Node<YourType>` factory function
 
 :::warning Important
 If `draw` is missing, the script will not appear in the add-to-scene menu. This is a common source of confusion for beginners.
@@ -167,8 +166,6 @@ If a field's value comes from calling a constructor or accessing context, use `l
 ## Standard Node Script Template
 
 ```lua
---!strict
-
 export type MyNode = {
     -- Persistent fields live here
 }
@@ -284,7 +281,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Your first Node script
 
 export type HelloRive = {}
@@ -343,7 +339,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -390,7 +385,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Track time across frames using advance()
 
 export type FrameTimer = {
@@ -464,7 +458,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -511,7 +504,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Draw a procedural triangle
 
 export type DrawTriangle = {
@@ -586,7 +578,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -633,7 +624,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A complete script using all major lifecycle functions
 
 export type CompleteDemo = {
@@ -726,7 +716,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -792,7 +781,6 @@ ANSWER: <your result>
 
 ```lua
 -- WRONG: Not returning a factory function
---!strict
 export type MyNode = {}
 function init(self: MyNode): boolean return true end
 function draw(self: MyNode, renderer: Renderer) end

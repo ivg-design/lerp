@@ -59,8 +59,6 @@ Path Effect Scripts enable **real-time manipulation of path geometry**. They giv
 ## The Path Effect Script Template
 
 ```lua
---!strict
-
 export type MyPathEffect = {
     context: Context,
     time: number,
@@ -128,7 +126,7 @@ end
 | Function | Signature | Required | Description |
 |----------|-----------|----------|-------------|
 | `init` | `(self: T, context: Context): boolean` | No | Initialize effect state |
-| `update` | `(self: T, inPath: PathData): PathData` | **Yes** | Transform path geometry |
+| `update` | `(self: T, inPath: PathData, node: NodeReadData): PathData` | **Yes** | Transform path geometry |
 | `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
 
 ### Factory Return Type
@@ -148,19 +146,21 @@ end
 
 ### PathData Command Types
 
-| Command Type | Array Indices | Description |
-|--------------|---------------|-------------|
-| `CommandType.moveTo` | `[1]=x, [2]=y` | Move to point |
-| `CommandType.lineTo` | `[1]=x, [2]=y` | Line to point |
-| `CommandType.quadTo` | `[1-2]=control, [3-4]=end` | Quadratic curve |
-| `CommandType.cubicTo` | `[1-2]=cp1, [3-4]=cp2, [5-6]=end` | Cubic curve |
-| `CommandType.close` | (none) | Close path |
+| Command Type | Points | Description |
+|--------------|--------|-------------|
+| `CommandType.moveTo` | 1 Vector (`cmd[1]`) | Move to point |
+| `CommandType.lineTo` | 1 Vector (`cmd[1]`) | Line to point |
+| `CommandType.quadTo` | 2 Vectors (`cmd[1]`=control, `cmd[2]`=end) | Quadratic curve |
+| `CommandType.cubicTo` | 3 Vectors (`cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end) | Cubic curve |
+| `CommandType.close` | 0 | Close path |
+
+> **Note:** Each point is a `Vector` object. Access coordinates via `cmd[1].x` and `cmd[1].y`.
 
 ---
 
 ## Key Functions
 
-### `update(self, inPath: PathData): PathData` — **REQUIRED**
+### `update(self, inPath: PathData, node: NodeReadData): PathData` — **REQUIRED**
 
 The core transformation function. Receives the original path data, returns the modified path.
 
@@ -235,10 +235,10 @@ end
 
 | Type | Points | Values | Description |
 |------|--------|--------|-------------|
-| `CommandType.moveTo` | 2 | `cmd[1]=x, cmd[2]=y` | Move cursor to position |
-| `CommandType.lineTo` | 2 | `cmd[1]=x, cmd[2]=y` | Draw straight line |
-| `CommandType.quadTo` | 4 | `cmd[1..2]=cp, cmd[3..4]=end` | Quadratic bezier curve |
-| `CommandType.cubicTo` | 6 | `cmd[1..2]=cp1, cmd[3..4]=cp2, cmd[5..6]=end` | Cubic bezier curve |
+| `CommandType.moveTo` | 1 | `cmd[1]` = Vector | Move cursor to position |
+| `CommandType.lineTo` | 1 | `cmd[1]` = Vector | Draw straight line |
+| `CommandType.quadTo` | 2 | `cmd[1]`=control, `cmd[2]`=end | Quadratic bezier curve |
+| `CommandType.cubicTo` | 3 | `cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end | Cubic bezier curve |
 | `CommandType.close` | 0 | *(none)* | Close path to start |
 
 ---
@@ -287,8 +287,6 @@ You're building a debugging tool to verify path data is being processed correctl
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {
     context: Context,
 }
@@ -400,8 +398,6 @@ You want to create a shadow effect by duplicating and offsetting a path.
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {
     context: Context,
     offsetY: Input<number>,
@@ -515,8 +511,6 @@ You're creating a water or wind effect where shapes appear to ripple.
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {
     context: Context,
     time: number,

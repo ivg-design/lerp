@@ -173,8 +173,6 @@ A UI element needs a name, position, and visibility flag. Intersection types kee
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 type Named = { name: string }
@@ -279,8 +277,6 @@ IDs sometimes arrive as numbers or strings depending on the source. You normaliz
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 type ID = number | string
@@ -376,8 +372,6 @@ A subtitle may be absent on some labels. You need a fallback to avoid nil values
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 type Label = {
@@ -479,8 +473,6 @@ You pass easing functions into animation helpers. Strong types ensure the functi
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {}
 
 type EaseFn = (t: number) -> number
@@ -577,8 +569,6 @@ You control a small movement direction for a procedural effect. The value must b
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 type Direction = "up" | "down" | "left" | "right"
@@ -675,8 +665,6 @@ A helper returns min and max values for a range. You then compute a span from th
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {}
 
 local function bounds(): (number, number)

@@ -34,7 +34,6 @@ When you create a script in Rive, you'll see this. Here's what each part does:
 
 | Code | Purpose |
 |------|---------|
-| `--!strict` | **Enable strict type checking (optional directive; enforced by Rive)** |
 | `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
 | `function init(self: MyNode) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, return true to continue |
 | `function advance(self, seconds) ... end` | **Runs every animation frame (optional)** — Animation, physics, return true to keep running |
@@ -51,7 +50,6 @@ Here's the mental model - then you can start coding and reference details as nee
 
 | Rive/Luau | JavaScript/TypeScript Equivalent |
 |-----------|----------------------------------|
-| `--!strict` | TypeScript's strict mode |
 | `export type MyNode = {}` | `interface MyNode {}` |
 | `self` parameter | `this` (but explicit, not a keyword) |
 | `function init(self)` | `constructor()` |
@@ -141,8 +139,6 @@ A "protocol" is like a contract. Rive promises to call certain functions at cert
 Here's the smallest script that works:
 
 ```lua
---!strict
-
 export type MyScript = {}
 
 function init(self: MyScript): boolean
@@ -166,29 +162,7 @@ end
 
 ## Breaking Down Each Part
 
-### 1. `--!strict` — Catching Mistakes Early
-
-```lua
---!strict
-```
-
-**What it does:** Turns on "strict mode" — the type checker analyzes your code before it runs.
-
-**Why `--!` syntax?** In Lua, `--` starts a comment. The `!` immediately after makes it a *directive* - a special instruction to the compiler rather than regular code. It's like HTML's `<!DOCTYPE>` - a signal that affects how the file is processed.
-
-**Why it's recommended:** Rive enforces strict typing either way, but including `--!strict` makes the intent explicit and keeps scripts consistent across tools.
-
-**Coming from JavaScript?** This is like TypeScript's strict mode. Without it, you can write `const x = "hello"; x.toFixed(2)` and it fails at runtime. With strict mode, you catch it immediately.
-
-**Coming from After Effects?** AE expressions don't have this — errors only show when the expression runs. Strict mode is like having a spell-checker that also checks your logic.
-
-:::tip Real Benefit
-If you mistype a variable name or call a function with wrong arguments, you'll see a red underline immediately — not a runtime crash.
-:::
-
----
-
-### 2. `export type MyScript = {}` — Describing Your Data
+### 1. `export type MyScript = {}` — Describing Your Data
 
 ```lua
 export type MyScript = {
@@ -218,7 +192,7 @@ interface MyScript {
 
 ---
 
-### 3. `function init(self: MyScript): boolean` — Running Once at Startup
+### 2. `function init(self: MyScript): boolean` — Running Once at Startup
 
 ```lua
 function init(self: MyScript): boolean
@@ -256,7 +230,7 @@ function init(self /*: MyScript */) /*: boolean */ {
 
 ---
 
-### 4. `function draw(self: MyScript, renderer: Renderer)` — Rendering on Repaint
+### 3. `function draw(self: MyScript, renderer: Renderer)` — Rendering on Repaint
 
 ```lua
 function draw(self: MyScript, renderer: Renderer)
@@ -281,7 +255,7 @@ requestAnimationFrame(draw);
 
 ---
 
-### 5. `return function(): Node<MyScript>` — The Factory Function
+### 4. `return function(): Node<MyScript>` — The Factory Function
 
 This is the most confusing part for beginners. Let's break it down:
 
@@ -417,7 +391,7 @@ end
 **Why it exists:** The factory function runs BEFORE `init()`. While you CAN create objects like `Path.new()` in the factory, it's better to use `late()` because:
 - Objects created in factory are shared across instances
 - Creating in `init()` ensures each node gets unique objects
-- `late()` satisfies the type checker in `--!strict` mode
+- `late()` satisfies the type checker in strict mode
 
 So `late()` is like writing "TBD" — it's a type-safe placeholder for values you'll set in `init()`.
 
@@ -492,7 +466,6 @@ end
 Here's how everything fits together - a pulsing circle that demonstrates all the key concepts:
 
 ```lua
---!strict  -- ① Optional: make strict typing explicit
 
 -- ② Define what data your script stores
 export type PulsingCircle = {
@@ -681,8 +654,7 @@ flowchart TD
 
 Every Rive script follows this pattern:
 
-1. **Optional: declare strict mode** (`--!strict`)
-2. **Define your data type** (`export type`)
+1. **Define your data type** (`export type`)
 3. **Implement lifecycle functions** (`init`, `draw`, optionally `advance`)
 4. **Return a factory function** that creates instances
 

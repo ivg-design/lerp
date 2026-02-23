@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 title: "2.1 Type Annotations & Inference"
-description: Understand strict mode (optional --!strict directive), add type annotations, and understand type inference
+description: Understand strict mode, add type annotations, and understand type inference
 keywords:
   - rive
   - luau
@@ -20,7 +20,7 @@ import Term from '@site/src/components/Term';
 # Lesson 2.1: Type Annotations & Inference
 
 ## Learning Objectives
-- Understand strict mode and the optional `--!strict` directive
+- Understand strict mode and how Rive enforces strict typing
 - Add type annotations to variables and functions
 - Understand type inference and when to rely on it
 - Use type refinement with control flow
@@ -36,7 +36,7 @@ If you're coming from After Effects expressions or JavaScript, here's how Luau's
 | Variable with type | `let x = 5` (inferred) | `local x: number = 5` | Luau uses `:` for type annotations |
 | Function parameters | `function foo(x) {}` | `function foo(x: number)` | Parameters need explicit types |
 | Return type | Implicit | `function foo(): number` | Return types come after `)` |
-| Type checking mode | None (runtime only) | `--!strict` | Luau catches errors at compile time |
+| Type checking mode | None (runtime only) | Strict (enforced by Rive) | Luau catches errors at compile time |
 | Optional type | `x?: number` (TypeScript) | `x: number?` | `?` comes AFTER the type name |
 | Union type | `x: number \| string` (TS) | `x: number \| string` | Same syntax! |
 | Type alias | `type X = number` (TS) | `type X = number` | Same syntax! |
@@ -46,14 +46,14 @@ If you're coming from After Effects expressions or JavaScript, here's how Luau's
 :::danger Critical Difference
 **JavaScript has NO compile-time type checking.** Errors happen at runtime when your code runs.
 
-**Luau with `--!strict` catches type errors BEFORE your code runs.** This is why Rive enforces strict typing—bugs are caught during development, not when users see your animation.
+**Luau strict mode catches type errors BEFORE your code runs.** This is why Rive enforces strict typing—bugs are caught during development, not when users see your animation.
 :::
 
 ---
 
 ## Rive Context
 
-Rive enforces strict type checking by default. The `--!strict` directive is optional but recommended; strict typing is enforced either way. Your script must define types for persistent state and inputs, and the engine enforces them.
+Rive enforces strict type checking by default. Your script must define types for persistent state and inputs, and the engine enforces them.
 
 **Why does this matter?** When your animation runs on a user's device, there's no debugger. Strict mode catches bugs during development so your animation works reliably everywhere.
 
@@ -74,18 +74,6 @@ In Module 1, you wrote code that worked—but how do you know it won't break whe
 4. **Rive integration**: Rive generates types for its entire API
 
 ---
-
-## Mode Directives
-
-```lua
---!strict    -- Full type checking (recommended; Rive enforces strict typing)
---!nonstrict -- Partial checking, allows 'any' inference
---!nocheck   -- No type checking (default if no directive)
-```
-
-:::tip Optional but Recommended
-Add `--!strict` as the first line to make strict typing explicit. Rive enforces strict typing even if you omit the directive.
-:::
 
 ## Basic Type Annotations
 
@@ -171,8 +159,6 @@ You are calculating remaining health for a character driven by a Rive <Term>Stat
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
@@ -224,7 +210,6 @@ Your console output should display the remaining health after applying damage. T
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] `damage` is a number
 - [ ] Output matches the expected line
 
@@ -266,8 +251,6 @@ You are preparing a small state payload for a HUD: a label, a numeric level, and
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 function init(self: Exercise2): boolean
@@ -364,8 +347,6 @@ You are scaling an opacity value before drawing a layer. The helper should only 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 local function scaleOpacity(value: number, multiplier: number): number
@@ -460,8 +441,6 @@ You are collecting a few inferred values before pushing them into a typed API ca
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
@@ -558,8 +537,6 @@ An input may arrive as text from a UI field or as a number from a state machine.
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 function init(self: Exercise5): boolean
@@ -655,8 +632,6 @@ You are tracking animation progress and a UI label inside a Node Script. A typed
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {
     progress: number,
     label: string,
@@ -724,14 +699,6 @@ Your console output should display the three state fields with the assigned valu
 ## Knowledge Check
 
 <Quiz
-  question="What directive enables full type checking in Luau?"
-  id="types-q1"
-  type="code"
-  answer="--!strict"
-  explanation="Add --!strict as the first line to make strict typing explicit. Rive enforces strict typing even if you omit the directive."
-/>
-
-<Quiz
   question="What happens with 'local x = {}' in strict mode?"
   id="types-q2"
   options={[
@@ -773,17 +740,7 @@ Your console output should display the three state fields with the assigned valu
 
 :::danger Avoid These Errors
 
-1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit
-   ```lua
-   -- WRONG: No directive
-   export type MyScript = {}
-
-   -- CORRECT: Strict mode enabled
-   --!strict
-   export type MyScript = {}
-   ```
-
-2. **Empty tables without types**:
+1. **Empty tables without types**:
    ```lua
    -- WRONG
    local t = {}
@@ -792,7 +749,7 @@ Your console output should display the three state fields with the assigned valu
    local t: {string} = {}
    ```
 
-3. **Wrong Rive constructors**:
+2. **Wrong Rive constructors**:
    ```lua
    -- WRONG
    self.position = {x = 100, y = 50}
@@ -801,7 +758,7 @@ Your console output should display the three state fields with the assigned valu
    self.position = Vector.xy(100, 50)
    ```
 
-4. **Not checking optionals**:
+3. **Not checking optionals**:
    ```lua
    -- WRONG: email might be nil
    sendEmail(user.email)
@@ -812,7 +769,7 @@ Your console output should display the three state fields with the assigned valu
    end
    ```
 
-5. **Redundant annotations**: Don't annotate when inference is obvious
+4. **Redundant annotations**: Don't annotate when inference is obvious
    ```lua
    -- Unnecessary (Luau knows it's number)
    local x: number = 5
@@ -827,7 +784,7 @@ Your console output should display the three state fields with the assigned valu
 
 ## Self-Assessment Checklist
 
-- [ ] I prefer to include `--!strict` for clarity (optional; strict typing enforced)
+- [ ] I understand that Rive enforces strict typing by default
 - [ ] I can annotate variables: `local x: number = 5`
 - [ ] I can annotate functions: `function(a: string): boolean`
 - [ ] I understand when Luau can infer types automatically

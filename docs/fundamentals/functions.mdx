@@ -434,7 +434,6 @@ end
 ### Local vs Module-Level Functions
 
 ```lua
---!strict
 
 -- Module-level function (accessible throughout the file)
 local function helperFunction()
@@ -511,8 +510,6 @@ You are building a combat HUD and need a reliable damage function that is used f
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 -- TODO: Implement the function using the formula
@@ -616,8 +613,6 @@ You are formatting values for a UI label and a progress indicator. Both function
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 -- TODO 1: Return a formatted currency string
@@ -721,8 +716,6 @@ You need a counter for animation steps or event triggers that increments each ti
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 local function makeCounter(start: number): () -> number
@@ -824,8 +817,6 @@ You have a progress value that advances when events happen. By wrapping the upda
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {
     progress: number,
 }
@@ -927,8 +918,6 @@ You want to interpolate between two values for animation. A factory makes it eas
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 local function makeLerp(startValue: number, endValue: number)
@@ -1030,8 +1019,6 @@ You are limiting user <Term>Input</Term> values and remapping ranges for UI anim
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {}
 
 local function clamp(value: number, minValue: number, maxValue: number): number

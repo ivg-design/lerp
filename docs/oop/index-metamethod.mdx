@@ -126,8 +126,6 @@ You want default properties for UI elements, but allow per-instance overrides fo
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
@@ -227,8 +225,6 @@ You need to compute a derived value like length without storing it. __index can 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 function init(self: Exercise2): boolean
@@ -329,8 +325,6 @@ You have a base widget with shared methods, then derived widgets add their own b
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 local Base = { kind = "Base" }
@@ -430,8 +424,6 @@ You want to ensure a value never exceeds a max threshold. __newindex can clamp v
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {}
 
 function init(self: Exercise4): boolean
@@ -531,8 +523,6 @@ You want to create an entry the first time it is requested, without pre-allocati
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 function init(self: Exercise5): boolean
@@ -631,8 +621,6 @@ You want a config table that should not be mutated at runtime. Writes are ignore
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {}
 
 function init(self: Exercise6): boolean

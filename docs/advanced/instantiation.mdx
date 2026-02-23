@@ -76,7 +76,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Spawn and animate multiple artboard instances
 
 type Spawned = {
@@ -175,7 +174,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -199,8 +197,6 @@ ANSWER: <your result>
 For frequently spawned/despawned objects, maintain a pool:
 
 ```lua
---!strict
-
 export type ObjectPool = {
     template: Input<Artboard<Data.Bullet>>,
     active: {Artboard<Data.Bullet>},

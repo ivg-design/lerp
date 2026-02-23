@@ -76,97 +76,155 @@ print(v[1])  -- 10 (x component)
 print(v[2])  -- 20 (y component)
 ```
 
-### Methods
+### Static Methods (Preferred)
 
-#### `vec:length()`
+> **Important:** Use static methods instead of instance methods. Instance methods are deprecated.
+
+#### `Vector.length(v)`
 
 Returns the magnitude (length) of the vector.
 
 ```lua
-vec:length(): number
+Vector.length(v: Vector): number
 ```
-
-**Returns:** The length as a number.
 
 **Example:**
 ```lua
 local v = Vector.xy(3, 4)
-print(v:length())  -- 5 (3-4-5 triangle)
+print(Vector.length(v))  -- 5 (3-4-5 triangle)
 ```
 
-#### `vec:lengthSquared()`
+#### `Vector.lengthSquared(v)`
 
 Returns the squared length. Faster than `length()` when you only need to compare magnitudes.
 
 ```lua
-vec:lengthSquared(): number
+Vector.lengthSquared(v: Vector): number
 ```
 
-#### `vec:normalized()`
+#### `Vector.normalized(v)`
 
 Returns a unit vector (length 1) pointing in the same direction. Returns zero vector if length is zero.
 
 ```lua
-vec:normalized(): Vector
+Vector.normalized(v: Vector): Vector
 ```
 
 **Example:**
 ```lua
 local velocity = Vector.xy(10, 0)
-local direction = velocity:normalized()  -- Vector(1, 0)
+local direction = Vector.normalized(velocity)  -- Vector(1, 0)
 ```
 
-#### `vec:distance(other)`
+#### `Vector.distance(a, b)`
 
-Returns the distance to another vector.
+Returns the distance between two vectors.
 
 ```lua
-vec:distance(other: Vector): number
+Vector.distance(a: Vector, b: Vector): number
 ```
 
-#### `vec:distanceSquared(other)`
+**Example:**
+```lua
+local d = Vector.distance(Vector.xy(0, 0), Vector.xy(3, 4))  -- 5
+```
+
+#### `Vector.distanceSquared(a, b)`
 
 Returns the squared distance. Faster for comparisons.
 
 ```lua
-vec:distanceSquared(other: Vector): number
+Vector.distanceSquared(a: Vector, b: Vector): number
 ```
 
-#### `vec:dot(other)`
+#### `Vector.dot(a, b)`
 
 Returns the dot product. Useful for angle calculations and projections.
 
 ```lua
-vec:dot(other: Vector): number
+Vector.dot(a: Vector, b: Vector): number
 ```
 
 **Example:**
 ```lua
 local a = Vector.xy(1, 0)
 local b = Vector.xy(0, 1)
-print(a:dot(b))  -- 0 (perpendicular vectors)
+print(Vector.dot(a, b))  -- 0 (perpendicular vectors)
 ```
 
-#### `vec:lerp(other, t)`
+#### `Vector.cross(a, b)`
 
-Linear interpolation between this vector and another.
+Returns the z-component of the 3D cross product (the 2D "signed area").
 
 ```lua
-vec:lerp(other: Vector, t: number): Vector
+Vector.cross(a: Vector, b: Vector): number
+```
+
+**Example:**
+```lua
+local c = Vector.cross(Vector.xy(1, 0), Vector.xy(0, 1))  -- 1
+```
+
+**When to use:** Determining winding order (clockwise vs counter-clockwise), computing signed areas, checking which side of a line a point is on.
+
+#### `Vector.scaleAndAdd(a, b, scale)`
+
+Returns `a + b * scale`. Avoids creating an intermediate vector.
+
+```lua
+Vector.scaleAndAdd(a: Vector, b: Vector, scale: number): Vector
+```
+
+**Example:**
+```lua
+-- Move position by velocity * dt
+local newPos = Vector.scaleAndAdd(position, velocity, deltaTime)
+```
+
+#### `Vector.scaleAndSub(a, b, scale)`
+
+Returns `a - b * scale`.
+
+```lua
+Vector.scaleAndSub(a: Vector, b: Vector, scale: number): Vector
+```
+
+#### `Vector.lerp(from, to, t)`
+
+Linear interpolation between two vectors.
+
+```lua
+Vector.lerp(from: Vector, to: Vector, t: number): Vector
 ```
 
 **Parameters:**
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| other | Vector | Target vector |
-| t | number | Interpolation factor (0 = self, 1 = other) |
+| from | Vector | Start vector (t=0) |
+| to | Vector | Target vector (t=1) |
+| t | number | Interpolation factor (0-1) |
 
 **Example:**
 ```lua
-local start = Vector.xy(0, 0)
-local target = Vector.xy(100, 100)
-local midpoint = start:lerp(target, 0.5)  -- Vector(50, 50)
+local midpoint = Vector.lerp(Vector.xy(0, 0), Vector.xy(100, 100), 0.5)
+-- Vector(50, 50)
 ```
+
+### Deprecated Instance Methods
+
+:::warning Deprecated
+The following instance methods still work but are deprecated. Use the static `Vector.*` versions above for better performance.
+:::
+
+| Deprecated | Use Instead |
+|------------|-------------|
+| `vec:length()` | `Vector.length(vec)` |
+| `vec:lengthSquared()` | `Vector.lengthSquared(vec)` |
+| `vec:normalized()` | `Vector.normalized(vec)` |
+| `vec:distance(other)` | `Vector.distance(vec, other)` |
+| `vec:distanceSquared(other)` | `Vector.distanceSquared(vec, other)` |
+| `vec:dot(other)` | `Vector.dot(vec, other)` |
+| `vec:lerp(other, t)` | `Vector.lerp(vec, other, t)` |
 
 ### Operators
 
@@ -426,6 +484,24 @@ Returns true if the matrix is the identity transform.
 
 ```lua
 mat:isIdentity(): boolean
+```
+
+### Static Methods
+
+#### `Mat2D.invert(output, input)`
+
+Static version that writes into an existing matrix (avoids allocation). Returns `true` if invertible.
+
+```lua
+Mat2D.invert(output: Mat2D, input: Mat2D): boolean
+```
+
+**Example:**
+```lua
+local inv = Mat2D.identity()
+if Mat2D.invert(inv, worldTransform) then
+    local localPt = inv * worldPt
+end
 ```
 
 ### Operators

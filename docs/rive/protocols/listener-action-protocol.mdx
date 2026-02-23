@@ -1,0 +1,119 @@
+---
+sidebar_position: 9
+title: ListenerAction Script Protocol
+description: Custom logic triggered by state machine listener events
+keywords:
+  - rive
+  - luau
+  - scripting
+  - listener
+  - action
+  - state machine
+  - protocol
+---
+
+import Term from '@site/src/components/Term';
+
+# ListenerAction Script Protocol
+
+## Overview
+
+ListenerAction scripts run custom code when a <Term>State Machine</Term> listener event fires. Unlike [Listeners](./listener-protocol) (which are function signatures for `addListener()`), ListenerAction is a **script type** that you attach to state machine listener events.
+
+**When to use ListenerAction scripts:**
+- Custom side-effects when a state machine listener triggers
+- Logging, analytics, or audio playback on listener events
+- Complex logic that needs the pointer event data from the trigger
+
+---
+
+## Type Definition
+
+```lua
+export type ListenerAction<T> = {
+    init:    ((self: T, context: Context) -> boolean)?,
+    perform: (self: T, pointerEvent: PointerEvent) -> (),
+} & T
+```
+
+---
+
+## Protocol Methods
+
+| Function | Signature | Required | Description |
+|----------|-----------|----------|-------------|
+| `init` | `(self: T, context: Context): boolean` | No | One-time initialization |
+| `perform` | `(self: T, pointerEvent: PointerEvent): ()` | **Yes** | Runs when the listener fires |
+
+### `perform(self, pointerEvent)` — **REQUIRED**
+
+Called when the state machine listener event fires. Receives the `PointerEvent` that triggered the listener, providing access to position and pointer ID.
+
+```lua
+function perform(self: MyAction, pointerEvent: PointerEvent)
+    print("Listener triggered at:", pointerEvent.position.x, pointerEvent.position.y)
+end
+```
+
+### `init(self, context)` — Optional
+
+Called once when the action is created. Use for setup and accessing the ViewModel.
+
+```lua
+function init(self: MyAction, context: Context): boolean
+    local vm = context:viewModel()
+    -- Setup logic
+    return true
+end
+```
+
+---
+
+## Template
+
+```lua
+export type MyAction = {
+    clickCount: number,
+}
+
+function perform(self: MyAction, pointerEvent: PointerEvent)
+    self.clickCount += 1
+    print("Click #" .. tostring(self.clickCount)
+        .. " at (" .. tostring(pointerEvent.position.x)
+        .. ", " .. tostring(pointerEvent.position.y) .. ")")
+end
+
+return function(): ListenerAction<MyAction>
+    return {
+        clickCount = 0,
+        perform = perform,
+    }
+end
+```
+
+---
+
+## How to Apply
+
+1. Create a ListenerAction script in the Assets panel
+2. In the State Machine editor, select a Listener
+3. Add the script as an action on the listener
+4. The `perform` function will run each time the listener triggers
+
+---
+
+## Key Differences from Node Scripts
+
+| Feature | Node Script | ListenerAction |
+|---------|-------------|----------------|
+| Lifecycle | `init`, `advance`, `update`, `draw` | `init`, `perform` |
+| Rendering | Has `draw()` and Renderer access | No rendering |
+| When it runs | Every frame (advance/draw) | Only when listener fires |
+| Pointer data | Via `pointerDown`/`pointerMove` handlers | Via `perform` parameter |
+
+**See Also:** [Listeners](./listener-protocol), [Script Types Overview](/rive/script-types), [PointerEvent](/api/events#pointerevent)
+
+## Next Steps
+
+- Continue to [TransitionCondition Protocol](/rive/protocols/transition-condition-protocol)
+- Need a refresher? Review [Quick Reference](/quick-reference)

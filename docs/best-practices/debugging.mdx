@@ -74,8 +74,6 @@ Check Problems first — if there are errors there, fix them before running your
 `print()` is your primary debugging tool. Output appears in Rive's Console panel.
 
 ```lua
---!strict
-
 export type DebugDemo = {
     counter: number,
 }
@@ -228,7 +226,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Lifecycle tracer to understand when functions are called
 
 export type LifecycleTracer = {
@@ -323,7 +320,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -375,7 +371,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- State debugger to track how values change over time
 
 export type StateDebugger = {
@@ -491,7 +486,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -636,7 +630,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- This script has 3 bugs - find and fix them!
 
 export type BuggyCircle = {
@@ -725,7 +718,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -740,7 +732,6 @@ Strict mode catches errors at edit time. Here are common ones:
 ### Unknown Global
 
 ```lua
---!strict
 
 function init(self: MyNode): boolean
     prnt("hello")  -- Error: Unknown global 'prnt'
@@ -752,7 +743,6 @@ end
 ### Missing Type Annotation
 
 ```lua
---!strict
 
 -- Error: Missing type annotation
 function helper(x)
@@ -768,8 +758,6 @@ end
 ### Incompatible Assignment
 
 ```lua
---!strict
-
 export type Counter = {
     count: number,
 }
@@ -847,8 +835,6 @@ end
 ### Detecting Slow Code
 
 ```lua
---!strict
-
 export type PerfTest = {
     frameCount: number,
     totalTime: number,
@@ -930,7 +916,7 @@ end
   id="debugging-q3"
   options={[
     { text: "Using the wrong function name" },
-    { text: "Missing --!strict directive" },
+    { text: "Missing type annotations" },
     { text: "Accessing a field before initializing it", correct: true },
     { text: "Incorrect return type" },
   ]}

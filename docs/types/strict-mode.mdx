@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: "Strict Mode Deep Dive"
-description: Master the --!strict directive and understand the type errors it catches
+description: Master strict mode and understand the type errors it catches
 keywords:
   - rive
   - luau
@@ -21,7 +21,7 @@ import Term from '@site/src/components/Term';
 
 ## Learning Objectives
 - Understand the three type checking modes in Luau
-- Know why Rive enforces strict typing and why `--!strict` is recommended
+- Know why Rive enforces strict typing
 - Recognize and fix common type errors caught by strict mode
 - Use strict mode effectively in your development workflow
 
@@ -33,10 +33,10 @@ If you're coming from After Effects expressions or JavaScript, understanding typ
 
 | Concept | JavaScript/AE | Luau (Rive) | Notes |
 |---------|--------------|-------------|-------|
-| Type checking | None (runtime only) | `--!strict` (compile time) | Luau catches errors BEFORE running |
+| Type checking | None (runtime only) | Strict (compile time) | Luau catches errors BEFORE running |
 | Untyped mode | Default | `--!nocheck` | Both skip type checking |
-| Strict mode | N/A | `--!strict` | Recommended; Rive enforces strict typing |
-| TypeScript | `tsc --strict` | `--!strict` | Similar concept |
+| Strict mode | N/A | Enforced by Rive | Rive enforces strict typing by default |
+| TypeScript | `tsc --strict` | Strict typing | Similar concept |
 | Empty array | `[]` works | `{}` needs type | `local t: {string} = {}` |
 | Missing property | Runtime error | Compile error | Strict catches early |
 
@@ -49,7 +49,7 @@ let result = player.health - damage;  // No error until runtime!
 
 **Luau Strict:** Bugs caught immediately during development
 ```lua
--- Luau --!strict - error shown in editor BEFORE running
+-- Luau strict mode - error shown in editor BEFORE running
 local result = player.health - damage  -- Error: health might be nil
 ```
 
@@ -60,7 +60,7 @@ This is why Rive enforces strict typing—your animations must work reliably eve
 
 ## Rive Context
 
-Rive enforces strict type checking by default. The `--!strict` directive is optional, but Rive still expects strict typing and will type-check as if strict is on. Use `--!strict` to make that explicit and keep scripts consistent across tools. This design ensures:
+Rive enforces strict type checking by default. This design ensures:
 
 1. **Type safety at compile time**: Errors are caught before your animation runs
 2. **Better editor integration**: Autocomplete knows exact types
@@ -73,26 +73,9 @@ When you write a <Term>Node</Term> Script, the Rive compiler expects proper type
 
 ---
 
-## The Three Type Checking Modes
+## Type Checking in Rive
 
-Luau supports three modes, controlled by a directive at the top of your file:
-
-```lua
---!strict    -- Full type checking (recommended; Rive enforces strict typing)
---!nonstrict -- Partial checking, allows 'any' inference
---!nocheck   -- No type checking (default if no directive)
-```
-
-### Mode Comparison
-
-| Feature | `--!nocheck` | `--!nonstrict` | `--!strict` |
-|---------|-------------|----------------|-------------|
-| Type inference | No | Partial | Full |
-| Errors on type mismatch | No | Some | Yes |
-| Requires annotations | No | Sometimes | Yes (for functions) |
-| Used in Rive | **No** | **No** | **Yes (enforced)** |
-
-Even if you omit `--!strict`, Rive still enforces strict typing. The directive is optional but recommended for clarity.
+Rive enforces strict type checking by default. This means full type inference, errors on type mismatches, and required annotations for functions.
 
 ---
 
@@ -134,8 +117,6 @@ A UI field or designer <Term>Input</Term> provides a string value, but you need 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 function init(self: Exercise1): boolean
@@ -231,8 +212,6 @@ A label may or may not be provided by a designer. You need a safe fallback so th
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 function init(self: Exercise2): boolean
@@ -326,8 +305,6 @@ You are flagging a critical state for a health indicator. The helper must always
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 local function isCritical(hp: number): boolean
@@ -422,8 +399,6 @@ You are switching between animation modes. Using a literal union prevents invali
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {}
 
 type Mode = "idle" | "run" | "hit"
@@ -517,8 +492,6 @@ You are storing stats for a UI meter. Correct field types ensure your calculatio
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 type Stats = {
@@ -619,8 +592,6 @@ A designer sets a speed input. Your script computes an adjusted value used for a
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {
     speed: Input<number>,
     adjusted: number,
@@ -683,14 +654,6 @@ Your console output should display the adjusted value computed by multiplying th
 ## Knowledge Check
 
 <Quiz
-  question="What directive enables full type checking in Rive scripts?"
-  id="strict-q1"
-  type="code"
-  answer="--!strict"
-  explanation="The --!strict directive enables explicit strict type checking. In Rive it is optional because strict typing is enforced anyway, but keep it as the first line if you include it."
-/>
-
-<Quiz
   question="What happens with 'local items = {}' in strict mode?"
   id="strict-q2"
   options={[
@@ -715,7 +678,7 @@ Your console output should display the adjusted value computed by multiplying th
 />
 
 <Quiz
-  question="Why does Rive enforce strict typing (and recommend --!strict)?"
+  question="Why does Rive enforce strict typing?"
   id="strict-q4"
   options={[
     { text: "It makes the code run faster" },
@@ -732,18 +695,11 @@ Your console output should display the adjusted value computed by multiplying th
 
 :::danger Avoid These Errors
 
-1. **Omitting `--!strict`**: Optional, but recommended to keep strict typing explicit (Rive enforces strict typing regardless)
-   ```lua
-   --!strict  -- Recommended first line if included
+1. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
 
-   export type MyScript = {}
-   ```
+2. **Plain tables for Rive types**: Use `Vector.xy()` not `{x = 100, y = 50}`
 
-2. **Empty tables without types**: `local t: {string} = {}` not `local t = {}`
-
-3. **Plain tables for Rive types**: Use `Vector.xy()` not `{x = 100, y = 50}`
-
-4. **Not handling optionals**: Always check `string?` before using as `string`
+3. **Not handling optionals**: Always check `string?` before using as `string`
    ```lua
    -- WRONG
    print(user.email:upper())
@@ -754,7 +710,7 @@ Your console output should display the adjusted value computed by multiplying th
    end
    ```
 
-5. **Missing function return types**: Top-level functions need explicit return type annotations
+4. **Missing function return types**: Top-level functions need explicit return type annotations
    ```lua
    -- WRONG
    local function add(a: number, b: number)
@@ -773,7 +729,7 @@ Your console output should display the adjusted value computed by multiplying th
 
 ## Self-Assessment Checklist
 
-- [ ] I understand why `--!strict` is optional but recommended in Rive
+- [ ] I understand that Rive enforces strict typing by default
 - [ ] I can fix "cannot infer type of empty table" errors
 - [ ] I know the difference between strict, nonstrict, and nocheck modes
 - [ ] I can properly annotate function signatures

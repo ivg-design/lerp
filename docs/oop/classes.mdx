@@ -21,7 +21,7 @@ import Term from '@site/src/components/Term';
 
 ## Learning Objectives
 - Create proper class constructors using metatables
-- Type your classes correctly with `--!strict`
+- Type your classes correctly with strict type checking
 - Use the double-cast pattern for type safety
 - Implement methods with proper `self` handling
 - Build reusable simulation and drawing classes
@@ -65,13 +65,12 @@ Use classes when you need:
 
 In Lesson 3.1, we learned how `__index` enables shared behavior. Now we'll formalize this into a reusable class pattern that:
 
-1. Works with `--!strict` type checking
+1. Works with strict type checking
 2. Has a clear constructor (`new()`)
 3. Defines a proper type for instances
 4. Supports methods with the colon syntax
 
 ```lua
---!strict
 
 local MyClass = {}
 MyClass.__index = MyClass
@@ -94,7 +93,7 @@ end
 return MyClass
 ```
 
-**Key detail:** In `--!strict`, the double cast `(self :: any) :: MyClass` helps the type checker understand the metatable instance. While not strictly required at runtime, it improves type inference for methods.
+**Key detail:** The double cast `(self :: any) :: MyClass` helps the type checker understand the metatable instance. While not strictly required at runtime, it improves type inference for methods.
 
 ---
 
@@ -136,8 +135,6 @@ Springs are common for easing UI or motion values. A class keeps the parameters 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 
 local Spring = {}
@@ -242,8 +239,6 @@ You need independent counters for different UI elements. Each instance should in
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 
 local Counter = {}
@@ -348,8 +343,6 @@ You track a sprite's position in a Node Script. Methods update x and y together 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 
 local Sprite = {}
@@ -457,8 +450,6 @@ You want consistent labels for debugging or UI readouts. The class method ensure
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {}
 
 local Label = {}
@@ -560,8 +551,6 @@ You might construct a marker by name or by id. Both should produce a valid insta
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {}
 
 local Marker = {}
@@ -670,8 +659,6 @@ A configuration object holds static values, while a timer class updates over tim
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {}
 
 local Timer = {}

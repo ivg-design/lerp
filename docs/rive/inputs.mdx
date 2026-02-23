@@ -80,8 +80,6 @@ Script inputs are how designers control your script from the Rive UI. You define
 ## Input Definition Pattern
 
 ```lua
---!strict
-
 export type MyNode = {
     size: Input<number>,
     tint: Input<Color>,
@@ -171,7 +169,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A square that rebuilds when size input changes
 
 export type InputSquare = {
@@ -252,7 +249,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -299,7 +295,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Animate a position over time using sine wave
 
 export type AnimationDriver = {
@@ -383,7 +378,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -430,7 +424,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Track how many times an input has changed
 
 export type InputTracker = {
@@ -505,7 +498,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -669,7 +661,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A progress bar driven by inputs
 
 export type ProgressBar = {
@@ -772,7 +763,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -857,7 +847,7 @@ return function(): Node<MyNode>
 end
 ```
 
-**Note:** `late()` is recommended for type safety in `--!strict` mode, but `nil` works identically at runtime.
+**Note:** `late()` is recommended for type safety in strict mode, but `nil` works identically at runtime.
 
 ### 3. Reassigning Input Values in Scripts
 

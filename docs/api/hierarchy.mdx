@@ -64,9 +64,27 @@ Read-only node data providing transform properties.
 | `y` | number | Local position Y |
 | `scaleX` | number | Local scale X |
 | `scaleY` | number | Local scale Y |
-| `paint` | <Term>Paint</Term>? | Paint data (if <Term>Path</Term> node) |
+| `paint` | <Term>Paint</Term>? | Paint data (if ShapePaint node) |
 
-**See Also:** [NodeData](#nodedata), [Mat2D](./core-types#mat2d)
+### Methods
+
+#### `node:asPath()`
+
+Casts the node to its PathData representation. Returns nil if not a path node.
+
+```lua
+node:asPath(): PathData?
+```
+
+#### `node:asPaint()`
+
+Casts the node to its Paint representation. Returns nil if not a ShapePaint node.
+
+```lua
+node:asPaint(): Paint?
+```
+
+**See Also:** [NodeData](#nodedata), [Mat2D](./core-types#mat2d), [PathData](./path-effects#pathdata)
 
 ---
 
@@ -98,7 +116,7 @@ function resize(self: MyLayout, size: Vector)
 end
 ```
 
-**Note:** Layout scripts function like Node scripts but respond to layout box sizing.
+**Note:** Layout extends the Node protocol. Layout scripts inherit all Node callbacks (`init`, `advance`, `draw`, pointer event handlers) in addition to `measure` and `resize`.
 
 ## Next Steps
 

@@ -22,15 +22,19 @@ System-level APIs and environment constraints.
 
 ## Listener
 
-Callback that observes changes on an object.
+Callback that observes changes on an object. Supports two calling conventions:
 
 ### Usage
 
-Listeners are registered via `addListener` methods on various objects:
-
 ```lua
+-- Simple callback
 property:addListener(function()
     print("Value changed to", property.value)
+end)
+
+-- Bound object callback
+property:addListener(self, function(obj)
+    print("Changed on", obj)
 end)
 ```
 
@@ -40,25 +44,30 @@ end)
 
 ## Output
 
-Represents a typed output value from a script.
+`Output<T>` is a type alias (`Output<T> = T`) that marks a field as an output exposed to the Rive runtime. The runtime reads output values each frame.
 
 ### Usage
-
-Outputs allow scripts to expose values to other parts of the system:
 
 ```lua
 export type MyScript = {
     result: Output<number>,
+    label: Output<string>,
 }
+
+function advance(self: MyScript, seconds: number): boolean
+    self.result = math.sin(seconds)  -- Runtime reads this value
+    self.label = "Hello"
+    return true
+end
 ```
 
 ---
 
 ## EnumValues
 
-Collection of enum values.
+Collection of enum values. Supports length operator and indexed access.
 
-### Methods
+### Operators
 
 #### Length (`#`)
 
@@ -66,6 +75,24 @@ Returns the number of enum values.
 
 ```lua
 local count = #enumValues
+```
+
+#### Index (`[]`)
+
+Access individual enum values by index.
+
+```lua
+local firstOption = enumValues[1]
+```
+
+### Example
+
+```lua
+local enum = vm:getEnum("status")
+local values = enum:values()
+for i = 1, #values do
+    print(i, values[i])
+end
 ```
 
 **See Also:** [PropertyEnum](./data-values#propertyenum)
@@ -85,6 +112,116 @@ local count = #enumValues
 | `loadfile`, `dofile`, `loadstring` | Not available |
 
 The `__gc` metamethod is also disabled.
+
+---
+
+## late()
+
+Deferred initialization marker for script fields. Use in factory return tables for fields that will be assigned later (e.g., in `init()`).
+
+```lua
+declare function late(): any
+```
+
+### Example
+
+```lua
+return function(): Node<MyScript>
+    return {
+        init = init,
+        advance = advance,
+        myPath = late(),     -- Will be assigned in init()
+        myPaint = late(),
+    }
+end
+```
+
+---
+
+## Audio
+
+Global API for audio playback. Used with [AudioSource](./assets#audiosource) assets.
+
+### Methods
+
+#### `Audio.time()`
+
+Returns the current audio system time in seconds.
+
+```lua
+Audio.time(): number
+```
+
+#### `Audio.sampleRate()`
+
+Returns the audio sample rate.
+
+```lua
+Audio.sampleRate(): number
+```
+
+#### `Audio.timeFrame()`
+
+Returns the current audio system time in frames.
+
+```lua
+Audio.timeFrame(): number
+```
+
+#### `Audio.play(source)`
+
+Plays an audio source immediately. Returns an [AudioSound](./assets#audiosound) for controlling playback.
+
+```lua
+Audio.play(source: AudioSource): AudioSound
+```
+
+#### `Audio.playAtTime(source, time)`
+
+Schedules playback at a specific audio time.
+
+```lua
+Audio.playAtTime(source: AudioSource, time: number): AudioSound
+```
+
+#### `Audio.playInTime(source, delay)`
+
+Schedules playback after a delay in seconds.
+
+```lua
+Audio.playInTime(source: AudioSource, delay: number): AudioSound
+```
+
+#### `Audio.playAtFrame(source, frame)`
+
+Schedules playback at a specific frame.
+
+```lua
+Audio.playAtFrame(source: AudioSource, frame: number): AudioSound
+```
+
+#### `Audio.playInFrame(source, frames)`
+
+Schedules playback after a delay in frames.
+
+```lua
+Audio.playInFrame(source: AudioSource, frames: number): AudioSound
+```
+
+### Example
+
+```lua
+function init(self: MyScript, context: Context): boolean
+    local source = context:audio("click_sound")
+    if source then
+        local sound = Audio.play(source)
+        sound.volume = 0.8
+    end
+    return true
+end
+```
+
+**See Also:** [AudioSource](./assets#audiosource), [AudioSound](./assets#audiosound), [Context](./data-input#context)
 
 ## Next Steps
 

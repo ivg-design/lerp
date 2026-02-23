@@ -1,0 +1,169 @@
+---
+sidebar_position: 5
+title: Rive AI Agent
+description: Comprehensive guide to the Rive AI Coding Agent built into the editor
+keywords:
+  - rive
+  - luau
+  - scripting
+  - ai
+  - agent
+  - tools
+  - assistant
+---
+
+import Term from '@site/src/components/Term';
+
+# Rive AI Agent
+
+The Rive Editor includes a built-in **AI Coding Agent** that understands the Rive Luau API, can create and modify scripts, build animations, manage ViewModels, and more. No API keys, external apps, or setup required.
+
+---
+
+## What the AI Agent Knows
+
+The agent is initialized with:
+- **Complete Rive Luau type definitions** — all types (`Node<T>`, `Layout<T>`, `Converter<T>`, `PathEffect<T>`, `ListenerAction<T>`, `TransitionCondition<T>`, `Paint`, `Path`, `Vector`, `Mat2D`, `Color`, `Renderer`, etc.)
+- **Scripting conventions** — factory functions, lifecycle callbacks, the `self` pattern
+- **Editor context** — access to all artboards, objects, scripts, animations, and ViewModels in your file
+
+---
+
+## Available Tools
+
+The AI agent has access to **14 specialized tools** for interacting with different parts of the Rive editor.
+
+### Scripting Tools
+
+| Tool | What It Does |
+|------|-------------|
+| **`text_editor`** | View, create, and edit script files. Supports viewing file contents, creating new files, replacing text, and appending. |
+| **`script_diagnostics`** | Get linter errors and warnings for a specific script or all scripts in the workspace. |
+| **`get_scripts`** | List all scripts with their return types (node, layout, converter, pathEffect, listenerAction, transitionCondition, tests, none). |
+| **`run_tests`** | Execute a Test script and see pass/fail results. |
+| **`recompile_all_scripts`** | Commit all script changes to the Luau VM so the runtime picks them up. |
+| **`grep`** | Search for patterns across all scripts. Supports case-sensitive, whole-word, and regex matching. |
+| **`read_console`** | Read print output and errors from script execution. Filter by script name, entry type, or text content. |
+
+### Editor Tools
+
+| Tool | What It Does |
+|------|-------------|
+| **`animation_editor`** | Create and modify state machines and linear animations. Create layers, states, transitions, conditions, and keyframes. |
+| **`layout_editor`** | Create flexbox-style layouts with alignment, padding, gaps, and text nodes. |
+| **`viewmodel_editor`** | Create ViewModels with typed properties, create instances, set up data bindings between objects and ViewModel properties. |
+| **`component_editor`** | Add component (artboard) instances to artboards. Supports node, leaf, and layout modes. |
+| **`open_file_editor`** | Manage artboards — list, create, rename, resize, and set as active. |
+| **`query_core_object_tool`** | Query and modify properties of any Rive object by ID. List children, get/set property values. |
+| **`path_editor`** | Create shapes with paths, fills, and strokes. Build vector graphics programmatically. |
+
+---
+
+## Tips for Working with the AI
+
+### Be Specific
+
+The more context you provide, the better the results.
+
+```
+# Less effective
+"Make a button"
+
+# More effective
+"Create a Node script that draws a rounded rectangle button
+at position (100, 50) with size 200x60. The button should
+change color on pointerDown and have an Input<string> for
+the label text."
+```
+
+### Reference Existing Elements
+
+If your file already has ViewModels, artboards, or scripts, mention them by name.
+
+```
+"Update the 'GameController' script to read the 'score'
+property from the 'PlayerData' ViewModel and display it
+using the draw() function."
+```
+
+### Ask for Diagnostics
+
+After the AI creates or modifies a script, ask it to check for errors.
+
+```
+"Run script_diagnostics on the new script and fix any issues."
+```
+
+### Iterate
+
+The AI can see its own output. Build incrementally:
+
+1. "Create a basic Node script that draws a circle"
+2. "Add an advance() function that makes it pulse"
+3. "Add a pointerDown handler that changes the color"
+4. "Run the tests to make sure everything compiles"
+
+---
+
+## Common Workflows
+
+### Creating a New Script
+
+1. Describe what you want the script to do
+2. The AI uses `text_editor` to create the file
+3. It runs `script_diagnostics` to check for errors
+4. It calls `recompile_all_scripts` to commit to the VM
+
+### Setting Up Data Binding
+
+1. "Create a ViewModel called 'PlayerData' with properties: score (number), name (string), isActive (boolean)"
+2. "Bind the 'score' property to the text run in my artboard"
+3. "Create a Node script that updates the score on pointerDown"
+
+### Building Animations
+
+1. "Create a state machine called 'ButtonSM' with Idle and Pressed states"
+2. "Add transitions between the states"
+3. "Create linear animations for each state"
+4. "Add keyframes for the opacity property"
+
+### Debugging
+
+1. "Read the console output for the 'GameController' script"
+2. "Run diagnostics on all scripts"
+3. "Search for all uses of 'playerHealth' across scripts"
+
+---
+
+## Limitations
+
+The AI agent **cannot**:
+- Preview or render animations visually
+- Access external files, APIs, or the internet
+- Undo its own actions (but you can use editor undo)
+- Interact with runtime runtimes (web, iOS, Android)
+- Access Rive community files or external .riv files
+
+The AI agent works **within your current file only**. It sees the artboards, scripts, ViewModels, and objects in the file you have open.
+
+---
+
+## Quick Reference
+
+| Task | What to Ask |
+|------|-------------|
+| Write a script | "Create a [Node/Layout/Converter/PathEffect] script that..." |
+| Fix errors | "Run diagnostics and fix any issues" |
+| Find code | "Search for 'functionName' across all scripts" |
+| Check output | "Read the console output" |
+| Create animation | "Create a state machine with..." |
+| Set up data | "Create a ViewModel with..." |
+| Build layout | "Create a flex layout with..." |
+| Add component | "Add the 'Button' artboard as a component" |
+
+**See Also:** [Script Types Overview](/rive/script-types), [Welcome](/getting-started/welcome)
+
+## Next Steps
+
+- Continue to [Inputs and Data Binding](/rive/inputs)
+- Need a refresher? Review [Quick Reference](/quick-reference)

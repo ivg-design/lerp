@@ -284,8 +284,6 @@ Before we look at Rive scripts, let's make sure we've got the basics:
 Here's the simplest possible Rive script. Don't worry - we'll explain every line:
 
 ```lua
---!strict
-
 export type MyScript = {}
 
 function init(self: MyScript): boolean
@@ -309,38 +307,7 @@ end
 
 ---
 
-## Part 1: Strict Mode
-
-```lua
---!strict
-```
-
-This line turns on **strict mode** - a helper that checks your code for mistakes before it runs.
-
-- `--` normally starts a comment (text the computer ignores)
-- But `--!strict` is special - it's an instruction to enable checking
-
-**Think of it like a spell-checker** for your code. It underlines problems before you even run the script.
-
-:::tip
-Strict mode is optional but highly recommended. It catches typos and mistakes early!
-:::
-
-<Quiz
-  question="What does --!strict do?"
-  id="beginner-q7"
-  options={[
-    { text: "Makes the script run faster" },
-    { text: "Turns on checking that catches mistakes early", correct: true },
-    { text: "Adds strict security" },
-    { text: "Nothing, it's just a comment" },
-  ]}
-  explanation="--!strict enables the type checker, which analyzes your code and warns you about potential problems before you run it."
-/>
-
----
-
-## Part 2: Defining Your Data
+## Part 1: Defining Your Data
 
 ```lua
 export type MyScript = {}
@@ -378,7 +345,7 @@ export type Player = {
 
 ---
 
-## Part 3: The Init Function (Runs Once)
+## Part 2: The Init Function (Runs Once)
 
 ```lua
 function init(self: MyScript): boolean
@@ -429,7 +396,7 @@ Let's decode the first line:
 
 ---
 
-## Part 4: The Draw Function (Renders Graphics)
+## Part 3: The Draw Function (Renders Graphics)
 
 ```lua
 function draw(self: MyScript, renderer: Renderer)
@@ -458,7 +425,7 @@ This function is called when Rive needs to display your graphics. The `renderer`
 
 ---
 
-## Part 5: The Factory Function (Creates Instances)
+## Part 4: The Factory Function (Creates Instances)
 
 This is the trickiest part. Bear with me:
 
@@ -505,14 +472,13 @@ Now let's arrange these parts in the correct order:
   title="Arrange the Script Parts"
   description="Put these parts in the order they appear in a Rive script:"
   blocks={[
-    "--!strict",
     "export type MyScript = { }",
     "function init(self: MyScript): boolean ... end",
     "function draw(self: MyScript, renderer: Renderer) ... end",
     "return function(): Node<MyScript> ... end"
   ]}
-  hint="Start with strict mode, then type definition, then the functions, and finally the factory."
-  explanation="Rive scripts follow this order: strict mode directive, type definition, lifecycle functions, and finally the factory function that returns everything."
+  hint="Start with the type definition, then the functions, and finally the factory."
+  explanation="Rive scripts follow this order: type definition, lifecycle functions, and finally the factory function that returns everything."
 />
 
 ---
@@ -569,8 +535,6 @@ This is the foundation for everything you'll build in Rive scripts.
 Copy and paste this entire script into the Rive script editor:
 
 ```lua
---!strict
-
 export type MyFirstScript = {
     message: string,
     counter: number,
@@ -753,11 +717,10 @@ The type checker caught your typo before you even ran the script!
 
 Every Rive script follows this pattern:
 
-1. **`--!strict`** - Enable error checking (recommended)
-2. **`export type`** - Declare what data your script stores
-3. **`function init`** - Set up initial values (runs once)
-4. **`function draw`** - Render graphics (runs on repaint)
-5. **`return function()`** - Factory that creates instances
+1. **`export type`** - Declare what data your script stores
+2. **`function init`** - Set up initial values (runs once)
+3. **`function draw`** - Render graphics (runs on repaint)
+4. **`return function()`** - Factory that creates instances
 
 Once this pattern clicks, you'll recognize it in every Rive script!
 

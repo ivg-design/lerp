@@ -105,8 +105,6 @@ Scripts don't have a dedicated "event listener" protocol. Instead, use:
 ### Correct Pattern: Property Listeners
 
 ```lua
---!strict
-
 export type MyNode = {
     context: Context?,
     changeCount: number,
@@ -181,6 +179,8 @@ class MyComponent {
 | `Layout<T>` | Layout-aware nodes with `measure`, `resize` |
 | `Converter<T, I, O>` | Data converters with `convert`, `reverseConvert` |
 | `PathEffect<T>` | Custom path effects |
+| `ListenerAction<T>` | Custom state machine listener actions |
+| `TransitionCondition<T>` | Custom state machine transition conditions |
 | `Util` | Utility modules (no generic) |
 | `Tests` | Test modules (no generic) |
 
@@ -236,7 +236,6 @@ This pattern shows up whenever you build reactive behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A Node script that logs ViewModel property changes
 
 export type PropertyLogger = {
@@ -384,7 +383,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A Node script that handles ViewModel trigger events
 
 export type TriggerHandler = {
@@ -543,7 +541,6 @@ This pattern shows up whenever you build interactive behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Click counter with visual pop feedback
 
 export type ClickCounter = {
@@ -645,7 +642,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -692,7 +688,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Implement drag and drop with all three pointer events
 
 export type Draggable = {
@@ -832,7 +827,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -883,7 +877,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- A visual that responds to state machine inputs
 
 export type StateBridge = {
@@ -986,7 +979,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -1037,7 +1029,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Publisher-Subscriber pattern with EventBus
 
 -- UTIL SCRIPT: EventBus (create this as a separate Util script)
@@ -1169,7 +1160,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 

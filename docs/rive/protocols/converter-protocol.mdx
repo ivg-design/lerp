@@ -58,8 +58,6 @@ Converter Scripts enable custom data transformations within Rive's data binding 
 ## The Converter Script Template
 
 ```lua
---!strict
-
 export type MyConverter = {
     -- Converter state (rarely needed)
 }
@@ -272,8 +270,6 @@ You have a progress value stored as a decimal (0.0 to 1.0), but you want to disp
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {}
 type DataInputs = DataValueNumber
 type DataOutput = DataValueNumber
@@ -377,8 +373,6 @@ Your app stores temperatures in Celsius internally, but displays Fahrenheit for 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {}
 type DataInputs = DataValueNumber
 type DataOutput = DataValueNumber
@@ -482,8 +476,6 @@ You have a price stored as a number (19.99), but need to display it as "$19.99" 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {}
 type DataInputs = DataValueNumber
 type DataOutput = DataValueString

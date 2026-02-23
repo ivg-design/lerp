@@ -51,12 +51,12 @@ Advances animations. Returns false when done (non-looping).
 artboard:advance(deltaTime: number): boolean
 ```
 
-#### `artboard:instance()`
+#### `artboard:instance(viewModel?)`
 
-Creates an independent copy.
+Creates an independent copy, optionally bound to a ViewModel.
 
 ```lua
-artboard:instance(): Artboard
+artboard:instance(viewModel?: ViewModel): Artboard
 ```
 
 #### `artboard:animation(name)`
@@ -77,10 +77,10 @@ artboard:bounds(): Vector, Vector  -- min, max
 
 #### `artboard:node(name)`
 
-Gets a node by name.
+Gets a node's data by name.
 
 ```lua
-artboard:node(name: string): Node?
+artboard:node(name: string): NodeData?
 ```
 
 #### `artboard:addToPath(path, transform?)`
@@ -114,12 +114,12 @@ A scripted node that can be attached to any Node in Rive. Renders in the local t
 
 ### Protocol Methods
 
-#### `init(self): boolean`
+#### `init(self, context): boolean`
 
 Called once when the node is created. Return `true` to keep the script active.
 
 ```lua
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
     self.counter = 0
     print("Node initialized")
     return true

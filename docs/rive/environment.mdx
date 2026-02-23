@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | File access | `File.read()` (ExtendScript) | Not available (sandboxed) |
 | Network requests | `fetch()` or `XMLHttpRequest` | Not available (sandboxed) |
 | Module import | `import` or `require()` (Node.js) | `require("ScriptName")` |
-| Type checking | TypeScript (optional) | `--!strict` (optional; strict typing enforced) |
+| Type checking | TypeScript (optional) | Strict typing (enforced by Rive) |
 | Runtime | JavaScript (dynamic) | Luau (statically typed variant of Lua) |
 
 :::danger Critical Difference: Where Your Code Runs
@@ -107,8 +107,6 @@ Rive has two types of scripts with different purposes:
 Node scripts attach to <Term>Artboard</Term> nodes and have a lifecycle:
 
 ```lua
---!strict
-
 export type MyNode = {}
 
 function init(self: MyNode): boolean
@@ -153,7 +151,6 @@ class MyNode {
 Util scripts are reusable modules with no lifecycle. To create one, select **Blank Script** in the editor dropdown—there is no dedicated "Util Script" option. See the [Rive docs](https://rive.app/docs/scripting/protocols/util-scripts) for the full pattern.
 
 ```lua
---!strict
 
 local MyUtil = {}
 
@@ -194,7 +191,6 @@ In Rive scripts, **`self` only contains fields you explicitly define** in your e
 If you see `self.artboard` in examples, it means the script defines an artboard <Term>Input</Term>:
 
 ```lua
---!strict
 export type Spawner = {
     artboard: Input<Artboard<Data.ComponentVM>>,
 }
@@ -250,7 +246,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- This script explores the Console panel and lifecycle callbacks
 
 export type ConsoleExplorer = {
@@ -318,7 +313,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -366,7 +360,6 @@ Vectors are fundamental to all positioning and movement in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Practice using Vector constructors
 
 export type VectorPractice = {}
@@ -440,7 +433,6 @@ ANSWER: 100
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -448,11 +440,11 @@ ANSWER: 100
 
 ---
 
-### Exercise 3: Type Safety with --!strict ⭐ {#exercise-3-type-safety-with-strict}
+### Exercise 3: Type Safety with Strict Typing ⭐ {#exercise-3-type-safety-with-strict}
 
 ### Premise
 
-Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Rive enforces strict typing either way; `--!strict` is optional but recommended for clarity.
+Strict mode catches type mismatches at edit time rather than runtime. This is similar to TypeScript vs JavaScript—you get errors in the editor before running your code. Rive enforces strict typing by default.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the type annotations for the Player type. Each field needs the correct type: number, string, or Vector.
@@ -487,7 +479,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Type annotations help catch errors at edit time
 
 export type Player = {
@@ -561,7 +552,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -608,7 +598,6 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
---!strict
 -- Demonstrate math operations available in the sandbox
 
 export type SandboxDemo = {
@@ -686,7 +675,6 @@ ANSWER: <your result>
 
 ### Checklist
 
-- [ ] Optional: `--!strict` at the top (Rive enforces strict typing)
 - [ ] All TODOs are replaced with working code
 - [ ] Console output includes the `ANSWER:` line
 
@@ -775,15 +763,15 @@ When your script has errors:
 />
 
 <Quiz
-  question="Why is --!strict recommended at the top of Rive scripts?"
+  question="Why does Rive enforce strict typing?"
   id="env-q3"
   options={[
     { text: "It makes the script run faster" },
-    { text: "It makes strict typing explicit (Rive enforces it anyway)", correct: true },
+    { text: "It catches bugs before runtime and enables better editor integration", correct: true },
     { text: "It allows network access" },
     { text: "It changes runtime performance" },
   ]}
-  explanation="--!strict makes strict typing explicit for the Luau toolchain. Rive enforces strict typing regardless, so the directive is optional but recommended."
+  explanation="Rive enforces strict typing to catch type errors before your animation runs and to provide better autocomplete in the editor."
 />
 
 <Quiz
@@ -821,19 +809,6 @@ print("I appear in Rive's Console!")
 
 -- CORRECT: Use ViewModel for external data
 -- Data is passed into Rive through runtime API
-```
-
-### 3. Omitting --!strict
-
-```lua
--- Strict typing is still enforced, but clarity is reduced
-export type MyNode = {}
--- Script runs with strict typing enforced
-
--- RECOMMENDED: Include --!strict for clarity
---!strict
-export type MyNode = {}
--- Type checker catches errors before runtime
 ```
 
 ---
@@ -892,7 +867,7 @@ Higher debug levels give you detailed error messages with line numbers and varia
 - The Console panel shows all `print()` output and errors
 - Node scripts have a lifecycle (init, update, advance, draw)
 - Util scripts are reusable modules with no lifecycle
-- `--!strict` makes strict typing explicit (Rive enforces strict typing regardless)
+- Rive enforces strict typing by default
 - Script compilation settings affect debugging (Debug Level) and performance (Optimization Level)
 - The sandbox restricts file I/O, network access, and dynamic code loading
 

@@ -83,7 +83,7 @@ Some values are best created in `init()` rather than in the factory:
 - **Engine-provided**: Values the Rive engine supplies (like <Term>Artboard</Term>-bound inputs)
 - **Instance-specific**: Values that should be unique per node instance
 
-The `late()` function is a **type-safe placeholder** for `--!strict` mode. It tells the type checker: "This value will be set later."
+The `late()` function is a **type-safe placeholder** for strict mode. It tells the type checker: "This value will be set later."
 
 :::tip late() vs nil
 At runtime, `late()` and `nil` behave identically. The difference is type safety:
@@ -94,8 +94,6 @@ At runtime, `late()` and `nil` behave identically. The difference is type safety
 :::
 
 ```lua
---!strict
-
 export type MyScript = {
     path: Path,
     paint: Paint,
@@ -131,7 +129,7 @@ class MyScript {
 
 ## When to Use late()
 
-`late()` is **recommended** (not required) for type safety in `--!strict` mode.
+`late()` is **recommended** (not required) for type safety in strict mode.
 
 ### Recommended: Use late() for:
 
@@ -147,7 +145,7 @@ class MyScript {
 
 ### Alternative: Use nil
 
-If you're not using `--!strict` mode (or using optional types like `Path?`), you can use `nil` instead:
+If you're using optional types like `Path?`, you can use `nil` instead:
 
 ```lua
 -- Both work at runtime:
@@ -195,8 +193,6 @@ You compute a sum from a list of values, but the calculation happens in init. `l
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise1 = {
     total: number,
 }
@@ -294,8 +290,6 @@ You need a Path to draw custom geometry, but it can only be created once the scr
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise2 = {
     path: Path,
 }
@@ -391,8 +385,6 @@ A speed input comes from the editor, and you compute a scaled speed for internal
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise3 = {
     speed: Input<number>,
     scaled: number,
@@ -489,8 +481,6 @@ A label is provided by a designer. You read it immediately without any late init
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise4 = {
     label: Input<string>,
 }
@@ -583,8 +573,6 @@ You compute bounds based on configuration at startup, then store them for later 
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise5 = {
     bounds: Bounds,
 }
@@ -688,8 +676,6 @@ You derive a status label during initialization and store it for later display.
 ### Starter Code
 
 ```lua
---!strict
-
 export type Exercise6 = {
     status: string,
 }
@@ -924,7 +910,7 @@ enemyArtboard = late(),
 | Collections | `late()` or `nil` | `init()` | `late()` recommended for type safety |
 
 :::note
-`late()` and `nil` both work at runtime. Use `late()` for type safety in `--!strict` mode.
+`late()` and `nil` both work at runtime. Use `late()` for type safety in strict mode.
 :::
 
 ---
