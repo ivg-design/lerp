@@ -4,6 +4,22 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 
 ---
 
+## [1.2.1] — 2026-02-27
+
+### Added
+- **Script capability matrix** — new cross-protocol reference page summarizing supported callbacks and APIs by script type
+- **AI agent protocol guidance** — added internal protocol notes (32-bit numeric bounds, pure Luau runtime rules, `none` utility semantics, and component-list generation rules)
+
+### Fixed
+- **Exercise expected outputs** — replaced 76 `ANSWER: <your result>` placeholders with exact validator answers across 20 docs pages
+- **ViewModels context API references** — removed invalid `context:artboard()`/`context:node()` calls and aligned examples with supported context methods
+- **Exercise and quiz tracking maps** — synchronized docs and local registry/index so all exercise and quiz IDs are mapped correctly
+
+### Changed
+- **Course consistency pass** — resolved cross-page wording and metadata drift discovered during final v1.2 review
+
+---
+
 ## [1.2.0] — 2026-02-23
 
 ### Added
@@ -49,7 +65,7 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 ## [1.1.2] — 2026-02-17
 
 ### Fixed
-- `.vercel` added to `.gitignore`
+- Added `.vercel` to `.gitignore`
 
 ---
 
@@ -58,7 +74,7 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 ### Fixed
 - Major audit fixes across documentation based on runtime testing
 - Navigation routing improvements for experience-based paths
-- `.claude` folders untracked from repository
+- Untracked `.claude` folders from the repository
 - Strict mode optionality wording clarified in docs
 
 ---
@@ -69,8 +85,10 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 - Rive Luau expert agent with skills integration
 - Beginner-friendly "Your First Script" page
 - Beginner exercise with proper template format
-- Categorical claims corrected based on runtime testing
 - Test scripts support added to gitignore
+
+### Fixed
+- Categorical claims corrected based on runtime testing
 
 ---
 
@@ -98,7 +116,7 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 - LERP brand assets
 
 ### Fixed
-- Literal answers in Expected Output replaced with guidance text
+- Exercise expected-output blocks switched from literal answers to guidance placeholders (later reverted in 1.2.1)
 - Build warnings resolved across all exercises
 
 ---
