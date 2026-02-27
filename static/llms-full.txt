@@ -1,0 +1,89 @@
+# LERP Full Knowledge Surface (llms-full)
+Generated: 2026-02-27T15:32:34.137Z
+Canonical: https://forge.mograph.life/apps/lerp/
+Scope: Complete documentation route inventory with page metadata for AI retrieval and citation.
+
+## Site Entities
+- Site: LERP (Luau Education for Rive Professionals)
+- Provider: IVG Design
+- Primary domain: https://forge.mograph.life
+- Canonical docs base: https://forge.mograph.life/apps/lerp/
+
+## Complete URL Inventory
+| Title | URL | Source | Description |
+|---|---|---|---|
+| Welcome to LERP | https://forge.mograph.life/apps/lerp/ | docs/intro.mdx | Luau Education for Rive Professionals - From zero to hero |
+| Core Types | https://forge.mograph.life/apps/lerp/advanced/core-types | docs/advanced/core-types.mdx | Understanding Path, Paint, and other core drawing types in Rive |
+| Drawing API | https://forge.mograph.life/apps/lerp/advanced/drawing-api | docs/advanced/drawing-api.mdx | Transforms, Renderer state, and advanced drawing techniques in Rive |
+| Pointer Events | https://forge.mograph.life/apps/lerp/advanced/game-logic | docs/advanced/game-logic.mdx |  |
+| Dynamic Instantiation | https://forge.mograph.life/apps/lerp/advanced/instantiation | docs/advanced/instantiation.mdx |  |
+| Procedural Geometry | https://forge.mograph.life/apps/lerp/advanced/procedural | docs/advanced/procedural.mdx | Dynamic Path generation, animated shapes, and particle systems in Rive |
+| ViewModels | https://forge.mograph.life/apps/lerp/advanced/viewmodels | docs/advanced/viewmodels.mdx | Binding scripts to ViewModels for reactive data-driven animations |
+| Assets | https://forge.mograph.life/apps/lerp/api/assets | docs/api/assets.mdx | Image, ImageFilter, ImageSampler, and ImageWrap |
+| Core Types | https://forge.mograph.life/apps/lerp/api/core-types | docs/api/core-types.mdx | Vector, Color, and Mat2D types |
+| Data & Input | https://forge.mograph.life/apps/lerp/api/data-input | docs/api/data-input.mdx | Input, Property, Context, and ViewModel for data binding |
+| Data Values | https://forge.mograph.life/apps/lerp/api/data-values | docs/api/data-values.mdx | DataValue types, Converter, and Property types |
+| Drawing | https://forge.mograph.life/apps/lerp/api/drawing | docs/api/drawing.mdx | Path, Paint, Gradient, and Renderer for custom drawing |
+| Events | https://forge.mograph.life/apps/lerp/api/events | docs/api/events.mdx | PointerEvent and Trigger for interactions |
+| Hierarchy | https://forge.mograph.life/apps/lerp/api/hierarchy | docs/api/hierarchy.mdx | NodeData, NodeReadData, and Layout |
+| Path Effects | https://forge.mograph.life/apps/lerp/api/path-effects | docs/api/path-effects.mdx | PathCommand, PathData, PathEffect, and CommandType |
+| Scene | https://forge.mograph.life/apps/lerp/api/scene | docs/api/scene.mdx | Artboard, Node, and Animation objects |
+| Styling | https://forge.mograph.life/apps/lerp/api/styling | docs/api/styling.mdx | PaintDefinition, PaintStyle, BlendMode, StrokeCap, StrokeJoin, GradientStop |
+| System | https://forge.mograph.life/apps/lerp/api/system | docs/api/system.mdx | Listener, Output, EnumValues, and Sandbox Limitations |
+| Architecture | https://forge.mograph.life/apps/lerp/best-practices/architecture | docs/best-practices/architecture.mdx |  |
+| Debugging | https://forge.mograph.life/apps/lerp/best-practices/debugging | docs/best-practices/debugging.mdx |  |
+| Performance | https://forge.mograph.life/apps/lerp/best-practices/performance | docs/best-practices/performance.mdx |  |
+| Resources | https://forge.mograph.life/apps/lerp/best-practices/resources | docs/best-practices/resources.mdx |  |
+| Sample Exercise (Review) | https://forge.mograph.life/apps/lerp/examples/sample-exercise | docs/examples/sample-exercise.mdx | A complete exercise example demonstrating all features |
+| 1.2 Control Flow & Loops | https://forge.mograph.life/apps/lerp/fundamentals/control-flow | docs/fundamentals/control-flow.mdx | Conditionals, loops, and control structures in Rive Node Scripts |
+| Data Types | https://forge.mograph.life/apps/lerp/fundamentals/data-types | docs/fundamentals/data-types.mdx | Understanding Luau's fundamental data types for Rive animations |
+| 1.3 Functions & Closures | https://forge.mograph.life/apps/lerp/fundamentals/functions | docs/fundamentals/functions.mdx | Define functions, understand scope, and use closures in Rive Node Scripts |
+| Iteration | https://forge.mograph.life/apps/lerp/fundamentals/iteration | docs/fundamentals/iteration.mdx | Loops, iterators, and collection traversal in Rive Node Scripts |
+| Operators | https://forge.mograph.life/apps/lerp/fundamentals/operators | docs/fundamentals/operators.mdx | Arithmetic, comparison, logical, and compound operators in Rive Node Scripts |
+| 1.4 Tables | https://forge.mograph.life/apps/lerp/fundamentals/tables | docs/fundamentals/tables.mdx | Arrays, dictionaries, and data structures in Rive Node Scripts |
+| 1.1 Variables, Types & Operators | https://forge.mograph.life/apps/lerp/fundamentals/variables | docs/fundamentals/variables.mdx | Declare variables, understand data types, and use operators in Rive Node Scripts |
+| How Rive Scripts Work | https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work | docs/getting-started/how-rive-scripts-work.mdx | Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide |
+| Welcome to Rive Scripting | https://forge.mograph.life/apps/lerp/getting-started/welcome | docs/getting-started/welcome.mdx | Introduction to Rive scripting and what it enables |
+| Why Luau? | https://forge.mograph.life/apps/lerp/getting-started/why-luau | docs/getting-started/why-luau.mdx | The power of typed scripting in design |
+| Your First Rive Script | https://forge.mograph.life/apps/lerp/getting-started/your-first-script | docs/getting-started/your-first-script.mdx | A gentle introduction to Rive scripting for complete beginners - no programming experience required |
+| Glossary | https://forge.mograph.life/apps/lerp/glossary | docs/glossary.mdx | Key terms and definitions for Rive scripting with Luau |
+| 3.2 Building Classes | https://forge.mograph.life/apps/lerp/oop/classes | docs/oop/classes.mdx | Create proper class constructors with typing and methods |
+| 3.7 Encapsulation | https://forge.mograph.life/apps/lerp/oop/encapsulation | docs/oop/encapsulation.mdx | Private state patterns and closures for encapsulation in Rive |
+| The __index Metamethod | https://forge.mograph.life/apps/lerp/oop/index-metamethod | docs/oop/index-metamethod.mdx | Deep dive into __index, __newindex, and method lookup chains |
+| 3.3 Inheritance & Patterns | https://forge.mograph.life/apps/lerp/oop/inheritance | docs/oop/inheritance.mdx | Extend classes and implement design patterns |
+| Metatables & __index | https://forge.mograph.life/apps/lerp/oop/metatables | docs/oop/metatables.mdx | Understand metatables and the __index metamethod - the foundation of OOP in Luau |
+| 3.8 OOP Patterns | https://forge.mograph.life/apps/lerp/oop/patterns | docs/oop/patterns.mdx | Common OOP patterns for Rive - Factory, Prototype, Module, and more |
+| Prototype-Based OOP | https://forge.mograph.life/apps/lerp/oop/prototype-based | docs/oop/prototype-based.mdx | Understanding Lua's prototype-based approach to object-oriented programming |
+| self and Methods | https://forge.mograph.life/apps/lerp/oop/self-and-methods | docs/oop/self-and-methods.mdx | The colon syntax, self parameter, and method calls in Lua |
+| My Progress | https://forge.mograph.life/apps/lerp/progress | docs/progress.mdx | Track your course progress and manage exercise completion |
+| Catch the Stars | https://forge.mograph.life/apps/lerp/projects/catch-the-stars | docs/projects/catch-the-stars.mdx | Build a tiny interactive game with clicking stars and score tracking |
+| Data Visualization | https://forge.mograph.life/apps/lerp/projects/data-visualization | docs/projects/data-visualization.mdx | Build a simple bar chart driven by ViewModel data |
+| Interactive Button | https://forge.mograph.life/apps/lerp/projects/interactive-button | docs/projects/interactive-button.mdx | Build a button that reacts to pointer Input and fires ViewModel triggers |
+| Quick Reference | https://forge.mograph.life/apps/lerp/quick-reference | docs/quick-reference.mdx | Rive Scripting cheat sheet for Node scripts |
+| Rive Environment | https://forge.mograph.life/apps/lerp/rive/environment | docs/rive/environment.mdx | Understand the Rive scripting environment, Console panel, script types, and sandbox limitations |
+| Inputs and Data Binding | https://forge.mograph.life/apps/lerp/rive/inputs | docs/rive/inputs.mdx | Learn how to use script inputs and data binding in Rive Node Scripts |
+| Converter Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol | docs/rive/protocols/converter-protocol.mdx | Bidirectional data transformation for ViewModel bindings |
+| Layout Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol | docs/rive/protocols/layout-protocol.mdx | Programmatic control over Layout component sizing and positioning |
+| Listeners | https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol | docs/rive/protocols/listener-protocol.mdx | Learn about Listener functions in Rive - property listeners, pointer events, and cross-script communication |
+| Node Lifecycle | https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle | docs/rive/protocols/node-lifecycle.mdx | Understand when each Node script callback runs in Rive |
+| Node Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol | docs/rive/protocols/node-protocol.mdx | Learn the Node script protocol structure required for Rive animations |
+| Path Effect Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol | docs/rive/protocols/path-effect-protocol.mdx | Real-time manipulation of path geometry for stroke effects |
+| Test Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/test-protocol | docs/rive/protocols/test-protocol.mdx | Unit testing for Util Scripts in the Rive editor |
+| Util Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol | docs/rive/protocols/util-protocol.mdx | Learn how to create reusable Util scripts for sharing code across Node scripts in Rive |
+| Script Types Overview | https://forge.mograph.life/apps/lerp/rive/script-types | docs/rive/script-types.mdx | All 7 Rive script types at a glance - when to use each one |
+| Advanced Types | https://forge.mograph.life/apps/lerp/types/advanced-types | docs/types/advanced-types.mdx | Master intersection types, union types, optional types, and function types in Luau |
+| Type Annotations Deep Dive | https://forge.mograph.life/apps/lerp/types/annotations | docs/types/annotations.mdx | Master type annotations for Rive Node Scripts with practical patterns |
+| 2.2 Custom Types & Unions | https://forge.mograph.life/apps/lerp/types/custom-types | docs/types/custom-types.mdx | Define custom type aliases, table types, and union types |
+| 2.3 Generics & Advanced Types | https://forge.mograph.life/apps/lerp/types/generics | docs/types/generics.mdx | Create flexible, reusable type definitions with generics |
+| 2.1 Type Annotations & Inference | https://forge.mograph.life/apps/lerp/types/intro | docs/types/intro.mdx | Understand strict mode (optional --!strict directive), add type annotations, and understand type inference |
+| The late() Initializer | https://forge.mograph.life/apps/lerp/types/late-initializer | docs/types/late-initializer.mdx | Understand when and how to use late() for engine-provided and deferred values |
+| Strict Mode Deep Dive | https://forge.mograph.life/apps/lerp/types/strict-mode | docs/types/strict-mode.mdx | Master the --!strict directive and understand the type errors it catches |
+
+## Citation Guidance
+- Prefer canonical URLs under https://forge.mograph.life/apps/lerp/
+- Cite page-specific URLs for protocol/API claims rather than section homepages
+- Prioritize docs in `rive/protocols/*` and `api/*` for implementation details
+
+## Freshness
+- For crawl discovery, also read: https://forge.mograph.life/apps/lerp/sitemap.xml
+- For summary map, also read: https://forge.mograph.life/apps/lerp/llms.txt

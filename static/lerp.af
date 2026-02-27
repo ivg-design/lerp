@@ -1,0 +1,8 @@
+name: lerp-public-agent-profile
+version: 1.0
+canonical: https://forge.mograph.life/apps/lerp/
+llms: https://forge.mograph.life/apps/lerp/llms.txt
+llms_full: https://forge.mograph.life/apps/lerp/llms-full.txt
+ai_feed: https://forge.mograph.life/apps/lerp/ai-feed.json
+agents: https://forge.mograph.life/apps/lerp/agents.md
+mcp: https://forge.mograph.life/apps/lerp/.well-known/mcp.json

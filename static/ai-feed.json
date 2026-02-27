@@ -1,0 +1,1389 @@
+{
+  "version": "1.0",
+  "generatedAt": "2026-02-27T15:32:34.139Z",
+  "canonical": "https://forge.mograph.life/apps/lerp/",
+  "site": {
+    "name": "LERP",
+    "fullName": "Luau Education for Rive Professionals",
+    "publisher": "IVG Design",
+    "description": "Interactive documentation and course content for Rive Luau scripting.",
+    "language": "en"
+  },
+  "entities": [
+    {
+      "id": "entity.rive",
+      "name": "Rive",
+      "type": "Technology"
+    },
+    {
+      "id": "entity.luau",
+      "name": "Luau",
+      "type": "Language"
+    },
+    {
+      "id": "entity.rive-protocols",
+      "name": "Rive Script Protocols",
+      "type": "DocumentationTopic"
+    },
+    {
+      "id": "entity.rive-api",
+      "name": "Rive Scripting API",
+      "type": "DocumentationTopic"
+    }
+  ],
+  "documents": [
+    {
+      "id": "intro",
+      "title": "Welcome to LERP",
+      "description": "Luau Education for Rive Professionals - From zero to hero",
+      "url": "https://forge.mograph.life/apps/lerp/",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/",
+      "group": "root",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "intro",
+        "welcome",
+        "lerp",
+        "education",
+        "zero"
+      ],
+      "sourcePath": "docs/intro.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-core-types",
+      "title": "Core Types",
+      "description": "Understanding Path, Paint, and other core drawing types in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/core-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/core-types",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "core",
+        "types",
+        "understanding",
+        "path"
+      ],
+      "sourcePath": "docs/advanced/core-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-drawing-api",
+      "title": "Drawing API",
+      "description": "Transforms, Renderer state, and advanced drawing techniques in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/drawing-api",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/drawing-api",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "drawing",
+        "api",
+        "transforms",
+        "renderer"
+      ],
+      "sourcePath": "docs/advanced/drawing-api.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-game-logic",
+      "title": "Pointer Events",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/game-logic",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/game-logic",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "pointer",
+        "events",
+        "game",
+        "logic"
+      ],
+      "sourcePath": "docs/advanced/game-logic.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-instantiation",
+      "title": "Dynamic Instantiation",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/instantiation",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/instantiation",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "dynamic",
+        "instantiation"
+      ],
+      "sourcePath": "docs/advanced/instantiation.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-procedural",
+      "title": "Procedural Geometry",
+      "description": "Dynamic Path generation, animated shapes, and particle systems in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/procedural",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/procedural",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "procedural",
+        "geometry",
+        "dynamic",
+        "path"
+      ],
+      "sourcePath": "docs/advanced/procedural.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "advanced-viewmodels",
+      "title": "ViewModels",
+      "description": "Binding scripts to ViewModels for reactive data-driven animations",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/viewmodels",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/viewmodels",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "advanced",
+        "viewmodels",
+        "binding",
+        "scripts",
+        "reactive"
+      ],
+      "sourcePath": "docs/advanced/viewmodels.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-assets",
+      "title": "Assets",
+      "description": "Image, ImageFilter, ImageSampler, and ImageWrap",
+      "url": "https://forge.mograph.life/apps/lerp/api/assets",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/assets",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "assets",
+        "image",
+        "imagefilter"
+      ],
+      "sourcePath": "docs/api/assets.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-core-types",
+      "title": "Core Types",
+      "description": "Vector, Color, and Mat2D types",
+      "url": "https://forge.mograph.life/apps/lerp/api/core-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/core-types",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "core",
+        "types",
+        "vector"
+      ],
+      "sourcePath": "docs/api/core-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-data-input",
+      "title": "Data & Input",
+      "description": "Input, Property, Context, and ViewModel for data binding",
+      "url": "https://forge.mograph.life/apps/lerp/api/data-input",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/data-input",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "data",
+        "input",
+        "property"
+      ],
+      "sourcePath": "docs/api/data-input.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-data-values",
+      "title": "Data Values",
+      "description": "DataValue types, Converter, and Property types",
+      "url": "https://forge.mograph.life/apps/lerp/api/data-values",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/data-values",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "data",
+        "values",
+        "datavalue"
+      ],
+      "sourcePath": "docs/api/data-values.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-drawing",
+      "title": "Drawing",
+      "description": "Path, Paint, Gradient, and Renderer for custom drawing",
+      "url": "https://forge.mograph.life/apps/lerp/api/drawing",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/drawing",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "drawing",
+        "path",
+        "paint"
+      ],
+      "sourcePath": "docs/api/drawing.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-events",
+      "title": "Events",
+      "description": "PointerEvent and Trigger for interactions",
+      "url": "https://forge.mograph.life/apps/lerp/api/events",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/events",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "events",
+        "pointerevent",
+        "trigger"
+      ],
+      "sourcePath": "docs/api/events.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-hierarchy",
+      "title": "Hierarchy",
+      "description": "NodeData, NodeReadData, and Layout",
+      "url": "https://forge.mograph.life/apps/lerp/api/hierarchy",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/hierarchy",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "hierarchy",
+        "nodedata",
+        "nodereaddata"
+      ],
+      "sourcePath": "docs/api/hierarchy.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-path-effects",
+      "title": "Path Effects",
+      "description": "PathCommand, PathData, PathEffect, and CommandType",
+      "url": "https://forge.mograph.life/apps/lerp/api/path-effects",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/path-effects",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "path",
+        "effects",
+        "pathcommand"
+      ],
+      "sourcePath": "docs/api/path-effects.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-scene",
+      "title": "Scene",
+      "description": "Artboard, Node, and Animation objects",
+      "url": "https://forge.mograph.life/apps/lerp/api/scene",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/scene",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "scene",
+        "artboard",
+        "node"
+      ],
+      "sourcePath": "docs/api/scene.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-styling",
+      "title": "Styling",
+      "description": "PaintDefinition, PaintStyle, BlendMode, StrokeCap, StrokeJoin, GradientStop",
+      "url": "https://forge.mograph.life/apps/lerp/api/styling",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/styling",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "styling",
+        "paintdefinition",
+        "paintstyle"
+      ],
+      "sourcePath": "docs/api/styling.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-system",
+      "title": "System",
+      "description": "Listener, Output, EnumValues, and Sandbox Limitations",
+      "url": "https://forge.mograph.life/apps/lerp/api/system",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/system",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "reference",
+        "system",
+        "listener",
+        "output"
+      ],
+      "sourcePath": "docs/api/system.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "best-practices-architecture",
+      "title": "Architecture",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/best-practices/architecture",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/best-practices/architecture",
+      "group": "best-practices",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"best practices\"",
+        "architecture"
+      ],
+      "sourcePath": "docs/best-practices/architecture.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "best-practices-debugging",
+      "title": "Debugging",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/best-practices/debugging",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/best-practices/debugging",
+      "group": "best-practices",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"best practices\"",
+        "debugging"
+      ],
+      "sourcePath": "docs/best-practices/debugging.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "best-practices-performance",
+      "title": "Performance",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/best-practices/performance",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/best-practices/performance",
+      "group": "best-practices",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"best practices\"",
+        "performance"
+      ],
+      "sourcePath": "docs/best-practices/performance.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "best-practices-resources",
+      "title": "Resources",
+      "description": "",
+      "url": "https://forge.mograph.life/apps/lerp/best-practices/resources",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/best-practices/resources",
+      "group": "best-practices",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"best practices\"",
+        "resources"
+      ],
+      "sourcePath": "docs/best-practices/resources.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "examples-sample-exercise",
+      "title": "Sample Exercise (Review)",
+      "description": "A complete exercise example demonstrating all features",
+      "url": "https://forge.mograph.life/apps/lerp/examples/sample-exercise",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/examples/sample-exercise",
+      "group": "examples",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "examples",
+        "sample",
+        "exercise",
+        "review",
+        "complete"
+      ],
+      "sourcePath": "docs/examples/sample-exercise.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-control-flow",
+      "title": "1.2 Control Flow & Loops",
+      "description": "Conditionals, loops, and control structures in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/control-flow",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/control-flow",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "control",
+        "flow",
+        "loops",
+        "conditionals"
+      ],
+      "sourcePath": "docs/fundamentals/control-flow.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-data-types",
+      "title": "Data Types",
+      "description": "Understanding Luau's fundamental data types for Rive animations",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/data-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/data-types",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "data",
+        "types",
+        "understanding",
+        "fundamental"
+      ],
+      "sourcePath": "docs/fundamentals/data-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-functions",
+      "title": "1.3 Functions & Closures",
+      "description": "Define functions, understand scope, and use closures in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/functions",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/functions",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "functions",
+        "closures",
+        "define",
+        "understand"
+      ],
+      "sourcePath": "docs/fundamentals/functions.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-iteration",
+      "title": "Iteration",
+      "description": "Loops, iterators, and collection traversal in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/iteration",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/iteration",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "iteration",
+        "loops",
+        "iterators",
+        "collection"
+      ],
+      "sourcePath": "docs/fundamentals/iteration.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-operators",
+      "title": "Operators",
+      "description": "Arithmetic, comparison, logical, and compound operators in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/operators",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/operators",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "operators",
+        "arithmetic",
+        "comparison",
+        "logical"
+      ],
+      "sourcePath": "docs/fundamentals/operators.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-tables",
+      "title": "1.4 Tables",
+      "description": "Arrays, dictionaries, and data structures in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/tables",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/tables",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "tables",
+        "arrays",
+        "dictionaries",
+        "data"
+      ],
+      "sourcePath": "docs/fundamentals/tables.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "fundamentals-variables",
+      "title": "1.1 Variables, Types & Operators",
+      "description": "Declare variables, understand data types, and use operators in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/fundamentals/variables",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/variables",
+      "group": "fundamentals",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "fundamentals",
+        "variables",
+        "types",
+        "operators",
+        "declare"
+      ],
+      "sourcePath": "docs/fundamentals/variables.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "getting-started-how-rive-scripts-work",
+      "title": "How Rive Scripts Work",
+      "description": "Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide",
+      "url": "https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work",
+      "group": "getting-started",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"getting started\"",
+        "scripts",
+        "understanding",
+        "structured",
+        "way"
+      ],
+      "sourcePath": "docs/getting-started/how-rive-scripts-work.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "getting-started-welcome",
+      "title": "Welcome to Rive Scripting",
+      "description": "Introduction to Rive scripting and what it enables",
+      "url": "https://forge.mograph.life/apps/lerp/getting-started/welcome",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/welcome",
+      "group": "getting-started",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"getting started\"",
+        "welcome"
+      ],
+      "sourcePath": "docs/getting-started/welcome.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "getting-started-why-luau",
+      "title": "Why Luau?",
+      "description": "The power of typed scripting in design",
+      "url": "https://forge.mograph.life/apps/lerp/getting-started/why-luau",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/why-luau",
+      "group": "getting-started",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"getting started\"",
+        "power",
+        "typed",
+        "design"
+      ],
+      "sourcePath": "docs/getting-started/why-luau.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "getting-started-your-first-script",
+      "title": "Your First Rive Script",
+      "description": "A gentle introduction to Rive scripting for complete beginners - no programming experience required",
+      "url": "https://forge.mograph.life/apps/lerp/getting-started/your-first-script",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/your-first-script",
+      "group": "getting-started",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "beginner",
+        "first script",
+        "introduction"
+      ],
+      "sourcePath": "docs/getting-started/your-first-script.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "glossary",
+      "title": "Glossary",
+      "description": "Key terms and definitions for Rive scripting with Luau",
+      "url": "https://forge.mograph.life/apps/lerp/glossary",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/glossary",
+      "group": "root",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "glossary",
+        "key",
+        "terms",
+        "definitions"
+      ],
+      "sourcePath": "docs/glossary.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-classes",
+      "title": "3.2 Building Classes",
+      "description": "Create proper class constructors with typing and methods",
+      "url": "https://forge.mograph.life/apps/lerp/oop/classes",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/classes",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "building",
+        "classes",
+        "create",
+        "proper"
+      ],
+      "sourcePath": "docs/oop/classes.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-encapsulation",
+      "title": "3.7 Encapsulation",
+      "description": "Private state patterns and closures for encapsulation in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/oop/encapsulation",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/encapsulation",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "encapsulation",
+        "private",
+        "state",
+        "patterns"
+      ],
+      "sourcePath": "docs/oop/encapsulation.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-index-metamethod",
+      "title": "The __index Metamethod",
+      "description": "Deep dive into __index, __newindex, and method lookup chains",
+      "url": "https://forge.mograph.life/apps/lerp/oop/index-metamethod",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/index-metamethod",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "index",
+        "metamethod",
+        "deep",
+        "dive"
+      ],
+      "sourcePath": "docs/oop/index-metamethod.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-inheritance",
+      "title": "3.3 Inheritance & Patterns",
+      "description": "Extend classes and implement design patterns",
+      "url": "https://forge.mograph.life/apps/lerp/oop/inheritance",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/inheritance",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "inheritance",
+        "patterns",
+        "extend",
+        "classes"
+      ],
+      "sourcePath": "docs/oop/inheritance.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-metatables",
+      "title": "Metatables & __index",
+      "description": "Understand metatables and the __index metamethod - the foundation of OOP in Luau",
+      "url": "https://forge.mograph.life/apps/lerp/oop/metatables",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/metatables",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "metatables",
+        "index",
+        "understand",
+        "metamethod"
+      ],
+      "sourcePath": "docs/oop/metatables.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-patterns",
+      "title": "3.8 OOP Patterns",
+      "description": "Common OOP patterns for Rive - Factory, Prototype, Module, and more",
+      "url": "https://forge.mograph.life/apps/lerp/oop/patterns",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/patterns",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "patterns",
+        "common",
+        "factory",
+        "prototype"
+      ],
+      "sourcePath": "docs/oop/patterns.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-prototype-based",
+      "title": "Prototype-Based OOP",
+      "description": "Understanding Lua's prototype-based approach to object-oriented programming",
+      "url": "https://forge.mograph.life/apps/lerp/oop/prototype-based",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/prototype-based",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "prototype",
+        "based",
+        "understanding",
+        "lua"
+      ],
+      "sourcePath": "docs/oop/prototype-based.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "oop-self-and-methods",
+      "title": "self and Methods",
+      "description": "The colon syntax, self parameter, and method calls in Lua",
+      "url": "https://forge.mograph.life/apps/lerp/oop/self-and-methods",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/oop/self-and-methods",
+      "group": "oop",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "oop",
+        "self",
+        "methods",
+        "colon",
+        "syntax"
+      ],
+      "sourcePath": "docs/oop/self-and-methods.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "progress",
+      "title": "My Progress",
+      "description": "Track your course progress and manage exercise completion",
+      "url": "https://forge.mograph.life/apps/lerp/progress",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/progress",
+      "group": "root",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "progress",
+        "track",
+        "course",
+        "manage",
+        "exercise"
+      ],
+      "sourcePath": "docs/progress.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "projects-catch-the-stars",
+      "title": "Catch the Stars",
+      "description": "Build a tiny interactive game with clicking stars and score tracking",
+      "url": "https://forge.mograph.life/apps/lerp/projects/catch-the-stars",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/projects/catch-the-stars",
+      "group": "projects",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "project",
+        "catch",
+        "stars",
+        "build",
+        "tiny"
+      ],
+      "sourcePath": "docs/projects/catch-the-stars.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "projects-data-visualization",
+      "title": "Data Visualization",
+      "description": "Build a simple bar chart driven by ViewModel data",
+      "url": "https://forge.mograph.life/apps/lerp/projects/data-visualization",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/projects/data-visualization",
+      "group": "projects",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "project",
+        "data",
+        "visualization",
+        "build",
+        "simple"
+      ],
+      "sourcePath": "docs/projects/data-visualization.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "projects-interactive-button",
+      "title": "Interactive Button",
+      "description": "Build a button that reacts to pointer Input and fires ViewModel triggers",
+      "url": "https://forge.mograph.life/apps/lerp/projects/interactive-button",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/projects/interactive-button",
+      "group": "projects",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "project",
+        "interactive",
+        "button",
+        "build",
+        "reacts"
+      ],
+      "sourcePath": "docs/projects/interactive-button.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "quick-reference",
+      "title": "Quick Reference",
+      "description": "Rive Scripting cheat sheet for Node scripts",
+      "url": "https://forge.mograph.life/apps/lerp/quick-reference",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/quick-reference",
+      "group": "root",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "\"quick reference\"",
+        "quick",
+        "reference",
+        "cheat",
+        "sheet"
+      ],
+      "sourcePath": "docs/quick-reference.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-environment",
+      "title": "Rive Environment",
+      "description": "Understand the Rive scripting environment, Console panel, script types, and sandbox limitations",
+      "url": "https://forge.mograph.life/apps/lerp/rive/environment",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/environment",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "environment",
+        "understand",
+        "console",
+        "panel"
+      ],
+      "sourcePath": "docs/rive/environment.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-inputs",
+      "title": "Inputs and Data Binding",
+      "description": "Learn how to use script inputs and data binding in Rive Node Scripts",
+      "url": "https://forge.mograph.life/apps/lerp/rive/inputs",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/inputs",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "inputs",
+        "data",
+        "binding",
+        "script"
+      ],
+      "sourcePath": "docs/rive/inputs.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-converter-protocol",
+      "title": "Converter Script Protocol",
+      "description": "Bidirectional data transformation for ViewModel bindings",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "converter",
+        "script",
+        "protocol",
+        "bidirectional"
+      ],
+      "sourcePath": "docs/rive/protocols/converter-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-layout-protocol",
+      "title": "Layout Script Protocol",
+      "description": "Programmatic control over Layout component sizing and positioning",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "layout",
+        "script",
+        "protocol",
+        "programmatic"
+      ],
+      "sourcePath": "docs/rive/protocols/layout-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-listener-protocol",
+      "title": "Listeners",
+      "description": "Learn about Listener functions in Rive - property listeners, pointer events, and cross-script communication",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "listener",
+        "addListener",
+        "removeListener"
+      ],
+      "sourcePath": "docs/rive/protocols/listener-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-node-lifecycle",
+      "title": "Node Lifecycle",
+      "description": "Understand when each Node script callback runs in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "node",
+        "lifecycle",
+        "understand",
+        "each"
+      ],
+      "sourcePath": "docs/rive/protocols/node-lifecycle.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-node-protocol",
+      "title": "Node Protocol",
+      "description": "Learn the Node script protocol structure required for Rive animations",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "node",
+        "protocol",
+        "script",
+        "structure"
+      ],
+      "sourcePath": "docs/rive/protocols/node-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-path-effect-protocol",
+      "title": "Path Effect Script Protocol",
+      "description": "Real-time manipulation of path geometry for stroke effects",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "path",
+        "effect",
+        "script",
+        "protocol"
+      ],
+      "sourcePath": "docs/rive/protocols/path-effect-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-test-protocol",
+      "title": "Test Script Protocol",
+      "description": "Unit testing for Util Scripts in the Rive editor",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/test-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/test-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "test",
+        "script",
+        "protocol",
+        "unit"
+      ],
+      "sourcePath": "docs/rive/protocols/test-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-protocols-util-protocol",
+      "title": "Util Script Protocol",
+      "description": "Learn how to create reusable Util scripts for sharing code across Node scripts in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "util",
+        "protocol",
+        "create",
+        "reusable"
+      ],
+      "sourcePath": "docs/rive/protocols/util-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-script-types",
+      "title": "Script Types Overview",
+      "description": "All 7 Rive script types at a glance - when to use each one",
+      "url": "https://forge.mograph.life/apps/lerp/rive/script-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/script-types",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "script",
+        "types",
+        "all",
+        "glance"
+      ],
+      "sourcePath": "docs/rive/script-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-advanced-types",
+      "title": "Advanced Types",
+      "description": "Master intersection types, union types, optional types, and function types in Luau",
+      "url": "https://forge.mograph.life/apps/lerp/types/advanced-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/advanced-types",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "master",
+        "intersection",
+        "union",
+        "optional"
+      ],
+      "sourcePath": "docs/types/advanced-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-annotations",
+      "title": "Type Annotations Deep Dive",
+      "description": "Master type annotations for Rive Node Scripts with practical patterns",
+      "url": "https://forge.mograph.life/apps/lerp/types/annotations",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/annotations",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "type",
+        "annotations",
+        "deep",
+        "dive"
+      ],
+      "sourcePath": "docs/types/annotations.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-custom-types",
+      "title": "2.2 Custom Types & Unions",
+      "description": "Define custom type aliases, table types, and union types",
+      "url": "https://forge.mograph.life/apps/lerp/types/custom-types",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/custom-types",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "custom",
+        "unions",
+        "define",
+        "type"
+      ],
+      "sourcePath": "docs/types/custom-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-generics",
+      "title": "2.3 Generics & Advanced Types",
+      "description": "Create flexible, reusable type definitions with generics",
+      "url": "https://forge.mograph.life/apps/lerp/types/generics",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/generics",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "generics",
+        "create",
+        "flexible",
+        "reusable"
+      ],
+      "sourcePath": "docs/types/generics.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-intro",
+      "title": "2.1 Type Annotations & Inference",
+      "description": "Understand strict mode (optional --!strict directive), add type annotations, and understand type inference",
+      "url": "https://forge.mograph.life/apps/lerp/types/intro",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/intro",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "type",
+        "annotations",
+        "inference",
+        "strict"
+      ],
+      "sourcePath": "docs/types/intro.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-late-initializer",
+      "title": "The late() Initializer",
+      "description": "Understand when and how to use late() for engine-provided and deferred values",
+      "url": "https://forge.mograph.life/apps/lerp/types/late-initializer",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/late-initializer",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "late",
+        "initializer",
+        "understand",
+        "engine"
+      ],
+      "sourcePath": "docs/types/late-initializer.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "types-strict-mode",
+      "title": "Strict Mode Deep Dive",
+      "description": "Master the --!strict directive and understand the type errors it catches",
+      "url": "https://forge.mograph.life/apps/lerp/types/strict-mode",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/strict-mode",
+      "group": "types",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "types",
+        "strict",
+        "mode",
+        "deep",
+        "dive"
+      ],
+      "sourcePath": "docs/types/strict-mode.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    }
+  ]
+}

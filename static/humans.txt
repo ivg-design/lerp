@@ -1,0 +1,9 @@
+/* TEAM */
+Project: LERP (Luau Education for Rive Professionals)
+Organization: IVG Design
+Site: https://forge.mograph.life/apps/lerp/
+
+/* SITE */
+Stack: Docusaurus
+Primary repo path: /Users/ivg/github/forge/apps/lerp
+Canonical host: forge.mograph.life

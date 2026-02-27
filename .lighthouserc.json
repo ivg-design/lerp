@@ -1,0 +1,46 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "url": [
+        "https://forge.mograph.life/apps/lerp/",
+        "https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol",
+        "https://forge.mograph.life/apps/lerp/api/core-types"
+      ]
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": [
+          "warn",
+          {
+            "minScore": 0.9
+          }
+        ],
+        "categories:seo": [
+          "error",
+          {
+            "minScore": 1
+          }
+        ],
+        "largest-contentful-paint": [
+          "warn",
+          {
+            "maxNumericValue": 2500
+          }
+        ],
+        "cumulative-layout-shift": [
+          "warn",
+          {
+            "maxNumericValue": 0.1
+          }
+        ],
+        "interaction-to-next-paint": [
+          "warn",
+          {
+            "maxNumericValue": 200
+          }
+        ]
+      }
+    }
+  }
+}

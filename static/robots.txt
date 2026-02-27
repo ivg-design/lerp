@@ -1,6 +1,13 @@
 # LERP crawl directives
 # Canonical content is served at:
 # https://forge.mograph.life/apps/lerp/
+# AI surfaces:
+# https://forge.mograph.life/apps/lerp/ai.txt
+# https://forge.mograph.life/apps/lerp/llms.txt
+# https://forge.mograph.life/apps/lerp/llms-full.txt
+# https://forge.mograph.life/apps/lerp/ai-feed.json
+# https://forge.mograph.life/apps/lerp/openapi.json
+# https://forge.mograph.life/apps/lerp/.well-known/mcp.json
 
 User-agent: *
 Allow: /

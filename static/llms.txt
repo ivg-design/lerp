@@ -13,6 +13,11 @@
 - https://forge.mograph.life/apps/lerp/quick-reference
 - https://forge.mograph.life/apps/lerp/glossary
 - https://forge.mograph.life/apps/lerp/category/api-reference
+- https://forge.mograph.life/apps/lerp/llms-full.txt
+- https://forge.mograph.life/apps/lerp/ai-feed.json
+- https://forge.mograph.life/apps/lerp/agents.md
+- https://forge.mograph.life/apps/lerp/openapi.json
+- https://forge.mograph.life/apps/lerp/.well-known/mcp.json
 
 ## Core Learning Paths
 - Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
@@ -37,3 +42,10 @@
 - Prefer canonical URLs under https://forge.mograph.life/apps/lerp/
 - Keep code examples aligned with Rive Luau runtime constraints
 - When possible, pair explanations with the corresponding protocol doc page
+
+## Discovery Endpoints
+- https://forge.mograph.life/apps/lerp/ai.txt
+- https://forge.mograph.life/apps/lerp/robots.txt
+- https://forge.mograph.life/apps/lerp/sitemap.xml
+- https://forge.mograph.life/apps/lerp/.well-known/llms.txt
+- https://forge.mograph.life/apps/lerp/.well-known/llms-full.txt
