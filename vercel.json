@@ -1,4 +1,25 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/apps/lerp/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/apps/lerp",
+      "destination": "/"
+    },
+    {
+      "source": "/apps/lerp/",
+      "destination": "/"
+    },
+    {
+      "source": "/apps/lerp/:path*",
+      "destination": "/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
