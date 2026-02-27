@@ -1,38 +1,31 @@
-# LERP robots policy
-# Canonical course URL: https://forge.mograph.life/apps/lerp/
+# LERP crawl directives
+# Canonical content is served at:
+# https://forge.mograph.life/apps/lerp/
+# AI surfaces:
+# https://forge.mograph.life/apps/lerp/ai.txt
+# https://forge.mograph.life/apps/lerp/llms.txt
+# https://forge.mograph.life/apps/lerp/llms-full.txt
+# https://forge.mograph.life/apps/lerp/ai-feed.json
+# https://forge.mograph.life/apps/lerp/openapi.json
+# https://forge.mograph.life/apps/lerp/.well-known/mcp.json
 
 User-agent: *
 Allow: /
-Disallow: /search
-Disallow: /search/
-Disallow: /category/
-Disallow: /category/*
-Disallow: /examples/
-Disallow: /examples/*
-Disallow: /progress
-Disallow: /progress/
 
-# Guardrails for path-prefixed proxy routes under forge.mograph.life
-Disallow: /apps/lerp/search
-Disallow: /apps/lerp/search/
-Disallow: /apps/lerp/category/
-Disallow: /apps/lerp/category/*
-Disallow: /apps/lerp/examples/
-Disallow: /apps/lerp/examples/*
-Disallow: /apps/lerp/progress
-Disallow: /apps/lerp/progress/
-
-# Explicitly allow AI crawlers used by major platforms
+# Explicitly allow major AI and search crawlers.
 User-agent: GPTBot
 Allow: /
 
-User-agent: Google-Extended
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
 Allow: /
 
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml
-Sitemap: https://lerp-ivgs-projects.vercel.app/sitemap.xml
+User-agent: Google-Extended
+Allow: /
 
-Host: forge.mograph.life
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml

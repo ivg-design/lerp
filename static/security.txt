@@ -1,0 +1,5 @@
+Contact: https://forge.mograph.life
+Canonical: https://forge.mograph.life/apps/lerp/security.txt
+Policy: https://forge.mograph.life
+Expires: 2027-02-27T00:00:00.000Z
+Preferred-Languages: en

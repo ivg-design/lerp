@@ -1,0 +1,85 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LERP Discovery Surfaces API",
+    "version": "1.0.0",
+    "description": "Machine-readable contract for SEO/AIO/GEO discovery artifacts exposed by LERP."
+  },
+  "servers": [
+    {
+      "url": "https://forge.mograph.life/apps/lerp"
+    }
+  ],
+  "paths": {
+    "/sitemap.xml": {
+      "get": {
+        "summary": "Get sitemap",
+        "responses": {
+          "200": {
+            "description": "Sitemap XML"
+          }
+        }
+      }
+    },
+    "/robots.txt": {
+      "get": {
+        "summary": "Get robots directives",
+        "responses": {
+          "200": {
+            "description": "Robots text policy"
+          }
+        }
+      }
+    },
+    "/llms.txt": {
+      "get": {
+        "summary": "Get short LLM discovery map",
+        "responses": {
+          "200": {
+            "description": "LLMs summary map"
+          }
+        }
+      }
+    },
+    "/llms-full.txt": {
+      "get": {
+        "summary": "Get full LLM knowledge inventory",
+        "responses": {
+          "200": {
+            "description": "Full docs inventory for retrieval and citation"
+          }
+        }
+      }
+    },
+    "/ai.txt": {
+      "get": {
+        "summary": "Get AI access and attribution policy",
+        "responses": {
+          "200": {
+            "description": "AI policy surface"
+          }
+        }
+      }
+    },
+    "/ai-feed.json": {
+      "get": {
+        "summary": "Get AI document feed",
+        "responses": {
+          "200": {
+            "description": "Structured document/entity feed"
+          }
+        }
+      }
+    },
+    "/agents.md": {
+      "get": {
+        "summary": "Get agent integration guidance",
+        "responses": {
+          "200": {
+            "description": "Agent usage and citation rules"
+          }
+        }
+      }
+    }
+  }
+}

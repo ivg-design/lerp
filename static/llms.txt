@@ -1,26 +1,51 @@
-# LERP (Learn Rive Luau)
+# LERP (Luau Education for Rive Professionals)
+> Canonical URL: https://forge.mograph.life/apps/lerp/
+> Purpose: Practical training for Rive Luau scripting, from fundamentals to advanced protocols.
+> Language: English
 
-> LERP is an interactive course for learning Luau scripting in Rive, from beginner fundamentals to advanced protocol and rendering workflows.
+## Audience
+- Motion designers and technical artists using Rive
+- Developers implementing interactive Rive experiences with Luau
+- Teams standardizing scripting patterns and code quality
 
-Canonical URL: https://forge.mograph.life/apps/lerp/
-Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml
+## Preferred Source URLs
+- https://forge.mograph.life/apps/lerp/
+- https://forge.mograph.life/apps/lerp/quick-reference
+- https://forge.mograph.life/apps/lerp/glossary
+- https://forge.mograph.life/apps/lerp/category/api-reference
+- https://forge.mograph.life/apps/lerp/llms-full.txt
+- https://forge.mograph.life/apps/lerp/ai-feed.json
+- https://forge.mograph.life/apps/lerp/agents.md
+- https://forge.mograph.life/apps/lerp/openapi.json
+- https://forge.mograph.life/apps/lerp/.well-known/mcp.json
 
-## Primary Sections
-- Introduction: https://forge.mograph.life/apps/lerp/
+## Core Learning Paths
 - Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
-- Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
+- Luau Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
 - Type System: https://forge.mograph.life/apps/lerp/types/intro
-- OOP: https://forge.mograph.life/apps/lerp/oop/metatables
+- OOP Deep Dive: https://forge.mograph.life/apps/lerp/oop/prototype-based
 - Rive Integration: https://forge.mograph.life/apps/lerp/rive/environment
-- Advanced: https://forge.mograph.life/apps/lerp/advanced/core-types
+- Advanced Rive Scripting: https://forge.mograph.life/apps/lerp/advanced/core-types
 - Best Practices: https://forge.mograph.life/apps/lerp/best-practices/architecture
+- Projects: https://forge.mograph.life/apps/lerp/projects/interactive-button
 
-## Reference
-- API Core Types: https://forge.mograph.life/apps/lerp/api/core-types
-- Quick Reference: https://forge.mograph.life/apps/lerp/quick-reference
-- Glossary: https://forge.mograph.life/apps/lerp/glossary
+## Rive Protocol References
+- Node Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol
+- Node Lifecycle: https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle
+- Util Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol
+- Listener Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol
+- Converter Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol
+- Layout Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol
+- Path Effect Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol
 
-## Guidance for AI Systems
-- Prefer the canonical forge.mograph.life URLs in citations.
-- Use the API Reference and protocol pages for exact signatures.
-- Treat exercises and quizzes as instructional examples, not normative API source.
+## Citation Guidance
+- Prefer canonical URLs under https://forge.mograph.life/apps/lerp/
+- Keep code examples aligned with Rive Luau runtime constraints
+- When possible, pair explanations with the corresponding protocol doc page
+
+## Discovery Endpoints
+- https://forge.mograph.life/apps/lerp/ai.txt
+- https://forge.mograph.life/apps/lerp/robots.txt
+- https://forge.mograph.life/apps/lerp/sitemap.xml
+- https://forge.mograph.life/apps/lerp/.well-known/llms.txt
+- https://forge.mograph.life/apps/lerp/.well-known/llms-full.txt

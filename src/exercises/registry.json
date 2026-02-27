@@ -3440,18 +3440,18 @@
     },
     {
       "id": "rive-env-2",
-      "title": "Using Vector Constructors",
+      "title": "Understanding the Sandbox",
       "difficulty": 1,
       "chapter": "rive",
       "topic": "environment",
-      "expectedAnswer": "ANSWER: 100",
-      "docPath": "/rive/environment#exercise-2-using-vector-constructors",
+      "expectedAnswer": "ANSWER: 4",
+      "docPath": "/rive/environment#sandbox-limitations",
       "hints": [
-        "Use Vector.xy(x, y) to create vectors with numeric coordinates",
-        "Use Vector length/distance math exactly as shown in the exercise TODOs",
-        "Check the ANSWER line format matches exactly"
+        "Use ~= nil to check if an API exists",
+        "Increment the counter when each API exists",
+        "All 4 core APIs (Vector, Path, Paint, Color) are available in Rive"
       ],
-      "explanation": "Vector constructors and vector math are core Rive runtime tools. This exercise verifies you can create vectors correctly and use them in computations.",
+      "explanation": "Rive provides Vector, Path, Paint, and Color as global APIs. These are the building blocks for all procedural graphics. Understanding what's available helps you design scripts correctly.",
       "reviewLinks": [
         {
           "label": "Rive Environment",
@@ -3459,15 +3459,15 @@
         }
       ],
       "tags": [
-        "vector",
-        "constructors",
-        "math",
-        "environment"
+        "sandbox",
+        "apis",
+        "availability",
+        "globals"
       ]
     },
     {
       "id": "rive-env-3",
-      "title": "Type Safety with Strict Typing",
+      "title": "Type Safety with --!strict",
       "difficulty": 1,
       "chapter": "rive",
       "topic": "environment",
@@ -3478,7 +3478,7 @@
         "Use 'number' for numeric fields",
         "Use 'Vector' for position fields"
       ],
-      "explanation": "Strict typing catches type mismatches at edit time rather than runtime. In Rive, strict typing expectations are enforced even when --!strict is omitted.",
+      "explanation": "Strict mode catches type mismatches at edit time rather than runtime. Without --!strict, Node scripts won't be recognized by Rive.",
       "reviewLinks": [
         {
           "label": "Rive Environment",
@@ -3487,7 +3487,7 @@
       ],
       "tags": [
         "types",
-        "strict-typing",
+        "strict-mode",
         "type-annotations"
       ]
     },
@@ -4982,370 +4982,6 @@
         "console",
         "print",
         "setup"
-      ]
-    },
-    {
-      "id": "rive-converter-1",
-      "title": "Percentage Converter",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "converter-protocol",
-      "expectedAnswer": "ANSWER: convert=75",
-      "docPath": "/rive/protocols/converter-protocol#exercise-1-percentage-converter",
-      "hints": [
-        "Implement convert(input) to map normalized input to percentage output",
-        "Implement reverseConvert(input) to map percentage back to normalized input",
-        "Match the ANSWER line exactly"
-      ],
-      "explanation": "Converters map values between binding domains. This exercise validates forward and reverse conversion behavior.",
-      "reviewLinks": [
-        {
-          "label": "Converter Protocol",
-          "href": "/rive/protocols/converter-protocol"
-        }
-      ],
-      "tags": [
-        "converter",
-        "data-binding",
-        "mapping"
-      ]
-    },
-    {
-      "id": "rive-converter-2",
-      "title": "Temperature Converter",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "converter-protocol",
-      "expectedAnswer": "ANSWER: celsius=25,fahrenheit=77",
-      "docPath": "/rive/protocols/converter-protocol#exercise-2-temperature-converter",
-      "hints": [
-        "Use the standard C/F conversion formulas for convert and reverseConvert",
-        "Keep number formatting stable for the expected output",
-        "Verify both directions are implemented"
-      ],
-      "explanation": "A two-way converter must preserve semantic correctness in both directions. Temperature conversion is a practical bidirectional example.",
-      "reviewLinks": [
-        {
-          "label": "Converter Protocol",
-          "href": "/rive/protocols/converter-protocol"
-        }
-      ],
-      "tags": [
-        "converter",
-        "temperature",
-        "bidirectional"
-      ]
-    },
-    {
-      "id": "rive-converter-3",
-      "title": "String Formatter",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "converter-protocol",
-      "expectedAnswer": "ANSWER: formatted=$42",
-      "docPath": "/rive/protocols/converter-protocol#exercise-3-string-formatter",
-      "hints": [
-        "Format numeric input into the requested string shape",
-        "Keep reverse conversion consistent with the formatter",
-        "Ensure output includes the expected prefix/symbols"
-      ],
-      "explanation": "Converters can map numeric values to display strings while keeping reverse conversion available for editing flows.",
-      "reviewLinks": [
-        {
-          "label": "Converter Protocol",
-          "href": "/rive/protocols/converter-protocol"
-        }
-      ],
-      "tags": [
-        "converter",
-        "formatting",
-        "strings"
-      ]
-    },
-    {
-      "id": "rive-layout-1",
-      "title": "Simple Horizontal Layout",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "layout-protocol",
-      "expectedAnswer": "ANSWER: count=4,width=500,spacing=100",
-      "docPath": "/rive/protocols/layout-protocol#exercise-1-simple-horizontal-layout",
-      "hints": [
-        "Compute spacing from container width and item count",
-        "Use Layout callbacks to place children consistently",
-        "Match output formatting exactly"
-      ],
-      "explanation": "Layout scripts control arrangement logic. This exercise validates basic horizontal spacing calculations.",
-      "reviewLinks": [
-        {
-          "label": "Layout Protocol",
-          "href": "/rive/protocols/layout-protocol"
-        }
-      ],
-      "tags": [
-        "layout",
-        "spacing",
-        "arrangement"
-      ]
-    },
-    {
-      "id": "rive-layout-2",
-      "title": "Grid Layout Calculation",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "layout-protocol",
-      "expectedAnswer": "ANSWER: cols=4,rows=3",
-      "docPath": "/rive/protocols/layout-protocol#exercise-2-grid-layout-calculation",
-      "hints": [
-        "Derive columns from width constraints first",
-        "Compute rows from total item count and column count",
-        "Validate integer math and rounding behavior"
-      ],
-      "explanation": "Grid layout logic often requires deriving rows/columns from constraints. This checks deterministic layout math.",
-      "reviewLinks": [
-        {
-          "label": "Layout Protocol",
-          "href": "/rive/protocols/layout-protocol"
-        }
-      ],
-      "tags": [
-        "layout",
-        "grid",
-        "math"
-      ]
-    },
-    {
-      "id": "rive-layout-3",
-      "title": "Measure for Hug Layout",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "layout-protocol",
-      "expectedAnswer": "ANSWER: w=320,h=90",
-      "docPath": "/rive/protocols/layout-protocol#exercise-3-measure-for-hug-layout",
-      "hints": [
-        "Implement measure() to report desired size",
-        "Use content dimensions + padding/gap where required",
-        "Ensure final width/height match expected values"
-      ],
-      "explanation": "Hug layouts depend on accurate measurement callbacks. This validates custom size reporting behavior.",
-      "reviewLinks": [
-        {
-          "label": "Layout Protocol",
-          "href": "/rive/protocols/layout-protocol"
-        }
-      ],
-      "tags": [
-        "layout",
-        "measure",
-        "hug"
-      ]
-    },
-    {
-      "id": "rive-listener-action-1",
-      "title": "Click Counter Action",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "listener-action-protocol",
-      "expectedAnswer": "ANSWER: clicks=3",
-      "docPath": "/rive/protocols/listener-action-protocol#exercise-1-click-counter-action",
-      "hints": [
-        "Use perform(self, pointerEvent) as the action entry point",
-        "Increment and store click count in script state",
-        "Emit the exact ANSWER line after the required interactions"
-      ],
-      "explanation": "ListenerAction scripts execute event-driven logic from state machine listeners. This exercise validates action handling state updates.",
-      "reviewLinks": [
-        {
-          "label": "ListenerAction Protocol",
-          "href": "/rive/protocols/listener-action-protocol"
-        }
-      ],
-      "tags": [
-        "listener-action",
-        "events",
-        "pointer"
-      ]
-    },
-    {
-      "id": "rive-pathfx-1",
-      "title": "Pass-Through Effect",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "path-effect-protocol",
-      "expectedAnswer": "ANSWER: commands=",
-      "docPath": "/rive/protocols/path-effect-protocol#exercise-1-passthrough-effect",
-      "hints": [
-        "Return the incoming path data unchanged first",
-        "Iterate command list safely when inspecting path structure",
-        "Print the expected prefix exactly"
-      ],
-      "explanation": "A pass-through effect is the baseline for validating PathData iteration and update callback wiring.",
-      "reviewLinks": [
-        {
-          "label": "Path Effect Protocol",
-          "href": "/rive/protocols/path-effect-protocol"
-        }
-      ],
-      "tags": [
-        "path-effect",
-        "pathdata",
-        "commands"
-      ]
-    },
-    {
-      "id": "rive-pathfx-2",
-      "title": "Vertical Offset Effect",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "path-effect-protocol",
-      "expectedAnswer": "ANSWER: offset=20",
-      "docPath": "/rive/protocols/path-effect-protocol#exercise-2-vertical-offset-effect",
-      "hints": [
-        "Copy command structure and offset y values consistently",
-        "Preserve command order and types",
-        "Verify final offset in output line"
-      ],
-      "explanation": "Path effect transforms should preserve topology while applying deterministic geometric changes.",
-      "reviewLinks": [
-        {
-          "label": "Path Effect Protocol",
-          "href": "/rive/protocols/path-effect-protocol"
-        }
-      ],
-      "tags": [
-        "path-effect",
-        "geometry",
-        "offset"
-      ]
-    },
-    {
-      "id": "rive-pathfx-3",
-      "title": "Wave Distortion",
-      "difficulty": 3,
-      "chapter": "rive",
-      "topic": "path-effect-protocol",
-      "expectedAnswer": "ANSWER: time=",
-      "docPath": "/rive/protocols/path-effect-protocol#exercise-3-wave-distortion",
-      "hints": [
-        "Use advance(seconds) to drive time-based distortion",
-        "Apply sinusoidal offset consistently to path points",
-        "Keep expected output prefix unchanged"
-      ],
-      "explanation": "Time-driven path deformation combines advance() and update() callbacks for procedural animation effects.",
-      "reviewLinks": [
-        {
-          "label": "Path Effect Protocol",
-          "href": "/rive/protocols/path-effect-protocol"
-        }
-      ],
-      "tags": [
-        "path-effect",
-        "wave",
-        "time-based"
-      ]
-    },
-    {
-      "id": "rive-test-1",
-      "title": "Basic Test Case",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "test-protocol",
-      "expectedAnswer": "ANSWER: result=0",
-      "docPath": "/rive/protocols/test-protocol#exercise-1-basic-test-case",
-      "hints": [
-        "Define setup(test) and add at least one case",
-        "Use expect assertions with deterministic values",
-        "Match the expected ANSWER output exactly"
-      ],
-      "explanation": "Test scripts validate utility logic in isolation before runtime integration.",
-      "reviewLinks": [
-        {
-          "label": "Test Protocol",
-          "href": "/rive/protocols/test-protocol"
-        }
-      ],
-      "tags": [
-        "tests",
-        "assertions",
-        "validation"
-      ]
-    },
-    {
-      "id": "rive-test-2",
-      "title": "Test Groups",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "test-protocol",
-      "expectedAnswer": "ANSWER: group=clamp function,cases=3",
-      "docPath": "/rive/protocols/test-protocol#exercise-2-test-groups",
-      "hints": [
-        "Group related assertions under the requested suite name",
-        "Include all expected cases in the group",
-        "Check output values and casing carefully"
-      ],
-      "explanation": "Grouped tests improve readability and failure diagnosis while keeping coverage structured.",
-      "reviewLinks": [
-        {
-          "label": "Test Protocol",
-          "href": "/rive/protocols/test-protocol"
-        }
-      ],
-      "tags": [
-        "tests",
-        "groups",
-        "coverage"
-      ]
-    },
-    {
-      "id": "rive-test-3",
-      "title": "Using .never for Negation",
-      "difficulty": 2,
-      "chapter": "rive",
-      "topic": "test-protocol",
-      "expectedAnswer": "ANSWER: result=0,notNegative=true",
-      "docPath": "/rive/protocols/test-protocol#exercise-3-using-never-for-negation",
-      "hints": [
-        "Use never-style expectations for negative assertions",
-        "Keep positive and negative checks in the same test flow",
-        "Confirm both output fields are printed exactly"
-      ],
-      "explanation": "Negative assertions are critical for guarding against invalid states and regressions.",
-      "reviewLinks": [
-        {
-          "label": "Test Protocol",
-          "href": "/rive/protocols/test-protocol"
-        }
-      ],
-      "tags": [
-        "tests",
-        "negation",
-        "assertions"
-      ]
-    },
-    {
-      "id": "rive-transition-condition-1",
-      "title": "Score Gate Condition",
-      "difficulty": 1,
-      "chapter": "rive",
-      "topic": "transition-condition-protocol",
-      "expectedAnswer": "ANSWER: gate-open",
-      "docPath": "/rive/protocols/transition-condition-protocol#exercise-1-score-gate-condition",
-      "hints": [
-        "Implement evaluate() to return a boolean only",
-        "Read required data from context/ViewModel in init()",
-        "Ensure gate condition matches expected threshold logic"
-      ],
-      "explanation": "TransitionCondition scripts provide custom boolean logic for state transitions.",
-      "reviewLinks": [
-        {
-          "label": "TransitionCondition Protocol",
-          "href": "/rive/protocols/transition-condition-protocol"
-        }
-      ],
-      "tags": [
-        "transition-condition",
-        "state-machine",
-        "boolean-logic"
       ]
     }
   ],

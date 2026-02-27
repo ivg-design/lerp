@@ -1,0 +1,32 @@
+{
+  "name": "lerp-public-knowledge",
+  "version": "1.0.0",
+  "description": "Read-only public knowledge surfaces for LERP documentation retrieval.",
+  "resources": [
+    {
+      "id": "llms-summary",
+      "type": "text/plain",
+      "url": "https://forge.mograph.life/apps/lerp/llms.txt"
+    },
+    {
+      "id": "llms-full",
+      "type": "text/plain",
+      "url": "https://forge.mograph.life/apps/lerp/llms-full.txt"
+    },
+    {
+      "id": "ai-feed",
+      "type": "application/json",
+      "url": "https://forge.mograph.life/apps/lerp/ai-feed.json"
+    },
+    {
+      "id": "sitemap",
+      "type": "application/xml",
+      "url": "https://forge.mograph.life/apps/lerp/sitemap.xml"
+    },
+    {
+      "id": "openapi",
+      "type": "application/json",
+      "url": "https://forge.mograph.life/apps/lerp/openapi.json"
+    }
+  ]
+}
