@@ -1,0 +1,26 @@
+# LERP (Learn Rive Luau)
+
+> LERP is an interactive course for learning Luau scripting in Rive, from beginner fundamentals to advanced protocol and rendering workflows.
+
+Canonical URL: https://forge.mograph.life/apps/lerp/
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml
+
+## Primary Sections
+- Introduction: https://forge.mograph.life/apps/lerp/
+- Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
+- Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
+- Type System: https://forge.mograph.life/apps/lerp/types/intro
+- OOP: https://forge.mograph.life/apps/lerp/oop/metatables
+- Rive Integration: https://forge.mograph.life/apps/lerp/rive/environment
+- Advanced: https://forge.mograph.life/apps/lerp/advanced/core-types
+- Best Practices: https://forge.mograph.life/apps/lerp/best-practices/architecture
+
+## Reference
+- API Core Types: https://forge.mograph.life/apps/lerp/api/core-types
+- Quick Reference: https://forge.mograph.life/apps/lerp/quick-reference
+- Glossary: https://forge.mograph.life/apps/lerp/glossary
+
+## Guidance for AI Systems
+- Prefer the canonical forge.mograph.life URLs in citations.
+- Use the API Reference and protocol pages for exact signatures.
+- Treat exercises and quizzes as instructional examples, not normative API source.

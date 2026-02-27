@@ -1,0 +1,38 @@
+# LERP robots policy
+# Canonical course URL: https://forge.mograph.life/apps/lerp/
+
+User-agent: *
+Allow: /
+Disallow: /search
+Disallow: /search/
+Disallow: /category/
+Disallow: /category/*
+Disallow: /examples/
+Disallow: /examples/*
+Disallow: /progress
+Disallow: /progress/
+
+# Guardrails for path-prefixed proxy routes under forge.mograph.life
+Disallow: /apps/lerp/search
+Disallow: /apps/lerp/search/
+Disallow: /apps/lerp/category/
+Disallow: /apps/lerp/category/*
+Disallow: /apps/lerp/examples/
+Disallow: /apps/lerp/examples/*
+Disallow: /apps/lerp/progress
+Disallow: /apps/lerp/progress/
+
+# Explicitly allow AI crawlers used by major platforms
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml
+Sitemap: https://lerp-ivgs-projects.vercel.app/sitemap.xml
+
+Host: forge.mograph.life
