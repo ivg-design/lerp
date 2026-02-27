@@ -1,11 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/apps/lerp/",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/apps/lerp",
