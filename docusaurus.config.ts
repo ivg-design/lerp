@@ -117,7 +117,8 @@ const config: Config = {
         sitemap: {
           changefreq: 'weekly',
           priority: 0.7,
-          lastmod: 'date',
+          // Keep Vercel CLI deploys git-agnostic: `date` requires `git log`.
+          lastmod: null,
           ignorePatterns: [
             '/404',
             '/404.html',
