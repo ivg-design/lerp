@@ -111,6 +111,7 @@ end
 | `init` | `(self: T, context: Context): boolean` | No | Initialize converter state |
 | `convert` | `(self: T, input: DataInputs): DataOutput` | **Yes** | Transform source → target |
 | `reverseConvert` | `(self: T, input: DataOutput): DataInputs` | **Yes** | Transform target → source |
+| `advance` | `(self: T, seconds: number): boolean` | No | Per-frame updates for time-based converters |
 
 ### Factory Return Type
 
@@ -124,6 +125,7 @@ return function(): Converter<YourConverterType, DataInputs, DataOutput>
         init = init,            -- Optional
         convert = convert,      -- Required
         reverseConvert = reverseConvert,  -- Required
+        advance = advance,      -- Optional
     }
 end
 ```
@@ -186,6 +188,19 @@ One-time initialization when the converter is first used.
 ```lua
 function init(self: MyConverter, context: Context): boolean
     -- Set up any initial state
+    return true
+end
+```
+
+---
+
+### `advance(self, seconds): boolean` — Optional
+
+Frame callback for converters that depend on elapsed time. Most converters won't need this.
+
+```lua
+function advance(self: MyConverter, seconds: number): boolean
+    self.elapsed += seconds
     return true
 end
 ```

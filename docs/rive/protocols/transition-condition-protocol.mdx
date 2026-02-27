@@ -12,6 +12,8 @@ keywords:
   - protocol
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
 # TransitionCondition Script Protocol
@@ -126,6 +128,108 @@ end
 | Rendering | Has `draw()` and Renderer access | No rendering |
 | Return semantics | `advance` returns whether to continue | `evaluate` returns whether to transition |
 | When it runs | Every frame | Every frame (while transition is possible) |
+
+---
+
+## Practice Exercise
+
+### Exercise 1: Score Gate Condition ⭐ {#exercise-1-score-gate-condition}
+
+### Premise
+
+TransitionCondition scripts let you gate transitions with custom logic. This exercise builds a threshold gate using a ViewModel number property.
+
+:::info Goal
+By the end of this exercise, you will allow a transition only when `score >= threshold` and print an `ANSWER:` line when the gate opens.
+:::
+
+### Starter Code
+
+```lua
+export type ScoreGate = {
+    threshold: Input<number>,
+    score: Property<number>?,
+    hasLoggedOpen: boolean,
+}
+
+function init(self: ScoreGate, context: Context): boolean
+    local vm = context:viewModel()
+    if vm then
+        self.score = vm:getNumber("score")
+    end
+    return true
+end
+
+function evaluate(self: ScoreGate): boolean
+    -- TODO 1: Return false if score property is missing
+    if not self.score then
+        return false
+    end
+
+    -- TODO 2: Gate transition with score >= threshold
+    local open = self.score.value >= self.threshold
+
+    -- TODO 3: Print once when gate first opens
+    if open and not self.hasLoggedOpen then
+        print("ANSWER: gate-open")
+        self.hasLoggedOpen = true
+    end
+
+    return open
+end
+
+return function(): TransitionCondition<ScoreGate>
+    return {
+        init = init,
+        evaluate = evaluate,
+        threshold = 100,
+        score = nil,
+        hasLoggedOpen = false,
+    }
+end
+```
+
+### Assignment
+
+1. Create/bind a ViewModel number property named `score`
+2. Attach this script to a transition condition
+3. Increase score to at least threshold and confirm transition unlocks
+4. Copy the `ANSWER:` line from Console
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-transition-condition-1"
+    expectedAnswer="ANSWER: gate-open"
+/>
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What must evaluate(self) return?"
+  id="transition-condition-q1"
+  options={[
+    { text: "A PathData object" },
+    { text: "A number score" },
+    { text: "A boolean (true/false)", correct: true },
+    { text: "A PointerEvent" },
+  ]}
+  explanation="evaluate(self) returns true to allow the transition, false to block it."
+/>
+
+<Quiz
+  question="Which callback is required in TransitionCondition scripts?"
+  id="transition-condition-q2"
+  options={[
+    { text: "draw(self, renderer)" },
+    { text: "perform(self, pointerEvent)" },
+    { text: "evaluate(self)", correct: true },
+    { text: "advance(self, seconds)" },
+  ]}
+  explanation="evaluate(self) is required. init(self, context) is optional."
+/>
 
 **See Also:** [ListenerAction Protocol](./listener-action-protocol), [Script Types Overview](/rive/script-types)
 

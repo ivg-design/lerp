@@ -18,6 +18,7 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 - **CHANGELOG.md** — this file, with reconstituted version history
 
 ### Fixed
+- **Path Effect scope wording** — clarified that path effects apply to both strokes and fills (not strokes-only)
 - **Vector deprecated methods** — instance methods (`vec:length()`, `vec:dot()`, etc.) now marked as deprecated with static alternatives shown
 - **ImageFilter values** — corrected `trilinear` to `bilinear` (trilinear does not exist in Rive)
 - **ImageSampler API** — documented as function constructor `ImageSampler(wrapX, wrapY, filter)` instead of opaque object
@@ -41,6 +42,14 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 - **Quick Decision Guide** — expanded mermaid chart with new script types
 - **Factory Functions table** — added ListenerAction and TransitionCondition, removed Listener (not a script type)
 - **Glossary** — added 8+ new terms (ListenerAction, TransitionCondition, AudioSource, AudioSound, Blob, DataContext, ImageSampler, Output)
+- **Strict-mode guidance** — removed blanket `--!strict` assumptions in docs where runtime behavior makes strict mode optional
+
+---
+
+## [1.1.2] — 2026-02-17
+
+### Fixed
+- `.vercel` added to `.gitignore`
 
 ---
 
@@ -50,7 +59,7 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 - Major audit fixes across documentation based on runtime testing
 - Navigation routing improvements for experience-based paths
 - `.claude` folders untracked from repository
-- `.vercel` added to gitignore
+- Strict mode optionality wording clarified in docs
 
 ---
 

@@ -123,6 +123,10 @@ end
 | `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
 | `draw` | `(self: T, renderer: Renderer)` | No | Custom rendering |
 
+:::note Inherits Node Pointer Callbacks
+`Layout<T>` extends `Node<T>`, so pointer callbacks like `pointerDown`, `pointerMove`, `pointerUp`, and `pointerExit` are also available when needed.
+:::
+
 ### Factory Return Type
 
 ```lua

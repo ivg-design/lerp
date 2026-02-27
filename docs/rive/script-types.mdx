@@ -18,6 +18,10 @@ import Term from '@site/src/components/Term';
 
 Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
+:::info Need Full Access/Limitations Matrix?
+For a comprehensive "what can each script type do?" reference (including callback parameters, path-geometry boundaries, and input accessibility), see [Script Capability Matrix](/rive/script-capability-matrix).
+:::
+
 :::tip Coming from Part 1?
 If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-work) yet, start there first. It explains WHY scripts have the structure they do — the "protocol" concept, factory functions, and lifecycle callbacks.
 :::
@@ -130,7 +134,7 @@ end
 **Use when:** You need to modify the geometry of a path in real-time (stroke effects, fill distortions, warps).
 
 **Key features:**
-- `update(inPath)` - Receives original PathData, returns modified PathData
+- `update(inPath, node)` - Receives original PathData and host NodeReadData, returns modified PathData
 - `advance(seconds)` - Optional frame updates for animated effects
 - Access to PathCommand iteration
 
@@ -158,7 +162,7 @@ end
 
 **Key features:**
 - `init(self, context)` - One-time initialization
-- `perform(self)` - Executed when the listener action triggers
+- `perform(self, pointerEvent)` - Executed when the listener action triggers
 - Attached to state machine listener events
 
 **Typical use cases:**
@@ -314,13 +318,15 @@ end
 Rive state machines decide **what state an animation is in**. Scripts decide **how that state is visualized or extended**.
 
 **How they connect:**
-- **Inputs** are the bridge. Bind state machine inputs to script inputs or <Term>ViewModel</Term> properties.
+- **ViewModels** are the primary data bridge. Use ViewModel properties to drive script behavior and UI state.
+- **Script Inputs** (`Input<T>`) are best for per-instance tuning from the inspector.
+- **State machine inputs** are a legacy path for data flow; use them only when integrating existing files.
 - **Property listeners** (`addListener()`) respond to ViewModel property changes triggered by state machines.
 - **Node scripts** render visuals and can **read** inputs or ViewModel values to drive drawing.
 
 **Typical flow:**
-1. State machine updates an <Term>Input</Term> (e.g., `isHovering = true`)
-2. Script reads that input in `update()` or `advance()`
+1. State machine or interaction updates a ViewModel property (for example, `isHovering = true`)
+2. Script reads that value in `update()` or via `addListener()`
 3. Script changes visuals in `draw()` or updates ViewModel data
 
 If you need to **react to property changes**, use `property:addListener()` in a Node script. If you need to **render or animate based on inputs**, use `update()` or `advance()` callbacks.
@@ -330,33 +336,40 @@ If you need to **react to property changes**, use `property:addListener()` in a 
 ## Quick Decision Guide
 
 ```mermaid
-flowchart TD
-    A{What do you need?} --> B{Animate or draw?}
-    A --> C{Custom layout?}
-    A --> D{Transform binding data?}
-    A --> E{Modify path geometry?}
-    A --> F{Shared helpers?}
-    A --> G{React to property changes?}
-    A --> H{Test utils?}
-    A --> I{Custom listener action?}
-    A --> J{Custom transition logic?}
-
+%%{init: {'themeVariables': {'fontSize': '18px'}}}%%
+flowchart TB
+    A{What do you need?}
+    A --> B{Animate or draw?}
     B -->|Yes| B1[Node Script]
+    B -->|No| C{Custom layout?}
     C -->|Yes| C1[Layout Script]
+    C -->|No| D{Transform binding data?}
     D -->|Yes| D1[Converter Script]
+    D -->|No| E{Modify path geometry?}
     E -->|Yes| E1[Path Effect Script]
+    E -->|No| F{Shared helpers?}
     F -->|Yes| F1[Util Script]
+    F -->|No| G{React to property changes?}
     G -->|Yes| G1[Node + addListener]
+    G -->|No| H{Test utilities?}
     H -->|Yes| H1[Test Script]
+    H -->|No| I{Custom listener action?}
     I -->|Yes| I1[ListenerAction Script]
+    I -->|No| J{Custom transition logic?}
     J -->|Yes| J1[TransitionCondition Script]
+    J -->|No| K[Use existing script type]
+
+    classDef decision fill:#1b1d29,stroke:#7f8499,color:#f6f7fb,font-size:18px,font-weight:600;
+    classDef result fill:#1c2033,stroke:#7f90ff,color:#eef1ff,font-size:18px,font-weight:600;
+    class A,B,C,D,E,F,G,H,I,J decision;
+    class B1,C1,D1,E1,F1,G1,H1,I1,J1,K result;
 ```
 
 ---
 
 ## Factory Functions Recap
 
-Remember from [Part 1](/getting-started/how-rive-scripts-work#5-return-function-nodemyscript--the-factory-function): every script (except Util and Test) uses a factory function. The factory creates fresh instances so each object using your script gets its own data.
+Remember from [Part 1](/getting-started/how-rive-scripts-work#4-return-function-nodemyscript--the-factory-function): every script (except Util and Test) uses a factory function. The factory creates fresh instances so each object using your script gets its own data.
 
 | Script Type | Factory Return |
 |-------------|----------------|

@@ -33,7 +33,7 @@ import Term from '@site/src/components/Term';
 |---------|---------------------------|---------------------|
 | Script file | `.jsx` or `.js` file | Script asset in Rive |
 | Class definition | `class MyClass { }` | `export type MyNode = { }` |
-| Constructor | `constructor() { }` | `init(self)` |
+| Constructor | `constructor() { }` | `init(self, context)` |
 | Instance method | `this.method()` | `function method(self)` |
 | Factory pattern | `new MyClass()` or `createInstance()` | `return function(): Node<T>` |
 | Required interface | `implements Interface` | Must have `init` and `draw` |
@@ -71,7 +71,7 @@ Node scripts run **inside Rive** and must follow a protocol. The editor only lis
 
 **Minimum requirements:**
 1. Exported type for script state (`export type`)
-2. `init(self)` and `draw(self, renderer)` functions
+2. `init(self, context)` and `draw(self, renderer)` functions
 3. `return function(): Node<YourType>` factory function
 
 :::warning Important
@@ -95,7 +95,7 @@ export type MyNode = {
     score: number,   -- Has a default value
 }
 
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
     self.path = Path.new()           -- Assign the late() fields
     self.paint = Paint.new()
     return true
@@ -170,7 +170,7 @@ export type MyNode = {
     -- Persistent fields live here
 }
 
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
     return true
 end
 
@@ -223,6 +223,7 @@ Every Node script you write will follow this structure. The exported type define
 | `pointerDown` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch move |
 | `pointerUp` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch up |
+| `pointerExit` | Optional | `self`, `event: PointerEvent` | none | Pointer leaves node |
 
 ---
 
@@ -285,7 +286,7 @@ This pattern shows up whenever you build behavior in Rive scripts.
 
 export type HelloRive = {}
 
-function init(self: HelloRive): boolean
+function init(self: HelloRive, context: Context): boolean
     -- TODO 1: Print "Hello from a Node Script!"
 
     -- TODO 2: Print "Script initialized successfully"
@@ -392,7 +393,7 @@ export type FrameTimer = {
     tick: number,
 }
 
-function init(self: FrameTimer): boolean
+function init(self: FrameTimer, context: Context): boolean
     print("Timer started!")
     self.elapsed = 0
     self.tick = 0
@@ -511,7 +512,7 @@ export type DrawTriangle = {
     paint: Paint,
 }
 
-function init(self: DrawTriangle): boolean
+function init(self: DrawTriangle, context: Context): boolean
     print("Creating triangle...")
 
     -- TODO 1: Create a new Path using Path.new()
@@ -633,7 +634,7 @@ export type CompleteDemo = {
     paint: Paint,
 }
 
-function init(self: CompleteDemo): boolean
+function init(self: CompleteDemo, context: Context): boolean
     print("init: Script ready")
     self.time = 0
     self.clickCount = 0
@@ -782,7 +783,7 @@ ANSWER: <your result>
 ```lua
 -- WRONG: Not returning a factory function
 export type MyNode = {}
-function init(self: MyNode): boolean return true end
+function init(self: MyNode, context: Context): boolean return true end
 function draw(self: MyNode, renderer: Renderer) end
 -- Script won't be recognized!
 
@@ -830,7 +831,7 @@ return function(): Node<MyNode>
     }
 end
 
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
     self.path = Path.new()  -- Each instance gets its own path
     return true
 end

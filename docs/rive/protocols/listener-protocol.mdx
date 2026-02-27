@@ -836,13 +836,13 @@ ANSWER: <your result>
 
 ## State Machine Integration
 
-Scripts can communicate with Rive's state machine through Inputs. This creates powerful bidirectional data flow.
+Scripts can communicate with Rive's state machine through Inputs in existing files. For new data-binding workflows, prefer ViewModel properties.
 
 ### Exercise 5: Input-Driven State Visualization ⭐⭐ {#exercise-5-inputdriven-state-visualization}
 
 ### Premise
 
-Scripts can respond to state machine inputs through the update() callback. This creates bidirectional data flow where state machines control 'what' happens and scripts control 'how' it looks.
+Scripts can respond to state machine inputs through the `update()` callback. This is useful for legacy projects, while new projects should generally route data through ViewModels.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the rebuildVisual helper and update function to create a progress bar that changes color based on isActive input.
@@ -877,7 +877,7 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
--- A visual that responds to state machine inputs
+-- A visual that responds to state machine inputs (legacy-style flow)
 
 export type StateBridge = {
     isActive: Input<boolean>,
@@ -1375,7 +1375,7 @@ return MyUtil
 1. **Property listeners** - Use `property:addListener(callback)` to react to ViewModel changes
 2. **Pointer events** - Use `PointerEvent` parameter with `event.position`
 3. **EventBus pattern** - Util scripts enable decoupled component communication
-4. **State machine inputs** - Create bidirectional data flow with inputs
+4. **State machine inputs (legacy)** - Useful for integrating older files; prefer ViewModels for new data flows
 5. **Drag behavior** - Requires `pointerDown`, `pointerMove`, and `pointerUp` together
 
 ---

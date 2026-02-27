@@ -59,6 +59,83 @@ The AI agent has access to **14 specialized tools** for interacting with differe
 
 ---
 
+## Tool Command Schemas (What to Include in Prompts)
+
+When asking the AI to use a tool, include the command shape explicitly (command + required fields). This reduces retries and malformed calls.
+
+### `text_editor`
+- Required: `command`, `path`
+- Command-specific fields:
+  - `view`: optional `view_range`
+  - `create`: `text` (and `create_new: true` for new files)
+  - `str_replace`: `old_string`, `new_string`
+  - `insert`: `text`
+
+### `animation_editor`
+- Required: `command`
+- Common command schemas:
+  - `createStateMachine`: `name`, optional `linearAnimations`, `layers`
+  - `createLinearAnimations`: `linearAnimations`
+  - `updateStates`: `states` with `id`, optional `animationId`, `x`, `y`
+  - `createTransitions`: `states` with `id`, `transitions`
+  - `createConditions`: `transitions` with `id`, `conditions`
+  - `modifyKeyFrames`: `animationId`, optional `add` / `change` / `delete`
+
+### `layout_editor`
+- Required: `command`
+- Typical creation fields: parent/layout target, sizing, direction, alignment, padding, gap, and children/text payload.
+
+### `viewmodel_editor`
+- Required: `command`
+- Typical fields: view model name, property definitions (type + name), instance creation, and binding payloads.
+- Important behavior: `bindViewModelToComponent` can create missing target property/instance names when not found.
+
+### `component_editor`
+- Required: `command`
+- Use `addComponents` for regular component instances.
+- Use `addComponentList` only with a ViewModel list property; the list auto-generates children at runtime.
+- Do not manually add children under a component list container.
+
+### `read_console`
+- Optional filters: `script_name`, `entry_type`, `text_search`
+- Pagination: `limit`, `offset`, optional `reverse`
+
+### `grep`
+- Required: `pattern`
+- Optional: `case_sensitive`, `match_whole_word`, `regular_expression`, `inclusion_set`
+
+### Important Operational Constraints
+
+- The script console is **not live introspection**: `read_console` can only read entries that were already produced by a prior run.
+- Script paths are flat in Rive: no folders/slashes and no `.lua`/`.luau` extensions.
+- Prefer **ViewModels** for data binding workflows; state machine inputs are a legacy/deprecated path unless explicitly required.
+- When binding strings to text, bind to the **Text Run**, not the parent Text object.
+- `get_scripts` return type `none` means a utility/module script (shared logic, not attachable behavior).
+- Scripts run in pure Luau + Rive APIs, not Roblox runtime globals (`game`, `workspace`, `Instance`).
+- Keep integer-style runtime values 32-bit safe unless you explicitly target wider numeric behavior.
+
+:::tip Prompt pattern
+Use: **Goal + target object names + exact tool command fields**.
+Example: “Use `script_diagnostics` on `PlayerController`, then `text_editor.str_replace` to fix type errors, then `recompile_all_scripts`.”
+:::
+
+---
+
+## What This Teaches You (Even Without AI)
+
+The tool workflow maps directly to a strong manual scripting loop in the editor:
+
+1. Write or edit a typed script (factory + protocol callbacks).
+2. Run diagnostics and fix all warnings/errors.
+3. Recompile so runtime bytecode updates.
+4. Trigger behavior in the scene (Play, pointer interaction, state changes).
+5. Inspect console output and iterate.
+6. For shared logic, add/update tests and run them before recompiling.
+
+This loop is valuable even if you never use the AI assistant, because it mirrors how Rive actually validates and executes scripts.
+
+---
+
 ## Tips for Working with the AI
 
 ### Be Specific
@@ -84,14 +161,6 @@ If your file already has ViewModels, artboards, or scripts, mention them by name
 "Update the 'GameController' script to read the 'score'
 property from the 'PlayerData' ViewModel and display it
 using the draw() function."
-```
-
-### Ask for Diagnostics
-
-After the AI creates or modifies a script, ask it to check for errors.
-
-```
-"Run script_diagnostics on the new script and fix any issues."
 ```
 
 ### Iterate

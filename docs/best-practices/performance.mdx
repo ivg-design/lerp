@@ -33,6 +33,7 @@ Rive scripts run every frame. The biggest performance wins come from:
 - Rebuild geometry in `update` when inputs change
 - Avoid `print()` in tight loops
 - Limit per-frame loops (especially if you spawn many instances)
+- Keep long-running integer counters 32-bit safe (clamp/reset as needed)
 
 ---
 

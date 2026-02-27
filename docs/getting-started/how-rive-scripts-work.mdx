@@ -35,7 +35,7 @@ When you create a script in Rive, you'll see this. Here's what each part does:
 | Code | Purpose |
 |------|---------|
 | `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
-| `function init(self: MyNode) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, return true to continue |
+| `function init(self: MyNode, context: Context) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, access runtime context, return true to continue |
 | `function advance(self, seconds) ... end` | **Runs every animation frame (optional)** — Animation, physics, return true to keep running |
 | `function draw(self, renderer) ... end` | **Runs when canvas repaints (REQUIRED)** — Draw paths with renderer, should be pure (no state changes) |
 | `return function(): Node<MyNode> ... end` | **Factory function (REQUIRED)** — Creates fresh instance per node, wire up lifecycle functions, set `Input<T>` defaults, use `late()` for runtime values |
@@ -52,7 +52,7 @@ Here's the mental model - then you can start coding and reference details as nee
 |-----------|----------------------------------|
 | `export type MyNode = {}` | `interface MyNode {}` |
 | `self` parameter | `this` (but explicit, not a keyword) |
-| `function init(self)` | `constructor()` |
+| `function init(self, context)` | `constructor()` |
 | `function draw(self, renderer)` | `render()` method |
 | `function advance(self, seconds)` | `requestAnimationFrame` callback |
 | `return function(): Node<T>` | Factory pattern / `() => new MyClass()` |
@@ -141,7 +141,7 @@ Here's the smallest script that works:
 ```lua
 export type MyScript = {}
 
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     return true
 end
 
@@ -192,10 +192,10 @@ interface MyScript {
 
 ---
 
-### 2. `function init(self: MyScript): boolean` — Running Once at Startup
+### 2. `function init(self: MyScript, context: Context): boolean` — Running Once at Startup
 
 ```lua
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     self.health = 100
     print("Script started!")
     return true
@@ -209,13 +209,14 @@ end
 | Part | Meaning |
 |------|---------|
 | `self: MyScript` | The first parameter is your script's data object, with the type `MyScript` |
+| `context: Context` | Runtime context with access to ViewModels and assets |
 | `: boolean` at the end | This function must return `true` or `false` |
 | `return true` | Tells Rive "initialization succeeded, keep running" |
 
 **Coming from JavaScript?**
 ```javascript
 // JavaScript mental model
-function init(self /*: MyScript */) /*: boolean */ {
+function init(self /*: MyScript */, context /*: Context */) /*: boolean */ {
     self.health = 100;
     console.log("Script started!");
     return true; // Keep running
@@ -322,7 +323,7 @@ end
 The `self` parameter is your script's **persistent data storage**. It's passed to every function so you can access and modify your data.
 
 ```lua
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     self.score = 0  -- Store initial score
     return true
 end
@@ -355,13 +356,13 @@ class MyScript {
 
 ```lua
 -- Luau: 'self' is just a parameter name, explicit
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     self.score = 0
     return true
 end
 
 -- This works too (but don't do it):
-function init(potato: MyScript): boolean
+function init(potato: MyScript, context: Context): boolean
     potato.score = 0  -- Same thing!
     return true
 end
@@ -448,7 +449,7 @@ export type MyScript = {
 
 **Accessing Input values:**
 ```lua
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     -- Inputs are read directly in this course
     print(self.speed)       -- The number, e.g. 100
     print(self.playerName)  -- The string, e.g. "Hero"
@@ -489,7 +490,7 @@ local function buildCircle(path: Path, radius: number)
 end
 
 -- ③ Initialization (runs once)
-function init(self: PulsingCircle): boolean
+function init(self: PulsingCircle, context: Context): boolean
     self.path = Path.new()
     self.paint = Paint.with({ style = "fill", color = Color.rgb(100, 150, 255) })
     self.time = 0

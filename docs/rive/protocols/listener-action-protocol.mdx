@@ -12,6 +12,8 @@ keywords:
   - protocol
 ---
 
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
 
 # ListenerAction Script Protocol
@@ -110,6 +112,85 @@ end
 | Rendering | Has `draw()` and Renderer access | No rendering |
 | When it runs | Every frame (advance/draw) | Only when listener fires |
 | Pointer data | Via `pointerDown`/`pointerMove` handlers | Via `perform` parameter |
+
+---
+
+## Practice Exercise
+
+### Exercise 1: Click Counter Action ⭐ {#exercise-1-click-counter-action}
+
+### Premise
+
+ListenerAction scripts are event-driven. They run only when the listener fires, making them ideal for analytics, counters, and side-effects.
+
+:::info Goal
+By the end of this exercise, you will increment a counter in `perform()` and print an `ANSWER:` line after 3 listener events.
+:::
+
+### Starter Code
+
+```lua
+export type ClickCounterAction = {
+    clicks: number,
+}
+
+function perform(self: ClickCounterAction, pointerEvent: PointerEvent)
+    -- TODO 1: Increment self.clicks
+
+    -- TODO 2: Print click position
+    -- print("click at", pointerEvent.position.x, pointerEvent.position.y)
+
+    -- TODO 3: When clicks reaches 3, print "ANSWER: clicks=3"
+end
+
+return function(): ListenerAction<ClickCounterAction>
+    return {
+        perform = perform,
+        clicks = 0,
+    }
+end
+```
+
+### Assignment
+
+1. Attach the script as a listener action in a state machine Listener
+2. Trigger the listener 3 times
+3. Copy the `ANSWER:` line from Console
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="rive-listener-action-1"
+    expectedAnswer="ANSWER: clicks=3"
+/>
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Which callback is required in ListenerAction scripts?"
+  id="listener-action-q1"
+  options={[
+    { text: "draw(self, renderer)" },
+    { text: "perform(self, pointerEvent)", correct: true },
+    { text: "advance(self, seconds)" },
+    { text: "evaluate(self)" },
+  ]}
+  explanation="ListenerAction scripts are event-driven and require perform(self, pointerEvent)."
+/>
+
+<Quiz
+  question="Where do you attach a ListenerAction script?"
+  id="listener-action-q2"
+  options={[
+    { text: "On any Node as a draw script" },
+    { text: "On a State Machine Listener action slot", correct: true },
+    { text: "As a ViewModel property type" },
+    { text: "Inside a Util script require() call" },
+  ]}
+  explanation="ListenerAction scripts are attached to listener events in the State Machine editor."
+/>
 
 **See Also:** [Listeners](./listener-protocol), [Script Types Overview](/rive/script-types), [PointerEvent](/api/events#pointerevent)
 

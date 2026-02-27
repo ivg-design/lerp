@@ -16,6 +16,10 @@ import Term from '@site/src/components/Term';
 
 # Rive Scripting Quick Reference
 
+:::info Need the full script matrix?
+See [Script Capability Matrix](/rive/script-capability-matrix) for a comprehensive table of script inputs, callback parameters, and hard limitations by script type.
+:::
+
 ## Node Script Skeleton
 ```lua
 export type MyNode = {
@@ -25,7 +29,9 @@ export type MyNode = {
     paint: Paint,
 }
 
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
+    self.path = Path.new()
+    self.paint = Paint.new()
     return true
 end
 
@@ -47,8 +53,8 @@ return function(): Node<MyNode>
         draw = draw,
         speed = 1,
         enabled = true,
-        path = Path.new(),
-        paint = Paint.new(),
+        path = late(),
+        paint = late(),
     }
 end
 ```
@@ -58,6 +64,11 @@ end
 2. `update(self)` - when inputs change (NO context param!)
 3. `advance(self, seconds)` - every animation frame
 4. `draw(self, renderer)` - on canvas repaint (keep pure, no state changes!)
+
+### Runtime Guardrails
+- Use pure Luau + Rive APIs; do not use Roblox runtime globals (`game`, `workspace`, `Instance`).
+- Script names are flat (no folders/slashes, no `.lua`/`.luau` extension).
+- Keep long-running integer-style values 32-bit safe (`-2147483648..2147483647`).
 
 ---
 
@@ -121,6 +132,8 @@ path:lineTo(Vector.xy(100, 0))
 path:lineTo(Vector.xy(100, 100))
 path:close()
 ```
+
+If a path uses a fill, ensure the path is closed.
 
 ### Paint
 ```lua

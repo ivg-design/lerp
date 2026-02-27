@@ -105,8 +105,12 @@ end
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `context:viewModel()` | `ViewModel?` | Get the artboard's bound ViewModel |
-| `context:artboard()` | `Artboard` | Get the artboard this script is attached to |
-| `context:node()` | `Node` | Get the node this script is attached to |
+| `context:rootViewModel()` | `ViewModel?` | Get the root ViewModel in the data hierarchy |
+| `context:dataContext()` | `DataContext?` | Traverse data-binding context hierarchy |
+| `context:image(name)` | `Image?` | Get an image asset by name |
+| `context:blob(name)` | `Blob?` | Get a blob asset by name |
+| `context:audio(name)` | `AudioSource?` | Get an audio asset by name |
+| `context:markNeedsUpdate()` | `()` | Request an update on the next frame |
 
 ### Context Usage Patterns
 
@@ -118,11 +122,12 @@ function init(self: MyNode, context: Context): boolean
         self.score = vm:getNumber("score")
     end
 
-    -- Get artboard for dimensions or nested components
-    local artboard = context:artboard()
+    -- Optionally inspect hierarchy-level data context
+    local dataContext = context:dataContext()
+    local root = context:rootViewModel()
 
-    -- Get the node this script is attached to
-    local node = context:node()
+    -- Trigger a rerun when you know external data changed
+    context:markNeedsUpdate()
 
     return true
 end
@@ -187,6 +192,10 @@ end
 ## List Type Reference
 
 Lists are ordered collections of ViewModel instances. Each item in a list has its own set of properties defined by the list's item schema.
+
+:::tip Component List Binding Rule
+When using a Component List bound to a ViewModel list, the list container auto-generates child component instances at runtime. Do not manually add children inside that list container.
+:::
 
 ### Getting a List
 

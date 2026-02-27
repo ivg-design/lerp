@@ -56,8 +56,8 @@ end
 A timeline-based sequence of keyframes that animates properties over time. Animations are controlled by <Term>State Machine</Term>s and can be blended together.
 
 ```lua
--- Animations are typically controlled via State Machine inputs
--- bound to ViewModel properties
+-- Preferred flow: update ViewModel properties,
+-- then let bindings/state logic react
 local vm = context:viewModel()
 if vm then
     local progress = vm:getNumber("progress")

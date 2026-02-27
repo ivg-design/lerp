@@ -1,0 +1,130 @@
+---
+sidebar_position: 3
+title: Script Capability Matrix
+description: Comprehensive matrix of what each Rive script type can access, what parameters it receives, and what it cannot do
+keywords:
+  - rive
+  - luau
+  - scripting
+  - matrix
+  - script types
+  - capabilities
+  - limitations
+---
+
+import Term from '@site/src/components/Term';
+
+# Script Capability Matrix
+
+Use this page when you need exact boundaries such as:
+- "Can this script type access `PathData`?"
+- "Which script gets `PointerEvent`?"
+- "Can this script draw to the renderer?"
+- "Where do script inputs actually come from?"
+
+---
+
+## 1) Callback Parameter Matrix (What Each Script Receives)
+
+This is the quickest way to see all runtime callback parameters by script type.
+
+| Script Type | Required Callbacks | Callback Parameters You Get |
+|-------------|--------------------|-----------------------------|
+| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`) |
+| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), `seconds: number` (`advance`) |
+| **Converter** | `convert`, `reverseConvert` | `input: DataInputs` (`convert`), `input: DataOutput` (`reverseConvert`), optional `context: Context` (`init`), optional `seconds: number` (`advance`) |
+| **Path Effect** | `update` | `inPath: PathData` + `node: NodeReadData` (`update`), `seconds: number` (`advance`), optional `context: Context` (`init`) |
+| **ListenerAction** | `perform` | `pointerEvent: PointerEvent` (`perform`), optional `context: Context` (`init`) |
+| **TransitionCondition** | `evaluate` | no parameters (`evaluate`), optional `context: Context` (`init`) |
+| **Util** | none | no lifecycle callback params (module table only) |
+| **Test** | `setup(test: Tester)` | `test: Tester`, and `expect` inside each `test.case(...)` |
+
+---
+
+## 2) Capability / Limitation Matrix
+
+Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
+
+### 2A) Core Runtime Scripts
+
+| Capability | Node | Layout | Converter | Path Effect |
+|------------|------|--------|-----------|-------------|
+| Attach to scene/binding target | ✅ | ✅ | ✅ | ✅ |
+| Read editor `Input<T>` fields | ✅ | ✅ | ⚠️ 1 | ✅ |
+| Access `Context` in `init` | ✅ | ✅ | ✅ | ✅ |
+| Custom render with `Renderer` | ✅ | ✅ | ❌ | ❌ |
+| Receive `PointerEvent` directly | ✅ | ❌ | ❌ | ❌ |
+| Transform host `PathData` geometry | ❌ | ❌ | ❌ | ✅ |
+| Has per-frame callback | ✅ | ✅ | ⚠️ 4 | ✅ |
+| Importable via `require()` | ❌ | ❌ | ❌ | ❌ |
+| Primary unit-test target | ⚠️ | ⚠️ | ⚠️ | ⚠️ |
+
+### 2B) State + Utility Scripts
+
+| Capability | ListenerAction | TransitionCondition | Util | Test |
+|------------|----------------|---------------------|------|------|
+| Attach to scene/binding target | ✅ | ✅ | ❌ | ❌ |
+| Read editor `Input<T>` fields | ⚠️ 2 | ✅ 3 | ❌ | ❌ |
+| Access `Context` in `init` | ✅ | ✅ | ❌ | ❌ |
+| Custom render with `Renderer` | ❌ | ❌ | ❌ | ❌ |
+| Receive `PointerEvent` directly | ✅ | ❌ | ❌ | ❌ |
+| Transform host `PathData` geometry | ❌ | ❌ | ❌ | ❌ |
+| Has per-frame callback | ❌ | ✅ | ❌ | ❌ |
+| Importable via `require()` | ❌ | ❌ | ✅ | ❌ |
+| Primary unit-test target | ⚠️ | ⚠️ | ✅ | ✅ |
+
+Notes:
+1. Converter scripts consume binding values through `convert(input)` / `reverseConvert(input)` callback parameters.
+2. ListenerAction scripts are event-driven (`perform(pointerEvent)`); they are not typically used as editor-input-driven render logic.
+3. TransitionCondition scripts often use threshold-style inputs plus ViewModel/context state to decide `evaluate()`.
+4. Converter scripts can optionally define `advance(self, seconds)` for time-based conversion logic, but many converters are purely data-driven.
+
+### 2C) Script-by-Script Boundaries
+
+| Script Type | Strong At | Cannot Do |
+|-------------|-----------|-----------|
+| Node | Rendering, interaction, per-frame animation, input-driven visuals | Cannot receive host `PathData` from existing stroke/fill |
+| Layout | Child sizing/positioning and optional custom draw | Not a data-binding transformer protocol |
+| Converter | Data transformation between binding endpoints | No rendering, no pointer handlers, no host path geometry |
+| Path Effect | Direct path-geometry transformation of attached stroke/fill | No `Renderer` drawing callback for arbitrary scene rendering |
+| ListenerAction | State-machine listener event reactions with pointer context | No per-frame lifecycle, no rendering |
+| TransitionCondition | Custom boolean gating for state transitions | No rendering, no pointer event callback parameter |
+| Util | Shared reusable code via `require()` | No lifecycle callbacks, cannot attach directly |
+| Test | Unit-test harness for util logic | Not an attached runtime behavior script |
+
+### Important Boundaries
+
+1. **Only Path Effect scripts receive `PathData` of an existing host shape**.
+2. **Node scripts can draw custom `Path` objects**, but do not receive `inPath: PathData` from an existing stroke/fill.
+3. **`Listener<T>` is not a script type**; it is a function signature used by `addListener()`/`removeListener()` APIs.
+4. **Util/Test scripts are non-attached scripts**: Util is imported code; Test is manual test execution.
+
+---
+
+## 3) "What Should I Use?" Quick Mapping
+
+| Need | Use |
+|------|-----|
+| Draw custom graphics every frame | **Node** (`draw`, optional `advance`) |
+| Position/size children in a layout | **Layout** (`resize`, optional `measure`) |
+| Transform binding values | **Converter** (`convert`, `reverseConvert`) |
+| Distort or rebuild existing shape path geometry | **Path Effect** (`update(inPath, node)`) |
+| Run logic on state machine listener events | **ListenerAction** (`perform`) |
+| Gate transitions with custom boolean logic | **TransitionCondition** (`evaluate`) |
+| Share reusable helpers/types | **Util** |
+| Validate utility logic | **Test** |
+
+---
+
+## Source Pages
+
+- [Script Types Overview](/rive/script-types)
+- [Inputs and Data Binding](/rive/inputs)
+- [Node Protocol](/rive/protocols/node-protocol)
+- [Layout Protocol](/rive/protocols/layout-protocol)
+- [Converter Protocol](/rive/protocols/converter-protocol)
+- [Path Effect Protocol](/rive/protocols/path-effect-protocol)
+- [ListenerAction Protocol](/rive/protocols/listener-action-protocol)
+- [TransitionCondition Protocol](/rive/protocols/transition-condition-protocol)
+- [Util Protocol](/rive/protocols/util-protocol)
+- [Test Protocol](/rive/protocols/test-protocol)

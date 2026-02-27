@@ -286,7 +286,7 @@ Here's the simplest possible Rive script. Don't worry - we'll explain every line
 ```lua
 export type MyScript = {}
 
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     print("Script started!")
     return true
 end
@@ -348,7 +348,7 @@ export type Player = {
 ## Part 2: The Init Function (Runs Once)
 
 ```lua
-function init(self: MyScript): boolean
+function init(self: MyScript, context: Context): boolean
     print("Script started!")
     return true
 end
@@ -362,6 +362,7 @@ Let's decode the first line:
 |------|---------|
 | `function init` | We're defining a function called "init" |
 | `(self: MyScript)` | It receives your script's data as "self" |
+| `(context: Context)` | It also receives runtime context (ViewModel/assets access) |
 | `: boolean` | It must return true or false |
 
 **What is `self`?** It's your script's personal storage - all the variables you defined in your type. You access them with `self.variableName`.
@@ -473,7 +474,7 @@ Now let's arrange these parts in the correct order:
   description="Put these parts in the order they appear in a Rive script:"
   blocks={[
     "export type MyScript = { }",
-    "function init(self: MyScript): boolean ... end",
+    "function init(self: MyScript, context: Context): boolean ... end",
     "function draw(self: MyScript, renderer: Renderer) ... end",
     "return function(): Node<MyScript> ... end"
   ]}
@@ -540,7 +541,7 @@ export type MyFirstScript = {
     counter: number,
 }
 
-function init(self: MyFirstScript): boolean
+function init(self: MyFirstScript, context: Context): boolean
     -- This runs once when the script starts
     print("=== MY FIRST SCRIPT ===")
     print("init() is running!")

@@ -69,6 +69,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'rive/environment',
         'rive/script-types',
+        'rive/script-capability-matrix',
         'rive/inputs',
         'rive/ai-agent',
         {

@@ -49,6 +49,7 @@ import Term from '@site/src/components/Term';
 - ❌ No network requests
 - ❌ No system commands
 - ❌ No dynamic code loading
+- ❌ No Roblox runtime APIs (`game`, `workspace`, `Instance`, services)
 - ✅ Full access to Rive's graphics APIs (<Term>Path</Term>, <Term>Paint</Term>, Vector, etc.)
 - ✅ Standard math, string, and table libraries
 :::
@@ -100,7 +101,7 @@ console.log(`Value is ${myValue}`);
 
 ## Script Types
 
-Rive has two types of scripts with different purposes:
+Rive supports multiple script types (Node, Layout, Converter, Path Effect, ListenerAction, TransitionCondition, Util, Test). This page focuses on the two foundational patterns you'll use first:
 
 ### Node Scripts
 
@@ -109,7 +110,7 @@ Node scripts attach to <Term>Artboard</Term> nodes and have a lifecycle:
 ```lua
 export type MyNode = {}
 
-function init(self: MyNode): boolean
+function init(self: MyNode, context: Context): boolean
     print("I am a Node script")
     return true
 end
@@ -195,7 +196,7 @@ export type Spawner = {
     artboard: Input<Artboard<Data.ComponentVM>>,
 }
 
-function init(self: Spawner): boolean
+function init(self: Spawner, context: Context): boolean
     local instance = self.artboard:instance()
     return true
 end
@@ -252,7 +253,7 @@ export type ConsoleExplorer = {
     frameCount: number,
 }
 
-function init(self: ConsoleExplorer): boolean
+function init(self: ConsoleExplorer, context: Context): boolean
     print("init() called")
     self.frameCount = 0
     return true
@@ -364,7 +365,7 @@ Vectors are fundamental to all positioning and movement in Rive scripts.
 
 export type VectorPractice = {}
 
-function init(self: VectorPractice): boolean
+function init(self: VectorPractice, context: Context): boolean
     print("=== Vector Constructors ===")
 
     -- TODO 1: Create a vector at position (100, 50) using Vector.xy()
@@ -490,7 +491,7 @@ export type Player = {
     position: TODO,
 }
 
-function init(self: Player): boolean
+function init(self: Player, context: Context): boolean
     -- Initialize with specific values
     self.name = "Hero"
     self.health = 100
@@ -606,7 +607,7 @@ export type SandboxDemo = {
     cosValue: number,
 }
 
-function init(self: SandboxDemo): boolean
+function init(self: SandboxDemo, context: Context): boolean
     print("Calculating for 45 degrees...")
 
     -- TODO 1: Convert 45 degrees to radians using math.rad()
@@ -709,6 +710,18 @@ The Rive scripting environment has intentional restrictions:
 :::note Luau, Not Lua
 Rive uses Luau (Roblox's Lua variant) which includes features like type annotations, string interpolation (`{variable}`), and compound assignment (`+=`). These features don't exist in standard Lua.
 :::
+
+:::note Pure Luau in a Rive Runtime
+Rive scripting uses Luau syntax and standard Luau libraries, but not Roblox runtime globals. Do not use APIs such as `game`, `workspace`, `Instance`, or Roblox services.
+:::
+
+### Numeric Safety (32-bit)
+
+For runtime compatibility, keep integer-style values 32-bit safe unless you explicitly know your target can handle wider ranges.
+
+- Signed 32-bit range: `-2147483648` to `2147483647`
+- Good candidates to clamp/reset: frame counters, ids, accumulators, bitwise values
+- If values can grow forever, wrap or clamp them predictably
 
 ---
 
@@ -870,6 +883,8 @@ Higher debug levels give you detailed error messages with line numbers and varia
 - Rive enforces strict typing by default
 - Script compilation settings affect debugging (Debug Level) and performance (Optimization Level)
 - The sandbox restricts file I/O, network access, and dynamic code loading
+- Rive scripts use pure Luau + Rive APIs (not Roblox runtime APIs)
+- Keep integer-style runtime values 32-bit safe for portability
 
 ---
 
