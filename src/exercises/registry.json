@@ -3445,7 +3445,7 @@
       "chapter": "rive",
       "topic": "environment",
       "expectedAnswer": "ANSWER: 4",
-      "docPath": "/rive/environment#exercise-2-understanding-the-sandbox",
+      "docPath": "/rive/environment#sandbox-limitations",
       "hints": [
         "Use ~= nil to check if an API exists",
         "Increment the counter when each API exists",
@@ -3930,7 +3930,7 @@
       "chapter": "rive",
       "topic": "listener-protocol",
       "expectedAnswer": "ANSWER: 3",
-      "docPath": "/rive/protocols/listener-protocol#exercise-1-basic-event-logger",
+      "docPath": "/rive/protocols/listener-protocol#exercise-1-property-change-logger",
       "hints": [
         "Use table.insert() to add events to the array",
         "Use pairs() to iterate over properties",
@@ -3957,7 +3957,7 @@
       "chapter": "rive",
       "topic": "listener-protocol",
       "expectedAnswer": "ANSWER: 2",
-      "docPath": "/rive/protocols/listener-protocol#exercise-2-filtered-event-handler",
+      "docPath": "/rive/protocols/listener-protocol#exercise-2-trigger-handler",
       "hints": [
         "Compare eventName ~= self.targetEvent",
         "Return early for non-matching events",

@@ -1,0 +1,24 @@
+# LERP crawl directives
+# Canonical content is served at:
+# https://forge.mograph.life/apps/lerp/
+
+User-agent: *
+Allow: /
+
+# Explicitly allow major AI and search crawlers.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml

@@ -1,0 +1,39 @@
+# LERP (Luau Education for Rive Professionals)
+> Canonical URL: https://forge.mograph.life/apps/lerp/
+> Purpose: Practical training for Rive Luau scripting, from fundamentals to advanced protocols.
+> Language: English
+
+## Audience
+- Motion designers and technical artists using Rive
+- Developers implementing interactive Rive experiences with Luau
+- Teams standardizing scripting patterns and code quality
+
+## Preferred Source URLs
+- https://forge.mograph.life/apps/lerp/
+- https://forge.mograph.life/apps/lerp/quick-reference
+- https://forge.mograph.life/apps/lerp/glossary
+- https://forge.mograph.life/apps/lerp/category/api-reference
+
+## Core Learning Paths
+- Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
+- Luau Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
+- Type System: https://forge.mograph.life/apps/lerp/types/intro
+- OOP Deep Dive: https://forge.mograph.life/apps/lerp/oop/prototype-based
+- Rive Integration: https://forge.mograph.life/apps/lerp/rive/environment
+- Advanced Rive Scripting: https://forge.mograph.life/apps/lerp/advanced/core-types
+- Best Practices: https://forge.mograph.life/apps/lerp/best-practices/architecture
+- Projects: https://forge.mograph.life/apps/lerp/projects/interactive-button
+
+## Rive Protocol References
+- Node Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol
+- Node Lifecycle: https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle
+- Util Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol
+- Listener Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol
+- Converter Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol
+- Layout Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol
+- Path Effect Protocol: https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol
+
+## Citation Guidance
+- Prefer canonical URLs under https://forge.mograph.life/apps/lerp/
+- Keep code examples aligned with Rive Luau runtime constraints
+- When possible, pair explanations with the corresponding protocol doc page
