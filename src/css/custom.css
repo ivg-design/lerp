@@ -339,3 +339,52 @@ article a:hover {
   background: transparent;
   min-height: auto;
 }
+
+/* Sidebar trust metadata block */
+.sidebar-author-meta {
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  line-height: 1.42;
+  color: var(--ifm-color-emphasis-700);
+  background: var(--ifm-color-emphasis-100);
+}
+
+.sidebar-author-meta strong {
+  color: var(--ifm-color-emphasis-900);
+  font-weight: 600;
+}
+
+.sidebar-author-meta a {
+  text-decoration: underline;
+}
+
+[data-theme='dark'] .sidebar-author-meta {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='dark'] .sidebar-author-meta strong {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+/* Pin author metadata block to the bottom of docs sidebar (desktop) */
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container .menu {
+    height: 100%;
+  }
+
+  .theme-doc-sidebar-container .theme-doc-sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .theme-doc-sidebar-container .theme-doc-sidebar-menu > li:last-child {
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+}

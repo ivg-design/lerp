@@ -1,0 +1,56 @@
+---
+sidebar_position: 8
+title: Contribution Instructions
+description: Step-by-step instructions for contributing to LERP
+keywords:
+  - contribute
+  - pull request
+  - instructions
+  - docs workflow
+---
+
+# Contribution Instructions
+
+## 1. Prepare Your Local Copy
+
+```bash
+git clone https://github.com/ivg-design/lerp.git
+cd lerp
+npm install
+```
+
+## 2. Create a Branch
+
+```bash
+git checkout -b codex/your-change-name
+```
+
+## 3. Make and Validate Changes
+
+- Update docs in `docs/` and related config when needed.
+- Keep examples runnable and type-safe.
+- Build locally before opening a PR:
+
+```bash
+npm run build
+```
+
+## 4. Commit Clearly
+
+```bash
+git add .
+git commit -m "docs: concise summary of your change"
+```
+
+## 5. Open a Pull Request
+
+Include:
+
+- What changed
+- Why it changed
+- Any affected pages/paths
+- Screenshots for visible UI changes
+
+## 6. Follow-up
+
+Respond to review comments and keep the PR focused. Large changes should be split into smaller PRs when practical.

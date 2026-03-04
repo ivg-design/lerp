@@ -4601,6 +4601,33 @@
       ]
     },
     {
+      "id": "advanced-procedural-8",
+      "title": "Fix Conflicting Winding in a Spike Burst",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "procedural",
+      "expectedAnswer": "ANSWER: winding-fixed",
+      "docPath": "/advanced/procedural#exercise-8-fix-conflicting-winding-in-a-spike-burst",
+      "hints": [
+        "Compute cross = (tip - b1) x (b2 - b1)",
+        "If cross <= 0, swap base vertices before drawing",
+        "Close every contour after line segments"
+      ],
+      "explanation": "In multi-contour paths, mixed winding can cancel fills under the even-odd rule. Cross-product checks enforce consistent contour direction.",
+      "reviewLinks": [
+        {
+          "label": "Procedural Geometry",
+          "href": "/advanced/procedural"
+        }
+      ],
+      "tags": [
+        "procedural",
+        "winding",
+        "fill-rule",
+        "debugging"
+      ]
+    },
+    {
       "id": "advanced-viewmodel-1",
       "title": "Read and Display ViewModel Data",
       "difficulty": 2,

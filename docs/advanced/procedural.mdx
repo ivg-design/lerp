@@ -1109,6 +1109,259 @@ ANSWER: bars
 
 ---
 
+## Path Winding and Fill Rules
+
+When you build multiple contours into one `Path`, fill behavior follows an even-odd rule. Points with an odd number of contour crossings are filled. Points with an even number are unfilled.
+
+If contour winding direction flips between clockwise (CW) and counter-clockwise (CCW), overlapping regions can cancel out and appear invisible.
+
+### Why Loops Can Break Winding
+
+In radial loops (spikes, rays, bursts), the perpendicular offset `(-sin(angle), cos(angle))` changes sign across quadrants. If you always emit vertices in the same local order, some contours end up CW and others CCW.
+
+```lua showLineNumbers
+-- This can break: winding may flip across the loop
+for i = 0, 9 do
+    local angle = (i / 10) * math.pi * 2
+    local ax = math.cos(angle)
+    local ay = math.sin(angle)
+    local px = -ay
+    local py = ax
+
+    path:moveTo(Vector.xy(cx + ax * 80 + px * 30, cy + ay * 80 + py * 30))
+    path:lineTo(Vector.xy(cx + ax * 350, cy + ay * 350))
+    path:lineTo(Vector.xy(cx + ax * 80 - px * 30, cy + ay * 80 - py * 30))
+    path:close()
+end
+```
+
+### Robust Fix: Cross Product Winding Check
+
+Before you emit each contour, compute the 2D cross product of two triangle edges. If winding is CW, swap base vertices to enforce a consistent direction.
+
+```lua showLineNumbers
+for i = 0, 9 do
+    local angle = (i / 10) * math.pi * 2
+    local ax = math.cos(angle)
+    local ay = math.sin(angle)
+    local px = -ay
+    local py = ax
+
+    local b1x = cx + ax * 80 + px * 30
+    local b1y = cy + ay * 80 + py * 30
+    local tx  = cx + ax * 350
+    local ty  = cy + ay * 350
+    local b2x = cx + ax * 80 - px * 30
+    local b2y = cy + ay * 80 - py * 30
+
+    -- (tip - b1) x (b2 - b1)
+    local cross = (tx - b1x) * (b2y - b1y) - (ty - b1y) * (b2x - b1x)
+
+    if cross > 0 then
+        -- Already CCW
+        path:moveTo(Vector.xy(b1x, b1y))
+        path:lineTo(Vector.xy(tx, ty))
+        path:lineTo(Vector.xy(b2x, b2y))
+    else
+        -- CW detected, swap base points
+        path:moveTo(Vector.xy(b2x, b2y))
+        path:lineTo(Vector.xy(tx, ty))
+        path:lineTo(Vector.xy(b1x, b1y))
+    end
+    path:close()
+end
+```
+
+### Choosing the Right Strategy
+
+| Approach | Winding Matters? | Draw Calls | Best For |
+| --- | --- | ---: | --- |
+| Single path, multiple contours | Yes, enforce consistent winding | 1 | Batched geometry and static effects |
+| Separate path per shape | No (single contour each draw) | N | Per-shape styling or per-shape animation |
+
+### When This Applies
+
+- Loop-generated triangles or polygons at computed angles
+- Radial spike/ray/burst effects
+- Directional particle geometry
+- Any procedural mesh where vertices rotate around a center
+
+### When This Usually Does Not Apply
+
+- Axis-aligned rectangles with fixed vertex order
+- Circle/ellipse approximations built symmetrically
+- Single-contour shapes with no overlap interactions
+
+:::warning Common Trap
+This failure is usually silent: no warnings, no runtime errors, just missing fills. If a contour draws fine alone but disappears in a generated loop, validate winding direction first.
+:::
+
+---
+
+### Exercise 8: Fix Conflicting Winding in a Spike Burst ⭐⭐⭐ {#exercise-8-fix-conflicting-winding-in-a-spike-burst}
+
+### Premise
+
+A radial spike burst is generated as multiple triangle contours in one path. The geometry is valid, but inconsistent winding causes some spikes to disappear.
+
+:::info Goal
+By the end of this exercise, you will be able to enforce consistent contour winding in a loop-generated burst using a cross-product check.
+:::
+
+### Use Case
+
+This pattern shows up whenever you build behavior in Rive scripts.
+
+**Example scenarios:**
+- Procedural sunburst effects
+- Audio-reactive radial shapes
+- Geometry generated from polar coordinates
+
+---
+
+### Setup
+
+#### In Rive Editor:
+
+1. **Create the script:**
+   - Assets panel → `+` → Script → Node Script
+   - Name it `Exercise8_Exercise8FixConflictingWindingInASpikeBurst`
+
+2. **Attach and run:**
+   - Attach to any shape and press Play
+
+3. **Open the Console:**
+   - View → Console
+
+---
+
+### Starter Code
+
+```lua showLineNumbers
+-- Fix disappearing spikes caused by inconsistent contour winding
+
+export type WindingBurst = {
+    spikes: Input<number>,
+    baseRadius: Input<number>,
+    tipRadius: Input<number>,
+    halfWidth: Input<number>,
+    path: Path,
+    fill: Paint,
+}
+
+local function addSpike(path: Path, b1x: number, b1y: number, tx: number, ty: number, b2x: number, b2y: number)
+    -- Cross product: (tip - b1) x (b2 - b1)
+    local cross = (tx - b1x) * (b2y - b1y) - (ty - b1y) * (b2x - b1x)
+
+    -- TODO 1:
+    -- If cross > 0, emit b1 -> tip -> b2
+    -- Otherwise emit b2 -> tip -> b1 (swap to keep winding consistent)
+    -- Remember to close the contour
+end
+
+local function rebuildBurst(self: WindingBurst)
+    local n = math.max(3, math.floor(self.spikes))
+    local cx, cy = 0, 0
+
+    self.path:reset()
+
+    for i = 0, n - 1 do
+        local angle = (i / n) * math.pi * 2
+        local ax = math.cos(angle)
+        local ay = math.sin(angle)
+        local px = -ay
+        local py = ax
+
+        local b1x = cx + ax * self.baseRadius + px * self.halfWidth
+        local b1y = cy + ay * self.baseRadius + py * self.halfWidth
+        local tx = cx + ax * self.tipRadius
+        local ty = cy + ay * self.tipRadius
+        local b2x = cx + ax * self.baseRadius - px * self.halfWidth
+        local b2y = cy + ay * self.baseRadius - py * self.halfWidth
+
+        -- TODO 2: Route each triangle through addSpike(...)
+    end
+
+    print(`Built {n} spikes with consistent winding`)
+    print("ANSWER: winding-fixed")
+end
+
+function init(self: WindingBurst): boolean
+    self.path = Path.new()
+    self.fill = Paint.with({ style = "fill", color = Color.rgb(255, 190, 70) })
+    rebuildBurst(self)
+    return true
+end
+
+function update(self: WindingBurst)
+    rebuildBurst(self)
+end
+
+function draw(self: WindingBurst, renderer: Renderer)
+    renderer:drawPath(self.path, self.fill)
+end
+
+return function(): Node<WindingBurst>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        spikes = 10,
+        baseRadius = 80,
+        tipRadius = 340,
+        halfWidth = 28,
+        path = late(),
+        fill = late(),
+    }
+end
+```
+
+---
+
+### Assignment
+
+Complete these tasks:
+
+1. Implement `addSpike` so every contour uses consistent winding.
+2. Call `addSpike` from the loop using the computed vertices.
+3. Run the script and verify the console output.
+4. Copy the `ANSWER:` line into the validator.
+
+---
+
+### Expected Output
+
+```
+Console prints the relevant debug lines for this exercise.
+ANSWER: winding-fixed
+```
+
+---
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-procedural-8"
+    expectedAnswer="ANSWER: winding-fixed"
+/>
+
+---
+
+### Checklist
+
+- [ ] All TODOs are replaced with working code
+- [ ] Contours render consistently around the full circle
+- [ ] Console output includes the `ANSWER:` line
+
+---
+
+**Key points:**
+- Even-odd fill can cancel overlapping contours with mixed winding
+- Cross-product checks let you enforce contour order deterministically
+- This bug appears most often in radial loop-generated geometry
+
+---
+
 ## Optimization Tips
 
 ### 1. Minimize Path Rebuilds

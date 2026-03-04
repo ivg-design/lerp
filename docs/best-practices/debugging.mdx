@@ -589,6 +589,19 @@ function advance(self: MyNode, seconds: number): boolean
 end
 ```
 
+### Error: Shapes disappear with no runtime error
+
+**Symptom**: Procedural spikes/polygons draw individually, but parts disappear when generated in a loop.
+
+**Cause**: Mixed contour winding in a multi-contour path. Even-odd fill can cancel overlapping regions.
+
+**Fix:**
+- Compute a per-contour cross product to detect CW vs CCW.
+- Swap vertex order when needed so all contours use one winding direction.
+- If per-shape styling is needed, draw each shape in its own path instead.
+
+See: [Path Winding and Fill Rules](/advanced/procedural#path-winding-and-fill-rules)
+
 ---
 
 ### Exercise 3: Debugging a Broken Script ⭐⭐ {#exercise-3-debugging-a-broken-script}

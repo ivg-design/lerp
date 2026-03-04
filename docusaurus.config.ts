@@ -73,6 +73,51 @@ const config: Config = {
         url: 'https://forge.mograph.life/apps/lerp/',
       }),
     },
+    {
+      tagName: 'script',
+      attributes: {
+        type: 'application/ld+json',
+      },
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'Organization',
+            name: 'IVG Design',
+            url: 'https://mograph.life',
+            logo: 'https://forge.mograph.life/apps/lerp/img/logo.svg',
+            sameAs: [
+              'https://forge.mograph.life',
+              'https://github.com/ivg-design',
+              'https://www.linkedin.com/in/ivgd',
+              'https://contra.com/ivg_design',
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'customer support',
+              email: 'mailto:ilya@gusinski.us',
+              availableLanguage: ['en'],
+            },
+          },
+          {
+            '@type': 'Person',
+            name: 'Ilya Gusinski',
+            jobTitle: 'Motion Designer and Interactive Animation Engineer',
+            worksFor: {
+              '@type': 'Organization',
+              name: 'IVG Design',
+            },
+            url: 'https://mograph.life',
+            sameAs: [
+              'https://github.com/ivg-design',
+              'https://www.linkedin.com/in/ivgd',
+              'https://contra.com/ivg_design',
+              'https://www.upwork.com/freelancers/ivgd',
+            ],
+          },
+        ],
+      }),
+    },
   ],
 
   themes: [
@@ -96,8 +141,10 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/', // Docs at root
-          editUrl: 'https://github.com/ivg-design/forge/tree/main/apps/lerp/',
+          editUrl: 'https://github.com/ivg-design/lerp/tree/main/',
           exclude: ['**/CLAUDE.md', '**/AGENTS.md', '**/*.draft.mdx'],
+          showLastUpdateAuthor: process.env.VERCEL ? false : true,
+          showLastUpdateTime: process.env.VERCEL ? false : true,
         },
         blog: false, // Disable blog
         sitemap: {
@@ -216,6 +263,18 @@ const config: Config = {
             { label: 'Rive', href: 'https://rive.app' },
             { label: 'Luau', href: 'https://luau-lang.org' },
             { label: 'IVG Design', href: 'https://mograph.life' },
+          ],
+        },
+        {
+          title: 'Trust',
+          items: [
+            { label: 'About the Author', to: '/about-author' },
+            { label: 'Methodology', to: '/editorial-methodology' },
+            { label: 'Corrections', to: '/corrections-policy' },
+            { label: 'Open Source License (MIT)', to: '/open-source-license' },
+            { label: 'Contribution Policy', to: '/contribution-policy' },
+            { label: 'Contribution Instructions', to: '/contribution-instructions' },
+            { label: 'Contact', to: '/contact-transparency' },
           ],
         },
       ],

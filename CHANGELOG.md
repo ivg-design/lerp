@@ -4,6 +4,19 @@ All notable changes to the LERP (Learn Rive Luau) course are documented in this 
 
 ---
 
+## [1.2.2] — 2026-03-04
+
+### Added
+- **Path winding troubleshooting guidance** — added a dedicated section in Procedural Geometry covering even-odd fill behavior, contour winding conflicts, cross-product detection, and strategy tradeoffs for multi-contour paths
+- **New advanced procedural exercise** — added `Exercise 8: Fix Conflicting Winding in a Spike Burst` with validator ID `advanced-procedural-8`
+- **Debugging cross-reference** — added a new common error pattern for "shapes disappear with no runtime error" linking to the winding guidance
+
+### Changed
+- **Course snapshot metadata** — refreshed intro page "Course at a Glance" counts and update date
+- **Trust sidebar metadata** — updated "Last reviewed" date in the sidebar author meta block
+
+---
+
 ## [1.2.1] — 2026-02-27
 
 ### Added

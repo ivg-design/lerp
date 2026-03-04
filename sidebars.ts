@@ -153,6 +153,25 @@ const sidebars: SidebarsConfig = {
       id: 'glossary',
       label: 'Glossary',
     },
+    {
+      type: 'category',
+      label: 'Trust & Transparency',
+      items: [
+        'about-author',
+        'editorial-methodology',
+        'corrections-policy',
+        'open-source-license',
+        'contribution-policy',
+        'contribution-instructions',
+        'contact-transparency',
+      ],
+    },
+    {
+      type: 'html',
+      value:
+        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> March 4, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
+      defaultStyle: false,
+    },
   ],
 };
 
