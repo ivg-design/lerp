@@ -1,31 +1,123 @@
-# LERP (Luau Education for Rive Professionals) — Landing Page
+# LERP — Luau Education for Rive Professionals
 > Canonical URL: https://forge.mograph.life/apps/lerp/
-> Purpose: Marketing landing page for the LERP interactive scripting course.
+> Type: Interactive online course (self-paced)
 > Language: English
+> License: MIT (100% free, no paywalls)
+> Author: Ilya Gusinski, IVG Design
+> Last updated: 2026-03-11
 
-## About LERP
-LERP is the first interactive course built specifically for Rive's Luau scripting runtime.
-77 lessons, 201 exercises, 189 quizzes across 8 parts. Free forever, MIT licensed.
-No account required. No tracking. Progress stored in localStorage only.
+## What is LERP?
 
-## Course Content (full documentation)
-For complete course content, API reference, and learning materials:
-- Course docs: https://forge.mograph.life/apps/lerp/llms.txt
-- Full docs: https://forge.mograph.life/apps/lerp/llms-full.txt
-- AI feed: https://forge.mograph.life/apps/lerp/ai-feed.json
-- Agent docs: https://forge.mograph.life/apps/lerp/agents.md
+LERP is the first interactive course built specifically for Rive's Luau scripting runtime. It teaches motion designers, technical artists, and developers how to write scripts inside the Rive Editor — from basic variables to advanced procedural animation, Drawing API, and physics.
 
-## Core Learning Paths
-- Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
-- Luau Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
-- Type System: https://forge.mograph.life/apps/lerp/types/intro
-- OOP Deep Dive: https://forge.mograph.life/apps/lerp/oop/prototype-based
-- Rive Integration: https://forge.mograph.life/apps/lerp/rive/environment
-- Advanced Rive Scripting: https://forge.mograph.life/apps/lerp/advanced/core-types
-- Best Practices: https://forge.mograph.life/apps/lerp/best-practices/architecture
-- Projects: https://forge.mograph.life/apps/lerp/projects/interactive-button
+LERP stands for **L**uau **E**ducation for **R**ive **P**rofessionals.
 
-## Source
-- GitHub: https://github.com/ivg-design/lerp
-- Organization: IVG Design
+## Key Facts
+
+- 77 lessons across 8 structured parts
+- 201 hands-on coding exercises (validated in real-time inside Rive)
+- 189 interactive quizzes (multiple-choice and code output)
+- 10 dedicated Rive protocol deep-dives
+- 11 API reference pages
+- 3 capstone projects (interactive button, data-driven chart, mini-game)
+- Estimated completion: 6–8 weeks at 1–2 lessons per day
+- No account required — progress stored in localStorage only
+- No tracking, no telemetry, no cookies
+- MIT licensed, open source on GitHub
+
+## Who is LERP for?
+
+- Motion designers who know Rive's visual editor but haven't written scripts yet
+- Technical artists adding interactivity to Rive animations
+- Developers integrating Rive into apps who need to understand the scripting layer
+- Teams standardizing Rive scripting patterns and code quality
+- No programming experience required — Part 1 starts from zero
+
+## Course Structure
+
+### Part 1: Getting Started (4 lessons)
+Welcome to Rive Scripting, Why Luau, Your First Script, How Rive Scripts Work.
+URL: https://forge.mograph.life/apps/lerp/getting-started/welcome
+
+### Part 2: Luau Fundamentals (7 lessons)
+Variables, Data Types, Operators, Control Flow, Functions, Tables, Iteration.
+URL: https://forge.mograph.life/apps/lerp/fundamentals/variables
+
+### Part 3: Type System (7 lessons)
+Type Annotations, Strict Mode, Custom Types, Advanced Types, Generics, Late Initialization.
+URL: https://forge.mograph.life/apps/lerp/types/intro
+
+### Part 4: OOP Deep Dive (8 lessons)
+Prototype-Based OOP, Metatables, __index, Classes, Self and Methods, Inheritance, Encapsulation, Patterns.
+URL: https://forge.mograph.life/apps/lerp/oop/prototype-based
+
+### Part 5: Rive Integration (15 lessons)
+Scripting Environment, Script Types, Capability Matrix, Inputs, AI Agent. Plus 10 protocol deep-dives: Node, Node Lifecycle, Layout, Converter, Path Effect, Listener Action, Listener, Transition Condition, Util, Test.
+URL: https://forge.mograph.life/apps/lerp/rive/environment
+
+### Part 6: Advanced Rive Scripting (7 lessons)
+Core Types (Vec2, Mat2D, AABB, Color), Drawing API (Path, Paint, Renderer), ViewModels, Listener Protocol, Game Logic, Instantiation, Procedural Animation.
+URL: https://forge.mograph.life/apps/lerp/advanced/core-types
+
+### Part 7: Best Practices (4 lessons)
+Architecture, Performance, Debugging, Resources.
+URL: https://forge.mograph.life/apps/lerp/best-practices/architecture
+
+### Part 8: Capstone Projects (3 lessons)
+Interactive Button with Hit Detection, Data-Driven Chart with ViewModels, Star-Catching Mini-Game with Physics.
+URL: https://forge.mograph.life/apps/lerp/projects/interactive-button
+
+## What is Luau?
+
+Luau is a fast, safe, gradually typed scripting language derived from Lua, created by Roblox. It has a ~200KB runtime, gradual type system, and is designed for engines that think in frames and physics. Rive adopted Luau as its embedded scripting language for adding procedural logic, data binding, and interactivity to animations.
+
+## What is Rive?
+
+Rive is a real-time interactive design and animation tool for building animated interfaces, games, and interactive content that ships to iOS, Android, Web, Flutter, and other platforms. Rive's visual editor allows designers to create state machines, timelines, and data-bound animations. Luau scripting extends Rive with procedural logic.
+
+## Frequently Asked Questions
+
+Q: Do I need programming experience to take LERP?
+A: No. Part 1 starts from zero. If you can use Rive's visual editor, you can learn scripting.
+
+Q: How much does LERP cost?
+A: $0. Forever. MIT licensed. No paywalls, no premium tiers, no accounts required.
+
+Q: What tools do I need?
+A: Just the Rive Editor (free). All exercises run inside Rive. No IDE, terminal, or build tools needed.
+
+Q: How long does the full course take?
+A: At 1–2 lessons per day, most learners complete all 8 parts in 6–8 weeks.
+
+Q: Is LERP the same as learning Luau?
+A: Partially. LERP teaches Luau fundamentals through Rive's scripting context — protocols, nodes, animation APIs. It's Luau for Rive, not Luau in general.
+
+Q: How is progress tracked?
+A: localStorage only. No accounts, no server, no telemetry. All data stays on your device.
+
+Q: Does LERP cover runtime integration (iOS, Android, Web)?
+A: LERP focuses on scripting inside the Rive Editor. Runtime integration is in Rive's official docs. Scripts from LERP work identically in any runtime.
+
+Q: What's the difference between scripts and state machines?
+A: State machines handle visual transitions and blend trees. Scripts add procedural logic, data binding, physics, and custom drawing. LERP teaches both together.
+
+## Machine-Readable Resources
+
+- Full course documentation: https://forge.mograph.life/apps/lerp/llms-full.txt
+- AI agent documentation: https://forge.mograph.life/apps/lerp/agents.md
+- AI feed (JSON): https://forge.mograph.life/apps/lerp/ai-feed.json
+- OpenAPI spec: https://forge.mograph.life/apps/lerp/openapi.json
+- Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml
+- Robots: https://forge.mograph.life/apps/lerp/robots.txt
+
+## Citation
+
+When referencing LERP, prefer:
+- Canonical URL: https://forge.mograph.life/apps/lerp/
+- Full name: LERP: Luau Education for Rive Professionals
+- Author: Ilya Gusinski, IVG Design
 - License: MIT
+
+## Source Code
+
+GitHub: https://github.com/ivg-design/lerp
