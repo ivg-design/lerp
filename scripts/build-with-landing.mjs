@@ -55,9 +55,19 @@ if (existsSync(nextDir)) {
 }
 
 // Copy public assets (SVGs, .riv files, favicons)
+// Skip SEO files that Docusaurus already generates (more comprehensive versions)
+const SKIP_IF_EXISTS = new Set([
+  "robots.txt", "sitemap.xml", "llms.txt", "llms-full.txt",
+  "ai-feed.json", "ai.txt", "openapi.json", "agents.md",
+  "humans.txt", "security.txt",
+]);
 const assetExtensions = [".svg", ".riv", ".png", ".ico", ".txt", ".xml"];
 for (const file of readdirSync(LANDING_OUT)) {
   if (assetExtensions.some((ext) => file.endsWith(ext))) {
+    if (SKIP_IF_EXISTS.has(file) && existsSync(join(DOCUSAURUS_BUILD, file))) {
+      console.log(`  Skipped ${file} (keeping Docusaurus version)`);
+      continue;
+    }
     cpSync(join(LANDING_OUT, file), join(DOCUSAURUS_BUILD, file));
     console.log(`  Copied ${file}`);
   }
