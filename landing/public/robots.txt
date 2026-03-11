@@ -1,0 +1,23 @@
+# LERP Landing Page
+# Canonical: https://forge.mograph.life/apps/lerp/
+# Course docs: https://forge.mograph.life/apps/lerp/llms.txt
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml

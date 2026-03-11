@@ -1,4 +1,5 @@
 {
+  "buildCommand": "node scripts/build-with-landing.mjs",
   "redirects": [
     {
       "source": "/apps/lerp",

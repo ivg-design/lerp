@@ -14,6 +14,11 @@
 .claude/
 test-scripts/
 
+# Landing page build artifacts
+landing/node_modules
+landing/.next
+landing/out
+
 # Misc
 .DS_Store
 .env.local

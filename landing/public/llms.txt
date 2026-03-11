@@ -1,0 +1,31 @@
+# LERP (Luau Education for Rive Professionals) — Landing Page
+> Canonical URL: https://forge.mograph.life/apps/lerp/
+> Purpose: Marketing landing page for the LERP interactive scripting course.
+> Language: English
+
+## About LERP
+LERP is the first interactive course built specifically for Rive's Luau scripting runtime.
+77 lessons, 201 exercises, 189 quizzes across 8 parts. Free forever, MIT licensed.
+No account required. No tracking. Progress stored in localStorage only.
+
+## Course Content (full documentation)
+For complete course content, API reference, and learning materials:
+- Course docs: https://forge.mograph.life/apps/lerp/llms.txt
+- Full docs: https://forge.mograph.life/apps/lerp/llms-full.txt
+- AI feed: https://forge.mograph.life/apps/lerp/ai-feed.json
+- Agent docs: https://forge.mograph.life/apps/lerp/agents.md
+
+## Core Learning Paths
+- Getting Started: https://forge.mograph.life/apps/lerp/getting-started/welcome
+- Luau Fundamentals: https://forge.mograph.life/apps/lerp/fundamentals/variables
+- Type System: https://forge.mograph.life/apps/lerp/types/intro
+- OOP Deep Dive: https://forge.mograph.life/apps/lerp/oop/prototype-based
+- Rive Integration: https://forge.mograph.life/apps/lerp/rive/environment
+- Advanced Rive Scripting: https://forge.mograph.life/apps/lerp/advanced/core-types
+- Best Practices: https://forge.mograph.life/apps/lerp/best-practices/architecture
+- Projects: https://forge.mograph.life/apps/lerp/projects/interactive-button
+
+## Source
+- GitHub: https://github.com/ivg-design/lerp
+- Organization: IVG Design
+- License: MIT
