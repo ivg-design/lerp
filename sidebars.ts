@@ -160,6 +160,7 @@ const sidebars: SidebarsConfig = {
         'about-author',
         'editorial-methodology',
         'corrections-policy',
+        'privacy-local-storage',
         'open-source-license',
         'contribution-policy',
         'contribution-instructions',
@@ -167,9 +168,14 @@ const sidebars: SidebarsConfig = {
       ],
     },
     {
+      type: 'doc',
+      id: 'changelog',
+      label: 'Changelog',
+    },
+    {
       type: 'html',
       value:
-        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> March 4, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
+        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> March 14, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
       defaultStyle: false,
     },
   ],

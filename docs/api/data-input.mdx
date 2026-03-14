@@ -22,30 +22,380 @@ APIs for script inputs, properties, runtime context, and data binding.
 
 ## Input
 
-Generic script input exposed to the editor. `Input<T>` is read directly as a value of type `T` in scripts.
+An **input** is a value on your script that appears as a control in the Rive editor's inspector panel. When someone changes that control, your script receives the new value automatically.
 
-### Supported Types
+Think of inputs like knobs and sliders on a mixing board — they let you (or someone using your file) adjust behavior without editing code.
+
+### How Inputs Work
+
+1. You **declare** an input in your script's type definition
+2. You **provide a default value** in the factory return
+3. The input **appears in the editor** as a control (slider, checkbox, color picker, etc.)
+4. When the value changes, Rive calls your script's `update()` function
+5. You **read the value** with `self.inputName` — no `.value` needed
 
 ```lua
-Input<number>
-Input<boolean>
-Input<string>
-Input<Color>
-Input<Data.ViewModelName>
-Input<Artboard<Data.ViewModelName>>
+export type MyNode = {
+    speed: Input<number>,    -- declares an input called "speed"
+}
+
+function update(self: MyNode)
+    -- This runs whenever speed changes in the editor
+    print("Speed is now: " .. self.speed)
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        speed = 50,    -- default value: 50
+    }
+end
 ```
 
-### Access
+:::tip Inputs vs Properties
+**Inputs** (`Input<T>`) are read with `self.speed` — no `.value`.
+**Properties** (`Property<T>`) from ViewModels are read with `prop.value`.
+They look similar but work differently. If you're using `self.something` and it's an input, just use it directly.
+:::
 
-Inputs are **intended to be read-only** from scripts and accessed directly (for example, `self.speed`, not `self.speed.value`). While you can technically assign to Input fields at runtime, this is not enforced and doing so bypasses the editor's data binding.
+---
 
-**Note:** ViewModel properties (`Property<T>`) use `.value`. Inputs do not.
+### Input&lt;number&gt;
+
+A numeric value. Appears as a number field in the editor.
+
+**When to use:** Anything that's a number — speed, size, count, opacity, angle, duration.
+
+**Factory default:** Any number (e.g. `42`, `0.5`, `100`).
+
+**How to read:** `self.speed` returns the number directly.
+
+```lua
+export type Particle = {
+    speed: Input<number>,
+    size: Input<number>,
+    opacity: Input<number>,
+}
+
+function advance(self: Particle, seconds: number): boolean
+    -- Use the numbers directly
+    local distance = self.speed * seconds
+    local radius = self.size * 0.5
+    return true
+end
+
+return function(): Node<Particle>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        speed = 100,      -- pixels per second
+        size = 20,         -- diameter in pixels
+        opacity = 255,     -- fully opaque
+    }
+end
+```
+
+---
+
+### Input&lt;boolean&gt;
+
+A true/false toggle. Appears as a checkbox in the editor.
+
+**When to use:** On/off switches — show/hide something, enable/disable a feature, flip a mode.
+
+**Factory default:** `true` or `false`.
+
+**How to read:** `self.isVisible` returns `true` or `false`.
+
+```lua
+export type Overlay = {
+    isVisible: Input<boolean>,
+    showShadow: Input<boolean>,
+}
+
+function draw(self: Overlay, renderer: Renderer)
+    if not self.isVisible then return end
+
+    renderer:drawPath(self.bgPath, self.bgPaint)
+
+    if self.showShadow then
+        renderer:drawPath(self.shadowPath, self.shadowPaint)
+    end
+end
+
+return function(): Node<Overlay>
+    return {
+        init = init,
+        draw = draw,
+        isVisible = true,
+        showShadow = false,
+    }
+end
+```
+
+---
+
+### Input&lt;string&gt;
+
+A text value. Appears as a text field in the editor.
+
+**When to use:** Labels, names, mode selectors, anything that's text.
+
+**Factory default:** Any string in quotes (e.g. `"hello"`, `"idle"`, `""`).
+
+**How to read:** `self.label` returns the string directly.
+
+```lua
+export type Badge = {
+    label: Input<string>,
+    mode: Input<string>,
+}
+
+function update(self: Badge)
+    if self.mode == "warning" then
+        self.paint.color = Color.rgb(255, 200, 0)
+    elseif self.mode == "error" then
+        self.paint.color = Color.rgb(255, 60, 60)
+    else
+        self.paint.color = Color.rgb(100, 200, 100)
+    end
+end
+
+return function(): Node<Badge>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        label = "Status",
+        mode = "normal",
+    }
+end
+```
+
+---
+
+### Input&lt;Color&gt;
+
+A color value. Appears as a color picker in the editor.
+
+**When to use:** Tints, fills, backgrounds — any color that should be adjustable.
+
+**Factory default:** A `Color` value like `Color.rgb(255, 0, 0)` or `Color.rgba(100, 150, 200, 128)`.
+
+**How to read:** `self.tint` returns a `Color` value you can assign to a paint.
+
+```lua
+export type ColoredShape = {
+    fillColor: Input<Color>,
+    strokeColor: Input<Color>,
+}
+
+function update(self: ColoredShape)
+    -- When either color changes, update the paints
+    self.fillPaint.color = self.fillColor
+    self.strokePaint.color = self.strokeColor
+end
+
+return function(): Node<ColoredShape>
+    return {
+        init = init,
+        update = update,
+        draw = draw,
+        fillColor = Color.rgb(80, 160, 255),
+        strokeColor = Color.rgb(40, 80, 180),
+        fillPaint = late(),
+        strokePaint = late(),
+    }
+end
+```
+
+---
+
+### Input&lt;Data.X&gt;
+
+A reference to a **ViewModel instance** — a named collection of properties defined in the Rive editor. This is how you connect your script to data that lives on the artboard.
+
+**When to use:** When your script needs to read or write properties that are bound to visual elements — positions, scores, colors, toggles that drive the animation.
+
+**Factory default:** `late()` — because the editor assigns the ViewModel instance at runtime. Your script doesn't know which instance it will receive until the file loads.
+
+**How to read:** `self.character` gives you the ViewModel instance. To access its properties, use `.propertyName.value`:
+
+```lua
+export type Controller = {
+    character: Input<Data.Character>,
+    time: number,
+}
+
+function advance(self: Controller, seconds: number): boolean
+    self.time += seconds
+
+    -- Read a property
+    local currentX = self.character.posX.value
+
+    -- Write a property (updates all bound visual elements)
+    self.character.posX.value = math.sin(self.time) * 100
+    self.character.posY.value = math.cos(self.time) * 50
+
+    return true
+end
+
+return function(): Node<Controller>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        character = late(),   -- assigned by the editor
+        time = 0,
+    }
+end
+```
+
+**Editor setup:**
+1. Create a ViewModel in the Rive editor (e.g. `Character` with `posX` and `posY` number properties)
+2. Attach the script to a node
+3. In the script's input panel, assign the ViewModel instance to `character`
+
+:::tip Why `.value`?
+`self.character` is the ViewModel instance. `self.character.posX` is a `Property<number>`. Properties hold their value inside `.value` — that's how Rive tracks changes and updates bindings. So you always read/write with `.value` at the end.
+:::
+
+---
+
+### Input&lt;Artboard&gt;
+
+A reference to a **nested artboard** (component). Use this to create instances of reusable components at runtime — particles, list items, repeated UI elements.
+
+**When to use:** When your script needs to stamp out copies of a component, each with its own data.
+
+**Factory default:** `late()` — the editor assigns the artboard reference.
+
+**How to read:** `self.template` gives you the artboard. Call `:instance()` to create a copy, optionally with a ViewModel:
+
+```lua
+export type Spawner = {
+    template: Input<Artboard>,
+    instances: { Artboard },
+}
+
+function init(self: Spawner, context: Context): boolean
+    self.instances = {}
+
+    -- Create 5 instances of the template
+    for i = 1, 5 do
+        local vm = Data.ItemVm.new()
+        local idx = vm:getNumber("index")
+        if idx then idx.value = i end
+
+        local inst = self.template:instance(vm)
+        inst.frameOrigin = false
+        table.insert(self.instances, inst)
+    end
+
+    return true
+end
+
+return function(): Node<Spawner>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        template = late(),    -- assigned by the editor
+        instances = {},
+    }
+end
+```
+
+**Editor setup:**
+1. Create a component artboard (the thing you want to repeat)
+2. Attach the script to a node
+3. In the script's input panel, assign the component to `template`
+
+---
+
+### Input&lt;Trigger&gt;
+
+A **one-shot signal** — like pressing a button. Unlike all other input types, a trigger doesn't hold a value. It fires once and is done.
+
+**When to use:** Reset buttons, "play" signals, "spawn now" commands — any action that should happen once when activated.
+
+**Factory default:** `function() end` — a function that does nothing. This is different from other inputs: triggers must be functions because Rive calls the function directly when the trigger fires. Using `late()` or `nil` causes the error `"expected trigger X to be a function"`.
+
+**How it works:** Rive calls your function the moment the trigger fires. You can override this function in `init()` to do something useful:
+
+```lua
+export type Resettable = {
+    resetTrigger: Input<Trigger>,
+    pendingReset: boolean,
+    score: number,
+}
+
+function init(self: Resettable, context: Context): boolean
+    -- Replace the do-nothing placeholder with a real function
+    self.resetTrigger = function()
+        self.pendingReset = true
+    end
+    return true
+end
+
+function advance(self: Resettable, seconds: number): boolean
+    if self.pendingReset then
+        self.pendingReset = false
+        self.score = 0    -- reset the score
+    end
+    return true
+end
+
+return function(): Node<Resettable>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        resetTrigger = function() end,   -- placeholder
+        pendingReset = false,
+        score = 0,
+    }
+end
+```
+
+**Execution order on a trigger frame:** trigger fn → `advance()` → `update()`.
+
+**Editor setup:**
+1. Add a Trigger property to your ViewModel
+2. In the script's input panel, bind `resetTrigger` to the ViewModel trigger
+3. Fire it from a state machine, listener, or another script
+
+See [Trigger Inputs](/rive/inputs#trigger-inputs) for a deeper walkthrough of the flag pattern and why it's useful.
+
+Triggers can also be accessed via `vm:getTrigger("name")` with `addListener(callback)` — see [PropertyTrigger](./data-values#propertytrigger).
+
+---
 
 ### Change Handling
 
-Use `update(self)` to react to input changes, or cache the previous value on `self` and compare it each update.
+When **any** input changes, Rive calls your `update()` function. This is where you react to new values — rebuild geometry, update colors, recalculate layout.
 
-**Note:** While Input values can technically be reassigned at runtime, this bypasses the binding system. Use ViewModel properties (`Property<T>`) for two-way binding.
+```lua
+function update(self: MyNode)
+    -- Called whenever any input changes
+    -- Rebuild whatever depends on the inputs
+    rebuildShape(self)
+end
+```
+
+`update()` does not tell you **which** input changed. If you need to know, store the previous value and compare:
+
+```lua
+function update(self: MyNode)
+    if self.size ~= self.lastSize then
+        rebuildPath(self)
+        self.lastSize = self.size
+    end
+end
+```
 
 **See Also:** [Property](#property), [ViewModel](#viewmodel)
 

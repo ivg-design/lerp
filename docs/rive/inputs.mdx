@@ -125,6 +125,149 @@ When you define an `Input<T>` type in your script, Rive automatically creates a 
 | `Input<string>` | `"hello"` | Text field | N/A |
 | `Input<Color>` | `Color.rgb(255, 0, 0)` | Color picker | Color Control |
 | `Input<Data.X>` | `late()` | ViewModel reference | N/A |
+| `Input<Trigger>` | `function() end` | Trigger button (bound in editor) | N/A |
+
+---
+
+## Trigger Inputs
+
+A trigger is a one-shot signal — like pressing a button. `Input<Trigger>` lets you connect a ViewModel trigger to your script so that when the trigger fires, your script can respond.
+
+### What Happens When a Trigger Fires
+
+When a trigger fires, Rive does three things in this exact order on the same frame:
+
+1. **Calls your trigger function** — the function you provided runs immediately
+2. **Runs `advance()`** — your per-frame animation logic runs next
+3. **Runs `update()`** — your input-change handler runs last
+
+This means that inside `advance()`, you can already see any changes your trigger function made.
+
+### Setting Up a Trigger Input
+
+There are three steps: declare it, provide a placeholder, then wire up the real behavior.
+
+**Step 1 — Declare the input in your type:**
+
+```lua
+export type MyNode = {
+    resetTrigger: Input<Trigger>,
+    pendingReset: boolean,       -- a simple true/false to remember "trigger fired"
+}
+```
+
+`pendingReset` is a regular boolean on your script — it is NOT a ViewModel property. You do not need to add it to the ViewModel in the editor. It lives entirely inside your script as a way to remember that the trigger fired.
+
+**Step 2 — Provide `function() end` in the factory:**
+
+The factory must give a real function as the default value. This is a placeholder that does nothing — Rive will call it if the trigger fires before `init()` runs.
+
+```lua
+return function(): Node<MyNode>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        resetTrigger = function() end,  -- placeholder (does nothing)
+        pendingReset = false,
+    }
+end
+```
+
+:::danger `late()` and `nil` do not work here
+Unlike `Input<Data.X>` which uses `late()`, trigger inputs must be a function. Using `late()` or `nil` causes the runtime error: `"expected trigger X to be a function"`.
+:::
+
+**Step 3 — Override in `init()` with real behavior:**
+
+In `init()`, replace the placeholder with a function that sets `pendingReset` to `true`:
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    self.resetTrigger = function()
+        self.pendingReset = true
+    end
+    return true
+end
+```
+
+When the trigger fires, Rive calls this function. It sets `pendingReset = true` — that's it. The actual work happens in `advance()`:
+
+```lua
+function advance(self: MyNode, seconds: number): boolean
+    if self.pendingReset then
+        self.pendingReset = false    -- clear the flag so it only runs once
+        resetEverything(self)        -- do the actual reset work
+    end
+    return true
+end
+```
+
+### Why Not Do the Work Directly in the Trigger Function?
+
+You could — and for simple actions, that works fine. The reason to use `pendingReset` as an in-between step:
+
+Your `advance()` function might be looping through a list of items (rocks, particles, etc.) when the trigger fires. If the trigger function rebuilds that list in the middle of the loop, things can break. By setting a boolean (`pendingReset = true`) in the trigger function and checking it at the **top** of `advance()` — before any loops start — you guarantee the reset happens at a safe moment.
+
+Think of it like a sticky note: the trigger function writes "please reset" on the note, and `advance()` reads the note at the start of each frame before doing anything else.
+
+### Complete Example
+
+```lua
+export type MyNode = {
+    resetTrigger: Input<Trigger>,
+    pendingReset: boolean,
+    items: { number },
+}
+
+function init(self: MyNode, context: Context): boolean
+    self.resetTrigger = function()
+        self.pendingReset = true
+    end
+    return true
+end
+
+function advance(self: MyNode, seconds: number): boolean
+    -- Check the "sticky note" before doing anything else
+    if self.pendingReset then
+        self.pendingReset = false
+        self.items = {}  -- safe to rebuild here, before any loop
+    end
+
+    -- Now loop through items safely
+    for _, item in ipairs(self.items) do
+        -- process items...
+    end
+
+    return true
+end
+
+function draw(self: MyNode, renderer: Renderer)
+end
+
+return function(): Node<MyNode>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        resetTrigger = function() end,
+        pendingReset = false,
+        items = {},
+    }
+end
+```
+
+### Editor Setup
+
+1. Add a **Trigger** property to your ViewModel in the Rive editor (e.g. `resetAll`)
+2. Select your script node, open the input panel — you'll see `resetTrigger` listed
+3. Bind it to the ViewModel trigger
+4. Fire the trigger from a state machine transition, a listener, or another script
+
+:::warning Common Mistakes
+- Using `late()` or `nil` in the factory — Rive expects a function, use `function() end`
+- Assuming `update()` runs first — it doesn't; the trigger function runs, then `advance()`, then `update()`
+:::
 
 ---
 

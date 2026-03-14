@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: Events
-description: PointerEvent and Trigger for interactions
+description: PointerEvent for pointer interactions
 keywords:
   - rive
   - luau
@@ -10,12 +10,11 @@ keywords:
   - reference
   - events
   - pointerevent
-  - trigger
 ---
 
 # Events
 
-APIs for pointer interactions and action triggers.
+APIs for pointer interactions.
 
 ---
 
@@ -72,15 +71,7 @@ end
 
 ## Trigger
 
-A type alias used in `Input<T>` declarations to mark a trigger input.
-
-```lua
-export type Trigger = (any) -> ()
-```
-
-In practice, triggers are accessed via `viewModel:getTrigger(...)`, which returns a [PropertyTrigger](./data-values#propertytrigger) with `fire()` and listener methods. The `Trigger` type itself is primarily used when declaring `Input<Trigger>` fields on script types.
-
-**See Also:** [PropertyTrigger](./data-values#propertytrigger)
+See [Data & Input: Trigger](./data-input#inputtrigger) for the `Trigger` type reference, and [Trigger Inputs](/rive/inputs#trigger-inputs) for the full usage guide.
 
 ## Next Steps
 
