@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the LERP (Learn Rive Luau) course are documented in this file.
+All notable changes to the LERP (Luau Education for Rive Professionals) course are documented in this file.
 
 ---
 
