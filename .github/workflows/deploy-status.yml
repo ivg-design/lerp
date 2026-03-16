@@ -1,0 +1,23 @@
+name: Track Deployment
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  deployments: write
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create deployment
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: Production
+          environment-url: https://forge.mograph.life/apps/lerp/
+          ref: ${{ github.sha }}
+          production-environment: true
+          initial-status: success
+          auto-inactive: true
