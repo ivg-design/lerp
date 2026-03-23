@@ -1,0 +1,267 @@
+---
+sidebar_position: 12
+title: Tips and Tricks
+description: Common workarounds, patterns, and solutions for Rive Luau scripting problems
+keywords:
+  - rive
+  - luau
+  - tips
+  - tricks
+  - workarounds
+  - bus pattern
+  - cross-script
+  - bounds
+  - input types
+  - advance
+  - strict mode
+---
+
+import Quiz from '@site/src/components/Quiz';
+import Term from '@site/src/components/Term';
+
+# Tips and Tricks
+
+Proven workarounds, non-obvious patterns, and solutions to common Rive scripting problems that don't fit neatly into a single lesson.
+
+---
+
+## The Bus Pattern (Cross-Script Communication)
+
+**Problem:** You need to pass data between script types that cannot communicate directly. There is no `Input<Node>` type, `NodeData` does not expose `bounds()`, and ViewModel properties are clumsy for structured per-frame data.
+
+**Solution:** Use a Util script as a shared data bus. Because `require()` caching is built into the Rive Lua VM, every script that imports the same Util module gets the same table instance. A writer sets values; a reader gets them.
+
+```lua
+-- UTIL SCRIPT: DataBus
+local DataBus = {}
+local store: { [string]: any } = {}
+
+function DataBus.set(key: string, data: any)
+    store[key] = data
+end
+
+function DataBus.get(key: string): any?
+    return store[key]
+end
+
+return DataBus
+```
+
+Use string keys as namespaces so multiple independent instances can coexist without collision (pass the key as an Input to each script).
+
+### Common Use Cases
+
+**Getting bounds in a Node script:** Attach a PathEffect to the target shape. PathEffect scripts receive the `path` object in `draw()`, and `path:bounds()` returns an AABB. Write it to the bus for a Node script to read.
+
+```lua
+-- PATH EFFECT on the hitbox shape
+local Bus = require("HitboxBus")
+
+function draw(self, renderer, path)
+    local b = path:bounds()
+    Bus.set(self.hitboxKey, {
+        minX = b.minX, minY = b.minY,
+        maxX = b.maxX, maxY = b.maxY,
+    })
+end
+```
+
+```lua
+-- NODE SCRIPT that needs the bounds
+local Bus = require("HitboxBus")
+
+function advance(self, elapsed: number): boolean
+    local bounds = Bus.get("player_hitbox")
+    if bounds then
+        local width = bounds.maxX - bounds.minX
+        local height = bounds.maxY - bounds.minY
+    end
+    return true
+end
+```
+
+**Referencing nodes across scripts:** Since `Input<Node>` is not a supported type, use a ViewModel property as intermediary (one script writes, another reads) or pass the data through a bus.
+
+**Decoupled event communication:** For pub/sub patterns where multiple Node scripts react to the same event, create an EventBus Util with `publish()` and `subscribe()` methods. Full implementation and exercises: [Listener Protocol -- EventBus Exercise](/rive/protocols/listener-protocol#exercises).
+
+### When to Use What
+
+| Need | Pattern |
+|------|---------|
+| Pure helper functions | Stateless Util (no shared state needed) |
+| Simple shared values | ViewModel property (editor-visible, bindable) |
+| Structured data between script types | Bus Util |
+| Event-driven decoupled communication | EventBus Util |
+
+Production examples: `PoserHitboxBus` (hitbox bounds), `GlassifierBus` (visual effect state with version tracking), the electricity effect (path geometry), `FadeTrimBus` (trim endpoint data).
+
+**Full explanation:** [Util Protocol -- The Bus Pattern](/rive/protocols/util-protocol#the-bus-pattern-intentional-shared-state)
+
+---
+
+## advance() Return Value Matters
+
+**Problem:** Your script works initially but stops responding after a while. `advance()` is no longer being called, even though nothing in your code explicitly stopped it.
+
+**Why:** When `advance()` returns `false`, the Rive runtime interprets this as "this script needs no further updates" and may stop scheduling calls to it. If your script needs to poll a value every frame (like a ViewModel boolean or a bus), returning `false` when idle will silently kill it.
+
+```lua
+-- WRONG: returns false when there's "nothing to do"
+function advance(self, elapsed: number): boolean
+    if not self.isAnimating then
+        return false  -- Runtime stops calling advance()!
+    end
+    -- ... animation logic ...
+    return true
+end
+
+-- CORRECT: always return true if you need continuous polling
+function advance(self, elapsed: number): boolean
+    if self.isAnimating then
+        -- ... animation logic ...
+    end
+    -- Even when idle, keep advance() alive for polling
+    return true
+end
+```
+
+**Rule of thumb:** Only return `false` from `advance()` if your script is truly finished and will never need another frame update. If there is any chance you need to react to future input changes, return `true`.
+
+**Related:** [Node Protocol](/rive/protocols/node-protocol), [Node Lifecycle](/rive/protocols/node-lifecycle)
+
+---
+
+## and/or Widens String Literal Types
+
+**Problem:** You write `self.roundCaps and "round" or "butt"` to conditionally set a paint cap style, and Luau flags a type error on the paint field.
+
+**Why:** In Luau, `and/or` expressions widen string literal types to plain `string`. The expression evaluates to `string`, not `"round" | "butt"`. When you assign this to a typed field like `StrokeCap` or `BlendMode`, the type checker rejects it.
+
+```lua
+-- BROKEN: Luau widens this to `string`, not `"round" | "butt"`
+local cap = self.roundCaps and "round" or "butt"
+local paint = Paint.with({ strokeCap = cap })  -- Type error!
+
+-- CORRECT: if/else preserves the literal type
+local cap = if self.roundCaps then "round" else "butt"
+local paint = Paint.with({ strokeCap = cap })  -- Works
+```
+
+This applies to any field that expects a string literal union: `BlendMode`, `StrokeCap`, `StrokeJoin`, `FillType`, etc.
+
+**Related:** [Drawing API](/advanced/drawing-api), [Core Types](/advanced/core-types)
+
+---
+
+## Sustained-Boolean for State Machine Triggers
+
+**Problem:** You set a boolean Input to `true` for one frame to trigger a state machine transition, but the state machine misses it.
+
+**Why:** State machine condition checks and script `advance()` calls don't necessarily run on the same frame tick. If you set a boolean to `true` and immediately back to `false`, the state machine may never see it.
+
+**Solution:** Keep the boolean `true` for the entire duration the state machine needs to read it. Use a frame counter to hold the value, then reset after a safe window.
+
+```lua
+local triggerFrames = 0
+local HOLD_DURATION = 3  -- frames to hold the boolean true
+
+function advance(self, elapsed: number): boolean
+    if shouldTrigger then
+        self.myFlag = true
+        triggerFrames = HOLD_DURATION
+        shouldTrigger = false
+    end
+
+    if triggerFrames > 0 then
+        triggerFrames -= 1
+        if triggerFrames == 0 then
+            self.myFlag = false
+        end
+    end
+
+    return true
+end
+```
+
+This pattern was validated in production scoring and UI state systems where single-frame approaches proved unreliable.
+
+**Important:** When using boolean ViewModel properties from a host app (not just within Luau), the caller must explicitly reset the boolean to `false` after triggering. Without the reset, subsequent `true` assignments are no-ops because the value never actually changed. The sequence is: set value `true`, wait for the state machine to react, then set `false`.
+
+**Alternative:** Use `Input<Trigger>` instead of a boolean -- triggers are fire-and-forget and don't require sustained state. See [Trigger Inputs](/rive/inputs#trigger-inputs). Note: there is a known runtime bug where `addListener` callbacks on triggers silently stop firing after repeated invocations. This has been reported. If you encounter unreliable trigger listeners, fall back to the polled boolean pattern above.
+
+---
+
+## Cubic Bezier Easing in Pure Luau
+
+**Problem:** You need custom easing curves (like CSS `cubic-bezier(0.4, 0, 0.2, 1)`) but Rive timeline keyframes don't cover your use case, or you need easing computed in script.
+
+**Solution:** A self-contained Newton-Raphson solver that takes four control points and returns an eased value. Copy-pasteable, no dependencies.
+
+```lua
+local BEZ_X1, BEZ_Y1 = 0.4, 0.0   -- control point 1
+local BEZ_X2, BEZ_Y2 = 0.2, 1.0   -- control point 2
+
+local function evalCubic(a: number, b: number, m: number): number
+    return (((1 + 3*a - 3*b)*m + (3*b - 6*a))*m + 3*a)*m
+end
+
+local function evalCubicDeriv(a: number, b: number, m: number): number
+    return ((3 + 9*a - 9*b)*m + (6*b - 12*a))*m + 3*a
+end
+
+local function bezierEase(t: number): number
+    local m = t
+    for _ = 1, 8 do
+        local d = evalCubicDeriv(BEZ_X1, BEZ_X2, m)
+        if math.abs(d) < 1e-6 then break end
+        m = m - (evalCubic(BEZ_X1, BEZ_X2, m) - t) / d
+    end
+    return math.clamp(evalCubic(BEZ_Y1, BEZ_Y2, m), 0, 1)
+end
+```
+
+Usage: `local eased = bezierEase(linearT)` where `linearT` is 0..1. Swap the control point constants for any CSS easing curve.
+
+**Related:** [Procedural Animation](/advanced/procedural)
+
+---
+
+## Debug Toggle for Clean Logs
+
+**Problem:** You add `print()` calls while developing a script, then forget to remove them. The console fills with debug output in production .riv files.
+
+**Solution:** Add a `debug: Input<boolean>` field to your script and route all logging through a helper. The debug checkbox appears in the Rive editor -- turn it on when developing, off when shipping.
+
+```lua
+export type MyScript = {
+    debug: Input<boolean>,
+    -- ... other fields
+}
+
+local function log(self: MyScript, ...: any)
+    if self.debug then
+        print(...)
+    end
+end
+
+function advance(self: MyScript, elapsed: number): boolean
+    log(self, "frame elapsed:", elapsed)
+    -- ... script logic
+    return true
+end
+```
+
+This keeps your debug instrumentation in place without polluting the console. The `Input<boolean>` field defaults to `false` in the editor, so logging is off unless explicitly enabled.
+
+---
+
+## Summary
+
+| Tip | Problem | Fix |
+|-----|---------|-----|
+| [Bus Pattern](#the-bus-pattern-cross-script-communication) | No direct cross-script communication | Shared Util module via `require()` caching |
+| [advance() return value](#advance-return-value-matters) | Script silently stops updating | Always return `true` if you need continuous polling |
+| [and/or type widening](#andor-widens-string-literal-types) | Type error on paint/blend fields | Use `if/else` expression instead |
+| [Sustained-boolean](#sustained-boolean-for-state-machine-triggers) | State machine misses single-frame flags | Hold boolean `true` for N frames, reset explicitly |
+| [Cubic bezier easing](#cubic-bezier-easing-in-pure-luau) | Need custom easing curves in script | Newton-Raphson solver, copy-pasteable |
+| [Debug toggle](#debug-toggle-for-clean-logs) | print() spam in production | `debug: Input<boolean>` + log() helper |

@@ -10,6 +10,21 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.4] — 2026-03-23
+
+### Added
+- **Tips and Tricks page** — new reference index of proven workarounds and non-obvious patterns: Bus Module Pattern (with use cases for bounds, Input types, and EventBus), `advance()` return value gotcha, `and/or` string literal type widening, Sustained-Boolean Pattern (with boolean reset and trigger listener bug note), cubic bezier easing in pure Luau, and debug toggle convention
+- **Bus Pattern documentation** — new section in Util Protocol explaining intentional shared state via `require()` caching for cross-script communication, with production-tested code examples (HitboxBus, PathEffect-to-Node data sharing)
+
+### Changed
+- **Util Protocol reframed** — replaced blanket "avoid global state" language with nuanced guidance distinguishing accidental shared state (dangerous) from intentional bus architecture (legitimate pattern); updated quiz explanation, gotcha section, and summary accordingly
+- **Sidebar** — added Tips and Tricks entry between API Reference and Quick Reference
+
+### Fixed
+- **Internal contradiction resolved** — Listener Protocol already taught EventBus as legitimate shared state via Util scripts, while Util Protocol labeled all module-level state as BAD/WRONG; both pages now present a consistent position
+
+---
+
 ## [1.2.3] — 2026-03-14
 
 ### Added

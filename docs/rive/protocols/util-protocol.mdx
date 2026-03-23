@@ -44,7 +44,7 @@ import Term from '@site/src/components/Term';
 **Rive Util Scripts**: Are PURE modules. They:
 - ❌ Have no `init`, `draw`, `advance`, or `update`
 - ❌ Cannot attach to nodes
-- ❌ Should not have global mutable state
+- ⚠️ Avoid *accidental* mutable state (see [Bus Pattern](#the-bus-pattern-intentional-shared-state) for the intentional exception)
 - ✅ Export functions and types only
 - ✅ Are shared across ALL scripts that import them
 
@@ -622,17 +622,22 @@ Each Util script should do one thing well:
 - `Spring` - spring physics
 - `EasingFunctions` - easing curves
 
-### Avoid Global State
+### Avoid *Accidental* Global State
+
+Most Util scripts should be **pure** — stateless functions that take input and return output.
+The danger isn't module-level state itself; it's *unintentional* shared state that couples
+scripts in ways the author didn't plan for:
 
 ```lua
--- BAD: Global state is shared across ALL script instances
+-- DANGEROUS: Accidental shared state — every script that requires
+-- this module silently shares the same counter
 local counter = 0
 function MyUtil.increment()
     counter += 1
     return counter
 end
 
--- GOOD: State is passed in and returned
+-- SAFE: Pure function — caller owns the state
 function MyUtil.increment(counter: number): number
     return counter + 1
 end
@@ -641,13 +646,19 @@ end
 ```typescript
 // JavaScript equivalent of the problem:
 
-// BAD: Module-level state shared everywhere
+// DANGEROUS: Module-level state shared everywhere
 let counter = 0;
 export const increment = () => ++counter;
 
-// GOOD: Pure function
+// SAFE: Pure function
 export const increment = (counter: number) => counter + 1;
 ```
+
+:::tip When shared state IS the answer
+There is one important exception: the **Bus Pattern**. When you *intentionally* need cross-script
+communication (e.g., a PathEffect writing data for a Node script to read), a Util module with
+deliberate shared state is the correct architecture. See [The Bus Pattern](#the-bus-pattern-intentional-shared-state) below.
+:::
 
 ### Export Types for Type Safety
 
@@ -689,15 +700,15 @@ end
 />
 
 <Quiz
-  question="Why should you avoid global state in Util scripts?"
+  question="Why should you avoid accidental global state in Util scripts?"
   id="util-q3"
   options={[
     { text: "It causes syntax errors" },
-    { text: "Global state is shared across all script instances", correct: true },
+    { text: "Unintentional shared state couples scripts in hidden ways", correct: true },
     { text: "Rive doesn't support global variables" },
     { text: "It makes the script slower" },
   ]}
-  explanation="Global state in a Util script is shared across ALL Node script instances that use it, which can cause unexpected behavior. Pass state as parameters instead."
+  explanation="Module-level state in a Util script is shared across ALL scripts that require() it. Accidental shared state creates hidden coupling and unexpected behavior. However, intentional shared state (the Bus Pattern) is a legitimate architecture for cross-script communication."
 />
 
 <Quiz
@@ -745,16 +756,17 @@ function MyUtil.helper() end
 return MyUtil
 ```
 
-### 3. Mutable Global State
+### 3. Accidental Shared State
 
 ```lua
--- WRONG: Shared mutable state
+-- DANGEROUS: This cache is shared by ALL scripts that require() this module.
+-- If you didn't intend that, you have a bug.
 local cache = {}
 function MyUtil.getOrCreate(key)
-    -- This cache is shared by ALL scripts!
+    -- Every script silently reads/writes the same cache!
 end
 
--- CORRECT: Let each script manage its own cache
+-- SAFE: Let each script manage its own cache
 function MyUtil.createCache()
     return {}
 end
@@ -764,14 +776,107 @@ function MyUtil.getOrCreate(cache, key)
 end
 ```
 
+Note: If you *do* want a shared cache or data store across scripts, that is the
+[Bus Pattern](#the-bus-pattern-intentional-shared-state) and it is perfectly valid.
+
+---
+
+## The Bus Pattern: Intentional Shared State
+
+Throughout this page, we warn against *accidental* module-level state.
+But there is a well-established Rive architecture where shared mutable state in a
+Util script is exactly the right tool: the **Bus Pattern**.
+
+### The Problem
+
+Different script types in Rive cannot share state directly.
+A PathEffect script computes geometry but has no way to pass values to a Node script.
+There is no `Input<Node>` type. ViewModel properties work for simple values, but are
+clumsy for passing structured data like path geometry or hit-test bounds between scripts
+every frame.
+
+### The Solution
+
+Because `require()` caching is built into the Rive Lua VM, every script that calls
+`require("MyBus")` gets the **same table instance**. A writer script sets values on
+that table; a reader script gets them. This is intentional behavior — the runtime
+caches each module on first `require()` and returns the cached instance on every
+subsequent call.
+
+```lua
+-- UTIL SCRIPT: HitboxBus
+-- A shared data bus for cross-script communication
+
+local HitboxBus = {}
+
+local registry: { [string]: any } = {}
+
+function HitboxBus.set(key: string, data: any)
+    registry[key] = data
+end
+
+function HitboxBus.get(key: string): any?
+    return registry[key]
+end
+
+return HitboxBus
+```
+
+```lua
+-- PATH EFFECT SCRIPT: writes bounds data to the bus
+local Bus = require("HitboxBus")
+
+function draw(self, renderer, path)
+    local bounds = path:bounds()
+    Bus.set(self.busKey, {
+        minX = bounds.minX, minY = bounds.minY,
+        maxX = bounds.maxX, maxY = bounds.maxY,
+    })
+end
+```
+
+```lua
+-- NODE SCRIPT: reads bounds data from the bus
+local Bus = require("HitboxBus")
+
+function advance(self, elapsed: number): boolean
+    local bounds = Bus.get("player_hitbox")
+    if bounds then
+        -- Use bounds for hit detection, positioning, etc.
+    end
+    return true
+end
+```
+
+### When to Use Each Pattern
+
+| Need | Pattern | Why |
+|------|---------|-----|
+| Pure helper functions | Stateless Util | No coupling, easy to test |
+| Simple shared values | ViewModel property | Editor-visible, bindable |
+| Structured cross-script data (bounds, paths, state) | Bus Util | Only option for PathEffect-to-Node communication |
+| Event-driven communication | EventBus Util | Decoupled pub/sub (see [Listener Protocol](/rive/protocols/listener-protocol)) |
+
+### Key Distinction
+
+| | Accidental shared state | Bus Pattern |
+|---|---|---|
+| **Intent** | Author didn't realize state was shared | Deliberately designed as a communication channel |
+| **Naming** | Generic (`cache`, `counter`) | Purpose-named (`HitboxBus`, `GlassifierBus`) |
+| **Documentation** | None | Type exports, clear get/set API |
+| **Coupling** | Hidden | Explicit — both scripts know they share the bus |
+
+For a quick-reference of this and other common patterns, see [Tips and Tricks](/tips-tricks).
+
 ---
 
 ## Summary
 
 - Util scripts are modules that export functions and types
-- They have no lifecycle - just `return` a table
+- They have no lifecycle — just `return` a table
 - Use `require()` to import them in Node scripts
-- Keep them focused and avoid global state
+- Keep them focused and avoid *accidental* global state
+- Intentional shared state (the Bus Pattern) is a legitimate cross-script communication architecture
 - Export types for better type safety across scripts
 
 ---

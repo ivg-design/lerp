@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generatedAt": "2026-02-27T15:32:34.139Z",
+  "generatedAt": "2026-03-23T10:50:13.198Z",
   "canonical": "https://forge.mograph.life/apps/lerp/",
   "site": {
     "name": "LERP",
@@ -50,6 +50,24 @@
         "zero"
       ],
       "sourcePath": "docs/intro.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "about-author",
+      "title": "About the Author",
+      "description": "Author credentials and background for the LERP course",
+      "url": "https://forge.mograph.life/apps/lerp/about-author",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/about-author",
+      "group": "root",
+      "tags": [
+        "author",
+        "credentials",
+        "lerp",
+        "rive",
+        "luau"
+      ],
+      "sourcePath": "docs/about-author.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -285,7 +303,7 @@
     {
       "id": "api-events",
       "title": "Events",
-      "description": "PointerEvent and Trigger for interactions",
+      "description": "PointerEvent for pointer interactions",
       "url": "https://forge.mograph.life/apps/lerp/api/events",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/events",
       "group": "api",
@@ -296,8 +314,7 @@
         "api",
         "reference",
         "events",
-        "pointerevent",
-        "trigger"
+        "pointerevent"
       ],
       "sourcePath": "docs/api/events.mdx",
       "contentType": "documentation",
@@ -477,6 +494,116 @@
         "resources"
       ],
       "sourcePath": "docs/best-practices/resources.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "generated-index-api-_category_.json",
+      "title": "API Reference",
+      "description": "Complete Rive Luau API documentation organized by category.",
+      "url": "https://forge.mograph.life/apps/lerp/category/api-reference",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/category/api-reference",
+      "group": "api",
+      "tags": [
+        "generated-index",
+        "navigation"
+      ],
+      "sourcePath": "docs/api/_category_.json",
+      "contentType": "generated-index",
+      "language": "en"
+    },
+    {
+      "id": "changelog",
+      "title": "Changelog",
+      "description": "All notable changes to the LERP course",
+      "url": "https://forge.mograph.life/apps/lerp/changelog",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/changelog",
+      "group": "root",
+      "tags": [],
+      "sourcePath": "docs/changelog.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "contact-transparency",
+      "title": "Contact & Transparency",
+      "description": "Contact paths and transparency details for LERP maintenance",
+      "url": "https://forge.mograph.life/apps/lerp/contact-transparency",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/contact-transparency",
+      "group": "root",
+      "tags": [
+        "contact",
+        "transparency",
+        "support"
+      ],
+      "sourcePath": "docs/contact-transparency.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "contribution-instructions",
+      "title": "Contribution Instructions",
+      "description": "Step-by-step instructions for contributing to LERP",
+      "url": "https://forge.mograph.life/apps/lerp/contribution-instructions",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/contribution-instructions",
+      "group": "root",
+      "tags": [
+        "contribute",
+        "pull request",
+        "instructions",
+        "docs workflow"
+      ],
+      "sourcePath": "docs/contribution-instructions.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "contribution-policy",
+      "title": "Contribution Policy",
+      "description": "Quality and governance policy for contributing to LERP",
+      "url": "https://forge.mograph.life/apps/lerp/contribution-policy",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/contribution-policy",
+      "group": "root",
+      "tags": [
+        "contribution policy",
+        "governance",
+        "quality",
+        "review"
+      ],
+      "sourcePath": "docs/contribution-policy.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "corrections-policy",
+      "title": "Corrections Policy",
+      "description": "How LERP handles errors, clarifications, and content corrections",
+      "url": "https://forge.mograph.life/apps/lerp/corrections-policy",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/corrections-policy",
+      "group": "root",
+      "tags": [
+        "corrections",
+        "policy",
+        "transparency"
+      ],
+      "sourcePath": "docs/corrections-policy.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "editorial-methodology",
+      "title": "Editorial Methodology",
+      "description": "How LERP content is authored, reviewed, and updated",
+      "url": "https://forge.mograph.life/apps/lerp/editorial-methodology",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/editorial-methodology",
+      "group": "root",
+      "tags": [
+        "methodology",
+        "editorial",
+        "quality",
+        "citations"
+      ],
+      "sourcePath": "docs/editorial-methodology.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -915,6 +1042,40 @@
       "language": "en"
     },
     {
+      "id": "open-source-license",
+      "title": "Open Source License (MIT)",
+      "description": "LERP is open source under the MIT License",
+      "url": "https://forge.mograph.life/apps/lerp/open-source-license",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/open-source-license",
+      "group": "root",
+      "tags": [
+        "license",
+        "mit",
+        "open source",
+        "legal"
+      ],
+      "sourcePath": "docs/open-source-license.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "privacy-local-storage",
+      "title": "Privacy (localStorage)",
+      "description": "How LERP stores progress locally and what data is (and is not) collected.",
+      "url": "https://forge.mograph.life/apps/lerp/privacy-local-storage",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/privacy-local-storage",
+      "group": "root",
+      "tags": [
+        "privacy",
+        "localStorage",
+        "data policy",
+        "LERP"
+      ],
+      "sourcePath": "docs/privacy-local-storage.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "progress",
       "title": "My Progress",
       "description": "Track your course progress and manage exercise completion",
@@ -1020,6 +1181,26 @@
       "language": "en"
     },
     {
+      "id": "rive-ai-agent",
+      "title": "Rive AI Agent",
+      "description": "Comprehensive guide to the Rive AI Coding Agent built into the editor",
+      "url": "https://forge.mograph.life/apps/lerp/rive/ai-agent",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/ai-agent",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "ai",
+        "agent",
+        "tools",
+        "assistant"
+      ],
+      "sourcePath": "docs/rive/ai-agent.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-environment",
       "title": "Rive Environment",
       "description": "Understand the Rive scripting environment, Console panel, script types, and sandbox limitations",
@@ -1100,6 +1281,26 @@
       "language": "en"
     },
     {
+      "id": "rive-protocols-listener-action-protocol",
+      "title": "ListenerAction Script Protocol",
+      "description": "Custom logic triggered by state machine listener events",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "listener",
+        "action",
+        "state machine",
+        "protocol"
+      ],
+      "sourcePath": "docs/rive/protocols/listener-action-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-protocols-listener-protocol",
       "title": "Listeners",
       "description": "Learn about Listener functions in Rive - property listeners, pointer events, and cross-script communication",
@@ -1161,7 +1362,7 @@
     {
       "id": "rive-protocols-path-effect-protocol",
       "title": "Path Effect Script Protocol",
-      "description": "Real-time manipulation of path geometry for stroke effects",
+      "description": "Real-time manipulation of path geometry for stroke and fill effects",
       "url": "https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/path-effect-protocol",
       "group": "rive",
@@ -1199,6 +1400,26 @@
       "language": "en"
     },
     {
+      "id": "rive-protocols-transition-condition-protocol",
+      "title": "TransitionCondition Script Protocol",
+      "description": "Custom state machine transition evaluation logic",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/transition-condition-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/transition-condition-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "transition",
+        "condition",
+        "state machine",
+        "protocol"
+      ],
+      "sourcePath": "docs/rive/protocols/transition-condition-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-protocols-util-protocol",
       "title": "Util Script Protocol",
       "description": "Learn how to create reusable Util scripts for sharing code across Node scripts in Rive",
@@ -1219,9 +1440,29 @@
       "language": "en"
     },
     {
+      "id": "rive-script-capability-matrix",
+      "title": "Script Capability Matrix",
+      "description": "Comprehensive matrix of what each Rive script type can access, what parameters it receives, and what it cannot do",
+      "url": "https://forge.mograph.life/apps/lerp/rive/script-capability-matrix",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/script-capability-matrix",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "matrix",
+        "script types",
+        "capabilities",
+        "limitations"
+      ],
+      "sourcePath": "docs/rive/script-capability-matrix.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-script-types",
       "title": "Script Types Overview",
-      "description": "All 7 Rive script types at a glance - when to use each one",
+      "description": "All 8 Rive script types at a glance - when to use each one",
       "url": "https://forge.mograph.life/apps/lerp/rive/script-types",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/script-types",
       "group": "rive",
@@ -1235,6 +1476,30 @@
         "glance"
       ],
       "sourcePath": "docs/rive/script-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "tips-tricks",
+      "title": "Tips and Tricks",
+      "description": "Common workarounds, patterns, and solutions for Rive Luau scripting problems",
+      "url": "https://forge.mograph.life/apps/lerp/tips-tricks",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/tips-tricks",
+      "group": "root",
+      "tags": [
+        "rive",
+        "luau",
+        "tips",
+        "tricks",
+        "workarounds",
+        "bus pattern",
+        "cross-script",
+        "bounds",
+        "input types",
+        "advance",
+        "strict mode"
+      ],
+      "sourcePath": "docs/tips-tricks.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -1325,7 +1590,7 @@
     {
       "id": "types-intro",
       "title": "2.1 Type Annotations & Inference",
-      "description": "Understand strict mode (optional --!strict directive), add type annotations, and understand type inference",
+      "description": "Understand strict mode, add type annotations, and understand type inference",
       "url": "https://forge.mograph.life/apps/lerp/types/intro",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/intro",
       "group": "types",
@@ -1367,7 +1632,7 @@
     {
       "id": "types-strict-mode",
       "title": "Strict Mode Deep Dive",
-      "description": "Master the --!strict directive and understand the type errors it catches",
+      "description": "Master strict mode and understand the type errors it catches",
       "url": "https://forge.mograph.life/apps/lerp/types/strict-mode",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/types/strict-mode",
       "group": "types",
