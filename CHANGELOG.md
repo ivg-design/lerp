@@ -4,6 +4,31 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.6] — 2026-04-26
+
+### Fixed
+- **OOP Exercise 6 (Read-Only Table)** — corrected the lesson to use a proxy-table pattern (`source` + `proxy`) so writes to existing keys are properly blocked via `__newindex` on the proxy.
+- **Exercise metadata alignment** — updated `oop-indexmeta-6` hints/explanation to match actual Luau metamethod semantics.
+
+---
+
+## [1.2.5] — 2026-04-26
+
+### Added
+- **Rive errata tracker** — reviewed and integrated `docs/rive/rive-doc-errata.mdx` findings, and marked the current batch as resolved in LERP.
+
+### Fixed
+- **ListenerAction callback guidance** — updated docs to use `performAction(self, listenerContext)` as the preferred callback, with `perform(self, pointerEvent)` marked legacy.
+- **Path Effect command checks** — replaced `CommandType.*` runtime examples with editor-validated string comparisons (`cmd.type == "moveTo"` etc.) and added explicit non-global note.
+- **ViewModel context wording** — corrected `context:viewModel()` semantics to immediate data-context scope and clarified `context:rootViewModel()` for root/artboard state.
+- **Listener lifetime guidance** — added warnings to keep VM/property handles alive (or use anchored listener overloads) for long-lived listeners.
+- **Pointer-event consumption docs** — replaced boolean consume/propagate wording with `event:hit()` / `event:hit(true)` guidance in Node lifecycle materials.
+
+### Changed
+- **Course metadata refresh** — updated Intro snapshot date/counts and sidebar "Last reviewed" date for this errata pass.
+
+---
+
 ## [1.2.3] — 2026-03-14
 
 ### Added

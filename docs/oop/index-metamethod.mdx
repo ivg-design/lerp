@@ -589,15 +589,20 @@ Your console output should display the lazily initialized value that was created
 
 ### Premise
 
-You can prevent writes by intercepting __newindex. This is useful for read-only configuration.
+`__newindex` only fires for assignments to keys that are missing in the target table.
+To make config effectively read-only (including existing keys), expose a proxy table:
+
+- `__index` reads from a backing source table
+- `__newindex` ignores writes on the proxy
 
 :::info Goal
-By the end of this exercise, you will block writes with __newindex.
+By the end of this exercise, you will build a read-only proxy with `__index` and `__newindex`.
 :::
 
 ### Use Case
 
-You want a config table that should not be mutated at runtime. Writes are ignored so defaults stay intact.
+You want runtime code to read config values but never mutate them directly.
+The proxy pattern prevents changes to both existing and new keys.
 
 **Example scenarios:**
 - Immutable configuration
@@ -624,17 +629,25 @@ You want a config table that should not be mutated at runtime. Writes are ignore
 export type Exercise6 = {}
 
 function init(self: Exercise6): boolean
-    local config = {
+    local source = {
         mode = "locked",
     }
 
+    local config = {}
+
     setmetatable(config, {
-        -- TODO: Ignore any new assignments
+        -- TODO: Read from source
+        __index = nil,
+        -- TODO: Ignore writes on the proxy
         __newindex = function(t, key, value)
         end,
     })
 
+    -- Existing key in source: should still be blocked
     config.mode = "open"
+    -- New key on proxy: should also be blocked
+    config.debug = true
+
     print(`ANSWER: mode={config.mode}`)
     return true
 end
@@ -656,8 +669,9 @@ end
 
 Complete these tasks:
 
-1. Make __newindex ignore writes
-2. Keep the original mode value
+1. Set `__index` to `source`
+2. Make `__newindex` ignore writes
+3. Keep the original `mode` value
 
 ---
 
@@ -678,7 +692,8 @@ Your console output should display the original mode value, proving that writes 
 
 ### Checklist
 
-- [ ] Writes are ignored
+- [ ] Proxy reads from source via `__index`
+- [ ] Writes are ignored by `__newindex`
 - [ ] Mode remains locked
 - [ ] Output matches the expected line
 
@@ -797,6 +812,26 @@ setmetatable(obj, {
 -- SIMPLER: Just use a table
 local defaults = { default1 = 10, default2 = 20 }
 setmetatable(obj, { __index = defaults })
+```
+
+### 5. Expecting __newindex for Existing Keys on the Same Table
+
+```lua
+-- WRONG assumption: existing key bypasses __newindex
+local t = { mode = "locked" }
+setmetatable(t, {
+    __newindex = function() print("blocked") end
+})
+t.mode = "open"  -- __newindex NOT called
+
+-- CORRECT: use a proxy table
+local source = { mode = "locked" }
+local proxy = {}
+setmetatable(proxy, {
+    __index = source,
+    __newindex = function() end, -- ignore writes
+})
+proxy.mode = "open"  -- blocked
 ```
 
 ---

@@ -10,6 +10,31 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.6] — 2026-04-26
+
+### Fixed
+- **OOP Exercise 6 (Read-Only Table)** — corrected the exercise to use a proxy-table read-only pattern (`source` + `proxy`) so writes to existing keys are properly blocked through `__newindex` on the proxy.
+- **Exercise registry sync** — updated `oop-indexmeta-6` hints and explanation to reflect true Luau metamethod behavior.
+
+---
+
+## [1.2.5] — 2026-04-26
+
+### Added
+- **Rive errata tracker review pass** — integrated corrections from `docs/rive/rive-doc-errata.mdx` and marked this batch as resolved in LERP.
+
+### Fixed
+- **ListenerAction callback guidance** — docs now prefer `performAction(self, listenerContext)` and mark `perform(self, pointerEvent)` as legacy.
+- **Path Effect command checks** — replaced runtime `CommandType.*` examples with editor-validated string comparisons and clarified `CommandType` is not a guaranteed global Luau table.
+- **ViewModel context semantics** — corrected `context:viewModel()` wording to immediate data-context behavior and clarified `context:rootViewModel()` for root/artboard state.
+- **Property listener lifetime warnings** — added guidance to retain VM/property handles on `self` (or use anchored overloads) for long-lived listeners.
+- **Node pointer-event consumption guidance** — replaced boolean return consume/propagate wording with `event:hit()` / `event:hit(true)`.
+
+### Changed
+- **Course metadata** — updated Intro snapshot date/counts and sidebar "Last reviewed" date for the errata pass.
+
+---
+
 ## [1.2.4] — 2026-03-23
 
 ### Added
@@ -41,7 +66,6 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ### Fixed
 - **Trigger factory default** — documented that `late()` causes runtime error "expected trigger X to be a function"; must use `function() end`
-- **Removed incorrect claims** — `Input<Trigger>?` does NOT hide triggers from the UI; you CAN assign to trigger inputs in init (and it sticks)
 - **Removed incorrect claims** — `Input<Trigger>?` does NOT hide triggers from the UI; you CAN assign to trigger inputs in init (and it sticks)
 
 ---

@@ -2687,11 +2687,11 @@
       "expectedAnswer": "ANSWER: mode=locked",
       "docPath": "/oop/index-metamethod#exercise-6-readonly-table",
       "hints": [
-        "Ignore writes in __newindex",
-        "mode should remain locked",
-        "Do not change the original table"
+        "Use a proxy table and keep source data in a separate table",
+        "Set __index to source so reads come from source",
+        "Ignore writes in __newindex so mode stays locked"
       ],
-      "explanation": "__newindex ignores assignments so the mode stays locked.",
+      "explanation": "Read-only behavior is implemented with a proxy: __index reads from source and __newindex ignores writes.",
       "reviewLinks": [
         {
           "label": "__index Metamethod",
