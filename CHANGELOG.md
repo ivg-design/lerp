@@ -7,8 +7,8 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 ## [1.2.6] — 2026-04-26
 
 ### Fixed
-- **OOP Exercise 6 (Read-Only Table)** — corrected the lesson to use a proxy-table pattern (`source` + `proxy`) so writes to existing keys are properly blocked via `__newindex` on the proxy.
-- **Exercise metadata alignment** — updated `oop-indexmeta-6` hints/explanation to match actual Luau metamethod semantics.
+- **OOP Exercise 6 (Read-Only Table)** — corrected the lesson to use a proxy-table pattern (`source` + `proxy`) so writes to existing keys are properly blocked via `__newindex` on the proxy. Reported in GitHub issue [#1](https://github.com/ivg-design/lerp/issues/1).
+- **Exercise metadata alignment** — updated `oop-indexmeta-6` hints/explanation to match actual Luau metamethod semantics from issue [#1](https://github.com/ivg-design/lerp/issues/1).
 
 ---
 
