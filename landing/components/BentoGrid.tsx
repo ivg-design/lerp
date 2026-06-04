@@ -46,20 +46,20 @@ const CARDS: CardData[][] = [
       lessons: ["Prototype-Based Programming", "Metatables", "Index Metamethod", "Classes", "Self and Methods", "Inheritance", "Encapsulation", "Patterns"],
     },
     {
-      id: "rive-int", tag: "05 · 14 lessons", tagColor: "purple",
+      id: "rive-int", tag: "05 · 15 lessons", tagColor: "purple",
       title: "Rive Integration",
-      desc: "All 10 script protocols. Node, Layout, Converter, Path Effect, Listener, and more — each with lifecycle callbacks and templates.",
+      desc: "Rive protocol lessons for Node, Layout, Converter, Path Effect, ListenerAction, ScriptedInterpolator, and more.",
       bg: "bento-rive-int",
-      lessons: ["Environment", "Script Types", "Script Capability Matrix", "Inputs", "AI Agent", "Node Protocol", "Node Lifecycle", "Layout Protocol", "Converter Protocol", "Path Effect Protocol", "Listener Action Protocol", "Transition Condition Protocol", "Util Protocol", "Test Protocol"],
+      lessons: ["Environment", "Script Types", "Script Capability Matrix", "Inputs", "AI Agent", "Node Protocol", "Node Lifecycle", "Layout Protocol", "Converter Protocol", "Path Effect Protocol", "Listener Action Protocol", "Transition Condition Protocol", "ScriptedInterpolator Protocol", "Util Protocol", "Test Protocol"],
     },
   ],
   [
     {
-      id: "advanced", tag: "06 · 7 lessons", tagColor: "dark",
+      id: "advanced", tag: "06 · 8 lessons", tagColor: "dark",
       title: "Advanced Rive\nScripting",
-      desc: "Drawing API, procedural animation, custom easing, and advanced data binding patterns.",
+      desc: "Drawing API, procedural animation, custom easing, GPU shaders, and advanced data binding patterns.",
       bg: "bento-adv", dark: true,
-      lessons: ["Core Types", "Drawing API", "ViewModels", "Listener Protocol", "Game Logic", "Instantiation", "Procedural"],
+      lessons: ["Core Types", "Drawing API", "ViewModels", "Listener Protocol", "Game Logic", "Instantiation", "Procedural", "GPU Shaders"],
     },
     {
       id: "best", tag: "07 · 4 lessons", tagColor: "emerald",
@@ -69,11 +69,11 @@ const CARDS: CardData[][] = [
       lessons: ["Architecture", "Performance", "Debugging", "Resources"],
     },
     {
-      id: "projects", tag: "08 · 3 projects", tagColor: "yellow",
+      id: "projects", tag: "08 · 4 projects", tagColor: "yellow",
       title: "Keystone\nProjects",
-      desc: "Interactive Button, Data Visualization, and Catch the Stars — full builds with physics and ViewModels.",
+      desc: "Interactive builds plus guided shader labs for GPUCanvas, textures, post-processing, and 3D-style rendering.",
       bg: "bento-projects", dark: true,
-      lessons: ["Interactive Button — pointer input + ViewModel triggers", "Data Visualization — bar chart driven by ViewModel data", "Catch the Stars — mini-game with clicking, scoring, physics"],
+      lessons: ["Interactive Button — pointer input + ViewModel triggers", "Data Visualization — bar chart driven by ViewModel data", "Catch the Stars — mini-game with clicking, scoring, physics", "GPU Shader Labs — early-access shader and post-processing exercises"],
     },
   ],
 ];

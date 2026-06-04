@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | Frame loop | `requestAnimationFrame(callback)` | `advance(self, seconds)` |
 | Render function | Canvas `draw()` or React's `render()` | `draw(self, renderer)` |
 | Delta time | `performance.now()` difference | `seconds` parameter in `advance` |
-| Click handler | `element.onclick = fn` | `pointerDown(self, position)` |
+| Click handler | `element.onclick = fn` | `pointerDown(self, event)` |
 | This reference | `this` keyword | `self` parameter |
 
 :::danger Critical Difference: Frame Loop Architecture
@@ -78,7 +78,8 @@ Rive calls your script functions in a specific order. Understanding this lets yo
 1. `init(self, context)` - runs once at startup
 2. `update(self)` - runs when any <Term>Input</Term> changes (NO context param!)
 3. `advance(self, seconds)` - runs every animation frame (logic)
-4. `draw(self, renderer)` - runs on canvas repaint (rendering, keep pure!)
+4. `drawCanvas(self)` - runs during the canvas render phase for offscreen `Canvas` / `GPUCanvas` work
+5. `draw(self, renderer)` - runs on canvas repaint (normal renderer compositing, keep pure!)
 
 Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user interacts with the script node.
 
@@ -91,10 +92,15 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 | **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
 | **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
 | **advance** | Update time-based state (movement, physics, timers) | Every animation frame | `requestAnimationFrame` logic |
+| **drawCanvas** | Render into offscreen `Canvas` / `GPUCanvas` targets | During canvas render phase | WebGL/WebGPU render pass |
 | **draw** | Issue <Term>Renderer</Term> commands only (no state changes!) | On canvas repaint | Canvas `ctx.draw()` calls |
 
 :::tip Performance Rule
 Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry in `advance` (called every frame) wastes resources if inputs haven't changed.
+:::
+
+:::info Shader and offscreen canvas rule
+Call `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` from `drawCanvas(self)`. Composite the resulting `canvas.image` or `gpuCanvas.image` from `draw(self, renderer)`.
 :::
 
 ---
@@ -107,7 +113,7 @@ The `context` parameter passed to lifecycle functions provides access to the run
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `context:viewModel()` | `ViewModel?` | Gets the <Term>Artboard</Term>'s <Term>ViewModel</Term> (if bound) |
+| `context:viewModel()` | `ViewModel?` | Gets the current node data-context ViewModel (if bound) |
 | `context:markNeedsUpdate()` | *void* | Requests a redraw on the next frame |
 
 ### Common Usage
@@ -157,9 +163,10 @@ flowchart TD
     F -->|no| H
 
     subgraph H[Frame Loop]
-        I[advance self, seconds] --> |Update timers<br/>Physics/movement| J[draw self, renderer]
-        J --> |Render commands only| K[next frame]
-        K --> I
+        I[advance self, seconds] --> |Update timers<br/>Physics/movement| J[drawCanvas self]
+        J --> |Offscreen Canvas/GPUCanvas work| K[draw self, renderer]
+        K --> |Render commands only| L[next frame]
+        L --> I
     end
 ```
 
@@ -589,13 +596,15 @@ end
 // JavaScript equivalent - DOM event handlers:
 element.addEventListener('mousedown', (e) => {
     console.log(`Clicked at ${e.clientX}, ${e.clientY}`);
-    e.stopPropagation();  // Like returning true
+    e.stopPropagation();  // Similar to event:hit()
 });
 
 element.addEventListener('mousemove', (e) => {
-    // Not calling stopPropagation = like returning false
+    // Not calling stopPropagation = event may continue propagating
 });
 ```
+
+Use `event:hit()` to mark a pointer event handled. Use `event:hit(true)` for translucent hit behavior when you still want lower nodes to receive events through transparent areas.
 
 Include these in your factory return table to enable them:
 
@@ -611,13 +620,37 @@ return function(): Node<MyNode>
 end
 ```
 
+## Keyboard and Text Events
+
+Node scripts can also handle keyboard and committed text input payloads:
+
+```lua
+function keyboardEvent(self: MyNode, event: KeyboardInvocation): boolean
+    if event.phase == "down" and event.key == 13 then
+        self.submitPressed = true
+        return true -- Stop propagation
+    end
+    return false
+end
+
+function textEvent(self: MyNode, event: TextInputInvocation): boolean
+    if #event.text > 0 then
+        self.lastText = event.text
+        return true -- Stop propagation
+    end
+    return false
+end
+```
+
+If these callbacks return `true`, propagation stops. If they return `false` (or nothing), other listeners may still receive the event.
+
 ---
 
 ### Exercise 4: Click Counter ⭐⭐ {#exercise-4-click-counter}
 
 ### Premise
 
-Pointer events (pointerDown, pointerMove, pointerUp) enable interactivity. Return true to consume an event, false to let it propagate. This is the foundation of buttons, toggles, and draggable elements.
+Pointer events (pointerDown, pointerMove, pointerUp) enable interactivity. Call `event:hit()` to consume an event. Use `event:hit(true)` for translucent hit behavior.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the click counter that tracks clicks and animates a pop effect. Print the answer after 3 clicks.
@@ -684,6 +717,8 @@ function pointerDown(self: ClickCounter, event: PointerEvent)
     -- TODO 3: Print "Click #{clickCount}"
 
     -- TODO 4: When clickCount reaches 3, print "ANSWER: interactive"
+
+    -- TODO 5: Call event:hit() to consume this pointer event
 
 end
 
@@ -793,15 +828,27 @@ ANSWER: interactive
 />
 
 <Quiz
-  question="What does returning false from a pointer event handler do?"
+  question="How do you consume a pointer event in a Node script?"
   id="lifecycle-q4"
   options={[
-    { text: "Disables future pointer events" },
-    { text: "Lets the event propagate to other handlers", correct: true },
-    { text: "Cancels the current animation" },
-    { text: "Throws an error" },
+    { text: "Return true from pointerDown(...)" },
+    { text: "Call event:hit()", correct: true },
+    { text: "Set event.position = nil" },
+    { text: "Call context:markNeedsUpdate()" },
   ]}
-  explanation="Returning false from a pointer event handler allows the event to propagate to other nodes. Returning true consumes the event."
+  explanation="Use event:hit() to mark the event handled. Use event:hit(true) for translucent hit behavior."
+/>
+
+<Quiz
+  question="What does returning true from keyboardEvent/textEvent do?"
+  id="lifecycle-q5"
+  options={[
+    { text: "Requests an extra draw pass only" },
+    { text: "Stops propagation of that input event", correct: true },
+    { text: "Automatically calls context:markNeedsUpdate()" },
+    { text: "Converts the event to a PointerEvent" },
+  ]}
+  explanation="In current runtime bindings, returning true from keyboardEvent/textEvent marks the event consumed and stops propagation."
 />
 
 ---
@@ -870,6 +917,7 @@ end
 function pointerDown(self: MyNode, event: PointerEvent)
     local pos = event.position
     print("Clicked at: " .. pos.x .. ", " .. pos.y)
+    event:hit()
 end
 ```
 

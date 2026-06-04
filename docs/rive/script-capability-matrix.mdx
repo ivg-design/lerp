@@ -22,6 +22,10 @@ Use this page when you need exact boundaries such as:
 - "Can this script draw to the renderer?"
 - "Where do script inputs actually come from?"
 
+:::info Runtime baseline
+Matrix details are aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026), plus the June 3, 2026 shader early-access addendum for GPU callback guidance. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
 ---
 
 ## 1) Callback Parameter Matrix (What Each Script Receives)
@@ -30,11 +34,11 @@ This is the quickest way to see all runtime callback parameters by script type.
 
 | Script Type | Required Callbacks | Callback Parameters You Get |
 |-------------|--------------------|-----------------------------|
-| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`) |
-| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), `seconds: number` (`advance`) |
+| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), no-argument canvas phase (`drawCanvas`), `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`), keyboard/text invocations (`keyboardEvent`, `textEvent`) |
+| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), no-argument canvas phase (`drawCanvas`), `seconds: number` (`advance`) |
 | **Converter** | `convert`, `reverseConvert` | `input: DataInputs` (`convert`), `input: DataOutput` (`reverseConvert`), optional `context: Context` (`init`), optional `seconds: number` (`advance`) |
 | **Path Effect** | `update` | `inPath: PathData` + `node: NodeReadData` (`update`), `seconds: number` (`advance`), optional `context: Context` (`init`) |
-| **ListenerAction** | `perform` | `pointerEvent: PointerEvent` (`perform`), optional `context: Context` (`init`) |
+| **ListenerAction** | `performAction` | `listenerContext: ListenerContext` (`performAction`), optional `context: Context` (`init`) |
 | **TransitionCondition** | `evaluate` | no parameters (`evaluate`), optional `context: Context` (`init`) |
 | **Util** | none | no lifecycle callback params (module table only) |
 | **Test** | `setup(test: Tester)` | `test: Tester`, and `expect` inside each `test.case(...)` |
@@ -53,6 +57,7 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 | Read editor `Input<T>` fields | ✅ | ✅ | ⚠️ 1 | ✅ |
 | Access `Context` in `init` | ✅ | ✅ | ✅ | ✅ |
 | Custom render with `Renderer` | ✅ | ✅ | ❌ | ❌ |
+| Offscreen `Canvas` / `GPUCanvas` render phase | ⚠️ 5 | ⚠️ 5 | ❌ | ❌ |
 | Receive `PointerEvent` directly | ✅ | ❌ | ❌ | ❌ |
 | Transform host `PathData` geometry | ❌ | ❌ | ❌ | ✅ |
 | Has per-frame callback | ✅ | ✅ | ⚠️ 4 | ✅ |
@@ -67,7 +72,7 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 | Read editor `Input<T>` fields | ⚠️ 2 | ✅ 3 | ❌ | ❌ |
 | Access `Context` in `init` | ✅ | ✅ | ❌ | ❌ |
 | Custom render with `Renderer` | ❌ | ❌ | ❌ | ❌ |
-| Receive `PointerEvent` directly | ✅ | ❌ | ❌ | ❌ |
+| Receive `PointerEvent` directly | ⚠️ 2 | ❌ | ❌ | ❌ |
 | Transform host `PathData` geometry | ❌ | ❌ | ❌ | ❌ |
 | Has per-frame callback | ❌ | ✅ | ❌ | ❌ |
 | Importable via `require()` | ❌ | ❌ | ✅ | ❌ |
@@ -75,9 +80,10 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 
 Notes:
 1. Converter scripts consume binding values through `convert(input)` / `reverseConvert(input)` callback parameters.
-2. ListenerAction scripts are event-driven (`perform(pointerEvent)`); they are not typically used as editor-input-driven render logic.
+2. ListenerAction scripts are event-driven (`performAction(listenerContext)`). Pointer data is accessed through listener context when the listener event carries it.
 3. TransitionCondition scripts often use threshold-style inputs plus ViewModel/context state to decide `evaluate()`.
 4. Converter scripts can optionally define `advance(self, seconds)` for time-based conversion logic, but many converters are purely data-driven.
+5. Node and Layout scripts can use `drawCanvas(self)` for offscreen `Canvas` and early-access `GPUCanvas` render passes, then composite the resulting image from `draw(self, renderer)`.
 
 ### 2C) Script-by-Script Boundaries
 
@@ -87,7 +93,7 @@ Notes:
 | Layout | Child sizing/positioning and optional custom draw | Not a data-binding transformer protocol |
 | Converter | Data transformation between binding endpoints | No rendering, no pointer handlers, no host path geometry |
 | Path Effect | Direct path-geometry transformation of attached stroke/fill | No `Renderer` drawing callback for arbitrary scene rendering |
-| ListenerAction | State-machine listener event reactions with pointer context | No per-frame lifecycle, no rendering |
+| ListenerAction | State-machine listener reactions with typed `ListenerContext` branching (`is...` / `as...`) | No per-frame lifecycle, no rendering |
 | TransitionCondition | Custom boolean gating for state transitions | No rendering, no pointer event callback parameter |
 | Util | Shared reusable code via `require()` | No lifecycle callbacks, cannot attach directly |
 | Test | Unit-test harness for util logic | Not an attached runtime behavior script |
@@ -98,6 +104,15 @@ Notes:
 2. **Node scripts can draw custom `Path` objects**, but do not receive `inPath: PathData` from an existing stroke/fill.
 3. **`Listener<T>` is not a script type**; it is a function signature used by `addListener()`/`removeListener()` APIs.
 4. **Util/Test scripts are non-attached scripts**: Util is imported code; Test is manual test execution.
+5. **ListenerContext payload detail is not uniform across kinds** at this baseline (`ReportedEvent` and `ViewModelChange` are currently limited payloads).
+
+---
+
+## 2D) Runtime-Backed Advanced Protocol
+
+| Protocol | Callback Surface | Current Guidance |
+|---|---|---|
+| ScriptedInterpolator | `transform(factor)`, `transformValue(from, to, factor)` | Runtime-backed in current baseline; use for custom interpolation/easing logic, with linear fallback when omitted or failing |
 
 ---
 
@@ -106,11 +121,13 @@ Notes:
 | Need | Use |
 |------|-----|
 | Draw custom graphics every frame | **Node** (`draw`, optional `advance`) |
+| Render GPU shader effects or post-processing | **Node** or **Layout** with `drawCanvas` + `GPUCanvas`, preview / rollout-dependent |
 | Position/size children in a layout | **Layout** (`resize`, optional `measure`) |
 | Transform binding values | **Converter** (`convert`, `reverseConvert`) |
 | Distort or rebuild existing shape path geometry | **Path Effect** (`update(inPath, node)`) |
-| Run logic on state machine listener events | **ListenerAction** (`perform`) |
+| Run logic on state machine listener events | **ListenerAction** (`performAction`) |
 | Gate transitions with custom boolean logic | **TransitionCondition** (`evaluate`) |
+| Customize keyframe interpolation/easing in script | **ScriptedInterpolator** (`transform`, `transformValue`) |
 | Share reusable helpers/types | **Util** |
 | Validate utility logic | **Test** |
 
@@ -122,6 +139,7 @@ Notes:
 - [Inputs and Data Binding](/rive/inputs)
 - [Node Protocol](/rive/protocols/node-protocol)
 - [Layout Protocol](/rive/protocols/layout-protocol)
+- [GPU Shaders and 3D Rendering](/advanced/gpu-shaders)
 - [Converter Protocol](/rive/protocols/converter-protocol)
 - [Path Effect Protocol](/rive/protocols/path-effect-protocol)
 - [ListenerAction Protocol](/rive/protocols/listener-action-protocol)

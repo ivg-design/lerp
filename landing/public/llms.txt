@@ -14,12 +14,12 @@ LERP stands for **L**uau **E**ducation for **R**ive **P**rofessionals.
 
 ## Key Facts
 
-- 77 lessons across 8 structured parts
-- 201 hands-on coding exercises (validated in real-time inside Rive)
-- 189 interactive quizzes (multiple-choice and code output)
+- 90 docs and reference pages across 8 structured parts
+- 222 hands-on coding exercises (validated in real-time inside Rive)
+- 203 interactive quizzes (multiple-choice and code output)
 - 10 dedicated Rive protocol deep-dives
 - 11 API reference pages
-- 3 capstone projects (interactive button, data-driven chart, mini-game)
+- 4 guided project paths (interactive button, data-driven chart, mini-game, GPU shader labs)
 - Estimated completion: 6–8 weeks at 1–2 lessons per day
 - No account required — progress stored in localStorage only
 - No tracking, no telemetry, no cookies
@@ -52,19 +52,19 @@ Prototype-Based OOP, Metatables, __index, Classes, Self and Methods, Inheritance
 URL: https://forge.mograph.life/apps/lerp/oop/prototype-based
 
 ### Part 5: Rive Integration (15 lessons)
-Scripting Environment, Script Types, Capability Matrix, Inputs, AI Agent. Plus 10 protocol deep-dives: Node, Node Lifecycle, Layout, Converter, Path Effect, Listener Action, Listener, Transition Condition, Util, Test.
+Scripting Environment, Script Types, Capability Matrix, Inputs, AI Agent. Protocol lessons cover Node, Node Lifecycle, Layout, Converter, Path Effect, Listener Action, Listener, Transition Condition, ScriptedInterpolator, Util, and Test.
 URL: https://forge.mograph.life/apps/lerp/rive/environment
 
-### Part 6: Advanced Rive Scripting (7 lessons)
-Core Types (Vec2, Mat2D, AABB, Color), Drawing API (Path, Paint, Renderer), ViewModels, Listener Protocol, Game Logic, Instantiation, Procedural Animation.
+### Part 6: Advanced Rive Scripting (8 lessons)
+Core Types (Vec2, Mat2D, AABB, Color), Drawing API (Path, Paint, Renderer), ViewModels, Listener Protocol, Game Logic, Instantiation, Procedural Animation, GPU Shaders.
 URL: https://forge.mograph.life/apps/lerp/advanced/core-types
 
 ### Part 7: Best Practices (4 lessons)
 Architecture, Performance, Debugging, Resources.
 URL: https://forge.mograph.life/apps/lerp/best-practices/architecture
 
-### Part 8: Capstone Projects (3 lessons)
-Interactive Button with Hit Detection, Data-Driven Chart with ViewModels, Star-Catching Mini-Game with Physics.
+### Part 8: Projects and Labs (4 lessons)
+Interactive Button with Hit Detection, Data-Driven Chart with ViewModels, Star-Catching Mini-Game with Physics, GPU Shader Example Labs.
 URL: https://forge.mograph.life/apps/lerp/projects/interactive-button
 
 ## What is Luau?

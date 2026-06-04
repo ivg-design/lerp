@@ -1,0 +1,196 @@
+---
+sidebar_position: 9
+title: Release & Deployment Workflow
+description: Canonical workflow for drafting, reviewing, releasing, deploying, and verifying LERP.
+keywords:
+  - release
+  - deployment
+  - vercel
+  - changelog
+  - workflow
+---
+
+# Release & Deployment Workflow
+
+This is the maintainer workflow for publishing LERP to production.
+
+The production site is hosted on Vercel at `https://forge.mograph.life/apps/lerp/`. GitHub is the source of record for released course content. Vercel may be used for deployment inspection, rollback, and manual fallback deploys, but production releases should not be shipped from a dirty working tree.
+
+## Source of Truth
+
+- Source repository: `https://github.com/ivg-design/lerp`
+- Production URL: `https://forge.mograph.life/apps/lerp/`
+- Production build command: `node scripts/build-with-landing.mjs`
+- Release notes source: `docs/changelog.mdx`
+- Public root changelog mirror: `CHANGELOG.md`
+- GitHub release trigger: pushing a `v*` tag
+- Preferred production deploy: clean `main` push through the linked Vercel project
+
+## 1. Draft Changes
+
+Start from current `main` and create a focused branch for non-trivial work:
+
+```bash
+git fetch origin
+git switch main
+git pull --ff-only origin main
+git switch -c codex/short-release-topic
+```
+
+Make the content changes in `docs/`, `src/`, `landing/`, `static/`, and config files as needed.
+
+For Rive API, runtime, protocol, or node-setting guidance, review the relevant local course/runtime documentation before writing instructions. Version-sensitive claims should name the runtime or editor baseline they were checked against.
+
+## 2. Local Review
+
+For quick docs iteration, use the Docusaurus dev server:
+
+```bash
+npm install
+npm run start -- --host 127.0.0.1 --port 3020
+```
+
+For a production-like preview, build the landing page and docs together, then serve the generated `build/` output:
+
+```bash
+node scripts/build-with-landing.mjs
+npm run serve -- --host 127.0.0.1 --port 3020
+```
+
+Review the release-critical pages locally:
+
+- `http://127.0.0.1:3020/apps/lerp/`
+- `http://127.0.0.1:3020/apps/lerp/changelog`
+- Any new or edited lesson/API/project pages
+- `http://127.0.0.1:3020/apps/lerp/site-map`
+- `http://127.0.0.1:3020/apps/lerp/llms-full.txt`
+
+## 3. Prepare the Release
+
+Before committing, update:
+
+- `docs/changelog.mdx`
+- `CHANGELOG.md`
+- Sidebar/navigation entries when new pages are added
+- Course counts and review dates when the visible course surface changes
+- Exercise registry and quiz tracking when exercises or quizzes change
+
+Regenerate derived discovery artifacts:
+
+```bash
+npm run generate:ai-artifacts
+```
+
+Then run the production build again:
+
+```bash
+node scripts/build-with-landing.mjs
+```
+
+The build must pass before the release commit is created.
+
+## 4. Commit and Push
+
+Confirm the working tree only contains intended release files:
+
+```bash
+git status --short
+git diff --check
+```
+
+Stage intentionally. Do not stage local agent notes, editor helper config, scratch plans, ignored caches, or private environment files.
+
+```bash
+git add CHANGELOG.md README.md docs sidebars.ts src scripts static docusaurus.config.ts vercel.json package.json package-lock.json landing
+git diff --cached --check
+git commit -m "docs: release vX.Y.Z course update"
+git push origin main
+```
+
+If the release is prepared on a branch, open and merge a pull request instead of pushing directly to `main`.
+
+## 5. Tag and Publish Release Notes
+
+Create an annotated tag after the release commit is on `main`:
+
+```bash
+git tag -a vX.Y.Z -m "vX.Y.Z"
+git push origin vX.Y.Z
+```
+
+The GitHub Actions `Create Release` workflow reads the matching `## [X.Y.Z]` section from `docs/changelog.mdx` and creates the GitHub Release.
+
+Verify the release workflow:
+
+```bash
+gh run list --repo ivg-design/lerp --limit 10
+gh release view vX.Y.Z --repo ivg-design/lerp
+```
+
+## 6. Deploy to Production
+
+Preferred path: the linked Vercel project deploys production from the clean `main` push.
+
+Verify the latest Vercel deployment:
+
+```bash
+vercel list lerp --format json --yes --no-color
+vercel inspect <deployment-url> --logs --no-color
+```
+
+Manual fallback is allowed only from a clean working tree at the release commit:
+
+```bash
+git status --short
+git rev-parse HEAD
+vercel --prod
+```
+
+If `git status --short` prints any uncommitted or untracked release files, stop and commit or ignore them first. A production deploy with `gitDirty: "1"` is not considered a clean release.
+
+## 7. Production Verification
+
+After Vercel reports `Ready`, verify production directly:
+
+```bash
+curl -L https://forge.mograph.life/apps/lerp/changelog | rg "X.Y.Z|YYYY-MM-DD"
+curl -L https://forge.mograph.life/apps/lerp/site-map | rg "Release & Deployment Workflow"
+curl -I https://forge.mograph.life/apps/lerp/
+```
+
+Also check the latest deployment metadata:
+
+```bash
+vercel list lerp --format json --yes --no-color
+```
+
+The release is complete only when:
+
+- GitHub `main` contains the release commit
+- The `vX.Y.Z` tag exists on GitHub
+- The GitHub Release exists
+- Vercel production points at the release commit
+- The live changelog contains the new release section
+- The live edited pages load without route errors
+
+## 8. Rollback
+
+If production is broken, identify the previous known-good deployment:
+
+```bash
+vercel list lerp --format json --yes --no-color
+```
+
+Rollback by deployment URL or deployment id:
+
+```bash
+vercel rollback <deployment-id-or-url> --yes
+vercel rollback status lerp
+```
+
+After rollback, open a follow-up issue or commit that records:
+
+- Broken release version
+- Rollback deployment id or URL
+- Symptom and affected routes
+- Fix plan before attempting another production deploy

@@ -125,7 +125,30 @@ When you define an `Input<T>` type in your script, Rive automatically creates a 
 | `Input<string>` | `"hello"` | Text field | N/A |
 | `Input<Color>` | `Color.rgb(255, 0, 0)` | Color picker | Color Control |
 | `Input<Data.X>` | `late()` | ViewModel reference | N/A |
+| `Input<Artboard<...>>` | `late()` | Component artboard reference | N/A |
 | `Input<Trigger>` | `function() end` | Trigger button (bound in editor) | N/A |
+
+## Artboard Inputs
+
+Use Artboard inputs when a script should instance component artboards at runtime.
+
+```lua
+export type Spawner = {
+    particleTemplate: Input<Artboard<Data.Particle>>,
+}
+
+function init(self: Spawner): boolean
+    local vm = Data.Particle.new()
+    local inst = self.particleTemplate:instance(vm)
+    inst.frameOrigin = false
+    return true
+end
+```
+
+Notes:
+- `Input<Artboard<Data.X>>` keeps typings explicit for instance ViewModel shape.
+- `Input<Artboard<nil>>` is valid when you want a generic component reference.
+- Use editor wiring (`late()`) rather than relying on `context:artboard(...)`.
 
 ---
 
@@ -653,7 +676,7 @@ ANSWER: 3
 | Approach | Use When | AE/JS Mental Model |
 |----------|----------|-------------------|
 | Script Inputs (`Input<T>`) | Per-instance configuration (each script instance can have different values) | Component props |
-| `context:viewModel()` | Global data shared across all scripts | Redux store / React Context |
+| `context:viewModel()` | Current node data-context state (item-level in lists, root in root-bound nodes) | Scoped context lookup |
 | `late()` | Editor-assigned references (ViewModels, other nodes) | Dependency injection |
 | `addListener()` | Reactive updates to external changes | Event subscription / Observable |
 
@@ -667,7 +690,7 @@ This is a common source of confusion. Here's how to think about it:
 
 | | `Input<T>` | ViewModel Property |
 |--|----------|-------------------|
-| **Scope** | Per-instance (each script can have different values) | Global (shared across all scripts) |
+| **Scope** | Per-instance (each script can have different values) | Data-context scoped (root or item-level depending on attachment) |
 | **Set from** | Rive editor inspector panel | Runtime API, external code, or bindings |
 | **Direction** | Read-only in scripts | Read/write in scripts |
 | **Changes trigger** | `update(self)` callback | Listeners you register |
@@ -683,7 +706,7 @@ export type Button = {
     width: Input<number>,    -- Each button can have different width
 }
 
--- ViewModel = Global State (like Redux/Context)
+-- ViewModel = Data-context state (root or item-level depending on where script runs)
 -- Multiple scripts can read/write the same score
 function init(self: GameUI, context: Context): boolean
     local vm = context:viewModel()
@@ -735,7 +758,7 @@ export type HealthBar = {
     barWidth: Input<number>,     -- Each health bar can be different size
     barHeight: Input<number>,
 
-    -- ViewModel: Runtime data shared globally
+    -- ViewModel: Runtime data from current node data context
     context: Context,
 }
 
@@ -1030,7 +1053,7 @@ end
 
 ## Rive Takeaway
 
-Use **inputs** for per-instance tuning (each script instance can have different values) and use **`context:viewModel()`** for global data shared across all scripts in the artboard.
+Use **inputs** for per-instance tuning (each script instance can have different values) and use **`context:viewModel()`** for the current node data context. Use **`context:rootViewModel()`** when you explicitly need root/artboard-level shared state.
 
 ---
 

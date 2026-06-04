@@ -4,6 +4,52 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.8] — 2026-06-04
+
+### Added
+- **ScriptedInterpolator protocol coverage** — added `docs/rive/protocols/scripted-interpolator-protocol.mdx` with runtime-backed behavior, fallback semantics, exercise, and quiz.
+- **Interpolation API page** — added `docs/api/interpolation.mdx` and linked it in API Reference navigation so ScriptedInterpolator has a direct API location.
+- **Mat4 API coverage** — expanded `docs/api/core-types.mdx` with full Mat4 constructors, static helpers, transforms, buffer write, and operator semantics.
+- **Promise/async/await reference** — added Promise runtime coverage to `docs/api/system.mdx` and quick-reference usage snippets for async image decode workflows.
+- **Context advanced rendering coverage** — added `context:canvas`, `context:gpuCanvas`, `context:features`, `context:preferredCanvasFormat`, `context:loadShader`, and `context:decodeImage` to `docs/api/data-input.mdx`.
+- **GPU Shaders and 3D Rendering course chapter** — added `docs/advanced/gpu-shaders.mdx` with early-access shader workflow guidance, `drawCanvas` lifecycle positioning, WGSL/Luau examples, exercises, and quizzes.
+- **GPU Shaders API reference** — added `docs/api/gpu-shaders.mdx` covering `GPUCanvas`, `Shader`, `GPURenderPass`, `GPUPipeline`, `GPUBuffer`, `GPUTexture`, `GPUSampler`, bind groups, descriptor types, string literal types, `GPUFeatures`, `Image:view()`, and shader troubleshooting.
+- **GPU Shader Example Labs project** — added `docs/projects/gpu-shader-labs.mdx` as a guided 10-lab path based on the corrected local Rive shader example pack.
+- **Shader lab exercises and quizzes** — added validator-backed project exercises and quizzes focused on typed descriptors, guarded shader/image setup, `UBOEntry.size`, and explicit render-to-texture source strategies.
+- **Release and deployment workflow** — added `docs/release-workflow.mdx` as the canonical maintainer protocol for drafting, local review, commit/tag release, Vercel production deploys, verification, and rollback.
+
+### Changed
+- **Runtime compatibility baseline updated** — refreshed `docs/rive/runtime-compatibility.mdx` to the May 12, 2026 course-wide audit with upstream runtime snapshot `runtime-v0.1.64` (`b25a32218c6308ac8dc4b1cb69df62de84d78ba4`) and npm C++ WASM runtime line `2.37.6` (`gitHead` `2833de372c0d22596494c89c328008ce5b1106d7`, published May 8, 2026 UTC).
+- **Release-tier alignment for advanced rendering APIs** — reclassified GPU/shader object families as `Preview / rollout-dependent` while keeping `Canvas` + `decodeImage/DecodedImage` as officially released advanced surfaces; updated `docs/api/data-input.mdx`, `docs/api/assets.mdx`, and `docs/rive/runtime-compatibility.mdx`.
+- **Listener payload coverage expanded** — updated Events and ListenerAction docs with gamepad payload guards/accessors and explicit invocation field mapping.
+- **Node lifecycle coverage expanded** — added keyboard/text callback handling guidance and propagation semantics (`return true` stops propagation).
+- **Artboard input typing guidance improved** — updated Input docs to include `Input<Artboard<Data.X>>` and `Input<Artboard<nil>>` patterns, plus `instance(viewModel)` guidance.
+- **Shader lesson updated for type-safe runtime-v0.1.106 patterns** — rewrote the minimal triangle and supporting snippets to use non-null local GPU resources, typed descriptor helpers, local optional-field guards in `drawCanvas`, and byte-accurate uniform binding sizes.
+- **GPU API reference tightened** — documented descriptor-local construction, `getBindGroupLayout` auto-layout caveats, optional `context:shader(name)` failure causes, image asset requirements, sampler blur checks, WGSL swizzle assignment limits, and explicit source-texture requirements for glass effects.
+- **Runtime compatibility shader baseline clarified** — updated `docs/rive/runtime-compatibility.mdx` to label the runtime-v0.1.106 shader baseline as Rive Early Access only, while preserving the May 12, 2026 course-wide runtime audit as the main baseline.
+- **External editor tooling documented** — added Rive Luau LSP / VS Code extension recommendations for writing `.luau` scripts in VS Code, Cursor, Windsurf, and other LSP-capable editors, including shader-specific syntax and descriptor-checking guidance.
+- **Course metadata refreshed** — updated sidebar review date, site map, progress registry, quiz tracking, discoverability artifacts, and course counts for the roll-up release.
+
+### Fixed
+- **PropertyList inconsistency (LERP-ERR-006)** — replaced stale `list.count` / `list:item(index)` usage with `list.length` / `list[index]` and documented `clear`, `removeAt`, and `removeAllOf` in API and advanced lessons.
+- **Version alignment drift** — synchronized runtime-version references across API, protocol, matrix, and compatibility pages to a single May 12, 2026 audit baseline.
+
+---
+
+## [1.2.7] — 2026-04-27
+
+### Added
+- **Runtime compatibility baseline page** — added `docs/rive/runtime-compatibility.mdx` with both a pinned runtime source snapshot (`npm gitHead@5581955` for runtime line `2.37.4`, published April 24, 2026 UTC) and the current C++ WASM npm runtime release line (`2.37.4` across `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced`), plus a live/partial/not-exposed matrix for docs-labeled "Coming soon" surfaces.
+
+### Changed
+- **API references refreshed against runtime baseline** — expanded Events docs from pointer-only coverage to ListenerContext payload kinds; added AudioSource `duration`; added explicit runtime-status notes for NodeReadData paint/path surfaces.
+- **System/Glossary runtime status wording** — reclassified `Output<T>` as not currently exposed in baseline C++ Luau bindings and adjusted examples accordingly.
+- **Lesson and quiz updates** — updated ListenerAction and Listener lessons/quizzes to use `listenerContext:is...()` + `as...()` payload-guard pattern as the primary event-handling approach.
+- **Course metadata sync** — intro snapshot, sidebar "Last reviewed", quick-reference links, and site-map entries now point to the runtime compatibility baseline for future tracking.
+- **Audit protocol documentation** — runtime baseline page now records how verification was executed (npm release checks, runtime commit pin, docs `(Coming soon)` diffing, and binding-level confirmation) and defines required fields for all future changelog runtime-audit entries.
+
+---
+
 ## [1.2.6] — 2026-04-26
 
 ### Fixed

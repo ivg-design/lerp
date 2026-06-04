@@ -1,0 +1,866 @@
+---
+sidebar_position: 7
+title: GPU Shaders and 3D Rendering
+description: Early-access GPU shader workflows, GPUCanvas rendering, WGSL assets, and 3D-style rendering patterns in Rive
+keywords:
+  - rive
+  - luau
+  - scripting
+  - gpu
+  - shaders
+  - wgsl
+  - gpucanvas
+  - 3d
+  - rendering
+---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
+
+# GPU Shaders and 3D Rendering
+
+:::info Prerequisites
+Before this section, complete:
+- [Node Lifecycle](/rive/protocols/node-lifecycle) - where `init`, `advance`, `drawCanvas`, and `draw` belong
+- [Drawing API](/advanced/drawing-api) - renderer state and image compositing
+- [Core Types](/api/core-types#mat4) - `Mat4` for 3D-style transforms
+- [Performance Optimization](/best-practices/performance) - allocation and hot-loop discipline
+:::
+
+:::caution Early-access surface
+Shader scripting is a preview / rollout-dependent surface. Runtime support, editor asset packaging, and workspace availability can move at different speeds. Treat `context:shader(name)` returning `nil` as a possible asset, packaging, or channel issue until you have verified all three.
+:::
+
+GPU shaders give Rive scripts a low-level rendering path for custom materials, post-processing, image treatments, and 3D-style geometry. The workflow has two parts:
+
+1. A `.wgsl` shader asset in the Rive file.
+2. A Luau script that creates GPU resources, opens render passes in `drawCanvas`, and composites the result back into the normal Rive renderer in `draw`.
+
+The shader does not automatically receive Rive vector shapes. It only sees the vertex buffers, uniform buffers, textures, samplers, and bind groups that your script provides.
+
+---
+
+## The Current Names
+
+Use these names in new material:
+
+```lua
+local shader = context:shader("gradient_card")
+local canvas = context:gpuCanvas({ width = 512, height = 512 })
+local format = canvas.format
+```
+
+Avoid older names in new examples:
+
+```lua
+-- Stale in current LERP shader material:
+local shader = context:loadShader("gradient_card")
+local format = context:preferredCanvasFormat()
+```
+
+The practical rule is: load shader assets with `context:shader(name)`, and use `GPUCanvas.format` for pipeline color targets.
+
+---
+
+## Type-Safe Descriptor Pattern
+
+Save Rive scripts as `.luau` files and shader assets as `.wgsl` files. The runtime can load the shader by asset name, but the script type checker still needs concrete Luau descriptor types for nested GPU tables.
+
+If you write shader scripts outside the Rive editor, use the [Rive Luau VS Code extension](https://marketplace.visualstudio.com/items?itemName=IVGDesign.rive-luau) or [Rive Luau LSP](https://github.com/ivg-design/rive-luau-lsp). It is useful for Rive-parity diagnostics and IntelliSense around the shader-era surface: typed descriptor arrays, `GPUCanvas`, `GPUPipeline`, `GPUBindGroup`, `UBOEntry`, `TextureEntry`, `SamplerEntry`, and new `.luau` syntax that generic Luau tooling may not understand.
+
+The safest pattern is:
+
+1. Create GPU resources in local non-null variables inside `init`.
+2. Build descriptor arrays in helper functions with explicit return types.
+3. Call methods such as `pipeline:getBindGroupLayout(0)` on the local `pipeline`, not on `self.pipeline` while it is still `GPUPipeline?`.
+4. Assign the completed resources to `self` after the pipeline and bind groups exist.
+5. In `drawCanvas`, copy optional `self.*` resources into locals and return early when any required handle is missing.
+
+```lua
+local function makeFullscreenQuadVertexLayout(): { VertexBufferLayout }
+    local attributes: { VertexAttribute } = {
+        ({ slot = 0, format = "float32x2", offset = 0 } :: VertexAttribute),
+        ({ slot = 1, format = "float32x2", offset = 2 * 4 } :: VertexAttribute),
+    }
+
+    return {
+        ({ stride = 4 * 4, attributes = attributes } :: VertexBufferLayout),
+    }
+end
+
+local function makeColorTargets(format: ColorFormat): { ColorTarget }
+    return {
+        ({ format = format } :: ColorTarget),
+    }
+end
+
+local function makeUniformEntries(uniformBuffer: GPUBuffer, byteSize: number): { UBOEntry }
+    return {
+        ({ slot = 0, buffer = uniformBuffer, offset = 0, size = byteSize } :: UBOEntry),
+    }
+end
+```
+
+This avoids a common typed Luau failure mode where inline nested arrays are inferred as exact anonymous tables instead of `{ VertexBufferLayout }`, `{ VertexAttribute }`, `{ ColorTarget }`, `{ UBOEntry }`, `{ TextureEntry }`, or `{ SamplerEntry }`.
+
+`UBOEntry.size` is a byte range, not a count of floats or fields. A uniform struct with four `f32` values is usually `16` bytes. A single `mat4x4<f32>` is `64` bytes. Dynamic uniform-buffer records should still be padded to `256`-byte boundaries when used with dynamic offsets.
+
+---
+
+## Frame Lifecycle
+
+Shader scripts split GPU work and normal Rive drawing:
+
+| Callback | Use it for |
+|----------|------------|
+| `init(self, context)` | Create the `GPUCanvas`, load shader assets, create buffers, create pipeline and bind groups |
+| `update(self)` | Rebuild resources when editor inputs change |
+| `advance(self, seconds)` | Update time, animation values, and dynamic uniform buffers |
+| `drawCanvas(self)` | Open GPU render passes and issue `GPURenderPass` draw calls |
+| `draw(self, renderer)` | Composite `gpuCanvas.image` with the normal `Renderer` |
+
+The important boundary:
+
+```text
+GPU rendering:        drawCanvas()
+Normal compositing:   draw(renderer)
+Animation state:      advance(seconds)
+Resource setup:       init() / update() / resize()
+```
+
+`beginRenderPass()` belongs in `drawCanvas`, not `draw`. `renderer:drawImage(...)` belongs in `draw`, after the GPU canvas has produced an image.
+
+---
+
+## Minimal Shader Pipeline
+
+This example draws a triangle from a WGSL shader asset named `hello_triangle.wgsl`. It mirrors the first example in the corrected shader pack and uses typed descriptor helpers instead of inline nested GPU descriptor arrays.
+
+### `hello_triangle.wgsl`
+
+```text title="hello_triangle.wgsl"
+struct VertexOut {
+    @builtin(position) position: vec4<f32>,
+    @location(0) color: vec3<f32>,
+};
+
+@vertex
+fn vsMain(
+    @location(0) position: vec2<f32>,
+    @location(1) color: vec3<f32>
+) -> VertexOut {
+    var out: VertexOut;
+    out.position = vec4<f32>(position, 0.0, 1.0);
+    out.color = color;
+    return out;
+}
+
+@fragment
+fn fsMain(in: VertexOut) -> @location(0) vec4<f32> {
+    return vec4<f32>(in.color, 1.0);
+}
+```
+
+### Luau Node Script
+
+```lua showLineNumbers
+local WIDTH = 512
+local HEIGHT = 512
+
+type HelloTriangle = {
+    gpu: GPUCanvas?,
+    imageSampler: ImageSampler?,
+    shader: Shader?,
+    pipeline: GPUPipeline?,
+    vbo: GPUBuffer?,
+}
+
+local function f32Buffer(values: { number }): buffer
+    local bytes = buffer.create(#values * 4)
+    for i, value in ipairs(values) do
+        buffer.writef32(bytes, (i - 1) * 4, value)
+    end
+    return bytes
+end
+
+local function makeTriangleVertexLayout(): { VertexBufferLayout }
+    local attributes: { VertexAttribute } = {
+        ({ slot = 0, format = "float32x2", offset = 0 } :: VertexAttribute),
+        ({ slot = 1, format = "float32x3", offset = 2 * 4 } :: VertexAttribute),
+    }
+
+    return {
+        ({ stride = 5 * 4, attributes = attributes } :: VertexBufferLayout),
+    }
+end
+
+local function makeColorTargets(format: ColorFormat): { ColorTarget }
+    return {
+        ({ format = format } :: ColorTarget),
+    }
+end
+
+function init(self: HelloTriangle, context: Context): boolean
+    local gpu = context:gpuCanvas({ width = WIDTH, height = HEIGHT })
+    local imageSampler = ImageSampler("clamp", "clamp", "bilinear")
+
+    local shader = context:shader("hello_triangle")
+    if not shader then
+        print("Missing shader asset: hello_triangle")
+        return false
+    end
+
+    -- Interleaved vertex data: position.xy, color.rgb.
+    local vertexBytes = f32Buffer({
+         0.00,  0.72,  1.00, 0.20, 0.15,
+        -0.78, -0.62,  0.10, 0.80, 1.00,
+         0.78, -0.62,  0.95, 0.85, 0.10,
+    })
+
+    local vbo = GPUBuffer.new({
+        size = buffer.len(vertexBytes),
+        usage = "vertex",
+        data = vertexBytes,
+        immutable = true,
+        label = "hello triangle vertices",
+    })
+
+    local vertexLayout = makeTriangleVertexLayout()
+    local colorTargets = makeColorTargets(gpu.format)
+
+    local pipeline = GPUPipeline.new({
+        vertex = { module = shader, entryPoint = "vsMain" },
+        fragment = { module = shader, entryPoint = "fsMain" },
+        vertexLayout = vertexLayout,
+        colorTargets = colorTargets,
+        topology = "triangle-list",
+    })
+
+    self.gpu = gpu
+    self.imageSampler = imageSampler
+    self.shader = shader
+    self.pipeline = pipeline
+    self.vbo = vbo
+    return true
+end
+
+function drawCanvas(self: HelloTriangle)
+    local gpu = self.gpu
+    local pipeline = self.pipeline
+    local vbo = self.vbo
+
+    if not gpu or not pipeline or not vbo or gpu.width <= 0 or gpu.height <= 0 then
+        return
+    end
+
+    local pass = gpu:beginRenderPass({
+        color = {{
+            loadOp = "clear",
+            storeOp = "store",
+            clearColor = { 0.03, 0.03, 0.04, 1.0 },
+        }},
+    })
+
+    pass:setViewport(0, 0, gpu.width, gpu.height)
+    pass:setPipeline(pipeline)
+    pass:setVertexBuffer(0, vbo)
+    pass:draw(3)
+    pass:finish()
+end
+
+function draw(self: HelloTriangle, renderer: Renderer)
+    local gpu = self.gpu
+    local imageSampler = self.imageSampler
+
+    if not gpu or not imageSampler then
+        return
+    end
+
+    renderer:drawImage(gpu.image, imageSampler, "srcOver", 1)
+end
+
+return function(): Node<HelloTriangle>
+    return {
+        gpu = nil,
+        imageSampler = nil,
+        shader = nil,
+        pipeline = nil,
+        vbo = nil,
+        init = init,
+        drawCanvas = drawCanvas,
+        draw = draw,
+    }
+end
+```
+
+Why this works:
+
+- WGSL `@location(0)` matches `VertexAttribute.slot = 0`.
+- WGSL `@location(1)` matches `VertexAttribute.slot = 1`.
+- The pipeline color target uses the local `gpu.format`.
+- The render pass omits `view`, so the color attachment defaults to the canvas backing view.
+- `drawCanvas` uses local non-null resources and returns before rendering if any required resource is missing.
+- `draw` composites `GPUCanvas.image` with the normal renderer.
+
+---
+
+## Buffers, Layouts, and Bindings
+
+Most shader bugs come from mismatched data contracts. Keep these three mappings visible while you build.
+
+### Vertex Layouts
+
+WGSL:
+
+```text
+@vertex
+fn vsMain(
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
+    @location(2) uv: vec2<f32>
+) -> VertexOut
+```
+
+Luau:
+
+```lua
+local attributes: { VertexAttribute } = {
+    ({ format = "float32x3", slot = 0, offset = 0 } :: VertexAttribute),
+    ({ format = "float32x3", slot = 1, offset = 12 } :: VertexAttribute),
+    ({ format = "float32x2", slot = 2, offset = 24 } :: VertexAttribute),
+}
+
+local vertexLayout: { VertexBufferLayout } = {
+    ({ stride = 32, attributes = attributes } :: VertexBufferLayout),
+}
+```
+
+The `slot` is the WGSL `@location`. The `offset` is the byte position inside each vertex. The `stride` is the total byte size of one vertex.
+
+### Bind Groups
+
+WGSL:
+
+```text
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var sourceTex: texture_2d<f32>;
+@group(0) @binding(2) var sourceSampler: sampler;
+```
+
+Luau:
+
+```lua
+local layout = pipeline:getBindGroupLayout(0)
+local ubos: { UBOEntry } = {
+    ({ slot = 0, buffer = uniformBuffer, offset = 0, size = 16 } :: UBOEntry),
+}
+local textures: { TextureEntry } = {
+    ({ slot = 1, view = sourceImage:view() } :: TextureEntry),
+}
+local samplers: { SamplerEntry } = {
+    ({ slot = 2, sampler = gpuSampler } :: SamplerEntry),
+}
+
+local bindGroup = GPUBindGroup.new({
+    layout = layout,
+    ubos = ubos,
+    textures = textures,
+    samplers = samplers,
+})
+```
+
+The `slot` is the WGSL `@binding`. The bind group index is the WGSL `@group`.
+
+`pipeline:getBindGroupLayout(index)` is useful for auto-layout pipelines after the pipeline exists. For resources shared across multiple pipelines, or for dynamic uniform buffers, prefer an explicit `GPUBindGroupLayout.new(...)` so the binding contract is auditable.
+
+### Dynamic Uniform Buffers
+
+Dynamic UBO offsets are byte offsets. Use 256-byte aligned object records:
+
+```lua
+local stride = 256
+pass:setBindGroup(0, self.objectBindGroup, { objectIndex * stride })
+```
+
+List dynamic UBOs in ascending WGSL binding order to make the offset order auditable.
+
+---
+
+## Images, Textures, and Samplers
+
+Use normal Rive image assets for texture input. `Image:view()` gives the shader a `GPUTextureView`:
+
+```lua
+local image = context:image("portrait")
+if image then
+    local view = image:view()
+    local gpuSampler = GPUSampler.new({
+        min = "linear",
+        mag = "linear",
+        wrapU = "clamp-to-edge",
+        wrapV = "clamp-to-edge",
+    })
+
+    local textures: { TextureEntry } = {
+        ({ slot = 1, view = view } :: TextureEntry),
+    }
+    local samplers: { SamplerEntry } = {
+        ({ slot = 2, sampler = gpuSampler } :: SamplerEntry),
+    }
+
+    local bindGroup = GPUBindGroup.new({
+        layout = pipeline:getBindGroupLayout(0),
+        textures = textures,
+        samplers = samplers,
+    })
+end
+```
+
+Use `nearest` for pixel-art effects, `linear` for smooth sampling, `repeat` for tiled UVs, and `clamp-to-edge` when UVs should not tile.
+
+---
+
+## 3D-Style Rendering
+
+The shader API can draw 3D-like geometry when your script supplies the mesh data and matrices. It is not a direct model importer.
+
+A basic 3D workflow:
+
+1. Store or generate vertex positions, normals, UVs, colors, and indices.
+2. Upload vertex and index data with `GPUBuffer.new`.
+3. Build a model-view-projection matrix with `Mat4`.
+4. Write the matrix into a uniform buffer.
+5. Render into `GPUCanvas` with depth testing.
+6. Composite the result with `renderer:drawImage`.
+
+```lua
+local aspect = self.gpuCanvas.width / self.gpuCanvas.height
+local proj = Mat4.perspective(math.rad(60), aspect, 0.1, 100)
+local view = Mat4.fromTranslation(0, 0, -3)
+local model = Mat4.fromRotationY(self.angle)
+local mvp = proj * view * model
+
+local bytes = buffer.create(64)
+mvp:writeToBuffer(bytes, 0)
+self.cameraBuffer:write(bytes, 0)
+```
+
+For standard depth:
+
+```lua
+depthStencil = {
+    format = "depth24plus-stencil8",
+    compare = "less",
+    write = true,
+}
+```
+
+For reverse-Z depth, use `Mat4.perspectiveReverseZ(...)`, clear depth to `0.0`, and compare with `"greater"`.
+
+---
+
+## Common Patterns
+
+### Deferred Layout Canvas
+
+Use a deferred `GPUCanvas` when a Layout script does not know its final size in `init`.
+
+```lua
+function init(self: MyLayout, context: Context): boolean
+    self.gpuCanvas = context:gpuCanvas()
+    return true
+end
+
+function resize(self: MyLayout, size: Vector)
+    self.gpuCanvas:resize(size.x, size.y)
+    -- Recreate depth, MSAA, and offscreen textures here.
+end
+```
+
+Guard rendering until the backing texture exists:
+
+```lua
+if self.gpuCanvas.width == 0 then
+    return
+end
+```
+
+### MSAA
+
+For smoother triangle edges, create multisampled render-target textures and resolve into the 1x canvas:
+
+```lua
+self.msaaColor = GPUTexture.new({
+    width = self.gpuCanvas.width,
+    height = self.gpuCanvas.height,
+    format = self.gpuCanvas.format,
+    renderTarget = true,
+    sampleCount = 4,
+})
+```
+
+```lua
+color = {{
+    view = self.msaaColor:view(),
+    resolveTarget = self.gpuCanvas:colorView(),
+    loadOp = "clear",
+    storeOp = "discard",
+    clearColor = { 0, 0, 0, 0 },
+}}
+```
+
+The pipeline `sampleCount` must match the multisampled attachment sample count.
+
+### Post-processing
+
+Render a scene into an offscreen `GPUTexture`, then sample that texture in a second pass:
+
+```lua
+self.sceneTexture = GPUTexture.new({
+    width = self.gpuCanvas.width,
+    height = self.gpuCanvas.height,
+    format = self.gpuCanvas.format,
+    renderTarget = true,
+})
+```
+
+Use this for custom color treatments, distortion, transitions, and two-pass effects.
+
+This is also the safe strategy for glass or background-distortion effects. A shader cannot automatically sample pixels that Rive has already composited behind the current node. Render the content you want to distort into a texture first, then sample that texture in the glass pass.
+
+---
+
+## Example Pack Progression
+
+The course shader examples are based on the corrected local example pack in `/Users/ivg/github/luau-scripting/gpu_shaders`. Use them as a progression rather than as isolated demos:
+
+| Example | What it teaches | Course role |
+|---------|-----------------|-------------|
+| `01_hello_gpu_canvas_triangle` | First `GPUCanvas`, typed vertex layout, pipeline, and `drawCanvas` pass | Starter template for new shader nodes |
+| `02_animated_gradient_quad` | Uniform buffer updates from `advance` | First animated shader |
+| `03_uv_checkerboard` | UV debugging and fullscreen quad coordinates | Debugging texture-space mistakes |
+| `04_image_texture_tint` | `context:image(name)`, `Image:view()`, texture binding, and tint uniforms | First image sampling lab |
+| `05_sampler_modes_lab` | `GPUSampler` filter and wrap choices | Visual sampler comparison |
+| `06_mask_reveal_dissolve` | Masked transitions and reveal thresholds | Interaction-ready shader treatment |
+| `07_two_pass_blur` | Offscreen render targets and multi-pass post-processing | Production post-process pattern |
+| `08_depth_tested_cubes` | Depth textures, matrices, and indexed 3D-like geometry | First depth-tested 3D scene |
+| `09_ray_marching_3d` | Procedural 3D in the fragment shader | Advanced material/rendering study |
+| `10_glass_sine_wave_distortion` | Distortion with explicit source texture requirements | Glass-effect caveats and safe setup |
+
+Work through the guided version in [GPU Shader Example Labs](/projects/gpu-shader-labs) after this chapter.
+
+---
+
+## Troubleshooting Checklist
+
+| Symptom | Check |
+|---------|-------|
+| `context:shader(name)` returns `nil` | Asset name without `.wgsl`, shader asset packaging, shader compile status, editor channel, runtime channel |
+| `colorView()` errors | Deferred canvas has not been resized |
+| Nothing appears | `drawCanvas` is returned from the factory, `pass:finish()` is called, and `draw` composites `gpuCanvas.image` |
+| Wrong colors or broken geometry | WGSL `@location` values match vertex layout `slot` and `offset` |
+| Bind group errors | WGSL `@group` / `@binding` values match `GPUBindGroup` entries |
+| Luau rejects nested descriptor tables | Move `attributes`, `vertexLayout`, `colorTargets`, `ubos`, `textures`, and `samplers` into explicitly typed locals |
+| Image example says the image is missing | Add a Rive image asset named `demo_image` or update the script constant to the real asset name |
+| Texture appears blurry | Match `GPUCanvas` size to display size, check `ImageSampler` scaling, check `GPUSampler` filtering, and avoid unintended UV minification |
+| WGSL swizzle assignment fails | Build a new vector, for example `vec4<f32>(newRgb, color.a)`, instead of assigning to `color.rgb` |
+| Glass effect shows the wrong background | Render the source content into a texture first; the shader cannot sample the already-composited framebuffer automatically |
+| Jagged triangle edges | Add MSAA textures and matching pipeline `sampleCount` |
+| Depth looks inverted | Match projection style, clear value, and compare function |
+| Slow frames | Reuse buffers, bind groups, pipelines, textures, and samplers; avoid per-frame allocation |
+
+---
+
+### Exercise 1: Defensive Shader Loading {#exercise-1-defensive-shader-loading}
+
+### Premise
+
+Early-access shader files can fail because of asset naming, asset packaging, or runtime channel availability. A shader script should treat missing shader handles as expected runtime state, not as a reason to crash immediately.
+
+:::info Goal
+By the end of this exercise, you will be able to create a `GPUCanvas`, load a shader with `context:shader(name)`, and handle the `nil` path cleanly.
+:::
+
+### Starter Code
+
+```lua showLineNumbers
+export type ShaderGuard = {
+    gpuCanvas: GPUCanvas,
+    imageSampler: ImageSampler,
+    shader: Shader?,
+}
+
+function init(self: ShaderGuard, context: Context): boolean
+    -- TODO 1: Create a 256 x 256 GPU canvas.
+    -- self.gpuCanvas = context:gpuCanvas({ width = 256, height = 256 })
+
+    -- TODO 2: Create an ImageSampler for later compositing.
+    -- self.imageSampler = ImageSampler("clamp", "clamp", "bilinear")
+
+    -- TODO 3: Load "gradient_card" with context:shader, not context:loadShader.
+    -- local shader = context:shader("gradient_card")
+
+    if not shader then
+        print("Shader missing or not packaged yet")
+        print("ANSWER: shader-guard")
+        return true
+    end
+
+    self.shader = shader
+    print("Shader loaded")
+    print("ANSWER: shader-guard")
+    return true
+end
+
+function draw(self: ShaderGuard, renderer: Renderer)
+end
+
+return function(): Node<ShaderGuard>
+    return {
+        init = init,
+        draw = draw,
+        gpuCanvas = late(),
+        imageSampler = late(),
+        shader = nil,
+    }
+end
+```
+
+### Assignment
+
+1. Replace all TODOs with working code.
+2. Use `context:shader("gradient_card")`.
+3. Run the script and copy the `ANSWER:` line into the validator.
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-gpu-shaders-1"
+    expectedAnswer="ANSWER: shader-guard"
+    hints={[
+        "The current shader lookup method is context:shader(name).",
+        "The shader variable must exist before the nil check.",
+        "Both the success and missing-shader paths should print the same ANSWER line."
+    ]}
+    explanation="The guard keeps the script usable while shader asset packaging or rollout state is being checked."
+/>
+
+---
+
+### Exercise 2: Match Vertex Layout to WGSL Locations {#exercise-2-match-vertex-layout-to-wgsl-locations}
+
+### Premise
+
+WGSL vertex inputs are matched by location number. Rive pipeline attributes use `slot` for that same location number and `offset` for byte position inside each vertex.
+
+:::info Goal
+By the end of this exercise, you will be able to define a vertex layout for position and UV data.
+:::
+
+### WGSL Contract
+
+```text
+@vertex
+fn vsMain(
+    @location(0) position: vec2<f32>,
+    @location(1) uv: vec2<f32>
+) -> VertexOut
+```
+
+### Starter Code
+
+```lua showLineNumbers
+local fullscreenLayout = {{
+    stride = 16,
+    attributes = {
+        -- TODO 1: position is float32x2, slot 0, offset 0
+        -- TODO 2: uv is float32x2, slot 1, offset 8
+    },
+}}
+
+local function verifyLayout()
+    local position = fullscreenLayout[1].attributes[1]
+    local uv = fullscreenLayout[1].attributes[2]
+
+    if position.slot == 0 and position.offset == 0 and uv.slot == 1 and uv.offset == 8 then
+        print("ANSWER: vertex-layout")
+    end
+end
+```
+
+### Assignment
+
+Complete the two `attributes` entries, then call `verifyLayout()` from a small Node script or the Rive console context you are using for the exercise.
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-gpu-shaders-2"
+    expectedAnswer="ANSWER: vertex-layout"
+    hints={[
+        "Each vec2<f32> is 8 bytes.",
+        "The second attribute starts after the first vec2.",
+        "WGSL @location(1) maps to slot = 1."
+    ]}
+    explanation="The layout tells Rive how to decode each packed vertex before running the vertex shader."
+/>
+
+---
+
+### Exercise 3: Update a Time Uniform {#exercise-3-update-a-time-uniform}
+
+### Premise
+
+Uniform buffers hold values that many vertices or fragments share. Time, strength, color, and transform matrices are common uniform-buffer data.
+
+:::info Goal
+By the end of this exercise, you will be able to write animated scalar values into a uniform buffer in `advance`.
+:::
+
+### Starter Code
+
+```lua showLineNumbers
+export type TimeUniform = {
+    time: number,
+    strength: Input<number>,
+    uniformBytes: buffer,
+    uniformBuffer: GPUBuffer,
+    didPrint: boolean,
+}
+
+function init(self: TimeUniform): boolean
+    self.time = 0
+    self.uniformBytes = buffer.create(16)
+    self.uniformBuffer = GPUBuffer.new({
+        size = 16,
+        usage = "uniform",
+        label = "time uniforms",
+    })
+    self.didPrint = false
+    return true
+end
+
+function advance(self: TimeUniform, seconds: number): boolean
+    -- TODO 1: Add seconds to self.time.
+
+    -- TODO 2: Write self.time at byte offset 0.
+    -- buffer.writef32(self.uniformBytes, 0, self.time)
+
+    -- TODO 3: Write self.strength at byte offset 4.
+    -- buffer.writef32(self.uniformBytes, 4, self.strength)
+
+    -- TODO 4: Upload the bytes to self.uniformBuffer at offset 0.
+    -- self.uniformBuffer:write(self.uniformBytes, 0)
+
+    if not self.didPrint then
+        self.didPrint = true
+        print("ANSWER: uniform-updated")
+    end
+
+    return true
+end
+
+function draw(self: TimeUniform, renderer: Renderer)
+end
+
+return function(): Node<TimeUniform>
+    return {
+        init = init,
+        advance = advance,
+        draw = draw,
+        time = 0,
+        strength = 1,
+        uniformBytes = late(),
+        uniformBuffer = late(),
+        didPrint = false,
+    }
+end
+```
+
+### Assignment
+
+Complete the four TODOs and run the script.
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="advanced-gpu-shaders-3"
+    expectedAnswer="ANSWER: uniform-updated"
+    hints={[
+        "Uniform data is byte-addressed.",
+        "Use buffer.writef32 for scalar f32 values.",
+        "GPUBuffer:write uploads the CPU-side buffer into the GPU buffer."
+    ]}
+    explanation="The shader can read these values from a matching WGSL uniform struct when the buffer is bound through a bind group."
+/>
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Where should a shader script call GPUCanvas:beginRenderPass?"
+  id="gpu-shaders-q1"
+  options={[
+    { text: "init" },
+    { text: "advance" },
+    { text: "drawCanvas", correct: true },
+    { text: "draw" },
+  ]}
+  explanation="GPU render passes belong in drawCanvas. The normal draw callback is for compositing the resulting image with the Renderer."
+/>
+
+<Quiz
+  question="Which shader asset lookup should new LERP shader examples use?"
+  id="gpu-shaders-q2"
+  options={[
+    { text: "context:loadShader(name)" },
+    { text: "context:shader(name)", correct: true },
+    { text: "Shader.new(name)" },
+    { text: "context:wgsl(name)" },
+  ]}
+  explanation="Use context:shader(name) and handle nil if the shader asset is missing or not packaged in the current channel."
+/>
+
+<Quiz
+  question="What should a pipeline color target usually use for a GPUCanvas render target?"
+  id="gpu-shaders-q3"
+  options={[
+    { text: "canvas.format", correct: true },
+    { text: "context:preferredCanvasFormat()" },
+    { text: "The hard-coded string rgb8unorm" },
+    { text: "The image asset width" },
+  ]}
+  explanation="Use the GPUCanvas format so the pipeline color target matches the actual render target."
+/>
+
+<Quiz
+  question="How does WGSL @binding(2) map to a Rive bind group descriptor?"
+  id="gpu-shaders-q4"
+  options={[
+    { text: "groupIndex = 2" },
+    { text: "slot = 2", correct: true },
+    { text: "offset = 2" },
+    { text: "stride = 2" },
+  ]}
+  explanation="The bind group index maps to @group(N). Individual resource entries use slot values that match @binding(N)."
+/>
+
+<Quiz
+  question="What does the early-access GPU API not provide by itself?"
+  id="gpu-shaders-q5"
+  options={[
+    { text: "Uniform buffers" },
+    { text: "Render passes" },
+    { text: "Direct glTF/OBJ/USD scene import", correct: true },
+    { text: "Texture sampling" },
+  ]}
+  explanation="The GPU API can render custom geometry if your script supplies the data, but it is not a complete 3D scene importer."
+/>
+
+## Next Steps
+
+- Continue to [Best Practices: Performance](/best-practices/performance)
+- Use the full [GPU Shaders API Reference](/api/gpu-shaders)
+- Check version status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)

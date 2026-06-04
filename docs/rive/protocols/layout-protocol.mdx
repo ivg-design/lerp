@@ -81,6 +81,10 @@ function draw(self: MyLayout, renderer: Renderer)
     -- Custom rendering (optional)
 end
 
+function drawCanvas(self: MyLayout)
+    -- Offscreen Canvas/GPUCanvas rendering (optional)
+end
+
 -- Propose ideal size (only for "Hug" fit type)
 function measure(self: MyLayout): Vector
     return Vector.xy(200, 150)
@@ -99,6 +103,7 @@ return function(): Layout<MyLayout>
         init = init,
         advance = advance,
         update = update,
+        drawCanvas = drawCanvas,
         draw = draw,
         measure = measure,
         resize = resize,
@@ -121,6 +126,7 @@ end
 | `measure` | `(self: T): Vector` | No | Propose ideal size (Hug fit only) |
 | `update` | `(self: T)` | No | Respond to input changes |
 | `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
+| `drawCanvas` | `(self: T)` | No | Offscreen `Canvas` / `GPUCanvas` render phase |
 | `draw` | `(self: T, renderer: Renderer)` | No | Custom rendering |
 
 :::note Inherits Node Pointer Callbacks
@@ -189,6 +195,7 @@ Layout Scripts inherit all Node Script lifecycle functions:
 | `init(self, context)` | One-time initialization |
 | `advance(self, seconds)` | Per-frame updates (for animations) |
 | `update(self)` | React to <Term>Input</Term> changes |
+| `drawCanvas(self)` | Render into offscreen `Canvas` / `GPUCanvas` targets |
 | `draw(self, renderer)` | Custom rendering |
 
 ---

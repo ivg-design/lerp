@@ -1,7 +1,7 @@
 ---
 sidebar_position: 11
 title: System
-description: Listener, Output, EnumValues, and Sandbox Limitations
+description: Listener, EnumValues, Audio globals, and sandbox/runtime compatibility notes
 keywords:
   - rive
   - luau
@@ -10,13 +10,20 @@ keywords:
   - reference
   - system
   - listener
+  - promise
+  - async
   - output
 ---
 import Term from '@site/src/components/Term';
+import Quiz from '@site/src/components/Quiz';
 
 # System
 
 System-level APIs and environment constraints.
+
+:::info Runtime baseline
+This page is aligned to npm runtime baseline `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026). See [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
 
 ---
 
@@ -44,22 +51,23 @@ end)
 
 ## Output
 
-`Output<T>` is a type alias (`Output<T> = T`) that marks a field as an output exposed to the Rive runtime. The runtime reads output values each frame.
+`Output<T>` appears in upstream docs, but at the current C++ runtime baseline it is **not exposed** in Luau bindings.
 
-### Usage
+### Current guidance
 
 ```lua
-export type MyScript = {
-    result: Output<number>,
-    label: Output<string>,
-}
-
 function advance(self: MyScript, seconds: number): boolean
-    self.result = math.sin(seconds)  -- Runtime reads this value
+    -- Use regular typed fields on self for script state
+    self.result = math.sin(seconds)
     self.label = "Hello"
     return true
 end
 ```
+
+:::warning Compatibility note
+Do not rely on `Output<T>` in course code until a future runtime baseline confirms exposure.
+Track changes in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
 
 ---
 
@@ -96,6 +104,55 @@ end
 ```
 
 **See Also:** [PropertyEnum](./data-values#propertyenum)
+
+---
+
+## Promise, async, and await
+
+Promise utilities are available in the runtime and support chaining, cancellation, and coroutine-style async flows.
+
+### Promise static methods
+
+```lua
+Promise.new(executor: (resolve: (any) -> (), reject: (any) -> (), onCancel: ((() -> ())?) -> ()) -> ()): Promise
+Promise.resolve(value: any?): Promise
+Promise.reject(reason: any?): Promise
+Promise.all(promises: {Promise}): Promise
+```
+
+### Promise instance methods
+
+```lua
+promise:andThen(onFulfilled: (any) -> any, onRejected: ((any) -> any)?): Promise
+promise:catch(onRejected: (any) -> any): Promise
+promise:finally(callback: () -> ()): Promise
+promise:cancel()
+promise:onCancel(callback: () -> ())
+promise:getStatus(): "pending" | "fulfilled" | "rejected" | "cancelled"
+```
+
+### `async(fn)` and `await(promise)`
+
+`await(promise)` must be called inside an `async(...)` function.
+
+```lua
+local run = async(function()
+    local ok, result = await(fetchSomething())
+    if ok then
+        print("resolved:", result)
+    else
+        print("failed:", result)
+    end
+end)
+
+run:andThen(function()
+    print("done")
+end)
+```
+
+:::tip Await return shape
+`await(...)` is non-throwing and returns `(ok, valueOrError)`. Handle both branches explicitly.
+:::
 
 ---
 
@@ -223,7 +280,24 @@ end
 
 **See Also:** [AudioSource](./assets#audiosource), [AudioSound](./assets#audiosound), [Context](./data-input#context)
 
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What does await(promise) return in this runtime?"
+  id="api-system-q1"
+  options={[
+    { text: "Only the resolved value, and it throws on error." },
+    { text: "A boolean status and value/error tuple.", correct: true },
+    { text: "Nothing; use callbacks only." },
+    { text: "A Promise object that cannot be cancelled." },
+  ]}
+  explanation="`await(...)` is non-throwing here and returns `(ok, valueOrError)`. It must run inside `async(...)`."
+/>
+
 ## Next Steps
 
 - Continue to [Quick Reference](/quick-reference)
+- Verify surface status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Review key terms in [Glossary](/glossary)

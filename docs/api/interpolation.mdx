@@ -1,0 +1,99 @@
+---
+sidebar_position: 6
+title: Interpolation
+description: ScriptedInterpolator runtime API surface and callback contracts
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - interpolation
+  - scriptedinterpolator
+  - easing
+---
+
+# Interpolation
+
+Runtime API surface for scripted interpolation.
+
+:::info Runtime baseline
+This page reflects npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026).
+:::
+
+---
+
+## ScriptedInterpolator
+
+ScriptedInterpolator is a runtime-backed protocol used to customize interpolation/easing behavior.
+
+### Callback contract
+
+```lua
+export type ScriptedInterpolator<T> = {
+    init: ((self: T, context: Context) -> boolean)?,
+    transform: ((self: T, factor: number) -> number)?,
+    transformValue: ((self: T, valueFrom: number, valueTo: number, factor: number) -> number)?,
+} & T
+```
+
+### Methods
+
+#### `transform(self, factor)`
+
+Optional factor remapping hook.
+
+```lua
+transform(self: T, factor: number): number
+```
+
+#### `transformValue(self, valueFrom, valueTo, factor)`
+
+Optional direct value interpolation hook.
+
+```lua
+transformValue(self: T, valueFrom: number, valueTo: number, factor: number): number
+```
+
+### Runtime fallback behavior
+
+If either callback is missing or errors:
+- `transform` falls back to the input factor unchanged.
+- `transformValue` falls back to linear interpolation (`from + (to - from) * factor`).
+
+### Example
+
+```lua
+export type EaseInOut = {
+    strength: Input<number>,
+}
+
+local function smoothstep(t: number): number
+    return t * t * (3 - 2 * t)
+end
+
+function transform(self: EaseInOut, factor: number): number
+    local t = math.max(0, math.min(1, factor))
+    return smoothstep(t)
+end
+
+function transformValue(self: EaseInOut, valueFrom: number, valueTo: number, factor: number): number
+    local t = transform(self, factor)
+    return valueFrom + (valueTo - valueFrom) * t
+end
+
+return function(): ScriptedInterpolator<EaseInOut>
+    return {
+        transform = transform,
+        transformValue = transformValue,
+        strength = 1,
+    }
+end
+```
+
+---
+
+## Related Pages
+
+- [ScriptedInterpolator Protocol](/rive/protocols/scripted-interpolator-protocol)
+- [Script Types Overview](/rive/script-types)
+- [Runtime Compatibility Baseline](/rive/runtime-compatibility)

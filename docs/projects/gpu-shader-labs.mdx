@@ -1,0 +1,441 @@
+---
+sidebar_position: 4
+title: GPU Shader Example Labs
+description: Guided labs for the Rive GPU shader example pack, from first GPUCanvas triangle to post-processing, depth, ray marching, and glass distortion
+keywords:
+  - rive
+  - luau
+  - scripting
+  - project
+  - gpu
+  - shaders
+  - wgsl
+  - gpucanvas
+  - lab
+---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+import Term from '@site/src/components/Term';
+
+# Project: GPU Shader Example Labs
+
+Use this project after [GPU Shaders and 3D Rendering](/advanced/gpu-shaders). The labs are based on the corrected local example pack at `/Users/ivg/github/luau-scripting/gpu_shaders`.
+
+Each lab has one `.wgsl` shader asset and one `.luau` <Term>Node</Term> script. The important learning goal is not just the visual effect; it is the resource pattern:
+
+- create resources in local non-null variables in `init`
+- use typed descriptor locals for pipeline and bind-group arrays
+- do GPU render-pass work in `drawCanvas`
+- composite `GPUCanvas.image` in `draw`
+- return early from `drawCanvas` when any optional GPU handle is missing
+
+---
+
+## Lab Sequence
+
+| Lab | Example folder | What you build | Main API focus |
+|-----|----------------|----------------|----------------|
+| 1 | `01_hello_gpu_canvas_triangle` | Solid-color triangle on a `GPUCanvas` | `GPUCanvas`, `GPUPipeline`, vertex buffers |
+| 2 | `02_animated_gradient_quad` | Animated fullscreen gradient | uniform buffers, `advance`, typed `UBOEntry` |
+| 3 | `03_uv_checkerboard` | UV checkerboard debugger | fullscreen quad UV layout |
+| 4 | `04_image_texture_tint` | Image texture with tint controls | `context:image`, `Image:view`, texture bindings |
+| 5 | `05_sampler_modes_lab` | Compare sampler wrap/filter choices | `GPUSampler`, `ImageSampler`, UV minification |
+| 6 | `06_mask_reveal_dissolve` | Mask reveal and dissolve transition | uniforms, thresholding, procedural noise |
+| 7 | `07_two_pass_blur` | Multi-pass blur | render-target `GPUTexture`, texture feedback, post-processing |
+| 8 | `08_depth_tested_cubes` | Depth-tested spinning cubes | `Mat4`, depth textures, indexed geometry |
+| 9 | `09_ray_marching_3d` | Procedural 3D ray marching | fragment-shader scene evaluation |
+| 10 | `10_glass_sine_wave_distortion` | Sine-wave glass distortion | explicit source textures and framebuffer limits |
+
+Run the labs in order. Labs 1-3 teach the shape of a working shader node. Labs 4-6 introduce image and sampler mistakes you will hit in production. Labs 7-10 cover the advanced rendering patterns that make the feature useful.
+
+---
+
+## Setup Rules
+
+1. Add the `.wgsl` file as a Rive shader asset.
+2. Add the matching `.luau` file as a Node script.
+3. When editing outside Rive, use the [Rive Luau VS Code extension](https://marketplace.visualstudio.com/items?itemName=IVGDesign.rive-luau) or [Rive Luau LSP](https://github.com/ivg-design/rive-luau-lsp) for Rive-parity diagnostics and shader-aware Luau IntelliSense.
+4. Attach the Node script to a visible group or node.
+5. Keep the shader lookup name extension-free:
+
+```lua
+local shader = context:shader("hello_triangle")
+```
+
+6. For image labs, add a Rive image asset named `demo_image`, or edit the script's asset-name constant.
+7. Match `WIDTH` and `HEIGHT` to the expected display size. A 256px `GPUCanvas` drawn at 900px will look soft even when the shader is correct.
+
+:::caution Shader asset failure is normal during setup
+`context:shader(name)` can return `nil` when the asset is missing, named differently, not compiled, not packaged, or unavailable in the current runtime/editor channel. The examples print a precise missing-asset message and stop setup cleanly.
+:::
+
+---
+
+## Shared Type Pattern
+
+The examples avoid inline nested descriptor arrays. Use helpers like this whenever you create a pipeline or bind group.
+
+```lua
+local function makeFullscreenQuadVertexLayout(): { VertexBufferLayout }
+    local attributes: { VertexAttribute } = {
+        ({ slot = 0, format = "float32x2", offset = 0 } :: VertexAttribute),
+        ({ slot = 1, format = "float32x2", offset = 2 * 4 } :: VertexAttribute),
+    }
+
+    return {
+        ({ stride = 4 * 4, attributes = attributes } :: VertexBufferLayout),
+    }
+end
+
+local function makeUniformEntries(uniformBuffer: GPUBuffer, byteSize: number): { UBOEntry }
+    return {
+        ({ slot = 0, buffer = uniformBuffer, offset = 0, size = byteSize } :: UBOEntry),
+    }
+end
+
+local function makeTextureEntries(view: GPUTextureView): { TextureEntry }
+    return {
+        ({ slot = 0, view = view } :: TextureEntry),
+    }
+end
+```
+
+Why this matters:
+
+- `VertexAttribute.offset` is optional, which can make anonymous inline arrays infer poorly.
+- `self.pipeline` and `self.uniformBuffer` are usually nullable fields, so using them directly inside bind descriptors can produce type errors.
+- `UBOEntry.size` is a byte size. Four `f32` uniform values are `16` bytes; one `mat4x4<f32>` is `64` bytes.
+
+---
+
+## Lab 1: First GPUCanvas Triangle
+
+Start with `01_hello_gpu_canvas_triangle`.
+
+Checkpoints:
+
+- `hello_triangle.wgsl` is loaded with `context:shader("hello_triangle")`
+- vertex data is packed as `position.xy, color.rgb`
+- `makeTriangleVertexLayout()` returns `{ VertexBufferLayout }`
+- `drawCanvas` begins and finishes one render pass
+- `draw` composites `gpu.image`
+
+This is the base template for a new shader node. If this lab fails, do not move on to image sampling or multi-pass rendering yet.
+
+---
+
+## Lab 2: Uniform Animation
+
+Move to `02_animated_gradient_quad`.
+
+Uniforms are written in `advance` and read by the fragment shader. Keep the uniform layout in sync with WGSL:
+
+```lua
+local UNIFORM_SIZE = 16
+
+buffer.writef32(uniformBytes, 0, time)
+buffer.writef32(uniformBytes, 4, width)
+buffer.writef32(uniformBytes, 8, height)
+buffer.writef32(uniformBytes, 12, strength)
+uniformBuffer:write(uniformBytes)
+```
+
+The matching `UBOEntry` should include `size = UNIFORM_SIZE`.
+
+---
+
+## Lab 3: UV Debugging
+
+Use `03_uv_checkerboard` whenever texture coordinates look wrong. A UV checkerboard makes flipped, stretched, repeated, or minified coordinates visible before you involve image assets.
+
+Common signals:
+
+| Visual symptom | Likely cause |
+|----------------|--------------|
+| checker is upside down | V coordinate direction mismatch |
+| checker is stretched | vertex UVs do not match positions |
+| checker tiles unexpectedly | UVs outside `0..1` with repeat wrap |
+| checker is soft | canvas is being scaled or UVs are minified |
+
+---
+
+## Lab 4 and 5: Image and Sampler Work
+
+Use `04_image_texture_tint` before `05_sampler_modes_lab`.
+
+Image sampling needs two samplers in many scripts:
+
+| Sampler | Used by | Purpose |
+|---------|---------|---------|
+| `GPUSampler` | WGSL texture sampling | controls filter and wrap inside the shader |
+| `ImageSampler` | `renderer:drawImage` | controls how the final `GPUCanvas.image` is composited into Rive |
+
+If the image is blurry, check both samplers and the canvas size. The corrected sampler lab also avoids excessive UV minification because `3x` minification can make a valid image look broken.
+
+In WGSL, do not assign into a swizzle l-value:
+
+```text
+// Avoid:
+color.rgb = color.rgb * tint.rgb;
+
+// Use:
+let tinted = vec3<f32>(color.rgb * tint.rgb);
+return vec4<f32>(tinted, color.a);
+```
+
+---
+
+## Lab 6: Mask Reveal and Dissolve
+
+`06_mask_reveal_dissolve` combines a fullscreen quad, uniforms, procedural noise, and threshold logic. Use this as the bridge between static image treatment and interactive shader transitions.
+
+Production extension ideas:
+
+- bind the reveal amount to a ViewModel number
+- drive dissolve progress from a state-machine transition
+- use an image mask instead of purely procedural noise
+- expose edge softness and tint as script inputs
+
+---
+
+## Lab 7: Two-Pass Blur
+
+`07_two_pass_blur` is the reference post-process pattern:
+
+1. render the source into `texA`
+2. sample `texA` and blur horizontally into `texB`
+3. sample `texB` and blur vertically into the visible `GPUCanvas`
+
+Keep the intermediate textures the same size and format as the canvas:
+
+```lua
+local texA = GPUTexture.new({
+    width = gpu.width,
+    height = gpu.height,
+    format = gpu.format,
+    renderTarget = true,
+    label = "blur pass A",
+})
+```
+
+Recreate render-target textures when the canvas size changes. Do not sample an MSAA texture directly; resolve into a 1x target first.
+
+---
+
+## Lab 8 and 9: 3D-Style Rendering
+
+`08_depth_tested_cubes` teaches the explicit-geometry path: buffers, indices, matrices, and depth testing. `09_ray_marching_3d` teaches the procedural-fragment path: a fullscreen quad where the fragment shader evaluates a 3D scene mathematically.
+
+Choose the strategy by source material:
+
+| You have | Use |
+|----------|-----|
+| mesh-like vertices and indices | depth-tested geometry |
+| procedural volumes or signed distance fields | ray marching |
+| many 2D texture treatments | fullscreen post-process |
+
+The shader API does not import glTF, OBJ, USD, GLB, FBX, or a full 3D scene graph for you. The script supplies the data.
+
+---
+
+## Lab 10: Glass Distortion
+
+`10_glass_sine_wave_distortion` is useful mostly because it shows the limit clearly: a shader node cannot automatically read pixels that Rive already drew behind it.
+
+Use this safe setup:
+
+1. render the source/background you want to distort into a `Canvas`, `GPUCanvas`, image asset, or render-target `GPUTexture`
+2. bind that texture view to the distortion shader
+3. render the distorted result into the visible `GPUCanvas`
+4. composite the result in `draw`
+
+This keeps the shader deterministic and avoids assuming access to an implicit framebuffer texture that the scripting API does not provide.
+
+---
+
+### Exercise 1: Convert Inline Descriptors to Typed Locals {#exercise-1-convert-inline-descriptors}
+
+### Premise
+
+The Luau checker can reject inline nested descriptor arrays because the anonymous table type does not cleanly become `{ VertexBufferLayout }` or `{ ColorTarget }`.
+
+:::info Goal
+By the end of this exercise, you will be able to refactor a pipeline descriptor into named typed locals.
+:::
+
+### Starter Code
+
+```lua showLineNumbers
+local pipeline = GPUPipeline.new({
+    vertex = { module = shader, entryPoint = "vsMain" },
+    fragment = { module = shader, entryPoint = "fsMain" },
+    vertexLayout = {{
+        stride = 16,
+        attributes = {
+            { slot = 0, format = "float32x2", offset = 0 },
+            { slot = 1, format = "float32x2", offset = 8 },
+        },
+    }},
+    colorTargets = {{ format = gpu.format }},
+})
+```
+
+### Assignment
+
+Refactor the snippet so `attributes`, `vertexLayout`, and `colorTargets` are explicitly typed locals. When complete, print:
+
+```lua
+print("ANSWER: typed-descriptors")
+```
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="projects-gpu-shader-labs-1"
+    expectedAnswer="ANSWER: typed-descriptors"
+    hints={[
+        "Create attributes: { VertexAttribute } first.",
+        "Cast each descriptor table with :: VertexAttribute, :: VertexBufferLayout, and :: ColorTarget.",
+        "Pass the typed local variables into GPUPipeline.new."
+    ]}
+    explanation="Typed descriptor locals keep the checked GPU constructors predictable and avoid exact-table inference problems."
+/>
+
+---
+
+### Exercise 2: Guard an Image Shader {#exercise-2-guard-an-image-shader}
+
+### Premise
+
+Image examples fail cleanly only when both the shader asset and image asset are treated as optional setup resources.
+
+:::info Goal
+By the end of this exercise, you will be able to guard shader and image lookup before creating bind groups.
+:::
+
+### Starter Code
+
+```lua showLineNumbers
+local IMAGE_ASSET_NAME = "demo_image"
+
+function init(self: ImageLab, context: Context): boolean
+    local shader = context:shader("image_texture_tint")
+    -- TODO: return false with a clear print if shader is nil.
+
+    local image = context:image(IMAGE_ASSET_NAME)
+    -- TODO: return false with a clear print if image is nil.
+
+    -- TODO: create the image view only after image is known non-nil.
+    print("ANSWER: image-guard")
+    return true
+end
+```
+
+### Assignment
+
+Add guards for the shader and image, then create the image view after the guards.
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="projects-gpu-shader-labs-2"
+    expectedAnswer="ANSWER: image-guard"
+    hints={[
+        "Use context:shader without the .wgsl extension.",
+        "Use context:image(IMAGE_ASSET_NAME) and check the result before image:view().",
+        "The local image variable is non-nil only after the guard."
+    ]}
+    explanation="Texture bind groups should only be created after both the shader and source image handles are confirmed."
+/>
+
+---
+
+### Exercise 3: Pick the Right Source Texture Strategy {#exercise-3-pick-the-right-source-texture-strategy}
+
+### Premise
+
+Post-processing and glass effects need an explicit source texture. They cannot sample the already-composited Rive framebuffer by default.
+
+:::info Goal
+By the end of this exercise, you will be able to choose the correct rendering strategy for blur and glass effects.
+:::
+
+### Assignment
+
+Write a short note or script comment that includes the required strategy for a glass blur over background art. The answer must include:
+
+```lua
+-- ANSWER: render-to-texture
+```
+
+### Verify Your Answer
+
+<ExerciseValidator
+    exerciseId="projects-gpu-shader-labs-3"
+    expectedAnswer="ANSWER: render-to-texture"
+    hints={[
+        "The source background must be rendered into a texture or canvas first.",
+        "The glass shader samples the explicit source texture.",
+        "The final GPUCanvas image is composited in draw."
+    ]}
+    explanation="The shader API exposes explicit resources, not an automatic readback of the composited framebuffer behind the node."
+/>
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="Why do the example scripts use typed descriptor locals instead of inline nested tables?"
+  id="gpu-labs-q1"
+  options={[
+    { text: "Typed locals avoid Luau exact-table inference problems", correct: true },
+    { text: "Inline tables cannot contain numbers" },
+    { text: "Pipelines require global variables" },
+    { text: "WGSL reads Luau table names directly" },
+  ]}
+  explanation="The checked GPU constructors expect typed descriptor arrays. Typed locals make that contract explicit."
+/>
+
+<Quiz
+  question="Which asset name should context:shader receive for a file named two_pass_blur.wgsl?"
+  id="gpu-labs-q2"
+  options={[
+    { text: "two_pass_blur", correct: true },
+    { text: "two_pass_blur.wgsl" },
+    { text: "assets/two_pass_blur.wgsl" },
+    { text: "Shader(two_pass_blur)" },
+  ]}
+  explanation="Shader lookup uses the shader asset name without the .wgsl extension."
+/>
+
+<Quiz
+  question="What does UBOEntry.size describe?"
+  id="gpu-labs-q3"
+  options={[
+    { text: "The byte size of the bound uniform range", correct: true },
+    { text: "The number of WGSL variables" },
+    { text: "The texture width" },
+    { text: "The bind group index" },
+  ]}
+  explanation="Uniform bindings are byte-addressed. The size must match the WGSL uniform payload range."
+/>
+
+<Quiz
+  question="What is the safe way to build a glass distortion effect over background art?"
+  id="gpu-labs-q4"
+  options={[
+    { text: "Render the background into a texture and sample that texture", correct: true },
+    { text: "Read the already-composited framebuffer automatically" },
+    { text: "Call beginRenderPass from draw" },
+    { text: "Use context:preferredCanvasFormat" },
+  ]}
+  explanation="The shader needs an explicit source texture. The scripting API does not provide automatic access to pixels already composited behind the node."
+/>
+
+## Next Steps
+
+- Use [GPU Shaders and 3D Rendering](/advanced/gpu-shaders) as the conceptual reference
+- Use [GPU Shaders API](/api/gpu-shaders) for signatures and descriptor types
+- Continue to [Best Practices: Performance](/best-practices/performance) before shipping shader-heavy scenes

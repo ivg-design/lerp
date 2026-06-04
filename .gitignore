@@ -30,3 +30,26 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .vercel
+
+# Local agent/editor workspace files
+.vscode/devmirror/
+AGENTS.md
+DISCUSSION_CONTEXT.md
+PLAN.md
+**/CLAUDE.md
+landing/next-env.d.ts
+
+# Local design/source exports that should not ship as public static assets
+*.pen
+static/img/Favicons (favicon-v*)/
+static/img/images/
+static/img/Asset 1.svg
+static/img/Logo & Text marks vertical.svg
+static/img/header logo and text marks.svg
+static/img/header.svg
+static/img/hero-*.png
+static/img/logo500x390.svg
+static/img/riveScriptIcon.svg
+static/img/wordmark small.svg
+static/img/favicon-v*.svg
+static/lerp_logo_mark.svg

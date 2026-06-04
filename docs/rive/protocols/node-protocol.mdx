@@ -220,10 +220,15 @@ Every Node script you write will follow this structure. The exported type define
 | `draw` | ✅ Yes | `self`, `renderer` | none | On canvas repaint |
 | `update` | Optional | `self` | none | <Term>Input</Term> changes |
 | `advance` | Optional | `self`, `seconds` | `boolean` | Every animation frame |
+| `drawCanvas` | Optional | `self` | none | Canvas/GPU render phase before `draw` |
 | `pointerDown` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch move |
 | `pointerUp` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch up |
 | `pointerExit` | Optional | `self`, `event: PointerEvent` | none | Pointer leaves node |
+
+:::info GPU and offscreen canvas callback
+Use `drawCanvas(self)` for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` work. Use `draw(self, renderer)` afterward to composite the resulting `canvas.image` or `gpuCanvas.image`.
+:::
 
 ---
 

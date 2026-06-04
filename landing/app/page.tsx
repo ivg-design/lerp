@@ -16,7 +16,7 @@ export default function Home() {
       {/* Nav */}
       <nav className="nav">
         <div className="nav-inner">
-          <a href="/" className="nav-logo">
+          <a href="/apps/lerp/" className="nav-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={`${BASE}/lerp_nav_marks.svg`} alt="LERP" className="nav-logo-img" />
           </a>
@@ -148,16 +148,16 @@ export default function Home() {
 
           {/* Stat cards (moved from hero) */}
           <div className="stat-card card-77" data-repulse data-base-transform="rotate(-5deg)">
-            <span className="stat-num">77</span>
+            <span className="stat-num">90</span>
             <span className="stat-accent" />
-            <span className="stat-label">lessons</span>
-            <span className="stat-desc">Step-by-step guided instruction.</span>
+            <span className="stat-label">docs pages</span>
+            <span className="stat-desc">Lessons, reference, projects, and workflow docs.</span>
           </div>
 
           <div className="stat-card card-189" data-repulse data-base-transform="rotate(9deg)">
             <span className="stat-label-top">QUIZZES</span>
             <span className="stat-accent" />
-            <span className="stat-num">189</span>
+            <span className="stat-num">203</span>
             <span className="stat-desc">
               Multiple-choice &amp; code
               <br />
@@ -192,7 +192,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
 
           {/* Stat cards (moved from hero) */}
           <div className="stat-card card-201" data-repulse data-base-transform="rotate(4deg)">
-            <span className="stat-num">201</span>
+            <span className="stat-num">222</span>
             <span className="stat-accent-v" />
             <div className="stat-right">
               <span className="stat-label">exercises</span>
@@ -221,10 +221,10 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
           </div>
 
           <div className="stat-card card-10" data-repulse data-base-transform="rotate(5deg)">
-            <span className="stat-num">10</span>
+            <span className="stat-num">11</span>
             <span className="stat-accent-v" />
             <div className="stat-right">
-              <span className="stat-label">protocols</span>
+              <span className="stat-label">protocol lessons</span>
               <span className="stat-desc">
                 Structured patterns for every Rive runtime API.
               </span>
@@ -318,8 +318,8 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
           <span className="badge-val">Telemetry</span>
         </div>
         <div className="cta-badge badge-lessons">
-          <span className="badge-label">77</span>
-          <span className="badge-val">Lessons</span>
+          <span className="badge-label">90</span>
+          <span className="badge-val">Docs Pages</span>
         </div>
         <div className="cta-badge badge-oss">
           <span className="badge-label">OPEN SOURCE</span>
@@ -351,6 +351,9 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
                 <h4>reference</h4>
                 <a href="/apps/lerp/category/api-reference">api docs</a>
                 <a href="/apps/lerp/oop/prototype-based">oop patterns</a>
+                <a href="/apps/lerp/site-map">site map</a>
+                <a href="/apps/lerp/sitemap.xml">xml sitemap</a>
+                <a href="/apps/lerp/llms.txt">llms.txt</a>
                 <a href="/apps/lerp/agents.md">ai agent</a>
               </div>
               <div className="footer-col">

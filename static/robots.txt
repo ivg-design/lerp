@@ -28,4 +28,5 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
+Sitemap: https://forge.mograph.life/apps/lerp/sitemap-course.xml
 Sitemap: https://forge.mograph.life/apps/lerp/sitemap.xml

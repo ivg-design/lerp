@@ -1,0 +1,517 @@
+---
+title: Rive Script Errata
+description: Living tracker of Rive scripting documentation corrections discovered during editor validation
+keywords:
+  - rive
+  - scripting
+  - errata
+  - corrections
+  - validation
+---
+
+# LERP Rive Documentation Errata Tracker
+
+Last revalidated against runtime baseline: 2026-05-12 (`2.37.6`, upstream `runtime-v0.1.64` / `b25a322`)
+Initial errata tracker open date: 2026-04-26
+
+Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
+
+Rule for this file: only add an item when there is concrete evidence from at least one of:
+
+- Rive Editor compiler/runtime behavior
+- editor-validated live example behavior
+- current official Rive docs
+- local LERP docs contradicting each other
+
+Status meanings:
+
+- `confirmed`: we have editor behavior or current official docs showing the LERP instruction is wrong/stale.
+- `gap`: the LERP statement is not necessarily false, but is incomplete or misleading enough to cause wrong implementation.
+- `watch`: likely issue, but needs one more editor validation or source check before treating as confirmed.
+- `resolved`: issue was fixed in LERP docs; keep entry for traceability with date/hash note.
+
+---
+
+## Summary
+
+Entries are ordered newest first (freshest updates at the top).
+
+| ID | Area | Status | Severity | Short finding |
+|---|---|---|---|---|
+| LERP-ERR-006 | PropertyList API | resolved | medium | Resolved in LERP on 2026-05-12: list docs now use `list.length` + `list[index]` and include `clear`, `removeAt`, and `removeAllOf`. |
+| LERP-ERR-007 | Runtime surface drift | resolved | high | Resolved in LERP on 2026-04-27: docs now include a pinned runtime compatibility baseline and corrected live/partial/not-exposed status for docs-labeled "Coming soon" APIs. |
+| LERP-ERR-005 | Node pointer events | resolved | medium | Resolved in LERP on 2026-04-26: Node pointer-event docs now use `event:hit()` / `event:hit(true)` instead of boolean consume/propagate returns. |
+| LERP-WATCH-004 | Property listeners | resolved | medium | Resolved in LERP on 2026-04-26: listener sections now warn to keep VM/property handles alive (or use anchored overloads) for long-lived listeners. |
+| LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
+| LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
+| LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-ERR-006 - PropertyList API docs were incomplete and inconsistent
+
+Status: resolved in LERP 2026-05-12 (was confirmed)
+
+Severity: medium
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
+- `/Users/ivg/github/lerp/docs/api/data-values.mdx`
+- `/Users/ivg/github/rive-runtime-docs/8.3-lua-api-reference.md` as a comparison source
+
+Local LERP evidence:
+
+- `advanced/viewmodels.mdx` documents `list.count` and `list:item(index)`.
+- `api/data-values.mdx` documents `list.length`, `list:push`, `list:pop`, `list:shift`, `list:insert`, `list:swap`, `addListener`, and `removeListener`.
+- `api/data-values.mdx` does not document `list:clear()`.
+- `rive-runtime-docs/8.3-lua-api-reference.md` documents `.length` and `[index]` access, not `count` / `item(index)`.
+
+Validation note:
+
+- This was validated using live examples in the Rive editor during the audit pass.
+- Confirmed behaviors: `items:clear()`, `items:push(vm)`, and indexed iteration (`items.length`, `items[i]`) on a live `PropertyList`.
+
+Why this matters:
+
+The current list seeding pattern for editor-validation demos depends on clearing and repopulating a live list during `init()`. If LERP users follow the `list.count` / `list:item(index)` page, or cannot find `clear()`, they may implement list code that does not match the current editor/runtime API.
+
+Correct guidance:
+
+Use the current validated list surface:
+
+```lua
+local items = rootVM:getList("items")
+if items then
+	items:clear()
+
+	local vm = Data.YourItemType.new()
+	-- set item properties
+	items:push(vm)
+
+	for i = 1, items.length do
+		local item = items[i]
+		-- read/write item props
+	end
+end
+```
+
+Recommended LERP fix:
+
+- Replace `list.count` with `list.length`.
+- Replace `list:item(index)` with `list[index]`.
+- Add `list:clear()` to the `PropertyList` API section.
+- Add a seeded Artboard List example using `Data.X.new()`, `list:clear()`, and `list:push(vm)`.
+
+Fix implemented in LERP (2026-05-12):
+
+- `advanced/viewmodels.mdx` now uses `list.length` and `list[index]`.
+- `api/data-values.mdx` now documents `clear`, `removeAt`, and `removeAllOf`.
+- Related runtime baseline references were refreshed to the May 12, 2026 audit snapshot.
+
+Validation reference:
+
+- Live editor examples run during this errata audit (no internal project naming required in course docs).
+
+---
+
+## LERP-ERR-007 - Docs "Coming soon" markers drift from runtime reality
+
+Status: resolved in LERP 2026-04-27
+
+Severity: high
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/api/events.mdx`
+- `/Users/ivg/github/lerp/docs/api/system.mdx`
+- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
+
+What was wrong:
+
+- Several surfaces marked "(Coming soon)" upstream were already live in runtime (`ListenerContext`, `KeyboardEvent`, `TextInput`, `FocusEvent`, `NoneEvent`, etc.), but LERP did not expose a pinned compatibility mapping.
+- Some surfaces were documented as available in LERP without runtime status qualification (`Output<T>`, `ViewModel.name`), despite not being exposed in current C++ Luau bindings.
+
+Evidence baseline used:
+
+- Runtime source gitHead (npm metadata): `5581955bf70d8976c60254de1a9c50c128e70582` (runtime line `2.37.4`, published 2026-04-24 UTC)
+- Runtime release line (npm): `2.37.4` for `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, and `@rive-app/canvas-advanced`
+- Docs snapshot source: `https://rive.app/docs/llms-full.txt`
+- Direct runtime binding checks in `listener_invocation.hpp`, `lua_listener_invocation.cpp`, `lua_input.cpp`, `lua_audio.cpp`, and `lua_properties.cpp`
+
+Fix implemented in LERP:
+
+- Added `/Users/ivg/github/lerp/docs/rive/runtime-compatibility.mdx` with:
+  - pinned runtime commit/date
+  - live/partial/not-exposed matrix for docs-labeled "Coming soon" surfaces
+  - repeatable re-audit workflow
+- Updated affected API and protocol docs to align wording and examples to that baseline.
+
+---
+
+## LERP-ERR-005 - Node pointer event consumption should use `event:hit()`, not boolean returns
+
+Status: resolved in LERP 2026-04-26 (was confirmed)
+
+Severity: medium
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+
+Local LERP evidence:
+
+- The Pointer Events section says "Return true to consume an event, false to let it propagate."
+- The same file later correctly says old `pointerDown(self, position: Vector): boolean` is wrong and `pointerDown(self, event: PointerEvent)` is correct.
+
+Why this is inconsistent:
+
+- Current local API docs for `PointerEvent` document `event:hit()` as the way to mark an event handled.
+- Current Rive docs also document `event:hit()` and `event:hit(true)`.
+- Live drag/drop validation used `event:hit()` and no boolean return value from `pointerDown` / `pointerMove`.
+
+Correct guidance:
+
+Use:
+
+```lua
+function pointerDown(self: MyNode, event: PointerEvent)
+	if inBounds(self, event.position) then
+		event:hit()
+	end
+end
+```
+
+Do not teach:
+
+```lua
+function pointerDown(self: MyNode, event: PointerEvent): boolean
+	return true
+end
+```
+
+unless a specific legacy scaffold proves that path is still supported.
+
+Recommended LERP fix:
+
+- Replace the "return true / false" wording with `event:hit()` / no hit call.
+- Keep the warning that `pointerDown(self, position: Vector): boolean` is an old pattern.
+- Add `event:hit(true)` as the translucent/pass-through variant.
+
+Validation reference:
+
+- Live drag-node example validated in the Rive editor.
+
+---
+
+## LERP-WATCH-004 - Property listener lifetime / GC warning is missing from LERP listener examples
+
+Status: resolved in LERP 2026-04-26 (was watch)
+
+Severity: medium
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
+- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
+- any LERP examples that call `property:addListener(...)`
+
+Local LERP evidence:
+
+- `data-input.mdx` documents `property:addListener(callback)` and `property:addListener(obj, callback)`.
+- It does not explain why the object/anchor form matters.
+- It does not warn that ViewModel/property handles obtained as locals can be garbage-collected while listeners are expected to remain active.
+
+Current Rive docs evidence:
+
+- Current Rive `PropertyTrigger` docs warn that if a ViewModel or property is obtained in a local and listeners are added without storing the object elsewhere, it may be garbage-collected after the function returns.
+- They recommend either storing the ViewModel/property on `self` or passing an anchor object to `addListener`.
+
+Validation impact:
+
+A live coordinate-label script stores property handles on `self`:
+
+```lua
+self.xProp = vm:getNumber("x")
+self.yProp = vm:getNumber("y")
+self.zProp = vm:getNumber("z")
+```
+
+This is the safer pattern because the script adds listeners to those properties.
+
+Correct guidance pending final validation:
+
+When adding listeners to VM properties, prefer one of:
+
+```lua
+-- Option A: keep handles on self
+self.vm = context:viewModel()
+self.xProp = self.vm and self.vm:getNumber("x")
+if self.xProp then
+	self.xProp:addListener(onChange)
+end
+```
+
+or:
+
+```lua
+-- Option B: use anchor form when available
+xProp:addListener(self, function(anchor)
+	-- ...
+end)
+```
+
+Recommended LERP fix:
+
+- Add a warning near every `addListener` section.
+- Explain when to store VM/property handles on `self`.
+- Explain the anchor overload with a working example.
+
+Validation reference:
+
+- Live listener and drag examples validated in the Rive editor.
+
+---
+
+## LERP-GAP-003 - `context:viewModel()` wording is misleading for nested/list item contexts
+
+Status: resolved in LERP 2026-04-26 (was gap)
+
+Severity: medium
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
+- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+- `/Users/ivg/github/lerp/docs/rive/inputs.mdx`
+
+Local LERP wording:
+
+- `advanced/viewmodels.mdx` says to use `context:viewModel()` for the artboard's main ViewModel.
+- The same page says `context:viewModel()` gets the artboard's bound ViewModel.
+- The key takeaway says to use `context:viewModel()` for artboard-level shared data.
+- `rive/inputs.mdx` describes `context:viewModel()` as global data shared across all scripts.
+
+Why this is misleading:
+
+A live editor validation depends on a more specific behavior:
+
+- Inside an Artboard List item, the card-local script uses `context:viewModel()` to get the item-local ViewModel.
+- The same script uses `context:rootViewModel()` to get the root ViewModel.
+- That distinction is essential for list items. If `context:viewModel()` is treated as always root/global/artboard-level, the focus action is designed incorrectly.
+
+Current Rive docs evidence:
+
+- Current `Context` docs say `viewModel()` returns the ViewModel bound to the node's immediate data context.
+- Current `Context` docs say `rootViewModel()` returns the root artboard data context.
+
+Correct guidance:
+
+Use this rule:
+
+```text
+context:viewModel()
+  -> the ViewModel from the current node's immediate data context
+  -> in an Artboard List item, this is the item VM
+
+context:rootViewModel()
+  -> the root artboard's data context
+  -> use this for root/global state such as selectedId or root lists
+```
+
+Recommended LERP fix:
+
+- Replace "main/global/artboard ViewModel" wording with "immediate data-context ViewModel".
+- Add an Artboard List example that reads an item VM with `context:viewModel()` and root VM with `context:rootViewModel()`.
+- Avoid analogies like Redux/global context for `context:viewModel()` unless clearly scoped to root scripts only.
+
+Validation reference:
+
+- Live Artboard List examples validated in the Rive editor.
+
+---
+
+## LERP-ERR-002 - Path Effect examples use unavailable `CommandType.*` global
+
+Status: resolved in LERP 2026-04-26 (was confirmed)
+
+Severity: high
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/path-effect-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/site-map.mdx` describes the Path Effects API as including `CommandType`
+
+Local LERP evidence:
+
+- The Path Effect template compares `cmd.type == CommandType.moveTo`.
+- Later examples compare against `CommandType.lineTo`, `CommandType.quadTo`, `CommandType.cubicTo`, and `CommandType.close`.
+- The troubleshooting section repeats the same `CommandType.*` pattern as the correct approach.
+
+Editor evidence from live path-effect validation:
+
+The path effect script threw errors including:
+
+```text
+Unknown global 'CommandType'; consider assigning to it first
+polygonPathEffectType 'unknown' does not have key 'type'
+Cannot add indexer to table '{ read type: unknown }'
+```
+
+Current Rive docs evidence:
+
+- Current Rive docs document command type values as `moveTo`, `lineTo`, `cubicTo`, `quadTo`, and `close`.
+- Current examples print `command.type` and show output like `moveTo` and `lineTo`.
+- The docs describe `CommandType` as the type/category of a command, but the editor did not expose a usable global table named `CommandType` in this validation run.
+
+Correct guidance:
+
+Do not write this in editor scripts:
+
+```lua
+if cmd.type == CommandType.moveTo then
+	-- ...
+end
+```
+
+Use the editor scaffold's actual type surface. In the currently validated path-effect workflow, compare against the string command names:
+
+```lua
+if cmd.type == "moveTo" then
+	path:moveTo(cmd[1])
+elseif cmd.type == "lineTo" then
+	path:lineTo(cmd[1])
+elseif cmd.type == "quadTo" then
+	path:quadTo(cmd[1], cmd[2])
+elseif cmd.type == "cubicTo" then
+	path:cubicTo(cmd[1], cmd[2], cmd[3])
+elseif cmd.type == "close" then
+	path:close()
+end
+```
+
+Recommended LERP fix:
+
+- Replace `CommandType.*` examples with string comparisons unless Rive exposes an actual import/global in the current editor.
+- Add a note that `CommandType` in docs is a conceptual/API type name, not necessarily a global Luau table.
+- Add an editor-compile smoke test for every Path Effect snippet.
+
+Validation reference:
+
+- Live polygon Path Effect example validated in the Rive editor.
+
+---
+
+## LERP-ERR-001 - ListenerAction callback is stale
+
+Status: resolved in LERP 2026-04-26 (was confirmed)
+
+Severity: high
+
+Affected local docs:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/rive/script-capability-matrix.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/transition-condition-protocol.mdx` indirectly references `perform(self, pointerEvent)` as the ListenerAction callback
+
+Local LERP evidence:
+
+- `listener-action-protocol.mdx` defines `ListenerAction<T>` with required `perform: (self: T, pointerEvent: PointerEvent) -> ()`.
+- The protocol table marks `perform` as required.
+- The knowledge check says the correct required callback is `perform(self, pointerEvent)`.
+- `script-capability-matrix.mdx` lists ListenerAction required callbacks as `perform`.
+
+Current Rive docs / editor evidence:
+
+- Current Rive docs for `ListenerAction` list both `perform` and `performAction`.
+- They state that `perform` is deprecated and prefer `performAction(self, listenerContext)`.
+- A live editor example was validated using `performAction(self: FocusWindowAction, _listenerCtx: ListenerContext)`.
+
+Correct guidance:
+
+Use this shape for new ListenerAction scripts:
+
+```lua
+function init(self: MyAction, context: Context): boolean
+	self.context = context
+	return true
+end
+
+function performAction(self: MyAction, listenerContext: ListenerContext)
+	-- action body
+end
+
+return function(): ListenerAction<MyAction>
+	return {
+		init = init,
+		performAction = performAction,
+	}
+end
+```
+
+Do not instruct new work to use `perform(self, pointerEvent)` unless explicitly targeting a legacy scaffold.
+
+Recommended LERP fix:
+
+- Update the ListenerAction protocol page to show `performAction` as preferred/current.
+- Mark `perform` as deprecated legacy.
+- Update quizzes and the capability matrix.
+- Explain the difference between `PointerEvent` and `ListenerContext`.
+
+Validation reference:
+
+- Live ListenerAction example validated in the Rive editor.
+
+---
+
+## Source Links Checked
+
+Official Rive docs checked during this errata pass:
+
+- ListenerAction: `https://rive.app/docs/scripting/api-reference/interfaces/listener-action`
+- Context: `https://rive.app/docs/scripting/api-reference/interfaces/context`
+- Data Binding: `https://rive.app/docs/scripting/data-binding`
+- PropertyTrigger: `https://rive.app/docs/scripting/api-reference/data-value/property-trigger`
+- PathEffect: `https://rive.app/docs/scripting/api-reference/interfaces/path-effect`
+- PathData: `https://rive.app/docs/scripting/api-reference/path/path-data`
+- PathCommand: `https://rive.app/docs/scripting/api-reference/path/path-command`
+- CommandType: `https://rive.app/docs/scripting/api-reference/path/command-type`
+- Pointer Events: `https://rive.app/docs/scripting/pointer-events`
+- PointerEvent: `https://rive.app/docs/scripting/api-reference/pointer-event`
+- Docs machine-readable source for "(Coming soon)" diffing: `https://rive.app/docs/llms-full.txt`
+- Node: `https://rive.app/docs/scripting/api-reference/node`
+- Editor Data Binding Lists: `https://rive.app/docs/editor/data-binding/lists`
+- Editor Scrolling: `https://rive.app/docs/editor/layouts/scrolling`
+
+Local LERP docs checked during this errata pass:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/rive/script-capability-matrix.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/path-effect-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
+- `/Users/ivg/github/lerp/docs/api/data-values.mdx`
+- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
+- `/Users/ivg/github/lerp/docs/rive/inputs.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/layout-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/rive/runtime-compatibility.mdx`
+- `/Users/ivg/github/rive-docs/editor/data-binding/lists.mdx`
+- `/Users/ivg/github/rive-docs/editor/layouts/scrolling.mdx`
+- `/Users/ivg/github/rive-docs/editor/layouts/layout-parameters.mdx`
+- `/Users/ivg/github/rive-runtime-docs/8.3-lua-api-reference.md`
+- npm metadata check (`npm view @rive-app/canvas@2.37.4 gitHead`) returning `5581955bf70d8976c60254de1a9c50c128e70582`
+- npm metadata check (`npm view @rive-app/canvas@2.37.6 gitHead`) returning `2833de372c0d22596494c89c328008ce5b1106d7`
+
+---
+
+## Append Procedure
+
+When a new inconsistency appears:
+
+1. Add it to the summary table.
+2. Add a detailed section with local source, observed failure, current correction, and validation evidence.
+3. Mark it `confirmed`, `gap`, or `watch`.
+4. If the correction depends on current Rive docs, add the URL to Source Links Checked.
+5. If the item is later resolved in LERP, keep the entry and mark it `resolved in LERP <date/hash>`.

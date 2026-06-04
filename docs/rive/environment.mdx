@@ -68,6 +68,20 @@ Rive scripts execute in a sandboxed Luau environment inside the Rive editor. Thi
 
 ---
 
+## Authoring Outside Rive
+
+The Rive editor remains the final runtime environment for scripts, but you do not have to write every line inside the editor. If you prefer VS Code, Cursor, Windsurf, or another VS Code-compatible editor, install the **[Rive Luau VS Code extension](https://marketplace.visualstudio.com/items?itemName=IVGDesign.rive-luau)**.
+
+The extension is backed by the **[Rive Luau LSP](https://github.com/ivg-design/rive-luau-lsp)**, a language server built for Rive's Luau scripting environment. Use it for Rive-parity linting, diagnostics, autocomplete, hover documentation, and IntelliSense while editing `.luau` files outside Rive.
+
+This is especially useful for shader-era scripts because typed GPU descriptors, `.luau` syntax, `GPUCanvas`, `GPUPipeline`, `GPUBuffer`, `UBOEntry`, `TextureEntry`, and `SamplerEntry` benefit from accurate checking before you paste or sync the script back into Rive.
+
+:::tip External editor workflow
+Keep the Rive editor open for asset wiring, script inputs, and final playback checks. Use the language server for faster iteration in an external editor, then validate behavior in Rive with the Console panel.
+:::
+
+---
+
 ## The Console Panel
 
 The Console panel is your primary debugging tool in Rive. All `print()` statements from your scripts appear here.

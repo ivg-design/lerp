@@ -747,11 +747,11 @@ lerp(0, 100, 1)    -- 100 (end)
 
 ### ListenerAction {#listeneraction}
 
-A script type for custom logic that runs when a state machine listener event fires. Uses `init` and `perform` protocol methods.
+A script type for custom logic that runs when a state machine listener event fires. Uses `init` and `performAction` as the preferred callback (`perform` is legacy/deprecated).
 
 ```lua
 return function(): ListenerAction<MyAction>
-    return { init = init, perform = perform }
+    return { init = init, performAction = performAction }
 end
 ```
 
@@ -1027,11 +1027,11 @@ end
 
 ### Output {#output}
 
-`Output<T>` is a type alias (`Output<T> = T`) that marks a field as an output exposed to the Rive runtime. The runtime reads output values each frame.
+`Output<T>` appears in upstream docs, but at the current C++ runtime baseline it is not exposed in Luau bindings. Use normal typed fields on `self` for script state until a future runtime baseline confirms support.
 
 ```lua
 export type MyScript = {
-    result: Output<number>,
+    result: number,
 }
 ```
 
@@ -1591,16 +1591,140 @@ end
 
 ---
 
+### Mat4 {#mat4}
+
+Rive's 4x4 matrix type for 3D transforms, projection math, and GPU-oriented workflows.
+
+```lua
+local model = Mat4.fromTranslation(0, 0, -4) * Mat4.fromRotationY(math.rad(20))
+local x, y, z, w = model:transformVec4(1, 0, 0, 1)
+```
+
+**Learn more:** [Core Types](/api/core-types#mat4)
+
+---
+
+### Promise {#promise}
+
+An async value container used with `Promise.new`, chaining (`andThen`, `catch`, `finally`), and cancellation APIs.
+
+```lua
+local p = Promise.resolve(42)
+p:andThen(function(v) print(v) end)
+```
+
+**Learn more:** [System](/api/system#promise-async-and-await)
+
+---
+
+### ScriptedInterpolator {#scripted-interpolator}
+
+A runtime-backed interpolation protocol with optional `transform` and `transformValue` hooks for custom easing behavior.
+
+```lua
+function transformValue(self, from: number, to: number, factor: number): number
+    local t = factor * factor
+    return from + (to - from) * t
+end
+```
+
+If omitted or failing, runtime falls back to linear interpolation.
+
+**Learn more:** [ScriptedInterpolator Protocol](/rive/protocols/scripted-interpolator-protocol)
+
+---
+
+### drawCanvas() {#drawcanvas}
+
+An optional Node/Layout lifecycle callback for offscreen `Canvas` and early-access `GPUCanvas` rendering. Use it for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)`; use `draw(self, renderer)` afterward to composite the resulting image.
+
+```lua
+function drawCanvas(self: ShaderNode)
+    local pass = self.gpuCanvas:beginRenderPass({
+        color = {{ loadOp = "clear", storeOp = "store", clearColor = { 0, 0, 0, 0 } }},
+    })
+    pass:setPipeline(self.pipeline)
+    pass:draw(self.vertexCount)
+    pass:finish()
+end
+```
+
+**Learn more:** [GPU Shaders and 3D Rendering](/advanced/gpu-shaders)
+
+---
+
+### GPUCanvas {#gpucanvas}
+
+A GPU render target created with `context:gpuCanvas(...)`. It exposes `beginRenderPass(...)` for shader rendering and `image` for normal renderer compositing.
+
+```lua
+self.gpuCanvas = context:gpuCanvas({ width = 512, height = 512 })
+local format = self.gpuCanvas.format
+```
+
+**Learn more:** [GPU Shaders API](/api/gpu-shaders#canvas-vs-gpucanvas)
+
+---
+
+### Bind Group {#bind-group}
+
+A reusable set of shader resources: uniform buffers, textures, and samplers. Bind groups map Luau resource entries to WGSL `@group` and `@binding` declarations.
+
+```lua
+local bindGroup = GPUBindGroup.new({
+    layout = pipeline:getBindGroupLayout(0),
+    ubos = {{ slot = 0, buffer = uniformBuffer }},
+    textures = {{ slot = 1, view = image:view() }},
+    samplers = {{ slot = 2, sampler = sampler }},
+})
+```
+
+**Learn more:** [GPU Shaders API](/api/gpu-shaders#bind-groups)
+
+---
+
+### Shader {#shader}
+
+An opaque compiled GPU shader module loaded from a `.wgsl` asset with `context:shader(name)`.
+
+```lua
+local shader = context:shader("gradient_card")
+if not shader then
+    print("Missing shader asset")
+end
+```
+
+**Learn more:** [GPU Shaders API](/api/gpu-shaders#shader)
+
+---
+
+### WGSL {#wgsl}
+
+WebGPU Shading Language. Rive shader assets are authored as `.wgsl` files and loaded from Luau as compiled `Shader` handles.
+
+```text
+@fragment
+fn fsMain() -> @location(0) vec4<f32> {
+    return vec4<f32>(1.0, 0.2, 0.6, 1.0);
+}
+```
+
+**Learn more:** [GPU Shaders and 3D Rendering](/advanced/gpu-shaders)
+
+---
+
 ## Quick Reference Index
 
 | Category | Terms |
 |----------|-------|
-| **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [draw](#draw), [Lifecycle](#lifecycle) |
+| **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [drawCanvas](#drawcanvas), [draw](#draw), [Lifecycle](#lifecycle) |
 | **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type), [Type Alias](#type-alias), [Type Guard](#type-guard), [Type Narrowing](#type-narrowing) |
 | **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [Output](#output), [late()](#late), [Data Binding](#data-binding), [DataContext](#datacontext), [Listener](#listener) |
-| **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Vector](#vector), [ImageSampler](#imagesampler) |
+| **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Mat4](#mat4), [Vector](#vector), [ImageSampler](#imagesampler) |
+| **GPU Shaders** | [Shader](#shader), [GPUCanvas](#gpucanvas), [Bind Group](#bind-group), [WGSL](#wgsl), [Mat4](#mat4) |
 | **OOP** | [Metatable](#metatable), [Metamethod](#metamethod), [Closure](#closure), [self](#self), [Upvalue](#upvalue), [Inheritance](#inheritance), [Chaining](#chaining) |
-| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [ListenerAction](#listeneraction), [TransitionCondition](#transitioncondition), [Factory Function](#factory-function), [Module](#module), [require](#require) |
+| **Script Types** | [Node Protocol](#node-protocol), [Util Protocol](#util-protocol), [ListenerAction](#listeneraction), [TransitionCondition](#transitioncondition), [ScriptedInterpolator](#scripted-interpolator), [Factory Function](#factory-function), [Module](#module), [require](#require) |
+| **Async** | [Promise](#promise), [Listener](#listener), [Output](#output) |
 | **Tables** | [Table](#table), [Array](#array), [Dictionary](#dictionary), [pairs](#pairs), [ipairs](#ipairs) |
 | **Language** | [Local Variable](#local-variable), [Scope](#scope), [Loop](#loop), [Return](#return), [nil](#nil), [Boolean](#boolean), [Truthiness](#truthiness), [String Interpolation](#string-interpolation), [Compound Assignment](#compound-assignment) |
 | **Animation** | [Animation](#animation), [Keyframe](#keyframe), [State Machine](#state-machine), [Layer](#layer), [Lerp](#lerp), [Easing](#easing), [Artboard](#artboard), [Nested Artboard](#nested-artboard), [AudioSource](#audiosource), [AudioSound](#audiosound), [Blob](#blob) |

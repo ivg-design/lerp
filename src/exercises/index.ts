@@ -207,7 +207,11 @@ const quizzesByChapter: Record<string, string[]> = {
     'instantiation-method',
     'game-logic-hit',
     'procedural-q1', 'procedural-q2', 'procedural-q3', 'procedural-q4', 'procedural-q5',
+    'gpu-shaders-q1', 'gpu-shaders-q2', 'gpu-shaders-q3', 'gpu-shaders-q4', 'gpu-shaders-q5',
     'viewmodels-q1', 'viewmodels-q2', 'viewmodels-q3', 'viewmodels-q4', 'viewmodels-q5',
+  ],
+  'projects': [
+    'gpu-labs-q1', 'gpu-labs-q2', 'gpu-labs-q3', 'gpu-labs-q4',
   ],
   'best-practices': [
     'architecture-q1', 'architecture-q2', 'architecture-q3', 'architecture-q4',

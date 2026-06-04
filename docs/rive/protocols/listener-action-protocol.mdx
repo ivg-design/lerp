@@ -22,10 +22,14 @@ import Term from '@site/src/components/Term';
 
 ListenerAction scripts run custom code when a <Term>State Machine</Term> listener event fires. Unlike [Listeners](./listener-protocol) (which are function signatures for `addListener()`), ListenerAction is a **script type** that you attach to state machine listener events.
 
+:::info Runtime baseline
+This page is aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026). See [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
 **When to use ListenerAction scripts:**
 - Custom side-effects when a state machine listener triggers
 - Logging, analytics, or audio playback on listener events
-- Complex logic that needs the pointer event data from the trigger
+- Complex logic that needs listener context from the trigger event
 
 ---
 
@@ -33,8 +37,9 @@ ListenerAction scripts run custom code when a <Term>State Machine</Term> listene
 
 ```lua
 export type ListenerAction<T> = {
-    init:    ((self: T, context: Context) -> boolean)?,
-    perform: (self: T, pointerEvent: PointerEvent) -> (),
+    init:          ((self: T, context: Context) -> boolean)?,
+    performAction: (self: T, listenerContext: ListenerContext) -> (),
+    perform:       ((self: T, pointerEvent: PointerEvent) -> ())?, -- Legacy/deprecated
 } & T
 ```
 
@@ -45,17 +50,47 @@ export type ListenerAction<T> = {
 | Function | Signature | Required | Description |
 |----------|-----------|----------|-------------|
 | `init` | `(self: T, context: Context): boolean` | No | One-time initialization |
-| `perform` | `(self: T, pointerEvent: PointerEvent): ()` | **Yes** | Runs when the listener fires |
+| `performAction` | `(self: T, listenerContext: ListenerContext): ()` | **Yes (preferred)** | Runs when the listener fires |
+| `perform` | `(self: T, pointerEvent: PointerEvent): ()` | Legacy | Deprecated callback from older scaffolds |
 
-### `perform(self, pointerEvent)` — **REQUIRED**
+### `performAction(self, listenerContext)` — **REQUIRED (Preferred)**
 
-Called when the state machine listener event fires. Receives the `PointerEvent` that triggered the listener, providing access to position and pointer ID.
+Called when the state machine listener event fires. This is the current callback shape recommended for new scripts.
 
 ```lua
-function perform(self: MyAction, pointerEvent: PointerEvent)
-    print("Listener triggered at:", pointerEvent.position.x, pointerEvent.position.y)
+function performAction(self: MyAction, listenerContext: ListenerContext)
+    if listenerContext:isPointerEvent() then
+        local evt = listenerContext:asPointerEvent()
+        if evt then
+            print("pointer:", evt.type)
+        end
+    elseif listenerContext:isKeyboardEvent() then
+        local evt = listenerContext:asKeyboardEvent()
+        if evt then
+            print("keyboard phase:", evt.phase)
+        end
+    end
 end
 ```
+
+### ListenerContext Event Kinds
+
+`ListenerContext` is a tagged payload union. Use `is...` guards before `as...` casts.
+
+| Guard | Accessor | Typical fields |
+|---|---|---|
+| `isPointerEvent()` | `asPointerEvent()` | `id`, `position`, `type`, `previousPosition`, `timeStamp` |
+| `isKeyboardEvent()` | `asKeyboardEvent()` | `key`, `shift`, `control`, `alt`, `meta`, `phase` |
+| `isTextInput()` | `asTextInput()` | `text` |
+| `isFocus()` | `asFocus()` | `isFocus` |
+| `isReportedEvent()` | `asReportedEvent()` | `delaySeconds` (payload is limited at this baseline) |
+| `isViewModelChange()` | `asViewModelChange()` | kind/presence only (payload is limited at this baseline) |
+| `isGamepad()` | `asGamepad()` | `deviceId`, `buttonMask`, `axis0` |
+| `isNone()` | `asNone()` | fallback/unknown kind |
+
+### `perform(self, pointerEvent)` — Legacy/Deprecated
+
+Older examples may still use `perform(self, pointerEvent)`. Keep it only for legacy compatibility work; prefer `performAction` for all new course code.
 
 ### `init(self, context)` — Optional
 
@@ -78,17 +113,15 @@ export type MyAction = {
     clickCount: number,
 }
 
-function perform(self: MyAction, pointerEvent: PointerEvent)
+function performAction(self: MyAction, listenerContext: ListenerContext)
     self.clickCount += 1
-    print("Click #" .. tostring(self.clickCount)
-        .. " at (" .. tostring(pointerEvent.position.x)
-        .. ", " .. tostring(pointerEvent.position.y) .. ")")
+    print("Listener fire #" .. tostring(self.clickCount))
 end
 
 return function(): ListenerAction<MyAction>
     return {
         clickCount = 0,
-        perform = perform,
+        performAction = performAction,
     }
 end
 ```
@@ -100,7 +133,7 @@ end
 1. Create a ListenerAction script in the Assets panel
 2. In the State Machine editor, select a Listener
 3. Add the script as an action on the listener
-4. The `perform` function will run each time the listener triggers
+4. The `performAction` function will run each time the listener triggers
 
 ---
 
@@ -108,10 +141,10 @@ end
 
 | Feature | Node Script | ListenerAction |
 |---------|-------------|----------------|
-| Lifecycle | `init`, `advance`, `update`, `draw` | `init`, `perform` |
+| Lifecycle | `init`, `advance`, `update`, `draw` | `init`, `performAction` |
 | Rendering | Has `draw()` and Renderer access | No rendering |
 | When it runs | Every frame (advance/draw) | Only when listener fires |
-| Pointer data | Via `pointerDown`/`pointerMove` handlers | Via `perform` parameter |
+| Event context | Via `pointerDown`/`pointerMove` handlers | Via `performAction(listenerContext)` |
 
 ---
 
@@ -124,29 +157,35 @@ end
 ListenerAction scripts are event-driven. They run only when the listener fires, making them ideal for analytics, counters, and side-effects.
 
 :::info Goal
-By the end of this exercise, you will increment a counter in `perform()` and print an `ANSWER:` line after 3 listener events.
+By the end of this exercise, you will branch on `listenerContext` event kind, count pointer events, and print an `ANSWER:` line after 3 pointer triggers.
 :::
 
 ### Starter Code
 
 ```lua
 export type ClickCounterAction = {
-    clicks: number,
+    pointerCount: number,
+    lastKind: string,
 }
 
-function perform(self: ClickCounterAction, pointerEvent: PointerEvent)
-    -- TODO 1: Increment self.clicks
+function performAction(self: ClickCounterAction, listenerContext: ListenerContext)
+    -- TODO 1: Detect event kind with listenerContext:is...()
+    -- Set self.lastKind to one of: "pointer", "keyboard", "text", "focus", "other"
 
-    -- TODO 2: Print click position
-    -- print("click at", pointerEvent.position.x, pointerEvent.position.y)
+    -- TODO 2: If kind is pointer, increment self.pointerCount
 
-    -- TODO 3: When clicks reaches 3, print "ANSWER: clicks=3"
+    -- TODO 3: Print a debug line with kind and count
+    -- print("listener kind", self.lastKind, "count", self.pointerCount)
+
+    -- TODO 4: When pointerCount reaches 3, print:
+    -- "ANSWER: kind=pointer,count=3"
 end
 
 return function(): ListenerAction<ClickCounterAction>
     return {
-        perform = perform,
-        clicks = 0,
+        performAction = performAction,
+        pointerCount = 0,
+        lastKind = "other",
     }
 end
 ```
@@ -154,14 +193,14 @@ end
 ### Assignment
 
 1. Attach the script as a listener action in a state machine Listener
-2. Trigger the listener 3 times
+2. Trigger pointer-driven listener events 3 times
 3. Copy the `ANSWER:` line from Console
 
 ### Verify Your Answer
 
 <ExerciseValidator
     exerciseId="rive-listener-action-1"
-    expectedAnswer="ANSWER: clicks=3"
+    expectedAnswer="ANSWER: kind=pointer,count=3"
 />
 
 ---
@@ -173,28 +212,29 @@ end
   id="listener-action-q1"
   options={[
     { text: "draw(self, renderer)" },
-    { text: "perform(self, pointerEvent)", correct: true },
+    { text: "performAction(self, listenerContext)", correct: true },
     { text: "advance(self, seconds)" },
     { text: "evaluate(self)" },
   ]}
-  explanation="ListenerAction scripts are event-driven and require perform(self, pointerEvent)."
+  explanation="ListenerAction scripts are event-driven and should use performAction(self, listenerContext). Legacy perform(self, pointerEvent) may still exist in older scaffolds."
 />
 
 <Quiz
-  question="Where do you attach a ListenerAction script?"
+  question="What is the safest ListenerAction payload pattern?"
   id="listener-action-q2"
   options={[
-    { text: "On any Node as a draw script" },
-    { text: "On a State Machine Listener action slot", correct: true },
-    { text: "As a ViewModel property type" },
-    { text: "Inside a Util script require() call" },
+    { text: "Call asPointerEvent() directly and assume it always exists." },
+    { text: "Use is...() guards, then call the matching as...() accessor.", correct: true },
+    { text: "Use perform(self, pointerEvent) only for all listener kinds." },
+    { text: "Ignore ListenerContext and read ViewModel values only." },
   ]}
-  explanation="ListenerAction scripts are attached to listener events in the State Machine editor."
+  explanation="ListenerContext is a tagged union payload. Guard first (`is...`), then cast (`as...`) to avoid nil access."
 />
 
-**See Also:** [Listeners](./listener-protocol), [Script Types Overview](/rive/script-types), [PointerEvent](/api/events#pointerevent)
+**See Also:** [Listeners](./listener-protocol), [Script Types Overview](/rive/script-types), [Events API](/api/events#listenercontext)
 
 ## Next Steps
 
 - Continue to [TransitionCondition Protocol](/rive/protocols/transition-condition-protocol)
+- Verify surface status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Need a refresher? Review [Quick Reference](/quick-reference)

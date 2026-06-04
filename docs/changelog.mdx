@@ -10,6 +10,54 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.8] — 2026-06-04
+
+### Added
+- **ScriptedInterpolator protocol coverage** — added `rive/protocols/scripted-interpolator-protocol` with runtime-backed behavior, fallback semantics, exercise, and quiz.
+- **Interpolation API page** — added `api/interpolation` and linked it in API Reference navigation so ScriptedInterpolator has a direct API location.
+- **Mat4 API coverage** — expanded `api/core-types` with full Mat4 constructors, static helpers, transforms, buffer write, and operator semantics.
+- **Promise/async/await reference** — added Promise runtime coverage to `api/system` and quick-reference usage snippets for async image decode workflows.
+- **Context advanced rendering coverage** — added `context:canvas`, `context:gpuCanvas`, `context:features`, `context:preferredCanvasFormat`, `context:loadShader`, and `context:decodeImage` to `api/data-input`.
+- **GPU Shaders and 3D Rendering course chapter** — added `advanced/gpu-shaders` with early-access shader workflow guidance, `drawCanvas` lifecycle positioning, WGSL/Luau examples, 3 exercises, and 5 quizzes.
+- **GPU Shaders API reference** — added `api/gpu-shaders` covering `GPUCanvas`, `Shader`, `GPURenderPass`, `GPUPipeline`, `GPUBuffer`, `GPUTexture`, `GPUSampler`, bind groups, descriptor types, string literal types, `GPUFeatures`, `Image:view()`, and shader troubleshooting.
+- **GPU Shader Example Labs project** — added `projects/gpu-shader-labs` as a guided 10-lab path based on the corrected local Rive shader example pack, covering first triangle setup, uniform animation, UV debugging, image sampling, sampler modes, dissolve masks, two-pass blur, depth-tested 3D geometry, ray marching, and glass distortion.
+- **Shader lab exercises and quizzes** — added 3 validator-backed project exercises and 4 quizzes focused on typed descriptors, guarded shader/image setup, `UBOEntry.size`, and explicit render-to-texture source strategies.
+- **Release and deployment workflow** — added `release-workflow` as the canonical maintainer protocol for drafting, local review, commit/tag release, Vercel production deploys, verification, and rollback.
+
+### Changed
+- **Runtime compatibility baseline updated** — refreshed `rive/runtime-compatibility` to the May 12, 2026 course-wide audit with upstream runtime snapshot `runtime-v0.1.64` (`b25a32218c6308ac8dc4b1cb69df62de84d78ba4`) and npm C++ WASM runtime line `2.37.6` (`gitHead` `2833de372c0d22596494c89c328008ce5b1106d7`, published May 8, 2026 UTC).
+- **Release-tier alignment for advanced rendering APIs** — reclassified GPU/shader object families as `Preview / rollout-dependent` while keeping `Canvas` + `decodeImage/DecodedImage` as officially released advanced surfaces; updated `api/data-input`, `api/assets`, and `rive/runtime-compatibility`.
+- **Listener payload coverage expanded** — updated Events and ListenerAction docs with gamepad payload guards/accessors and explicit invocation field mapping.
+- **Node lifecycle coverage expanded** — added keyboard/text callback handling guidance and propagation semantics (`return true` stops propagation).
+- **Artboard input typing guidance improved** — updated Inputs docs to include `Input<Artboard<Data.X>>` and `Input<Artboard<nil>>` patterns, plus `instance(viewModel)` guidance.
+- **Current shader naming adopted** — new examples now use `context:shader(name)` and `GPUCanvas.format`, and explicitly flag older `context:loadShader(name)` / `context:preferredCanvasFormat()` references as stale for new LERP shader material.
+- **Lifecycle docs expanded** — `drawCanvas(self)` is now documented in Node, Layout, lifecycle, capability matrix, quick reference, glossary, and shader lessons as the correct phase for offscreen `Canvas` and `GPUCanvas` rendering.
+- **Shader lesson updated for type-safe runtime-v0.1.106 patterns** — rewrote the minimal triangle and supporting snippets to use non-null local GPU resources, typed descriptor helpers, local optional-field guards in `drawCanvas`, and byte-accurate uniform binding sizes.
+- **GPU API reference tightened** — documented descriptor-local construction, `getBindGroupLayout` auto-layout caveats, optional `context:shader(name)` failure causes, image asset requirements, sampler blur checks, WGSL swizzle assignment limits, and explicit source-texture requirements for glass effects.
+- **Runtime compatibility shader baseline clarified** — updated `rive/runtime-compatibility` to label the runtime-v0.1.106 shader baseline as **Rive Early Access only**, while preserving the May 12, 2026 course-wide runtime audit as the main baseline.
+- **External editor tooling documented** — added Rive Luau LSP / VS Code extension recommendations for writing `.luau` scripts in VS Code, Cursor, Windsurf, and other LSP-capable editors, including shader-specific syntax and descriptor-checking guidance.
+- **Course metadata refreshed** — updated sidebar review date, site map, progress registry, quiz tracking, discoverability artifacts, and course counts for the roll-up release.
+
+### Fixed
+- **PropertyList inconsistency (LERP-ERR-006)** — replaced stale `list.count` / `list:item(index)` usage with `list.length` / `list[index]` and documented `clear`, `removeAt`, and `removeAllOf` in API and advanced lessons.
+- **Version alignment drift** — synchronized runtime-version references across API, protocol, matrix, and compatibility pages to a single May 12, 2026 audit baseline.
+
+---
+
+## [1.2.7] — 2026-04-27
+
+### Added
+- **Runtime compatibility baseline page** — added `rive/runtime-compatibility` with both a pinned runtime source snapshot (`npm gitHead@5581955` for runtime line `2.37.4`, published April 24, 2026 UTC) and the current C++ WASM npm runtime release line (`2.37.4` across `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced`), plus a live/partial/not-exposed matrix for docs-labeled "Coming soon" surfaces.
+
+### Changed
+- **API pages aligned to runtime baseline** — Events now documents ListenerContext payload kinds (pointer/keyboard/text/focus/reported/view-model-change/none), Assets documents `AudioSource.duration`, and Hierarchy explicitly marks `NodeReadData.paint`/`asPath`/`asPaint` as baseline-validated.
+- **System + Glossary output wording** — `Output<T>` is now documented as not currently exposed in this baseline C++ Luau binding surface.
+- **Listener lessons/quizzes updated** — ListenerAction and Listeners protocol pages now teach the payload-guard pattern (`is...` + `as...`) as the safe default.
+- **Metadata and navigation sync** — Intro, Quick Reference, Site Map, and sidebar metadata now include runtime baseline tracking links and updated review date.
+- **Audit protocol documentation** — runtime baseline page now records how verification was executed (npm release checks, runtime commit pin, docs `(Coming soon)` diffing, and binding-level confirmation) and defines required fields for future changelog runtime-audit entries.
+
+---
+
 ## [1.2.6] — 2026-04-26
 
 ### Fixed

@@ -18,6 +18,10 @@ import Term from '@site/src/components/Term';
 
 Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
+:::info Runtime baseline
+This overview is aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026), plus the June 3, 2026 shader early-access addendum for GPU callback guidance. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
 :::info Need Full Access/Limitations Matrix?
 For a comprehensive "what can each script type do?" reference (including callback parameters, path-geometry boundaries, and input accessibility), see [Script Capability Matrix](/rive/script-capability-matrix).
 :::
@@ -52,14 +56,17 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 **Use when:** You need animation logic, custom drawing, or interactive behavior on a node.
 
 **Key features:**
-- Lifecycle callbacks: `init`, `update`, `advance`, `draw`
+- Lifecycle callbacks: `init`, `update`, `advance`, `drawCanvas`, `draw`
 - Pointer event handlers: `pointerDown`, `pointerMove`, `pointerUp`
+- Text/keyboard handlers: `textEvent`, `keyboardEvent`
 - Access to <Term>Renderer</Term> for custom drawing
+- Access to `Canvas` / `GPUCanvas` render phases for offscreen and shader workflows
 - Can have inputs from the editor
 
 **Typical use cases:**
 - Procedural animations (particles, physics)
 - Custom drawing (graphs, visualizations)
+- GPU shader passes and post-processing
 - Interactive elements (buttons, sliders)
 - Game logic (collision, scoring)
 
@@ -162,7 +169,9 @@ end
 
 **Key features:**
 - `init(self, context)` - One-time initialization
-- `perform(self, pointerEvent)` - Executed when the listener action triggers
+- `performAction(self, listenerContext)` - Executed when the listener action triggers (preferred)
+- `perform(self, pointerEvent)` - Legacy/deprecated callback in older scaffolds
+- `listenerContext` supports typed branching (`is...` / `as...`) for pointer, keyboard, text, focus, and listener payload kinds
 - Attached to state machine listener events
 
 **Typical use cases:**
@@ -174,7 +183,7 @@ end
 
 ```lua
 return function(): ListenerAction<MyAction>
-    return { init = init, perform = perform }
+    return { init = init, performAction = performAction }
 end
 ```
 
@@ -205,6 +214,26 @@ end
 ```
 
 **Learn more:** [TransitionCondition Script Protocol →](./protocols/transition-condition-protocol)
+
+---
+
+## ScriptedInterpolator (Runtime-Backed Advanced Protocol)
+
+**Use when:** You need custom interpolation curves at runtime for keyframe value blending and want script-controlled easing behavior.
+
+**Current status:**
+- Runtime support is present in the audited C++ bindings (`runtime-v0.1.64`).
+- This protocol is documented in LERP for compatibility tracking and advanced usage.
+- Editor UI exposure can lag runtime support; verify availability in your current editor build before production use.
+
+**Key methods:**
+- `transform(self, factor) -> number` (optional)
+- `transformValue(self, valueFrom, valueTo, factor) -> number` (optional)
+
+**Fallback behavior:**
+- If methods are omitted or fail, runtime falls back to standard linear interpolation behavior.
+
+**Learn more:** [ScriptedInterpolator Protocol →](./protocols/scripted-interpolator-protocol)
 
 ---
 

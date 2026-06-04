@@ -5,6 +5,7 @@
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
+    "prebuild": "npm run generate:ai-artifacts",
     "build": "docusaurus build",
     "generate:ai-artifacts": "node scripts/generate-ai-artifacts.mjs",
     "indexnow:ping": "node scripts/indexnow-ping.mjs",

@@ -9,6 +9,14 @@ const staticDir = path.join(root, 'static');
 const wellKnownDir = path.join(staticDir, '.well-known');
 const canonicalBase = 'https://forge.mograph.life/apps/lerp';
 
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function walkDocs(dir) {
   const files = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -18,6 +26,21 @@ function walkDocs(dir) {
       continue;
     }
     if (entry.isFile() && fullPath.endsWith('.mdx')) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
+
+function walkCategoryFiles(dir) {
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkCategoryFiles(fullPath));
+      continue;
+    }
+    if (entry.isFile() && entry.name === '_category_.json') {
       files.push(fullPath);
     }
   }
@@ -60,16 +83,70 @@ function routeFromPath(relPath) {
   return `/${clean}`;
 }
 
+function normalizeRoute(route) {
+  if (!route) return '/';
+  if (route === '/') return '/';
+  return route.startsWith('/') ? route : `/${route}`;
+}
+
+function routeToCanonical(route) {
+  const normalized = normalizeRoute(route);
+  return `${canonicalBase}${normalized === '/' ? '/' : normalized}`;
+}
+
+function buildGeneratedIndexDocuments() {
+  const categoryFiles = walkCategoryFiles(docsDir)
+    .map((categoryPath) => path.relative(docsDir, categoryPath).replace(/\\/g, '/'))
+    .sort();
+
+  const docs = [];
+  for (const relPath of categoryFiles) {
+    const fullPath = path.join(docsDir, relPath);
+    const raw = fs.readFileSync(fullPath, 'utf8');
+    let json;
+    try {
+      json = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+
+    if (json?.link?.type !== 'generated-index') {
+      continue;
+    }
+
+    const link = json.link || {};
+    const title = link.title || json.label || 'Generated Index';
+    const description = link.description || '';
+    const route = normalizeRoute(link.slug || `/category/${slugify(title)}`);
+    const canonicalUrl = routeToCanonical(route);
+
+    docs.push({
+      id: `generated-index-${relPath.replace(/[\\/]/g, '-')}`,
+      title,
+      description,
+      url: canonicalUrl,
+      canonicalUrl,
+      group: relPath.includes('/') ? relPath.split('/')[0] : 'root',
+      tags: ['generated-index', 'navigation'],
+      sourcePath: `docs/${relPath}`,
+      contentType: 'generated-index',
+      language: 'en',
+    });
+  }
+
+  return docs;
+}
+
 function buildDocuments() {
   const files = walkDocs(docsDir)
     .map((docPath) => path.relative(docsDir, docPath).replace(/\\/g, '/'))
     .sort();
 
-  return files.map((relPath) => {
+  const docs = files.map((relPath) => {
     const content = fs.readFileSync(path.join(docsDir, relPath), 'utf8');
     const { title, description, keywords } = parseFrontmatter(content);
     const route = routeFromPath(relPath);
-    const canonicalUrl = `${canonicalBase}${route === '/' ? '/' : route}`;
+    const canonicalUrl = routeToCanonical(route);
     return {
       id: relPath.replace(/\.mdx$/, '').replace(/[\\/]/g, '-'),
       title: title || inferTitle(content, relPath),
@@ -83,6 +160,14 @@ function buildDocuments() {
       language: 'en',
     };
   });
+
+  // Include generated category index pages so llms-full/ai-feed coverage matches sitemap routes.
+  const generatedIndexDocs = buildGeneratedIndexDocuments();
+  const byUrl = new Map();
+  for (const doc of [...docs, ...generatedIndexDocs]) {
+    byUrl.set(doc.url, doc);
+  }
+  return Array.from(byUrl.values());
 }
 
 function writeLlmsFull(documents) {
@@ -147,6 +232,129 @@ function writeAiFeed(documents) {
   fs.writeFileSync(path.join(wellKnownDir, 'ai-feed.json'), output);
 }
 
+function escapeXml(value) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+}
+
+function writeCourseSitemap(documents) {
+  const courseGroups = new Set([
+    'home',
+    'advanced',
+    'api',
+    'best-practices',
+    'category',
+    'examples',
+    'fundamentals',
+    'getting-started',
+    'glossary',
+    'oop',
+    'projects',
+    'quick-reference',
+    'rive',
+    'tips-tricks',
+    'types',
+  ]);
+  const courseRootUrls = new Set([
+    `${canonicalBase}/glossary`,
+    `${canonicalBase}/quick-reference`,
+    `${canonicalBase}/release-workflow`,
+    `${canonicalBase}/tips-tricks`,
+  ]);
+
+  const urls = documents
+    .filter((doc) => {
+      const groupKey = doc.url === `${canonicalBase}/` ? 'home' : doc.group || 'root';
+      return courseGroups.has(groupKey) || courseRootUrls.has(doc.url);
+    })
+    .sort((a, b) => a.url.localeCompare(b.url));
+
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...urls.map((doc) => {
+      const lines = [
+        '  <url>',
+        `    <loc>${escapeXml(doc.url)}</loc>`,
+      ];
+      lines.push('    <changefreq>weekly</changefreq>');
+      lines.push('    <priority>0.8</priority>');
+      lines.push('  </url>');
+      return lines.join('\n');
+    }),
+    '</urlset>',
+    '',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(staticDir, 'sitemap-course.xml'), xml);
+}
+
+function humanizeGroup(group) {
+  if (!group || group === 'root') return 'Core Pages';
+  return group
+    .split(/[-_/]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function writeHtmlSiteMap(documents) {
+  const siteMapDocPath = path.join(docsDir, 'site-map.mdx');
+  const filteredDocuments = documents.filter((doc) => doc.url !== `${canonicalBase}/site-map`);
+  const groupedDocuments = new Map();
+
+  for (const doc of filteredDocuments) {
+    const groupKey = doc.url === `${canonicalBase}/` ? 'home' : doc.group || 'root';
+    if (!groupedDocuments.has(groupKey)) {
+      groupedDocuments.set(groupKey, []);
+    }
+    groupedDocuments.get(groupKey).push(doc);
+  }
+
+  const orderedGroupKeys = [
+    ...['home', 'root'].filter((key) => groupedDocuments.has(key)),
+    ...Array.from(groupedDocuments.keys())
+      .filter((key) => key !== 'home' && key !== 'root')
+      .sort((a, b) => a.localeCompare(b)),
+  ];
+
+  const lines = [
+    '---',
+    'title: Site Map',
+    'description: Crawl-friendly index of every canonical LERP page.',
+    'slug: /site-map',
+    'pagination_prev: null',
+    'pagination_next: null',
+    '---',
+    '',
+    'This page is a crawl-friendly HTML index of the canonical LERP surface.',
+    '',
+    `Primary XML sitemap: [sitemap.xml](${canonicalBase}/sitemap.xml)`,
+    '',
+  ];
+
+  for (const groupKey of orderedGroupKeys) {
+    const docs = groupedDocuments.get(groupKey) || [];
+    const heading = groupKey === 'home' ? 'Home' : humanizeGroup(groupKey);
+    lines.push(`## ${heading}`);
+    lines.push('');
+    for (const doc of docs.sort((a, b) => a.title.localeCompare(b.title))) {
+      const suffix = doc.description ? ` - ${doc.description}` : '';
+      lines.push(`- [${doc.title}](${doc.url})${suffix}`);
+    }
+    lines.push('');
+  }
+
+  while (lines[lines.length - 1] === '') {
+    lines.pop();
+  }
+  fs.writeFileSync(siteMapDocPath, `${lines.join('\n')}\n`);
+}
+
 if (!fs.existsSync(docsDir)) {
   console.error(`Missing docs directory: ${docsDir}`);
   process.exit(1);
@@ -156,5 +364,7 @@ fs.mkdirSync(wellKnownDir, { recursive: true });
 const documents = buildDocuments().sort((a, b) => a.url.localeCompare(b.url));
 writeLlmsFull(documents);
 writeAiFeed(documents);
+writeCourseSitemap(documents);
+writeHtmlSiteMap(documents);
 
 console.log(`Generated ai artifacts for ${documents.length} docs pages.`);

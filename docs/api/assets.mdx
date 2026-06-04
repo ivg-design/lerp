@@ -22,7 +22,7 @@ APIs for image assets and rendering options.
 
 ## Image
 
-Drawable image asset.
+Drawable image asset. In GPU shader workflows, an image can also expose a `GPUTextureView` through `image:view()`.
 
 ### Attributes
 
@@ -31,7 +31,34 @@ Drawable image asset.
 | `width` | number | Width in pixels (read-only) |
 | `height` | number | Height in pixels (read-only) |
 
-**See Also:** [<Term>Renderer</Term>.drawImage](./drawing#rendererdrawimageimage-sampler-blendmode-opacity)
+### Methods
+
+#### `image:view()`
+
+Returns a `GPUTextureView` for sampling the image from a shader.
+
+**Release tier:** Preview / rollout-dependent
+
+```lua
+image:view(): GPUTextureView
+```
+
+Example:
+
+```lua
+local image = context:image("portrait")
+if image then
+    local view = image:view()
+end
+```
+
+Use the returned view in a shader bind group:
+
+```lua
+textures = {{ slot = 1, view = image:view() }}
+```
+
+**See Also:** [<Term>Renderer</Term>.drawImage](./drawing#rendererdrawimageimage-sampler-blendmode-opacity), [GPU Shaders](./gpu-shaders#image-color-and-buffer-utilities)
 
 ---
 
@@ -107,9 +134,56 @@ Binary data asset accessed via `context:blob(name)`.
 
 ---
 
+## DecodedImage
+
+Raw decoded pixel payload returned by `context:decodeImage(buffer)`.
+
+**Release tier:** Officially released (advanced surface)
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `data` | buffer | Premultiplied RGBA8 bytes (`width * height * 4`) |
+| `width` | number | Width in pixels |
+| `height` | number | Height in pixels |
+
+### Example
+
+```lua
+local run = async(function()
+    local ok, decoded = await(context:decodeImage(blob.data))
+    if ok and decoded then
+        print(decoded.width, decoded.height)
+    end
+end)
+```
+
+**See Also:** [Context.decodeImage](./data-input#contextdecodeimagebuffer), [Promise](./system#promise-async-and-await), [Runtime Compatibility Baseline](/rive/runtime-compatibility)
+
+---
+
 ## AudioSource
 
 Opaque audio asset reference obtained via `context:audio(name)`. Pass to `Audio.play()` to produce an [AudioSound](#audiosound).
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `duration` | number | Source duration in seconds (read-only) |
+
+### Example
+
+```lua
+function init(self: MyScript, context: Context): boolean
+    local source = context:audio("click")
+    if source then
+        print("duration:", source.duration)
+    end
+    return true
+end
+```
 
 **See Also:** [Audio](./system#audio), [AudioSound](#audiosound), [Context](./data-input#context)
 
@@ -180,4 +254,5 @@ sound:timeFrame(): number
 ## Next Steps
 
 - Continue to [<Term>Path</Term> Effects](/api/path-effects)
+- Verify version status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Need a refresher? Review [Quick Reference](/quick-reference)

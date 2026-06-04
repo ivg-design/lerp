@@ -4,16 +4,17 @@ import SectionSnap from "@/components/SectionSnap";
 import "./globals.css";
 
 const SITE_URL = "https://forge.mograph.life/apps/lerp";
+const SITE_ROOT = `${SITE_URL}/`;
 const COURSE_URL = `${SITE_URL}/getting-started/welcome`;
 const OG_IMAGE = `${SITE_URL}/og-image_sm.png`;
 
 export const metadata: Metadata = {
   title: "LERP — Luau Education for Rive Professionals",
   description:
-    "The first interactive Luau scripting course for Rive. 77 lessons, 201 exercises, 189 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
-  metadataBase: new URL(SITE_URL),
+    "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+  metadataBase: new URL(SITE_ROOT),
   alternates: {
-    canonical: SITE_URL,
+    canonical: SITE_ROOT,
   },
   keywords: [
     "Rive",
@@ -35,8 +36,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 77 lessons, 201 exercises, 189 quizzes. Free forever, MIT licensed.",
-    url: SITE_URL,
+      "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
+    url: SITE_ROOT,
     siteName: "LERP",
     type: "website",
     locale: "en_US",
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 600,
-        alt: "LERP — Luau Education for Rive Professionals. 77 lessons, 201 exercises, 189 quizzes.",
+        alt: "LERP — Luau Education for Rive Professionals. 90 docs pages, 222 exercises, 203 quizzes.",
         type: "image/png",
       },
     ],
@@ -54,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 77 lessons, 201 exercises, 189 quizzes. Free forever.",
+      "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes. Free forever.",
     images: [
       {
         url: OG_IMAGE,
@@ -66,11 +67,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
+      { url: `${SITE_ROOT}favicon.ico`, sizes: "any" },
+      { url: `${SITE_ROOT}favicon-32.png`, sizes: "32x32", type: "image/png" },
+      { url: `${SITE_ROOT}favicon-192.png`, sizes: "192x192", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
+    apple: `${SITE_ROOT}apple-touch-icon.png`,
   },
   robots: {
     index: true,
@@ -122,7 +123,7 @@ const jsonLd = {
       url: `${SITE_URL}/`,
       name: "LERP — Luau Education for Rive Professionals",
       description:
-        "The first interactive Luau scripting course for Rive. 77 lessons, 201 exercises, 189 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+        "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#course` },
       primaryImageOfPage: {
@@ -153,7 +154,7 @@ const jsonLd = {
       name: "LERP: Luau Education for Rive Professionals",
       alternateName: "LERP",
       description:
-        "The first interactive course built specifically for Rive's Luau scripting runtime. LERP takes you from absolute beginner to confident Rive scripter through 77 short lessons, 201 hands-on exercises, and 189 quizzes — all inside the Rive Editor. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, and three capstone projects.",
+        "The first interactive course built specifically for Rive's Luau scripting runtime. LERP takes you from absolute beginner to confident Rive scripter through 90 docs pages, 222 hands-on exercises, and 203 quizzes — all inside the Rive Editor. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
       url: COURSE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       creator: { "@id": `${SITE_URL}/#author` },
@@ -306,7 +307,7 @@ const jsonLd = {
           "@type": "Course",
           name: "Part 5: Rive Integration",
           description:
-            "Rive scripting environment, script types, capability matrix, inputs, AI agent, plus 10 protocol deep-dives (Node, Lifecycle, Layout, Converter, Path Effect, Listener, Transition Condition, Util, Test).",
+            "Rive scripting environment, script types, capability matrix, inputs, AI agent, and protocol lessons for Node, Layout, Converter, Path Effect, ListenerAction, TransitionCondition, ScriptedInterpolator, Util, and Test scripts.",
           url: `${SITE_URL}/rive/environment`,
           numberOfLessons: 15,
           educationalLevel: "Intermediate",
@@ -319,17 +320,21 @@ const jsonLd = {
             "Layout Protocol",
             "Converter Protocol",
             "Path Effect Protocol",
+            "ListenerAction Protocol",
             "Listener Protocol",
             "Transition Condition Protocol",
+            "ScriptedInterpolator Protocol",
+            "Util Protocol",
+            "Test Protocol",
           ],
         },
         {
           "@type": "Course",
           name: "Part 6: Advanced Rive Scripting",
           description:
-            "Core types (Vec2, Mat2D, AABB, Color), Drawing API, ViewModels, Listener Protocol, game logic, instantiation, and procedural animation.",
+            "Core types (Vec2, Mat2D, AABB, Color), Drawing API, ViewModels, Listener Protocol, game logic, instantiation, procedural animation, and early-access GPU shaders.",
           url: `${SITE_URL}/advanced/core-types`,
-          numberOfLessons: 7,
+          numberOfLessons: 8,
           educationalLevel: "Advanced",
           teaches: [
             "Core types (Vec2, Mat2D, AABB, Color)",
@@ -338,6 +343,7 @@ const jsonLd = {
             "Game logic and hit detection",
             "Dynamic instantiation",
             "Procedural animation",
+            "Early-access GPU shaders and GPUCanvas rendering",
           ],
         },
         {
@@ -357,16 +363,17 @@ const jsonLd = {
         },
         {
           "@type": "Course",
-          name: "Part 8: Capstone Projects",
+          name: "Part 8: Projects and Labs",
           description:
-            "Three production-grade builds: interactive button with hit detection, data-driven chart with ViewModels, and a star-catching mini-game with physics.",
+            "Production-grade builds and guided labs: interactive button with hit detection, data-driven chart with ViewModels, star-catching mini-game with physics, and GPU shader example labs.",
           url: `${SITE_URL}/projects/interactive-button`,
-          numberOfLessons: 3,
+          numberOfLessons: 4,
           educationalLevel: "Advanced",
           teaches: [
             "Interactive button with hit detection",
             "Data-driven chart with ViewModels",
             "Star-catching mini-game with physics",
+            "GPU shader labs with textures, post-processing, depth, and ray marching",
           ],
         },
       ],
@@ -484,7 +491,7 @@ const jsonLd = {
           name: "How long does the full LERP course take?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "At 1\u20132 lessons per day, most learners complete all 8 parts in 6\u20138 weeks. Each lesson is self-contained, so you can go at your own pace. The three capstone projects at the end take a few hours each.",
+            text: "At 1\u20132 lessons per day, most learners complete all 8 parts in 6\u20138 weeks. Each lesson is self-contained, so you can go at your own pace. The larger projects and shader labs take a few hours each.",
           },
         },
         {
@@ -528,7 +535,7 @@ const jsonLd = {
       "@id": `${SITE_URL}/#curriculum`,
       name: "LERP Course Curriculum",
       description:
-        "Eight-part curriculum covering Luau fundamentals through advanced Rive scripting, culminating in three capstone projects.",
+        "Eight-part curriculum covering Luau fundamentals through advanced Rive scripting, guided projects, and early-access shader labs.",
       numberOfItems: 8,
       itemListOrder: "https://schema.org/ItemListOrderAscending",
       itemListElement: [
@@ -564,14 +571,14 @@ const jsonLd = {
           "@type": "ListItem",
           position: 5,
           name: "Rive Integration",
-          description: "Scripting environment, 10 protocol deep-dives, inputs, AI agent",
+          description: "Scripting environment, protocol lessons, inputs, AI agent",
           url: `${SITE_URL}/rive/environment`,
         },
         {
           "@type": "ListItem",
           position: 6,
           name: "Advanced Rive Scripting",
-          description: "Core types, Drawing API, ViewModels, game logic, procedural animation",
+          description: "Core types, Drawing API, ViewModels, game logic, procedural animation, GPU shaders",
           url: `${SITE_URL}/advanced/core-types`,
         },
         {
@@ -584,8 +591,8 @@ const jsonLd = {
         {
           "@type": "ListItem",
           position: 8,
-          name: "Capstone Projects",
-          description: "Interactive button, data-driven chart, star-catching mini-game",
+          name: "Projects and Labs",
+          description: "Interactive button, data-driven chart, star-catching mini-game, GPU shader labs",
           url: `${SITE_URL}/projects/interactive-button`,
         },
       ],

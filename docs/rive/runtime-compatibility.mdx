@@ -1,0 +1,199 @@
+---
+sidebar_position: 4
+title: Runtime Compatibility Baseline
+description: Versioned baseline of runtime bindings, docs status, and editor rollout tier for Luau surfaces
+keywords:
+  - rive
+  - runtime
+  - compatibility
+  - baseline
+  - api
+  - audit
+---
+
+# Runtime Compatibility Baseline
+
+This page tracks three independent dimensions for Luau surfaces:
+- what is **bound in runtime**
+- what is **documented upstream**
+- what is **editor-visible / usable in typical production workflows**
+
+---
+
+## Baseline Snapshot
+
+- **Audit date:** May 12, 2026
+- **Runtime repo:** `rive-app/rive-runtime`
+- **Upstream source snapshot (API surface audit):** `runtime-v0.1.64` at commit `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
+- **Current C++ WASM runtime release line (npm):** `2.37.6`
+- **Checked npm packages:** `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced` (all resolved to `2.37.6`)
+- **Runtime source gitHead (npm metadata for `@rive-app/canvas@2.37.6`):** `2833de372c0d22596494c89c328008ce5b1106d7`
+- **npm publish timestamp for `2.37.6`:** May 8, 2026 (UTC)
+- **Docs comparison source:** `https://rive.app/docs/llms-full.txt` (sections marked `(Coming soon)`)
+
+Use this snapshot when deciding whether LERP content is current for C++ runtime behavior.
+
+:::note Source-of-truth rule
+For release tracking, LERP records both:
+- npm package metadata (`version`, `time`, `gitHead`) for shipped web runtime line
+- upstream runtime tag/commit used for binding-level API verification
+:::
+
+---
+
+## Release Tiering Used in LERP
+
+LERP uses the following tier labels:
+
+- **Officially released**: teach as stable curriculum surface (runtime + docs + editor workflow are broadly usable)
+- **Rive Early Access only**: runtime/reference material exists, but the editor workflow currently requires Rive Early Access; do not assume availability in standard workspaces
+- **Preview / rollout-dependent**: runtime/docs may expose it, but editor visibility/tooling is not consistently available yet
+- **Not exposed**: not usable from current C++ Luau bindings
+
+This prevents course drift when upstream API pages move faster than editor rollout.
+
+---
+
+## "Coming Soon" Reality Check
+
+Status legend:
+- **Live:** Exposed and usable in current runtime bindings
+- **Partial:** Surface exists but is limited vs docs wording
+- **Not exposed:** Not currently available in Luau bindings at this baseline
+
+| Surface in docs | Runtime status | Notes |
+|---|---|---|
+| `FocusEvent` | **Live** | `listenerContext:asFocus()` returns focus payload with `isFocus` |
+| `KeyPhase` | **Live** | Exposed as `"down"`, `"repeat"`, `"up"` through keyboard invocation |
+| `KeyboardEvent` | **Live** | `key`, modifier flags, and `phase` are available |
+| `ListenerContext` | **Live** | `is...` / `as...` methods are implemented and wired |
+| `TextInput` | **Live** | `listenerContext:asTextInput().text` is available |
+| `NoneEvent` | **Live** | `isNone()` and `asNone()` are available |
+| `NodeReadData.paint` + `node:asPath()` + `node:asPaint()` | **Live** | Paint/path access is implemented in Lua artboard bindings |
+| `AudioSource.duration` | **Live** | `source.duration` is exposed in Lua audio bindings |
+| `ReportedEvent` | **Partial** | Invocation exists; exposed payload is currently limited (`delaySeconds`) |
+| `ViewModelChange` | **Partial** | Invocation exists; payload wrapper is currently minimal |
+| `PointerType` | **Partial** | No standalone type table; `PointerEvent.type` string values are live |
+| `ViewModel.name` | **Not exposed** | Documented upstream but not exposed in current Lua ViewModel wrapper |
+| `Output` | **Not exposed** | No runtime Lua `Output` surface at this baseline |
+
+---
+
+## Newly Validated Runtime Surfaces (May 12, 2026)
+
+These were validated against upstream `runtime-v0.1.64` and are now reflected in LERP course docs.
+
+| Surface | Runtime status | LERP tier | Notes |
+|---|---|---|---|
+| `Mat4` | **Live** | **Officially released** | Full constructors, multiplication, inversion, transpose, and vector transforms are bound |
+| `Promise`, `async`, `await` | **Live** | **Officially released** | Promise chaining/cancel/status APIs plus async coroutine bridge are available |
+| `ViewModel:getImage(name)` | **Live** | **Officially released** | Returns `Property<Image>?` |
+| `ViewModel:getIndex()` | **Live** | **Officially released** | Returns list-item index; returns `-1` when VM is not list-bound |
+| `PropertyList:removeAt`, `removeAllOf`, `clear` | **Live** | **Officially released** | Removal/clear operations are implemented, with 1-based `removeAt` input |
+| `ListenerContext:isGamepad()` / `asGamepad()` | **Live** | **Officially released** | Gamepad invocation payload is exposed (`deviceId`, `buttonMask`, `axis0`) |
+| Node `keyboardEvent(self, event)` | **Live** | **Officially released** | Returning `true` stops propagation |
+| Node `textEvent(self, event)` | **Live** | **Officially released** | Returning `true` stops propagation |
+| `context:canvas(options)` + `Canvas` methods | **Live** | **Officially released** | Offscreen canvas with `beginFrame` / `endFrame` / `resize`, plus `image/width/height` |
+| `context:decodeImage(buffer)` + `DecodedImage` | **Live** | **Officially released** | Promise resolves to `{ data, width, height }` RGBA premultiplied pixels |
+| `context:gpuCanvas(options)` + `GPUCanvas` | **Live** | **Rive Early Access only** | Runtime surface exists, but shader/GPU editor workflow availability currently requires Rive Early Access |
+| `context:features()` + `GPUFeatures` | **Live** | **Rive Early Access only** | Capability flags and limits for GPU preview workflows; relevant to Early Access shader material |
+| `context:shader(name)` + `Shader` | **Live** | **Rive Early Access only** | Requires shader assets and Early Access editor visibility; can return `nil` in non-enabled workflows |
+| `GPUBuffer`, `GPUTexture`, `GPUSampler`, `GPUBindGroup`, `GPUBindGroupLayout`, `GPUPipeline`, `GPURenderPass`, `GPUTextureView` | **Live** | **Rive Early Access only** | Exposed in the shader reference/runtime surface, but taught as Early Access until editor/tooling rollout is broad |
+| Scripted Interpolator protocol | **Live (runtime-backed)** | **Officially released** | `transform` / `transformValue` hooks available with linear fallback behavior |
+
+---
+
+## Shader Early-Access Baseline Addendum (June 4, 2026)
+
+The main baseline above remains the May 12, 2026 course-wide audit. Shader/GPU scripting now has a newer **shader-specific baseline** based on the runtime-v0.1.106 shader reference and corrected local shader examples, but this material is currently **Rive Early Access only**.
+
+Use this addendum as the source of truth for LERP's shader lessons, not as a signal that shader scripting is broadly released in standard Rive workspaces.
+
+- **Shader baseline date:** June 4, 2026
+- **Shader API reference reviewed:** `runtime-v0.1.106` shader reference
+- **Local reference document:** `/Users/ivg/github/luau-scripting/rive_shader_api_reference_runtime_v0106_type_safe.md`
+- **Local example corpus:** `/Users/ivg/github/luau-scripting/gpu_shaders`
+- **Current availability tier:** **Rive Early Access only**
+
+LERP now teaches the following shader-specific rules:
+
+| Surface | LERP guidance | Notes |
+|---|---|---|
+| `drawCanvas(self)` | Use for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` | `draw(self, renderer)` remains the normal compositing callback |
+| `context:shader(name)` | Use for compiled `.wgsl` shader asset lookup | Returns `Shader?`; guard `nil` |
+| `GPUCanvas.format` | Use for pipeline color-target format | Avoid hard-coded formats unless you intentionally own the render target |
+| `Image:view()` | Use to sample image assets in shader bind groups | Shader usage is Rive Early Access only because it depends on GPU workflow availability |
+| Dynamic UBO offsets | Treat as layout/binding ordered byte offsets | Use 256-byte alignment |
+| Direct 3D model import | Not provided by the shader API itself | Convert mesh data externally into buffers/textures |
+
+Compatibility naming note: older docs and examples may mention `context:loadShader(name)` or `context:preferredCanvasFormat()`. New LERP shader examples use `context:shader(name)` and `GPUCanvas.format`.
+
+---
+
+## Practical Guidance for LERP Content
+
+- Teach `ListenerAction.performAction(self, listenerContext)` as the primary listener callback shape.
+- Use `listenerContext:is...()` and `listenerContext:as...()` for event-safe branching.
+- Treat `PointerEvent.type` as string-based (`"pointerDown"`, `"pointerMove"`, etc.).
+- Do not teach `viewModel.name` as available in Luau at this baseline.
+- Do not present `Output<T>` as currently exposed in C++ Luau bindings.
+- For list-bound ViewModels, use `viewModel:getIndex()` and handle detached state (`-1`).
+- For `PropertyList:removeAt(index)`, use 1-based indices and validate bounds.
+- Keep GPU shader/pipeline material in **Rive Early Access only** sections until editor-side shader asset visibility is broadly available.
+- When `context:shader(name)` returns `nil`, treat that as a possible asset name, packaging, or rollout/tooling gap before assuming script logic failure.
+- Use `drawCanvas(self)` for GPU and offscreen-canvas render passes; use `draw(self, renderer)` to composite the resulting image.
+
+---
+
+## Re-Audit Workflow (for future updates)
+
+1. Fetch latest runtime: `git clone`/`git pull` `rive-app/rive-runtime`.
+2. Record latest npm release line for C++ WASM runtime packages:
+   - `npm view @rive-app/canvas version`
+   - `npm view @rive-app/canvas-lite version`
+   - `npm view @rive-app/webgl2 version`
+   - `npm view @rive-app/canvas-advanced version`
+3. Pin npm `gitHead` hash and npm publish timestamp in this page.
+4. Pin upstream runtime source tag/commit used for API verification.
+5. Pull latest docs machine-readable source (`/docs/llms-full.txt`) and list `(Coming soon)` API sections.
+6. For each surface, verify:
+   - type/wrapper exists in runtime headers
+   - Lua atoms/bindings exist
+   - invocation/dispatch path exists (not only a stub)
+7. Update:
+   - this page
+   - affected API lessons/examples/quizzes
+   - changelog entry with audit protocol details
+
+---
+
+## Audit Protocol (what this update checked)
+
+For the May 12, 2026 pass, LERP used this verification sequence:
+
+1. **Runtime release check via npm registry**
+   - Ran `npm view` for `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, and `@rive-app/canvas-advanced`
+   - Confirmed all report `2.37.6`
+2. **npm source pin**
+   - Pinned npm `gitHead` `2833de372c0d22596494c89c328008ce5b1106d7` for runtime line `2.37.6`
+3. **Upstream runtime API snapshot pin**
+   - Pinned `runtime-v0.1.64` at `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
+4. **Docs delta source**
+   - Compared against `https://rive.app/docs/llms-full.txt`, including APIs marked `(Coming soon)`
+5. **Binding-level verification**
+   - Confirmed availability/limits by checking runtime Luau bindings and invocation paths (not docs text alone)
+6. **Course sync pass**
+   - Updated API pages, lessons, examples, quizzes, and compatibility notes
+
+---
+
+## Changelog Requirements for Runtime Audits
+
+Every runtime-audit changelog entry should include:
+
+- Audit date
+- Upstream source tag/commit used for API validation
+- npm runtime release line + packages checked
+- npm `gitHead` + npm publish timestamp
+- Which surfaces changed status (`Officially released`, `Rive Early Access only`, `Preview / rollout-dependent`, `Not exposed`)
+- Which course pages were updated (docs + lessons + quizzes)

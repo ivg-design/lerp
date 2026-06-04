@@ -21,6 +21,10 @@ import Term from '@site/src/components/Term';
 Unlike Node, Layout, Converter, Path Effect, Util, and Test scripts, there is **no "Listener" script type**. `Listener<T>` is a **function signature** used with `addListener()`/`removeListener()` methods. This page covers how to use listeners within other scripts (primarily Node Scripts).
 :::
 
+:::info Runtime baseline
+This page is aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026). ListenerAction event payloads (including gamepad payload support) are documented in [Events → ListenerContext](/api/events#listenercontext).
+:::
+
 ## AE/JS Syntax Comparison
 
 | Concept | After Effects | JavaScript | Luau (Rive) |
@@ -31,6 +35,7 @@ Unlike Node, Layout, Converter, Path Effect, Util, and Test scripts, there is **
 | Drag state | Manual with sliders | `isDragging` variable | `self.isDragging: boolean` |
 | Property changes | N/A | Observer pattern | `property:addListener(callback)` |
 | Custom events | N/A | `new CustomEvent('name')` | EventBus pattern via Util |
+| State machine listener action payloads | N/A | Framework/event object | `performAction(self, listenerContext)` in ListenerAction scripts |
 | Animation state | `marker.key(1).time` | State variables | <Term>State Machine</Term> inputs |
 
 :::danger Critical Difference: Event-Driven Architecture
@@ -38,9 +43,10 @@ Unlike Node, Layout, Converter, Path Effect, Util, and Test scripts, there is **
 
 **JavaScript DOM**: Event-driven with bubbling and capturing phases. Events propagate through the DOM tree.
 
-**Luau (Rive)**: Two event mechanisms:
+**Luau (Rive)**: Three event mechanisms:
 1. **Pointer events** - `pointerDown`, `pointerMove`, `pointerUp`, `pointerExit` receive a `PointerEvent` parameter
 2. **Property listeners** - Use `property:addListener(callback)` to react to ViewModel changes
+3. **ListenerAction payloads** - `performAction(self, listenerContext)` receives tagged event context from state machine listeners
 
 ```lua
 -- Pointer events receive PointerEvent with position property
@@ -1234,6 +1240,7 @@ end
 function pointerDown(self: MyScript, event: PointerEvent)
     local pos = event.position
     print("Clicked at: " .. pos.x .. ", " .. pos.y)
+    event:hit()
 end
 ```
 
@@ -1313,15 +1320,15 @@ return MyUtil
 />
 
 <Quiz
-  question="Which pointer events would you use together to implement drag behavior?"
+  question="In a ListenerAction script, which pattern safely reads payload data?"
   id="other-q2"
   options={[
-    { text: "pointerDown only" },
-    { text: "pointerMove only" },
-    { text: "pointerDown, pointerMove, and pointerUp together", correct: true },
-    { text: "pointerHover" },
+    { text: "Call asPointerEvent() directly and assume it never returns nil." },
+    { text: "Branch with listenerContext:is...(), then call the matching as...() accessor.", correct: true },
+    { text: "Use update(self) to access listener payloads." },
+    { text: "Read pointer fields from context:viewModel()." },
   ]}
-  explanation="Drag behavior requires all three: pointerDown to start dragging and capture the offset, pointerMove to track movement while dragging, and pointerUp to end the drag operation."
+  explanation="ListenerContext is a tagged union. Use is... guards first, then as... accessors to avoid invalid field access."
 />
 
 <Quiz
@@ -1374,9 +1381,10 @@ return MyUtil
 
 1. **Property listeners** - Use `property:addListener(callback)` to react to ViewModel changes
 2. **Pointer events** - Use `PointerEvent` parameter with `event.position`
-3. **EventBus pattern** - Util scripts enable decoupled component communication
-4. **State machine inputs (legacy)** - Useful for integrating older files; prefer ViewModels for new data flows
-5. **Drag behavior** - Requires `pointerDown`, `pointerMove`, and `pointerUp` together
+3. **ListenerAction payload guards** - Use `listenerContext:is...()` + `as...()` for state machine listener actions
+4. **EventBus pattern** - Util scripts enable decoupled component communication
+5. **State machine inputs (legacy)** - Useful for integrating older files; prefer ViewModels for new data flows
+6. **Drag behavior** - Requires `pointerDown`, `pointerMove`, and `pointerUp` together
 
 ---
 

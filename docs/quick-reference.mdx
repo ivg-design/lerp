@@ -20,6 +20,14 @@ import Term from '@site/src/components/Term';
 See [Script Capability Matrix](/rive/script-capability-matrix) for a comprehensive table of script inputs, callback parameters, and hard limitations by script type.
 :::
 
+:::info Need version-locked API status?
+See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for the pinned upstream source snapshot (`runtime-v0.1.64` at `b25a322`), current C++ WASM runtime release line (`2.37.6`), and the June 4, 2026 shader Early Access baseline addendum.
+:::
+
+:::tip Writing scripts outside Rive?
+Use the [Rive Luau VS Code extension](https://marketplace.visualstudio.com/items?itemName=IVGDesign.rive-luau) or the [Rive Luau LSP](https://github.com/ivg-design/rive-luau-lsp) when editing `.luau` files in VS Code, Cursor, Windsurf, or another LSP-capable editor. It provides Rive-parity diagnostics, autocomplete, hover docs, and IntelliSense before final validation in the Rive editor.
+:::
+
 ## Node Script Skeleton
 ```lua
 export type MyNode = {
@@ -59,11 +67,23 @@ return function(): Node<MyNode>
 end
 ```
 
+### Optional GPU/Canvas Phase
+```lua
+function drawCanvas(self: MyNode)
+    -- Canvas:beginFrame(...) or GPUCanvas:beginRenderPass(...) work
+end
+
+function draw(self: MyNode, renderer: Renderer)
+    -- Composite canvas.image or gpuCanvas.image here
+end
+```
+
 ## Lifecycle Order
 1. `init(self, context)` - once on start
 2. `update(self)` - when inputs change (NO context param!)
 3. `advance(self, seconds)` - every animation frame
-4. `draw(self, renderer)` - on canvas repaint (keep pure, no state changes!)
+4. `drawCanvas(self)` - optional offscreen Canvas/GPUCanvas render phase
+5. `draw(self, renderer)` - on canvas repaint (keep pure, no state changes!)
 
 ### Runtime Guardrails
 - Use pure Luau + Rive APIs; do not use Roblox runtime globals (`game`, `workspace`, `Instance`).
@@ -120,6 +140,50 @@ function init(self: MyNode, context: Context): boolean
 end
 ```
 
+### PropertyList Patterns
+```lua
+local items = vm and vm:getList("items")
+if items then
+    items:clear()
+    local nextItem = Data.Item.new()
+    items:push(nextItem)
+
+    for i = 1, items.length do
+        local item = items[i]
+    end
+
+    if items.length >= 1 then
+        items:removeAt(1) -- 1-based
+    end
+end
+```
+
+### ListenerContext Safe Payload Branching
+```lua
+function performAction(self: MyAction, listenerContext: ListenerContext)
+    if listenerContext:isGamepad() then
+        local g = listenerContext:asGamepad()
+        if g then
+            print(g.deviceId, g.buttonMask, g.axis0)
+        end
+    end
+end
+```
+
+### Promise / async / await
+```lua
+local run = async(function()
+    local ok, decoded = await(context:decodeImage(self.imageBlob))
+    if ok then
+        print(decoded.width, decoded.height)
+    else
+        print("decode failed:", decoded)
+    end
+end)
+
+run:catch(function(err) print(err) end)
+```
+
 ---
 
 ## Drawing Essentials
@@ -148,6 +212,52 @@ renderer:save()
 renderer:transform(Mat2D.withTranslation(50, 0))
 renderer:drawPath(path, stroke)
 renderer:restore()
+```
+
+### Mat4 Quick Use
+```lua
+local model = Mat4.fromTranslation(0, 0, -4) * Mat4.fromRotationY(math.rad(20))
+local x, y, z, w = model:transformVec4(1, 0, 0, 1)
+```
+
+### GPU Shader Quick Use
+```lua
+function init(self: ShaderNode, context: Context): boolean
+    self.gpuCanvas = context:gpuCanvas({ width = 512, height = 512 })
+    self.imageSampler = ImageSampler("clamp", "clamp", "bilinear")
+
+    local shader = context:shader("my_effect")
+    if not shader then
+        print("Missing shader asset")
+        return true
+    end
+
+    self.pipeline = GPUPipeline.new({
+        vertex = { module = shader, entryPoint = "vsMain" },
+        fragment = { module = shader, entryPoint = "fsMain" },
+        vertexLayout = self.vertexLayout,
+        colorTargets = {{ format = self.gpuCanvas.format }},
+    })
+
+    return true
+end
+
+function drawCanvas(self: ShaderNode)
+    if not self.pipeline or self.gpuCanvas.width == 0 then return end
+    local pass = self.gpuCanvas:beginRenderPass({
+        color = {{ loadOp = "clear", storeOp = "store", clearColor = { 0, 0, 0, 0 } }},
+    })
+    pass:setPipeline(self.pipeline)
+    pass:setVertexBuffer(0, self.vertexBuffer)
+    pass:draw(self.vertexCount)
+    pass:finish()
+end
+
+function draw(self: ShaderNode, renderer: Renderer)
+    if self.gpuCanvas.width > 0 then
+        renderer:drawImage(self.gpuCanvas.image, self.imageSampler, "srcOver", 1)
+    end
+end
 ```
 
 ---
@@ -180,4 +290,5 @@ print(`Score: {score}`)
 ## Next Steps
 
 - Continue to [Glossary](/glossary)
+- Verify live API status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Return to [Welcome to LERP](/)

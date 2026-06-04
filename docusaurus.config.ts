@@ -255,6 +255,7 @@ const config: Config = {
             { label: 'API Reference', to: '/api/core-types' },
             { label: 'Quick Reference', to: '/quick-reference' },
             { label: 'Glossary', to: '/glossary' },
+            { label: 'Site Map', to: '/site-map' },
           ],
         },
         {

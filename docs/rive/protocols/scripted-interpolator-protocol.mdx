@@ -1,0 +1,140 @@
+---
+sidebar_position: 10
+title: ScriptedInterpolator Protocol
+description: Runtime-backed custom interpolation hooks for keyframe value blending
+keywords:
+  - rive
+  - luau
+  - scripting
+  - interpolator
+  - easing
+  - protocol
+---
+
+import Quiz from '@site/src/components/Quiz';
+import ExerciseValidator from '@site/src/components/ExerciseValidator';
+
+# ScriptedInterpolator Protocol
+
+## Overview
+
+ScriptedInterpolator is a runtime-backed protocol for custom interpolation behavior.
+
+:::info Runtime status
+This protocol is validated against upstream `runtime-v0.1.64` (`b25a322`) and tracked in the `2.37.6` runtime baseline audit (May 12, 2026).
+:::
+
+Use it when linear interpolation is not enough and you need script-defined easing at the interpolation level.
+
+---
+
+## Type Shape
+
+```lua
+export type ScriptedInterpolator<T> = {
+    init: ((self: T, context: Context) -> boolean)?,
+    transform: ((self: T, factor: number) -> number)?,
+    transformValue: ((self: T, valueFrom: number, valueTo: number, factor: number) -> number)?,
+} & T
+```
+
+### Optional methods
+
+- `transform(self, factor) -> number`
+- `transformValue(self, valueFrom, valueTo, factor) -> number`
+
+### Runtime fallback behavior
+
+If a method is omitted or errors, runtime falls back to standard linear behavior.
+
+- Missing/failed `transform` -> returns original `factor`
+- Missing/failed `transformValue` -> uses `from + (to - from) * factor`
+
+---
+
+## Template
+
+```lua
+export type MyInterpolator = {
+    strength: Input<number>,
+}
+
+function transform(self: MyInterpolator, factor: number): number
+    local t = math.max(0, math.min(1, factor))
+    return t * t
+end
+
+function transformValue(self: MyInterpolator, valueFrom: number, valueTo: number, factor: number): number
+    local t = transform(self, factor)
+    return valueFrom + (valueTo - valueFrom) * t
+end
+
+return function(): ScriptedInterpolator<MyInterpolator>
+    return {
+        transform = transform,
+        transformValue = transformValue,
+        strength = 1,
+    }
+end
+```
+
+---
+
+## Exercise 1: Build a Quadratic Ease-In Mapper ⭐⭐
+
+### Premise
+
+You are implementing interpolation math that should start slow and accelerate.
+
+### Starter Code
+
+```lua
+local function transform(factor: number): number
+    -- TODO: clamp to [0, 1], then return quadratic ease-in
+    return factor
+end
+
+local function transformValue(valueFrom: number, valueTo: number, factor: number): number
+    -- TODO: map transform(factor) across [valueFrom, valueTo]
+    return valueFrom
+end
+
+local result = transformValue(10, 30, 0.5)
+print(string.format("ANSWER: %.1f", result))
+```
+
+### Expected output
+
+```text
+ANSWER: 15.0
+```
+
+### Verify Your Answer
+
+<ExerciseValidator
+  exerciseId="rive-scripted-interpolator-1"
+  expectedAnswer="ANSWER: 15.0"
+/>
+
+---
+
+## Knowledge Check
+
+<Quiz
+  question="What happens if transformValue is not implemented in ScriptedInterpolator?"
+  id="scripted-interpolator-q1"
+  options={[
+    { text: "Runtime throws and animation stops." },
+    { text: "Runtime falls back to linear interpolation.", correct: true },
+    { text: "factor is forced to 0." },
+    { text: "The script is treated as a TransitionCondition." },
+  ]}
+  explanation="Current runtime behavior falls back to standard linear interpolation when scripted interpolator methods are missing or fail."
+/>
+
+## Next Steps
+
+- Review the [Interpolation API Reference](/api/interpolation)
+- Continue to [Util Protocol](/rive/protocols/util-protocol)
+- Verify status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
+- Need a refresher? Review [Quick Reference](/quick-reference)

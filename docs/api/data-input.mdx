@@ -265,9 +265,13 @@ end
 
 ---
 
-### Input&lt;Artboard&gt;
+### Input&lt;Artboard&gt; / Input&lt;Artboard&lt;...&gt;&gt;
 
 A reference to a **nested artboard** (component). Use this to create instances of reusable components at runtime — particles, list items, repeated UI elements.
+
+The runtime accepts both:
+- `Input<Artboard>` for untyped component references
+- `Input<Artboard<Data.X>>` or `Input<Artboard<nil>>` when you want explicit generic annotations in strict codebases
 
 **When to use:** When your script needs to stamp out copies of a component, each with its own data.
 
@@ -277,8 +281,8 @@ A reference to a **nested artboard** (component). Use this to create instances o
 
 ```lua
 export type Spawner = {
-    template: Input<Artboard>,
-    instances: { Artboard },
+    template: Input<Artboard<Data.ItemVm>>,
+    instances: { Artboard<Data.ItemVm> },
 }
 
 function init(self: Spawner, context: Context): boolean
@@ -313,6 +317,10 @@ end
 1. Create a component artboard (the thing you want to repeat)
 2. Attach the script to a node
 3. In the script's input panel, assign the component to `template`
+
+:::note No `context:artboard(...)` helper
+Use `Input<Artboard<...>>` (or `Input<Artboard<nil>>`) for component references. Do not rely on a `context:artboard(name)` helper in current runtime docs.
+:::
 
 ---
 
@@ -422,6 +430,8 @@ property:addListener(callback: () -> ())
 property:addListener(obj: any, callback: (any) -> ())
 ```
 
+> **Listener lifetime note:** For long-lived listeners, keep ViewModel/property handles on `self` (or use the `obj`/anchor overload) so listener targets are not lost when short-lived locals go out of scope.
+
 #### `property:removeListener(callback)`
 
 Removes a callback.
@@ -442,7 +452,7 @@ Runtime context passed to `init()` in all script protocols.
 
 #### `context:viewModel()`
 
-Gets the main <Term>Artboard</Term>'s ViewModel.
+Gets the ViewModel bound to the current node's immediate data context.
 
 ```lua
 context:viewModel(): ViewModel?
@@ -450,7 +460,7 @@ context:viewModel(): ViewModel?
 
 #### `context:rootViewModel()`
 
-Gets the root ViewModel of the artboard hierarchy.
+Gets the root ViewModel of the artboard data hierarchy.
 
 ```lua
 context:rootViewModel(): ViewModel?
@@ -488,6 +498,107 @@ Gets an audio source asset by name.
 context:audio(name: string): AudioSource?
 ```
 
+#### `context:canvas(options)`
+
+Creates an offscreen 2D render canvas.
+
+**Release tier:** Officially released (advanced surface)
+
+```lua
+context:canvas(options: { width: number, height: number, clearColor: Color? }): Canvas
+```
+
+`Canvas` supports:
+- `canvas:beginFrame(options?) -> Renderer`
+- `canvas:endFrame()`
+- `canvas:resize(width, height)`
+- `canvas.image`, `canvas.width`, `canvas.height`
+
+Lifecycle constraints:
+- `beginFrame()` and `endFrame()` must be paired.
+- `resize()` must not be called between `beginFrame()` and `endFrame()`.
+- `beginFrame()` is a draw-phase operation (treat it as render-time, not init-time work).
+
+#### `context:gpuCanvas(options?)`
+
+Creates an offscreen GPU canvas handle for advanced GPU scripting workflows.
+
+**Release tier:** Preview / rollout-dependent
+
+```lua
+context:gpuCanvas(options: { width: number, height: number }?): GPUCanvas
+```
+
+`GPUCanvas` supports:
+- `gpuCanvas:beginRenderPass(desc) -> GPURenderPass`
+- `gpuCanvas:colorView() -> GPUTextureView`
+- `gpuCanvas:resize(width, height)`
+- `gpuCanvas.image`, `gpuCanvas.width`, `gpuCanvas.height`, `gpuCanvas.format`
+
+Use this as preview-only material in LERP. Runtime bindings and docs exist, but editor-side shader/GPU authoring workflows may not be visible in every workspace/build.
+
+For the full GPU object family, descriptor types, render-pass patterns, and shader examples, see [GPU Shaders](/api/gpu-shaders).
+
+#### `context:features()`
+
+Returns a GPU capability table (feature flags + limits).
+
+**Release tier:** Preview / rollout-dependent
+
+```lua
+context:features(): GPUFeatures
+```
+
+Known fields at this baseline:
+- `bc`, `etc2`, `astc`
+- `maxTextureSize2D`, `maxTextureSizeCube`, `maxTextureSize3D`
+- `anisotropicFiltering`, `texture3D`, `textureArrays`, `colorBufferFloat`
+- `perTargetBlend`, `perTargetWriteMask`, `drawBaseInstance`, `depthBiasClamp`
+- `maxColorAttachments`, `maxUniformBufferSize`, `maxSamplers`, `maxSamples`
+
+#### `context:shader(name)`
+
+Gets a compiled shader asset by name, without the `.wgsl` extension.
+
+**Release tier:** Preview / rollout-dependent
+
+```lua
+context:shader(name: string): Shader?
+```
+
+If your editor/workspace does not expose or package shader assets yet, this can legitimately return `nil` even when other scripting APIs work. New LERP shader examples use `context:shader(name)` and `GPUCanvas.format`; do not use older `context:loadShader(name)` or `context:preferredCanvasFormat()` references in new material.
+
+#### `context:decodeImage(buffer)`
+
+Decodes encoded image bytes asynchronously.
+
+**Release tier:** Officially released (advanced surface)
+
+```lua
+context:decodeImage(encodedBytes: buffer): Promise<DecodedImage>
+```
+
+Resolved value type (`DecodedImage`):
+- `data` (`buffer`, premultiplied RGBA8 bytes)
+- `width` (`number`)
+- `height` (`number`)
+
+#### GPU object family (preview surface)
+
+The following constructors and object APIs are runtime-bound and documented upstream, but should be treated as **preview / rollout-dependent** in LERP. See [GPU Shaders](/api/gpu-shaders) for signatures, descriptor types, and usage patterns:
+
+- `GPUBuffer.new(...)`, `GPUBuffer:write(...)`, `GPUBuffer.size`
+- `GPUTexture.new(...)`, `GPUTexture:view(...)`, `GPUTexture:upload(...)`, `GPUTexture.width/height/format`
+- `GPUSampler.new(...)`
+- `GPUBindGroupLayout.new(...)`
+- `GPUBindGroup.new(...)`
+- `GPUPipeline.new(...)`, `pipeline:getBindGroupLayout(groupIndex)`
+- `GPURenderPass` methods: `setPipeline`, `setVertexBuffer`, `setIndexBuffer`, `setBindGroup`, `setViewport`, `setScissorRect`, `setStencilReference`, `setBlendColor`, `draw`, `drawIndexed`, `finish`
+- `GPUTextureView.format`
+- `Image:view()` for sampling an image asset as a shader texture
+
+For course-stability policy, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+
 #### `context:markNeedsUpdate()`
 
 Requests an update on the next frame.
@@ -496,7 +607,7 @@ Requests an update on the next frame.
 context:markNeedsUpdate()
 ```
 
-**See Also:** [ViewModel](#viewmodel), [DataContext](#datacontext), [Image](./assets#image), [Blob](./assets#blob), [AudioSource](./assets#audiosource)
+**See Also:** [ViewModel](#viewmodel), [DataContext](#datacontext), [Image](./assets#image), [Blob](./assets#blob), [AudioSource](./assets#audiosource), [DecodedImage](./assets#decodedimage), [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 
 ---
 
@@ -504,11 +615,10 @@ context:markNeedsUpdate()
 
 Connects editor elements to data and code. Provides access to bound properties by type.
 
-### Attributes
-
-#### `viewModel.name`
-
-The name of the ViewModel. **Type:** `string` (read-only)
+:::warning Runtime baseline note
+At the current compatibility baseline (npm runtime line `2.37.6`, source snapshot `runtime-v0.1.64` at `b25a322`, audited May 12, 2026), `viewModel.name` is documented upstream but not exposed in the C++ Luau bindings.
+Use explicit property lookups (`getNumber`, `getString`, etc.) instead of relying on a `name` field.
+:::
 
 ### Methods
 
@@ -560,6 +670,14 @@ Gets a list property by name.
 viewModel:getList(name: string): PropertyList?
 ```
 
+#### `viewModel:getImage(name)`
+
+Gets an image property by name.
+
+```lua
+viewModel:getImage(name: string): Property<Image>?
+```
+
 #### `viewModel:getViewModel(name)`
 
 Gets a nested ViewModel by name. Returns a `PropertyViewModel` wrapper (access the ViewModel via `.value`).
@@ -576,6 +694,16 @@ Gets an enum property by name.
 viewModel:getEnum(name: string): PropertyEnum?
 ```
 
+#### `viewModel:getIndex()`
+
+Gets the ViewModel list-item index for list-bound item ViewModels.
+
+```lua
+viewModel:getIndex(): number
+```
+
+Returns `-1` when the ViewModel is not currently list-bound.
+
 #### `viewModel:instance()`
 
 Creates an independent instance of the ViewModel.
@@ -588,22 +716,25 @@ viewModel:instance(): ViewModel
 
 ```lua
 function init(self: MyScript, context: Context): boolean
-    local vm = context:viewModel()
+    self.vm = context:viewModel()
+    if not self.vm then
+        return false
+    end
 
     -- Get typed properties
-    local score = vm:getNumber("score")
-    local playerName = vm:getString("playerName")
-    local isActive = vm:getBoolean("isActive")
+    self.score = self.vm:getNumber("score")
+    self.playerName = self.vm:getString("playerName")
+    self.isActive = self.vm:getBoolean("isActive")
 
     -- Read values
-    if score then
-        print(`Score: {score.value}`)
+    if self.score then
+        print(`Score: {self.score.value}`)
     end
 
     -- Listen for changes
-    if playerName then
-        playerName:addListener(function()
-            print(`Name changed to: {playerName.value}`)
+    if self.playerName then
+        self.playerName:addListener(function()
+            print(`Name changed to: {self.playerName.value}`)
         end)
     end
 
@@ -642,4 +773,5 @@ dataContext:viewModel(): ViewModel?
 ## Next Steps
 
 - Continue to [Events](/api/events)
+- Verify version status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Need a refresher? Review [Quick Reference](/quick-reference)

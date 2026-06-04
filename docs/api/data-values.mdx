@@ -231,6 +231,10 @@ Dynamic list property with array-like operations.
 
 Number of items in the list. **Type:** `number` (read-only)
 
+#### `list[index]`
+
+Indexed access to list items using 1-based indexing.
+
 ### Methods
 
 #### `list:push(item)`
@@ -252,6 +256,38 @@ Inserts a ViewModel instance at the specified position.
 ```lua
 list:insert(vm: ViewModel, index: number)
 ```
+
+#### `list:remove(vm)`
+
+Removes the first matching ViewModel instance from the list.
+
+```lua
+list:remove(vm: ViewModel)
+```
+
+#### `list:removeAt(index)`
+
+Removes the item at a 1-based index.
+
+```lua
+list:removeAt(index: number)
+```
+
+:::warning Bounds behavior
+`removeAt` errors when index is out of range. Validate `index >= 1 and index <= list.length` before calling.
+:::
+
+#### `list:removeAllOf(vm)`
+
+Removes all instances matching the given ViewModel.
+
+```lua
+list:removeAllOf(vm: ViewModel)
+```
+
+#### `list:clear()`
+
+Removes all items from the list.
 
 #### `list:swap(indexA, indexB)`
 

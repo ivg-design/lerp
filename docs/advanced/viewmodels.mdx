@@ -38,14 +38,15 @@ ViewModels are Rive's data binding system. They let you expose properties (numbe
 - ViewModels define a **schema** of properties
 - Properties are **reactive**: changes propagate automatically
 - Scripts can **read**, **write**, and **listen** to <Term>ViewModel</Term> properties
-- Use `context:viewModel()` for the <Term>Artboard</Term>'s main ViewModel
+- Use `context:viewModel()` for the current node's immediate data-context ViewModel
+- Use `context:rootViewModel()` when you explicitly need root/artboard-level state
 - Use `Input<Data.X>` for nested ViewModel references
 
 ---
 
-## Accessing the Main ViewModel
+## Accessing the Data-Context ViewModel
 
-Every artboard can have a ViewModel bound to it. Access it through the `context` parameter in `init`.
+Access the nearest bound ViewModel through `context:viewModel()` in `init()`. In Artboard List items, this is typically the item-level ViewModel, not the root.
 
 ```lua
 export type VMReader = {}
@@ -53,9 +54,9 @@ export type VMReader = {}
 function init(self: VMReader, context: Context): boolean
     local vm = context:viewModel()
     if vm then
-        print("ViewModel found!")
+        print("Data-context ViewModel found!")
     else
-        print("No ViewModel bound to this artboard.")
+        print("No ViewModel in this node's data context.")
     end
     return true
 end
@@ -104,7 +105,7 @@ end
 
 | Method | Returns | Description |
 |--------|---------|-------------|
-| `context:viewModel()` | `ViewModel?` | Get the artboard's bound ViewModel |
+| `context:viewModel()` | `ViewModel?` | Get the immediate ViewModel bound at this node's data context |
 | `context:rootViewModel()` | `ViewModel?` | Get the root ViewModel in the data hierarchy |
 | `context:dataContext()` | `DataContext?` | Traverse data-binding context hierarchy |
 | `context:image(name)` | `Image?` | Get an image asset by name |
@@ -207,8 +208,11 @@ local items = vm:getList("inventory")
 
 | Property/Method | Returns | Description |
 |-----------------|---------|-------------|
-| `list.count` | `number` | Number of items in the list (read-only) |
-| `list:item(index)` | `ViewModel?` | Get item at index (1-based) |
+| `list.length` | `number` | Number of items in the list (read-only) |
+| `list[index]` | `ViewModel?` | Get item at index (1-based) |
+| `list:clear()` | `()` | Remove all list items |
+| `list:removeAt(index)` | `()` | Remove item at a 1-based index |
+| `list:removeAllOf(vm)` | `()` | Remove all matching instances of a ViewModel |
 | `list:addListener(callback)` | `() -> ()` | Listen for list changes |
 | `list:removeListener(callback)` | `() -> ()` | Stop listening |
 
@@ -221,11 +225,11 @@ function init(self: MyNode, context: Context): boolean
 
     local inventory = vm:getList("items")
     if inventory then
-        print("Inventory has", inventory.count, "items")
+        print("Inventory has", inventory.length, "items")
 
         -- Iterate through items
-        for i = 1, inventory.count do
-            local item = inventory:item(i)
+        for i = 1, inventory.length do
+            local item = inventory[i]
             if item then
                 local name = item:getString("name")
                 local qty = item:getNumber("quantity")
@@ -237,7 +241,7 @@ function init(self: MyNode, context: Context): boolean
 
         -- Listen for changes
         inventory:addListener(function()
-            print("Inventory changed! New count:", inventory.count)
+            print("Inventory changed! New count:", inventory.length)
         end)
     end
 
@@ -250,8 +254,8 @@ end
 :::warning Lists Use 1-Based Indexing
 Like all Luau arrays, list indices start at 1, not 0.
 ```lua
-local first = list:item(1)   -- First item
-local last = list:item(list.count)  -- Last item
+local first = list[1]   -- First item
+local last = list[list.length]  -- Last item
 ```
 :::
 
@@ -296,7 +300,7 @@ This pattern shows up whenever you build behavior in Rive scripts.
 ### Starter Code
 
 ```lua
--- Read a score property from the main ViewModel
+-- Read a score property from the current data-context ViewModel
 
 export type ScoreDisplay = {
     vm: ViewModel?,
@@ -704,6 +708,7 @@ ANSWER: listener
 **Key points:**
 - `addListener()` registers a callback that fires on property changes
 - Listeners persist for the lifetime of the script
+- Keep long-lived ViewModel/property handles on `self` (or use anchored listener overloads) so listeners are not lost if locals are collected
 - Use listeners for event-driven logic (mode changes, state transitions)
 
 ---
@@ -998,9 +1003,9 @@ ANSWER: nested
 
 | Feature | `context:viewModel()` | `Input<Data.X>` |
 |---------|----------------------|-----------------|
-| Scope | Artboard-level (global) | Per-instance |
+| Scope | Immediate node data context | Per-instance |
 | Setup | Automatic | Requires editor binding |
-| Use case | Shared state across scripts | Component-specific data |
+| Use case | Item/context-aware data access | Component-specific data |
 | Access | In `init` via context | Available immediately |
 
 ---
@@ -1008,7 +1013,7 @@ ANSWER: nested
 ## Knowledge Check
 
 <Quiz
-  question="How do you access the artboard's main ViewModel?"
+  question="How do you access the current node data-context ViewModel?"
   id="viewmodels-q1"
   options={[
     { text: "self.viewModel" },
@@ -1016,7 +1021,7 @@ ANSWER: nested
     { text: "ViewModel.get()" },
     { text: "context.vm" },
   ]}
-  explanation="Use context:viewModel() in the init function to access the ViewModel bound to the artboard."
+  explanation="Use context:viewModel() in init() to access the immediate data-context ViewModel. Use context:rootViewModel() when you need root/artboard-level state."
 />
 
 <Quiz
@@ -1071,7 +1076,7 @@ ANSWER: nested
 
 ## Key Takeaway
 
-ViewModels are the bridge between your animation data and your scripts. Use `context:viewModel()` for artboard-level shared data, and `Input<Data.X>` with `late()` for component-specific bindings. Listeners make your scripts reactive to external changes.
+ViewModels are the bridge between animation data and scripts. Use `context:viewModel()` for the current node's data context, `context:rootViewModel()` for root-level state, and `Input<Data.X>` with `late()` for explicit component bindings.
 
 ---
 

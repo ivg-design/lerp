@@ -31,7 +31,7 @@ Spawn and manage Rive components at runtime to build particle systems, object po
 Rive lets you instance Artboards from script inputs. This is how you build reusable components (particles, enemies, cards, etc.) with real Rive visuals that can be spawned and controlled from code.
 
 **Core steps:**
-1. Add an `Input<Artboard<Data.YourVM>>` to reference a component <Term>Artboard</Term>
+1. Add an `Input<Artboard<Data.YourVM>>` (or `Input<Artboard<nil>>`) to reference a component <Term>Artboard</Term>
 2. Call `self.yourInput:instance()` to create a new instance
 3. Store instances and call `advance()` on them in your advance callback, and `draw()` in your draw callback
 
@@ -252,8 +252,8 @@ end
 ## Key Takeaways
 
 - Dynamic instantiation bridges designer-built visuals with procedural logic
-- Use `Input<Artboard<Data.YourVM>>` to reference component artboards
-- Call `:instance()` to create new instances at runtime
+- Use `Input<Artboard<Data.YourVM>>` (or `Input<Artboard<nil>>`) to reference component artboards
+- Call `:instance()` or `:instance(viewModel)` to create new instances at runtime
 - Remember to call `advance()` and `draw()` on each instance in your respective callbacks
 - Use object pooling for frequently spawned/despawned objects
 

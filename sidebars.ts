@@ -83,6 +83,7 @@ const sidebars: SidebarsConfig = {
             'rive/protocols/path-effect-protocol',
             'rive/protocols/listener-action-protocol',
             'rive/protocols/transition-condition-protocol',
+            'rive/protocols/scripted-interpolator-protocol',
             'rive/protocols/util-protocol',
             'rive/protocols/test-protocol',
           ],
@@ -100,6 +101,7 @@ const sidebars: SidebarsConfig = {
         'advanced/game-logic',
         'advanced/instantiation',
         'advanced/procedural',
+        'advanced/gpu-shaders',
       ],
     },
     {
@@ -119,6 +121,7 @@ const sidebars: SidebarsConfig = {
         'projects/interactive-button',
         'projects/data-visualization',
         'projects/catch-the-stars',
+        'projects/gpu-shader-labs',
       ],
     },
     {
@@ -135,12 +138,14 @@ const sidebars: SidebarsConfig = {
         'api/scene',
         'api/data-input',
         'api/events',
+        'api/interpolation',
         'api/assets',
         'api/path-effects',
         'api/data-values',
         'api/styling',
         'api/hierarchy',
         'api/system',
+        'api/gpu-shaders',
       ],
     },
     {
@@ -169,18 +174,23 @@ const sidebars: SidebarsConfig = {
         'open-source-license',
         'contribution-policy',
         'contribution-instructions',
+        'release-workflow',
         'contact-transparency',
+        {
+          type: 'category',
+          label: 'Versioning & Errata',
+          items: [
+            'rive/runtime-compatibility',
+            'rive/rive-doc-errata',
+            'changelog',
+          ],
+        },
       ],
-    },
-    {
-      type: 'doc',
-      id: 'changelog',
-      label: 'Changelog',
     },
     {
       type: 'html',
       value:
-        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> March 23, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
+        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> June 4, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
       defaultStyle: false,
     },
   ],

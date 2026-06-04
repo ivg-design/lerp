@@ -23,11 +23,11 @@ Every exercise is designed around real scripting inside the Rive Editor.
 ## What the course includes
 
 - 8 structured parts
-- 77 lessons
-- 201 hands-on coding exercises
-- 189 quizzes
-- 3 capstone projects
-- 10 script protocols
+- 90 docs and reference pages
+- 222 hands-on coding exercises
+- 203 quizzes
+- 4 guided project paths
+- 11 Rive protocol lessons
 - real-time validation
 - zero paywalls
 - no account required
@@ -130,6 +130,7 @@ Topics include:
 - game logic
 - instantiation
 - procedural techniques
+- early-access GPU shaders and 3D-style rendering
 
 ### Part 07 — Best Practices
 Production-focused guidance for writing maintainable and efficient scripts.
@@ -141,12 +142,13 @@ Topics include:
 - resources
 
 ### Part 08 — Keystone Projects
-Three larger builds that combine the course concepts into practical systems.
+Larger builds and guided labs that combine the course concepts into practical systems.
 
 Projects:
 - Interactive Button — pointer input + ViewModel triggers
 - Data Visualization — bar chart driven by ViewModel data
 - Catch the Stars — mini-game with clicking, scoring, and physics
+- GPU Shader Example Labs — early-access GPUCanvas, shader, texture, and post-processing labs
 
 ---
 
@@ -275,16 +277,12 @@ This command generates static content into the `build` directory and can be serv
 
 ## Deployment
 
-Using SSH:
+Production is hosted on Vercel at `https://forge.mograph.life/apps/lerp/`.
+
+The production-equivalent local build is:
 
 ```bash
-USE_SSH=true yarn deploy
+node scripts/build-with-landing.mjs
 ```
 
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
-
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+The full release and production deployment protocol is documented in `docs/release-workflow.mdx`.

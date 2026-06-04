@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generatedAt": "2026-03-23T10:50:13.198Z",
+  "generatedAt": "2026-06-04T01:53:26.046Z",
   "canonical": "https://forge.mograph.life/apps/lerp/",
   "site": {
     "name": "LERP",
@@ -135,6 +135,28 @@
       "language": "en"
     },
     {
+      "id": "advanced-gpu-shaders",
+      "title": "GPU Shaders and 3D Rendering",
+      "description": "Early-access GPU shader workflows, GPUCanvas rendering, WGSL assets, and 3D-style rendering patterns in Rive",
+      "url": "https://forge.mograph.life/apps/lerp/advanced/gpu-shaders",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/gpu-shaders",
+      "group": "advanced",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "gpu",
+        "shaders",
+        "wgsl",
+        "gpucanvas",
+        "3d",
+        "rendering"
+      ],
+      "sourcePath": "docs/advanced/gpu-shaders.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "advanced-instantiation",
       "title": "Dynamic Instantiation",
       "description": "",
@@ -219,7 +241,7 @@
     {
       "id": "api-core-types",
       "title": "Core Types",
-      "description": "Vector, Color, and Mat2D types",
+      "description": "Vector, Color, Mat2D, and Mat4 types",
       "url": "https://forge.mograph.life/apps/lerp/api/core-types",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/core-types",
       "group": "api",
@@ -231,7 +253,8 @@
         "reference",
         "core",
         "types",
-        "vector"
+        "vector",
+        "mat4"
       ],
       "sourcePath": "docs/api/core-types.mdx",
       "contentType": "documentation",
@@ -303,7 +326,7 @@
     {
       "id": "api-events",
       "title": "Events",
-      "description": "PointerEvent for pointer interactions",
+      "description": "PointerEvent plus ListenerContext payload invocations for listener-driven scripts",
       "url": "https://forge.mograph.life/apps/lerp/api/events",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/events",
       "group": "api",
@@ -314,9 +337,36 @@
         "api",
         "reference",
         "events",
-        "pointerevent"
+        "pointerevent",
+        "listenercontext",
+        "keyboardevent",
+        "textevent",
+        "gamepad"
       ],
       "sourcePath": "docs/api/events.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-gpu-shaders",
+      "title": "GPU Shaders",
+      "description": "GPUCanvas, Shader, GPUPipeline, GPUBuffer, GPUTexture, GPUSampler, bind groups, and shader descriptor types",
+      "url": "https://forge.mograph.life/apps/lerp/api/gpu-shaders",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/gpu-shaders",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "gpu",
+        "shaders",
+        "wgsl",
+        "gpucanvas",
+        "gpubuffer",
+        "gpupipeline"
+      ],
+      "sourcePath": "docs/api/gpu-shaders.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -338,6 +388,26 @@
         "nodereaddata"
       ],
       "sourcePath": "docs/api/hierarchy.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-interpolation",
+      "title": "Interpolation",
+      "description": "ScriptedInterpolator runtime API surface and callback contracts",
+      "url": "https://forge.mograph.life/apps/lerp/api/interpolation",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/interpolation",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "interpolation",
+        "scriptedinterpolator",
+        "easing"
+      ],
+      "sourcePath": "docs/api/interpolation.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -407,7 +477,7 @@
     {
       "id": "api-system",
       "title": "System",
-      "description": "Listener, Output, EnumValues, and Sandbox Limitations",
+      "description": "Listener, EnumValues, Audio globals, and sandbox/runtime compatibility notes",
       "url": "https://forge.mograph.life/apps/lerp/api/system",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/system",
       "group": "api",
@@ -419,6 +489,8 @@
         "reference",
         "system",
         "listener",
+        "promise",
+        "async",
         "output"
       ],
       "sourcePath": "docs/api/system.mdx",
@@ -1139,6 +1211,28 @@
       "language": "en"
     },
     {
+      "id": "projects-gpu-shader-labs",
+      "title": "GPU Shader Example Labs",
+      "description": "Guided labs for the Rive GPU shader example pack, from first GPUCanvas triangle to post-processing, depth, ray marching, and glass distortion",
+      "url": "https://forge.mograph.life/apps/lerp/projects/gpu-shader-labs",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/projects/gpu-shader-labs",
+      "group": "projects",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "project",
+        "gpu",
+        "shaders",
+        "wgsl",
+        "gpucanvas",
+        "lab"
+      ],
+      "sourcePath": "docs/projects/gpu-shader-labs.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "projects-interactive-button",
       "title": "Interactive Button",
       "description": "Build a button that reacts to pointer Input and fires ViewModel triggers",
@@ -1177,6 +1271,24 @@
         "sheet"
       ],
       "sourcePath": "docs/quick-reference.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "release-workflow",
+      "title": "Release & Deployment Workflow",
+      "description": "Canonical workflow for drafting, reviewing, releasing, deploying, and verifying LERP.",
+      "url": "https://forge.mograph.life/apps/lerp/release-workflow",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/release-workflow",
+      "group": "root",
+      "tags": [
+        "release",
+        "deployment",
+        "vercel",
+        "changelog",
+        "workflow"
+      ],
+      "sourcePath": "docs/release-workflow.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -1380,6 +1492,25 @@
       "language": "en"
     },
     {
+      "id": "rive-protocols-scripted-interpolator-protocol",
+      "title": "ScriptedInterpolator Protocol",
+      "description": "Runtime-backed custom interpolation hooks for keyframe value blending",
+      "url": "https://forge.mograph.life/apps/lerp/rive/protocols/scripted-interpolator-protocol",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/scripted-interpolator-protocol",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "interpolator",
+        "easing",
+        "protocol"
+      ],
+      "sourcePath": "docs/rive/protocols/scripted-interpolator-protocol.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-protocols-test-protocol",
       "title": "Test Script Protocol",
       "description": "Unit testing for Util Scripts in the Rive editor",
@@ -1440,6 +1571,43 @@
       "language": "en"
     },
     {
+      "id": "rive-rive-doc-errata",
+      "title": "Rive Script Errata",
+      "description": "Living tracker of Rive scripting documentation corrections discovered during editor validation",
+      "url": "https://forge.mograph.life/apps/lerp/rive/rive-doc-errata",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/rive-doc-errata",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "scripting",
+        "errata",
+        "corrections",
+        "validation"
+      ],
+      "sourcePath": "docs/rive/rive-doc-errata.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "rive-runtime-compatibility",
+      "title": "Runtime Compatibility Baseline",
+      "description": "Versioned baseline of runtime bindings, docs status, and editor rollout tier for Luau surfaces",
+      "url": "https://forge.mograph.life/apps/lerp/rive/runtime-compatibility",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/runtime-compatibility",
+      "group": "rive",
+      "tags": [
+        "rive",
+        "runtime",
+        "compatibility",
+        "baseline",
+        "api",
+        "audit"
+      ],
+      "sourcePath": "docs/rive/runtime-compatibility.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
       "id": "rive-script-capability-matrix",
       "title": "Script Capability Matrix",
       "description": "Comprehensive matrix of what each Rive script type can access, what parameters it receives, and what it cannot do",
@@ -1476,6 +1644,18 @@
         "glance"
       ],
       "sourcePath": "docs/rive/script-types.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "site-map",
+      "title": "Site Map",
+      "description": "Crawl-friendly index of every canonical LERP page.",
+      "url": "https://forge.mograph.life/apps/lerp/site-map",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/site-map",
+      "group": "root",
+      "tags": [],
+      "sourcePath": "docs/site-map.mdx",
       "contentType": "documentation",
       "language": "en"
     },

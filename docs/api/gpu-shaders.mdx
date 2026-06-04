@@ -1,0 +1,1042 @@
+---
+sidebar_position: 13
+title: GPU Shaders
+description: GPUCanvas, Shader, GPUPipeline, GPUBuffer, GPUTexture, GPUSampler, bind groups, and shader descriptor types
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - gpu
+  - shaders
+  - wgsl
+  - gpucanvas
+  - gpubuffer
+  - gpupipeline
+---
+
+# GPU Shaders
+
+Low-level GPU APIs for shader assets, custom render passes, texture sampling, MSAA, post-processing, and 3D-style geometry.
+
+:::caution Preview / rollout-dependent
+This API family is early-access material. The runtime surface exists, but editor shader-asset workflow and packaging availability can vary by channel. Always guard optional shader handles and keep examples easy to disable when a workspace is not shader-enabled.
+:::
+
+:::info Current naming policy
+Use `context:shader(name)` for shader lookup and `GPUCanvas.format` for render-target format. Do not use older `context:loadShader(name)` or `context:preferredCanvasFormat()` names in new LERP examples.
+:::
+
+---
+
+## Mental Model
+
+A shader workflow has three layers:
+
+| Layer | What it contains |
+|-------|------------------|
+| Shader asset | A `.wgsl` shader file added to the Rive file and packaged as a compiled shader asset |
+| Luau script | Resource creation, buffers, bind groups, pipelines, render passes, and image compositing |
+| Runtime GPU backend | Backend-specific shader variants, texture views, render targets, and command submission |
+
+Script authors normally work with the first two layers:
+
+```lua
+local shader = context:shader("my_effect")
+if not shader then
+    return false
+end
+
+local canvas = context:gpuCanvas({ width = 512, height = 512 })
+local colorTargets: { ColorTarget } = {
+    ({ format = canvas.format } :: ColorTarget),
+}
+local pipeline = GPUPipeline.new({
+    vertex = { module = shader, entryPoint = "vsMain" },
+    fragment = { module = shader, entryPoint = "fsMain" },
+    vertexLayout = layouts,
+    colorTargets = colorTargets,
+})
+```
+
+Implementation details such as RSTB shader payloads, backend shader variants, and reflected binding metadata matter to parser/tooling authors, but normal Rive scripts do not construct those payloads directly.
+
+---
+
+## Type-Safe Luau Construction
+
+Rive GPU descriptors are checked Luau table types. Prefer typed locals over inline nested descriptor arrays:
+
+```lua
+local attributes: { VertexAttribute } = {
+    ({ slot = 0, format = "float32x2", offset = 0 } :: VertexAttribute),
+    ({ slot = 1, format = "float32x2", offset = 2 * 4 } :: VertexAttribute),
+}
+
+local vertexLayout: { VertexBufferLayout } = {
+    ({ stride = 4 * 4, attributes = attributes } :: VertexBufferLayout),
+}
+
+local colorTargets: { ColorTarget } = {
+    ({ format = canvas.format } :: ColorTarget),
+}
+```
+
+Use the same pattern for bind groups:
+
+```lua
+local ubos: { UBOEntry } = {
+    ({ slot = 0, buffer = uniformBuffer, offset = 0, size = UNIFORM_SIZE } :: UBOEntry),
+}
+local textures: { TextureEntry } = {
+    ({ slot = 1, view = image:view() } :: TextureEntry),
+}
+local samplers: { SamplerEntry } = {
+    ({ slot = 2, sampler = gpuSampler } :: SamplerEntry),
+}
+```
+
+Create GPU resources in non-null locals inside `init`, call methods on those locals, then assign them to optional `self.*` fields after setup succeeds. In `drawCanvas`, localize optional fields and return before issuing render work if any required handle is missing.
+
+---
+
+## Context Methods
+
+### `context:gpuCanvas(desc?)`
+
+Creates a GPU render target that can be drawn into with `GPURenderPass` and composited through `GPUCanvas.image`.
+
+```lua
+context:gpuCanvas(desc: {
+    width: number,
+    height: number,
+}?): GPUCanvas
+```
+
+Use a descriptor when the size is known:
+
+```lua
+self.gpuCanvas = context:gpuCanvas({ width = 512, height = 512 })
+```
+
+Omit the descriptor for a deferred canvas:
+
+```lua
+self.gpuCanvas = context:gpuCanvas()
+```
+
+Deferred canvases have no backing texture until resized. Check `canvas.width > 0` before rendering or calling `colorView()`.
+
+### `context:features()`
+
+Returns GPU feature flags and limits for the current backend.
+
+```lua
+context:features(): GPUFeatures
+```
+
+Use it before relying on optional behavior:
+
+```lua
+local features = context:features()
+local sampleCount = 1
+
+if features.maxSamples >= 4 then
+    sampleCount = 4
+elseif features.maxSamples >= 2 then
+    sampleCount = 2
+end
+```
+
+### `context:shader(name)`
+
+Gets a compiled shader by asset name, without the `.wgsl` extension.
+
+```lua
+context:shader(name: string): Shader?
+```
+
+Example:
+
+```lua
+local shader = context:shader("gradient_card")
+if not shader then
+    print("Missing shader asset: gradient_card.wgsl")
+    return false
+end
+```
+
+The return type is optional because the shader asset may be missing, named differently, not compiled, not packaged, or unavailable in the current editor/runtime channel. Pass the asset name without the `.wgsl` extension.
+
+### `context:canvas(desc?)`
+
+Creates a normal 2D Rive renderer canvas, not a shader canvas.
+
+```lua
+context:canvas(desc: {
+    width: number,
+    height: number,
+    clearColor: Color?,
+}?): Canvas
+```
+
+Use `Canvas` when you want to draw normal Rive renderer content into an image. Use `GPUCanvas` when you need GPU render passes and shader output.
+
+---
+
+## Shader
+
+`Shader` is an opaque compiled shader module.
+
+```lua
+local shader: Shader? = context:shader("my_effect")
+```
+
+Use a shader directly:
+
+```lua
+vertex = shader
+fragment = shader
+```
+
+Or select named entry points:
+
+```lua
+vertex = { module = shader, entryPoint = "vsMain" }
+fragment = { module = shader, entryPoint = "fsMain" }
+```
+
+Vertex and fragment stages may come from the same shader asset or different shader assets. Named entry points are recommended for non-trivial shaders.
+
+---
+
+## Canvas vs GPUCanvas
+
+### Canvas
+
+`Canvas` renders normal Rive renderer commands into an image.
+
+```lua
+declare extern type Canvas with
+    image: Image
+    width: number
+    height: number
+    function resize(self, width: number, height: number): ()
+    function beginFrame(self, desc: { clearColor: Color? }?): Renderer
+    function endFrame(self): ()
+end
+```
+
+Use `beginFrame` / `endFrame` inside `drawCanvas`.
+
+### GPUCanvas
+
+`GPUCanvas` renders GPU passes and exposes the result as an `Image`.
+
+```lua
+declare extern type GPUCanvas with
+    image: Image
+    width: number
+    height: number
+    format: ColorFormat
+    function resize(self, width: number, height: number): ()
+    function colorView(self): GPUTextureView
+    function beginRenderPass(self, desc: RenderPassDesc): GPURenderPass
+end
+```
+
+| Field or method | Meaning |
+|-----------------|---------|
+| `image` | Backing image for `renderer:drawImage(...)` compositing |
+| `width`, `height` | Pixel dimensions; deferred canvases report `0` |
+| `format` | Pixel format of the backing texture; use for pipeline color targets |
+| `resize(w, h)` | Recreates the backing texture |
+| `colorView()` | Returns a `GPUTextureView` for the backing texture |
+| `beginRenderPass(desc)` | Opens a render pass; call inside `drawCanvas` |
+
+---
+
+## GPURenderPass
+
+An active GPU render pass. Bind resources, draw, then call `finish()`.
+
+```lua
+declare extern type GPURenderPass with
+    function setPipeline(self, pipeline: GPUPipeline): ()
+    function setVertexBuffer(self, slot: number, buffer: GPUBuffer): ()
+    function setIndexBuffer(self, buffer: GPUBuffer, format: ("uint16" | "uint32")?): ()
+    function setBindGroup(self, groupIndex: number, bg: GPUBindGroup, dynamicOffsets: {number}?): ()
+    function setViewport(self, x: number, y: number, w: number, h: number): ()
+    function setScissorRect(self, x: number, y: number, w: number, h: number): ()
+    function setStencilReference(self, ref: number): ()
+    function setBlendColor(self, r: number, g: number, b: number, a: number): ()
+    function draw(self, vertexCount: number, instanceCount: number?, firstVertex: number?): ()
+    function drawIndexed(self, indexCount: number, instanceCount: number?, firstIndex: number?): ()
+    function finish(self): ()
+end
+```
+
+Runtime v0.1.106 also accepts optional `firstInstance` for `draw` and optional `baseVertex` / `firstInstance` for `drawIndexed`. Use non-zero base-instance forms only when `context:features().drawBaseInstance` is true.
+
+Basic pattern:
+
+```lua
+local pass = self.gpuCanvas:beginRenderPass({
+    color = {{
+        loadOp = "clear",
+        storeOp = "store",
+        clearColor = { 0, 0, 0, 0 },
+    }},
+})
+
+pass:setPipeline(self.pipeline)
+pass:setVertexBuffer(0, self.vertexBuffer)
+pass:setBindGroup(0, self.bindGroup)
+pass:draw(self.vertexCount)
+pass:finish()
+```
+
+---
+
+## GPUPipeline
+
+Compiled shader stages plus fixed-function render state.
+
+```lua
+declare extern type GPUPipeline with
+    function getBindGroupLayout(self, groupIndex: number): GPUBindGroupLayout
+end
+
+declare GPUPipeline: {
+    new: @checked (desc: {
+        vertex: PipelineStage,
+        fragment: PipelineStage?,
+        vertexLayout: { VertexBufferLayout },
+        bindGroupLayouts: { GPUBindGroupLayout }?,
+        colorTargets: { ColorTarget }?,
+        depthStencil: DepthStencilState?,
+        cullMode: CullMode?,
+        topology: PrimitiveTopology?,
+        sampleCount: number?,
+    }) -> GPUPipeline,
+}
+```
+
+### Constructor Fields
+
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `vertex` | yes | Vertex shader stage |
+| `fragment` | no | Fragment shader stage; optional for depth-only passes |
+| `vertexLayout` | yes | Vertex buffer layout array |
+| `bindGroupLayouts` | no | Explicit layouts for shared resources |
+| `colorTargets` | no | Color output formats and blend states |
+| `depthStencil` | no | Depth/stencil state |
+| `cullMode` | no | `"none"`, `"front"`, or `"back"` |
+| `topology` | no | Primitive assembly mode |
+| `sampleCount` | no | MSAA sample count; default `1` |
+
+Runtime-observed advanced fields include `winding`, `stencilFront`, `stencilBack`, `stencilReadMask`, `stencilWriteMask`, `ColorTarget.writeMask`, and `DepthStencilState.depthBiasClamp`. Feature-gate depth-bias clamp with `context:features().depthBiasClamp`.
+
+`getBindGroupLayout(groupIndex)` is intended for pipelines with auto-derived layouts after the `GPUPipeline` exists. If you need shared layouts across multiple pipelines, dynamic uniform-buffer bindings, or an auditable binding contract before pipeline construction, create an explicit `GPUBindGroupLayout.new(...)` and pass it in `bindGroupLayouts`.
+
+### PipelineStage
+
+```lua
+export type PipelineStage = Shader | { module: Shader, entryPoint: string? }
+```
+
+---
+
+## GPUBuffer
+
+GPU memory for vertices, indices, or uniforms.
+
+```lua
+declare extern type GPUBuffer with
+    size: number
+    function write(self, data: buffer, offset: number?): ()
+end
+
+declare GPUBuffer: {
+    new: @checked (desc: GPUBufferDesc) -> GPUBuffer,
+}
+```
+
+### GPUBufferDesc
+
+```lua
+export type GPUBufferDesc = {
+    size: number,
+    usage: BufferUsageArg,
+    data: buffer?,
+    immutable: boolean?,
+    label: string?,
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `size` | Size in bytes |
+| `usage` | `"vertex"`, `"index"`, or `"uniform"` |
+| `data` | Optional initial bytes |
+| `immutable` | GPU-only after creation when true; initial data required |
+| `label` | Optional debug name |
+
+```lua
+local vbo = GPUBuffer.new({
+    size = buffer.len(vertexBytes),
+    usage = "vertex",
+    data = vertexBytes,
+    immutable = true,
+    label = "static mesh vertices",
+})
+```
+
+Dynamic uniform update:
+
+```lua
+buffer.writef32(self.uniformBytes, 0, self.time)
+buffer.writef32(self.uniformBytes, 4, self.strength)
+self.uniformBuffer:write(self.uniformBytes, 0)
+```
+
+---
+
+## GPUTexture and GPUTextureView
+
+### GPUTexture
+
+GPU texture data for color, depth, arrays, cubes, 3D textures, render targets, and uploaded pixels.
+
+```lua
+declare GPUTexture: {
+    new: @checked (desc: {
+        width: number,
+        height: number,
+        format: TextureFormat?,
+        type: TextureType?,
+        renderTarget: boolean?,
+        mipmaps: number?,
+        layers: number?,
+        sampleCount: number?,
+        label: string?,
+    }) -> GPUTexture,
+}
+```
+
+| Field | Default | Meaning |
+|-------|---------|---------|
+| `width`, `height` | required | Texture size in texels |
+| `format` | `"rgba8unorm"` | Pixel format |
+| `type` | `"2d"` | `"2d"`, `"cube"`, `"3d"`, or `"2d-array"` |
+| `renderTarget` | `false` | Allows use as color/depth render attachment |
+| `mipmaps` | `1` | Mip level count |
+| `layers` | `1` | Array layers or cube faces |
+| `sampleCount` | `1` | MSAA sample count |
+| `label` | none | Debug label |
+
+MSAA rules:
+
+- MSAA textures use `sampleCount > 1` and `renderTarget = true`.
+- MSAA textures cannot have mipmaps.
+- MSAA textures cannot be uploaded to or sampled directly.
+- Resolve MSAA into a 1x texture or `GPUCanvas:colorView()`.
+
+### Methods
+
+```lua
+texture:view(desc?: {
+    dimension: TextureType?,
+    aspect: TextureAspect?,
+    baseMipLevel: number?,
+    mipCount: number?,
+    baseLayer: number?,
+    layerCount: number?,
+}): GPUTextureView
+```
+
+```lua
+texture:upload(desc: {
+    data: buffer,
+    mipLevel: number?,
+    layer: number?,
+    width: number?,
+    height: number?,
+}): ()
+```
+
+### GPUTextureView
+
+```lua
+declare extern type GPUTextureView with
+    format: TextureFormat
+end
+```
+
+Use a texture view as a render attachment, MSAA resolve target, depth/stencil attachment, shader texture binding, or `Image:view()` result.
+
+---
+
+## GPUSampler
+
+Controls how a shader samples a texture.
+
+```lua
+declare GPUSampler: {
+    new: @checked (desc: {
+        min: Filter?,
+        mag: Filter?,
+        mipmap: Filter?,
+        wrapU: WrapMode?,
+        wrapV: WrapMode?,
+        compare: CompareFunction?,
+        maxAnisotropy: number?,
+    }?) -> GPUSampler,
+}
+```
+
+| Field | Default | Meaning |
+|-------|---------|---------|
+| `min`, `mag`, `mipmap` | `"linear"` | Minification, magnification, and mip filtering |
+| `wrapU`, `wrapV` | `"clamp-to-edge"` | Horizontal and vertical wrap modes |
+| `compare` | omitted | Depth comparison function |
+| `maxAnisotropy` | `1` | Anisotropic filtering level |
+
+Runtime-observed additions include `wrapW`, `minLod`, and `maxLod`. Use anisotropy above `1` only when `context:features().anisotropicFiltering` is true.
+
+```lua
+local smoothSampler = GPUSampler.new({
+    min = "linear",
+    mag = "linear",
+    mipmap = "linear",
+    wrapU = "clamp-to-edge",
+    wrapV = "clamp-to-edge",
+})
+```
+
+---
+
+## Bind Groups
+
+Bind groups connect WGSL `@group` / `@binding` declarations to Luau resources.
+
+WGSL:
+
+```text
+@group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var imageTex: texture_2d<f32>;
+@group(0) @binding(2) var imageSampler: sampler;
+```
+
+Luau:
+
+```lua
+local layout = pipeline:getBindGroupLayout(0)
+local ubos: { UBOEntry } = {
+    ({ slot = 0, buffer = uniformBuffer, offset = 0, size = UNIFORM_SIZE } :: UBOEntry),
+}
+local textures: { TextureEntry } = {
+    ({ slot = 1, view = sourceImage:view() } :: TextureEntry),
+}
+local samplers: { SamplerEntry } = {
+    ({ slot = 2, sampler = gpuSampler } :: SamplerEntry),
+}
+
+local bindGroup = GPUBindGroup.new({
+    layout = layout,
+    ubos = ubos,
+    textures = textures,
+    samplers = samplers,
+})
+```
+
+### GPUBindGroupLayout
+
+```lua
+declare GPUBindGroupLayout: {
+    new: @checked (desc: {
+        shader: Shader,
+        groupIndex: number,
+        dynamicUBOs: { number }?,
+        label: string?,
+    }) -> GPUBindGroupLayout,
+}
+```
+
+Use explicit layouts when multiple pipelines share the same resources.
+
+### GPUBindGroup
+
+```lua
+declare GPUBindGroup: {
+    new: @checked (desc: {
+        layout: GPUBindGroupLayout,
+        ubos: { UBOEntry }?,
+        textures: { TextureEntry }?,
+        samplers: { SamplerEntry }?,
+    }) -> GPUBindGroup,
+}
+```
+
+Entry types:
+
+```lua
+export type UBOEntry = {
+    slot: number,
+    buffer: GPUBuffer,
+    offset: number?,
+    size: number?,
+}
+
+export type TextureEntry = {
+    slot: number,
+    view: GPUTextureView,
+}
+
+export type SamplerEntry = {
+    slot: number,
+    sampler: GPUSampler,
+}
+```
+
+`UBOEntry.size` is the byte size of the bound range. It is not a number of fields. For example:
+
+| WGSL uniform payload | Typical `size` |
+|----------------------|----------------|
+| `time`, `width`, `height`, `radius` as four `f32` values | `16` |
+| one `mat4x4<f32>` | `64` |
+| dynamic per-object uniform record | padded stride such as `256` |
+
+Keep the byte size aligned with the WGSL uniform struct layout. If the same buffer holds multiple records, `offset` selects the byte start and `size` selects the byte range exposed to that binding.
+
+### Dynamic UBO Offsets
+
+Dynamic offsets are matched to dynamic bindings in the bind-group layout, not to arbitrary `ubos` insertion order. Keep dynamic bindings in ascending WGSL binding order.
+
+```lua
+local layout = GPUBindGroupLayout.new({
+    shader = shader,
+    groupIndex = 0,
+    dynamicUBOs = { 0, 3 },
+})
+
+pass:setBindGroup(0, bindGroup, { cameraOffset, materialOffset })
+```
+
+Rules:
+
+- One offset per dynamic UBO binding.
+- Offsets are byte offsets into the `GPUBuffer`.
+- Use 256-byte alignment for dynamic UBO records.
+- The offset count must match the dynamic UBO binding count exactly.
+
+---
+
+## Descriptor Types
+
+### VertexAttribute
+
+```lua
+export type VertexAttribute = {
+    format: VertexFormat,
+    slot: number,
+    offset: number?,
+}
+```
+
+The `slot` maps to WGSL `@location(N)`.
+
+### VertexBufferLayout
+
+```lua
+export type VertexBufferLayout = {
+    stride: number,
+    stepMode: ("vertex" | "instance")?,
+    attributes: { VertexAttribute },
+}
+```
+
+### BlendState
+
+```lua
+export type BlendState = {
+    srcColor: BlendFactor?,
+    dstColor: BlendFactor?,
+    colorOp: BlendOp?,
+    srcAlpha: BlendFactor?,
+    dstAlpha: BlendFactor?,
+    alphaOp: BlendOp?,
+}
+```
+
+Common alpha blending:
+
+```lua
+blend = {
+    srcColor = "src-alpha",
+    dstColor = "one-minus-src-alpha",
+    colorOp = "add",
+    srcAlpha = "one",
+    dstAlpha = "one-minus-src-alpha",
+    alphaOp = "add",
+}
+```
+
+### ColorTarget
+
+```lua
+export type ColorTarget = {
+    format: ColorFormat?,
+    blend: BlendState?,
+    writeMask: string?, -- runtime-observed advanced field
+}
+```
+
+Use `format = canvas.format` when rendering to a `GPUCanvas`.
+
+### DepthStencilState
+
+```lua
+export type DepthStencilState = {
+    format: DepthFormat?,
+    compare: CompareFunction?,
+    write: boolean?,
+    depthBias: number?,
+    depthBiasSlopeScale: number?,
+    depthBiasClamp: number?, -- feature-gated
+}
+```
+
+Standard depth:
+
+```lua
+depthStencil = {
+    format = "depth24plus-stencil8",
+    compare = "less",
+    write = true,
+}
+```
+
+Reverse-Z:
+
+```lua
+depthStencil = {
+    format = "depth32float",
+    compare = "greater",
+    write = true,
+}
+```
+
+Clear reverse-Z depth attachments to `0.0`.
+
+### RenderPassDesc
+
+```lua
+export type RenderPassDesc = {
+    color: { ColorAttachment }?,
+    depthStencil: DepthStencilAttachment?,
+}
+```
+
+### ColorAttachment
+
+```lua
+export type ColorAttachment = {
+    view: GPUTextureView?,
+    resolveTarget: GPUTextureView?,
+    loadOp: LoadOp?,
+    storeOp: StoreOp,
+    clearColor: GPUColor?,
+}
+```
+
+Omit `view` when rendering directly to the receiving `GPUCanvas` backing texture. Use explicit `view` and `resolveTarget` for MSAA.
+
+### DepthStencilAttachment
+
+```lua
+export type DepthStencilAttachment = {
+    view: GPUTextureView,
+    depthLoadOp: LoadOp?,
+    depthStoreOp: StoreOp,
+    depthClearValue: number?,
+}
+```
+
+---
+
+## String Literal Types
+
+### Formats
+
+```lua
+export type ColorFormat =
+    "r8unorm" | "rg8unorm" | "rgba8unorm" | "bgra8unorm"
+    | "rgba16float" | "rg16float" | "r16float"
+    | "rgba32float" | "rgb10a2unorm" | "rg11b10ufloat"
+
+export type DepthFormat =
+    "depth16unorm" | "depth24plus-stencil8"
+    | "depth32float" | "depth32float-stencil8"
+
+export type CompressedFormat =
+    "bc1-rgba-unorm" | "bc3-rgba-unorm" | "bc7-rgba-unorm"
+    | "etc2-rgb8unorm" | "etc2-rgba8unorm"
+    | "astc-4x4-unorm" | "astc-6x6-unorm" | "astc-8x8-unorm"
+
+export type TextureFormat = ColorFormat | DepthFormat | CompressedFormat
+```
+
+Check `GPUFeatures` before relying on compressed texture families.
+
+### Texture Types and Aspects
+
+```lua
+export type TextureType = "2d" | "cube" | "3d" | "2d-array"
+export type TextureAspect = "all" | "depth-only" | "stencil-only"
+```
+
+### Compare Functions
+
+```lua
+export type CompareFunction =
+    "never" | "less" | "equal" | "less-equal"
+    | "greater" | "not-equal" | "greater-equal" | "always"
+```
+
+### Primitive Topology
+
+```lua
+export type PrimitiveTopology =
+    "triangle-list" | "triangle-strip" | "line-list" | "line-strip" | "point-list"
+```
+
+### Load and Store
+
+```lua
+export type LoadOp = "clear" | "load"
+export type StoreOp = "store" | "discard"
+```
+
+Prefer `clear` over `load` unless previous contents are required. Use `discard` for transient MSAA/depth attachments after resolve.
+
+### Vertex Formats
+
+```lua
+export type VertexFormat =
+    "float32" | "float32x2" | "float32x3" | "float32x4"
+    | "uint8x4" | "unorm8x4" | "snorm8x4"
+    | "float16x2" | "float16x4"
+```
+
+### Sampler Modes
+
+```lua
+export type Filter = "nearest" | "linear"
+export type WrapMode = "repeat" | "mirror-repeat" | "clamp-to-edge"
+```
+
+### Blending
+
+```lua
+export type BlendFactor =
+    "zero" | "one" | "src" | "one-minus-src"
+    | "src-alpha" | "one-minus-src-alpha"
+    | "dst" | "one-minus-dst"
+    | "dst-alpha" | "one-minus-dst-alpha"
+    | "src-alpha-saturated" | "constant" | "one-minus-constant"
+
+export type BlendOp = "add" | "subtract" | "reverse-subtract" | "min" | "max"
+```
+
+---
+
+## GPUFeatures
+
+```lua
+export type GPUFeatures = {
+    bc: boolean,
+    etc2: boolean,
+    astc: boolean,
+    maxTextureSize2D: number,
+    maxTextureSizeCube: number,
+    maxTextureSize3D: number,
+    anisotropicFiltering: boolean,
+    texture3D: boolean,
+    textureArrays: boolean,
+    colorBufferFloat: boolean,
+    colorBufferHalfFloat: boolean,
+    perTargetBlend: boolean,
+    perTargetWriteMask: boolean,
+    drawBaseInstance: boolean,
+    depthBiasClamp: boolean,
+    maxColorAttachments: number,
+    maxUniformBufferSize: number,
+    maxSamplers: number,
+    maxSamples: number,
+}
+```
+
+Important feature gates:
+
+| Feature | Gate |
+|---------|------|
+| BC compressed textures | `features.bc` |
+| ETC2 compressed textures | `features.etc2` |
+| ASTC compressed textures | `features.astc` |
+| 3D textures | `features.texture3D` |
+| Texture arrays | `features.textureArrays` |
+| Anisotropic filtering | `features.anisotropicFiltering` |
+| Float color render targets | `features.colorBufferFloat` |
+| Half-float color render targets | `features.colorBufferHalfFloat` |
+| Independent color-target blending | `features.perTargetBlend` |
+| Independent color-target write masks | `features.perTargetWriteMask` |
+| Non-zero first-instance draw forms | `features.drawBaseInstance` |
+| Depth bias clamp | `features.depthBiasClamp` |
+| MSAA sample count | `features.maxSamples` |
+
+---
+
+## Image, Color, and Buffer Utilities
+
+### `Image:view()`
+
+Returns a `GPUTextureView` for sampling an image asset in a shader.
+
+```lua
+local image = context:image("source")
+if image then
+    local view = image:view()
+end
+```
+
+Use it in a bind group:
+
+```lua
+local textures: { TextureEntry } = {
+    ({ slot = 1, view = image:view() } :: TextureEntry),
+}
+```
+
+Image-dependent shader examples need an actual Rive image asset in the file. The example pack uses `demo_image`; change that script constant when the artboard uses a different asset name.
+
+### `Color.toFloat(color)`
+
+Converts a Rive `Color` to `{ r, g, b, a }` floats in the `0..1` range.
+
+```lua
+local clear = Color.toFloat(Color.rgba(255, 0, 0, 128))
+```
+
+### Buffer Helpers
+
+GPU-related buffer helpers include:
+
+```lua
+buffer.readf16(b, offset) -> number
+buffer.writef16(b, offset, value) -> ()
+```
+
+```lua
+buffer.stridedcopy(
+    dst, dstOffset, dstStride,
+    src, srcOffset, srcStride,
+    elementSize, count
+)
+```
+
+```lua
+buffer.convert(
+    dst, dstOffset, dstFormat,
+    src, srcOffset, srcFormat,
+    count, components?, dstStride?, srcStride?
+)
+```
+
+Common conversion formats include `f16`, `f32`, `u8`, `u8norm`, `i8norm`, `u16`, `u16norm`, `i16norm`, and `u32`.
+
+---
+
+## Common Rendering Patterns
+
+### Render to GPUCanvas
+
+```lua
+local pass = canvas:beginRenderPass({
+    color = {{
+        loadOp = "clear",
+        storeOp = "store",
+        clearColor = { 0, 0, 0, 0 },
+    }},
+})
+
+pass:setPipeline(pipeline)
+pass:setVertexBuffer(0, vertexBuffer)
+pass:draw(vertexCount)
+pass:finish()
+```
+
+### MSAA Resolve
+
+```lua
+color = {{
+    view = msaaColor:view(),
+    resolveTarget = canvas:colorView(),
+    loadOp = "clear",
+    storeOp = "discard",
+    clearColor = { 0, 0, 0, 0 },
+}}
+```
+
+The MSAA color texture format and pipeline `sampleCount` must match.
+
+### Offscreen Post-process
+
+1. Render scene into a render-target `GPUTexture`.
+2. Create a bind group that samples that texture view.
+3. Render a fullscreen quad into the final `GPUCanvas`.
+
+Use this for blur, bloom, color grading, masks, and any distortion that needs a source image. A shader cannot automatically sample the already-composited Rive framebuffer behind the current node. For glass or background distortion, render the content you want to distort into a texture or canvas first, then sample that explicit source.
+
+### Per-object Dynamic Uniforms
+
+```lua
+local stride = 256
+pass:setBindGroup(0, objectBindGroup, { objectIndex * stride })
+pass:drawIndexed(indexCount)
+```
+
+---
+
+## What This API Is Not
+
+The GPU API does not provide a full scene graph, material system, lighting system, skeletal 3D runtime, or direct USD/OBJ/glTF/GLB/FBX importer. You can render 3D-like content when your script supplies buffers, textures, uniforms, matrices, and shader assets.
+
+---
+
+## Troubleshooting
+
+| Problem | Likely fix |
+|---------|------------|
+| `context:shader(name)` returns `nil` | Check asset name without `.wgsl`, shader compile status, shader packaging, and editor/runtime channel |
+| `colorView()` throws | Resize deferred `GPUCanvas` before rendering |
+| Nothing renders | Return `drawCanvas` from the factory, call `pass:finish()`, and composite `gpuCanvas.image` in `draw` |
+| Interleaved attributes read wrong | Verify every byte `offset` and `stride` |
+| Bind group mismatch | Match `@group` and `@binding` to bind group index and `slot` |
+| Luau rejects `vertexLayout`, `colorTargets`, `ubos`, `textures`, or `samplers` | Move nested descriptors into explicitly typed locals such as `{ VertexAttribute }`, `{ VertexBufferLayout }`, `{ ColorTarget }`, `{ UBOEntry }`, `{ TextureEntry }`, and `{ SamplerEntry }` |
+| `getBindGroupLayout` is unavailable or mismatched | Confirm the pipeline was built with an auto layout for that group, or use explicit `GPUBindGroupLayout.new(...)` |
+| Dynamic UBO offset mismatch | Use layout binding order and 256-byte alignment |
+| MSAA resolve fails | Match formats/sample counts; do not sample MSAA textures directly |
+| Image sampling example cannot start | Add the required Rive image asset or update the script's asset-name constant |
+| Texture output looks blurry | Match `GPUCanvas` dimensions to display size, choose the intended `GPUSampler` and `ImageSampler`, and avoid accidental UV minification |
+| WGSL rejects a swizzle write such as `color.rgb = ...` | Construct a new value, for example `vec4<f32>(newRgb, color.a)` |
+| Glass distortion samples the wrong thing | Render a source texture first; the shader cannot read the already-composited framebuffer automatically |
+| Depth is inverted | Match projection style, depth clear value, and compare function |
+
+## See Also
+
+- [GPU Shaders and 3D Rendering](/advanced/gpu-shaders)
+- [Core Types: Mat4](/api/core-types#mat4)
+- [Assets: Image](/api/assets#image)
+- [Runtime Compatibility Baseline](/rive/runtime-compatibility)

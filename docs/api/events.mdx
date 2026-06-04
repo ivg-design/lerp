@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: Events
-description: PointerEvent for pointer interactions
+description: PointerEvent plus ListenerContext payload invocations for listener-driven scripts
 keywords:
   - rive
   - luau
@@ -10,11 +10,20 @@ keywords:
   - reference
   - events
   - pointerevent
+  - listenercontext
+  - keyboardevent
+  - textevent
+  - gamepad
 ---
+import Quiz from '@site/src/components/Quiz';
 
 # Events
 
-APIs for pointer interactions.
+APIs for pointer interactions and listener-trigger payloads.
+
+:::info Runtime baseline
+This page reflects npm runtime baseline `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026). See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for version tracking.
+:::
 
 ---
 
@@ -45,6 +54,9 @@ local childEvent = PointerEvent.new(event.id, childPos)
 |-----------|------|-------------|
 | `position` | Vector | Local coordinates |
 | `id` | number | Pointer ID (for multitouch) |
+| `type` | string | Event type (`pointerDown`, `pointerUp`, `pointerMove`, `pointerExit`, `pointerEnter`, `click`, `pointerDrag`, `unknown`) |
+| `previousPosition` | Vector | Previous pointer position (when available) |
+| `timeStamp` | number | Event timestamp (seconds) |
 
 ### Methods
 
@@ -69,11 +81,171 @@ end
 
 ---
 
+## ListenerContext
+
+ListenerAction scripts receive `listenerContext` via:
+
+```lua
+function performAction(self: MyAction, listenerContext: ListenerContext)
+    -- inspect event kind with is... methods
+end
+```
+
+### Type Guards
+
+- `listenerContext:isPointerEvent()`
+- `listenerContext:isKeyboardEvent()`
+- `listenerContext:isTextInput()`
+- `listenerContext:isFocus()`
+- `listenerContext:isReportedEvent()`
+- `listenerContext:isViewModelChange()`
+- `listenerContext:isGamepad()`
+- `listenerContext:isNone()`
+
+### Typed Accessors
+
+- `listenerContext:asPointerEvent(): PointerEvent?`
+- `listenerContext:asKeyboardEvent(): KeyboardInvocation?`
+- `listenerContext:asTextInput(): TextInputInvocation?`
+- `listenerContext:asFocus(): FocusInvocation?`
+- `listenerContext:asReportedEvent(): ReportedEventInvocation?`
+- `listenerContext:asViewModelChange(): ViewModelChangeInvocation?`
+- `listenerContext:asGamepad(): GamepadInvocation?`
+- `listenerContext:asNone(): NoneInvocation?`
+
+### Safe Branching Example
+
+```lua
+function performAction(self: MyAction, listenerContext: ListenerContext)
+    if listenerContext:isPointerEvent() then
+        local evt = listenerContext:asPointerEvent()
+        if evt then
+            print("pointer:", evt.type, evt.position.x, evt.position.y)
+        end
+    elseif listenerContext:isKeyboardEvent() then
+        local evt = listenerContext:asKeyboardEvent()
+        if evt then
+            print("keyboard:", evt.key, evt.phase)
+        end
+    elseif listenerContext:isTextInput() then
+        local evt = listenerContext:asTextInput()
+        if evt then
+            print("text:", evt.text)
+        end
+    elseif listenerContext:isGamepad() then
+        local evt = listenerContext:asGamepad()
+        if evt then
+            print("gamepad:", evt.deviceId, evt.buttonMask, evt.axis0)
+        end
+    end
+end
+```
+
+---
+
+## KeyboardInvocation
+
+Keyboard payload exposed via `listenerContext:asKeyboardEvent()`.
+
+| Field | Type | Description |
+|---|---|---|
+| `key` | number | Key code |
+| `shift` | boolean | Shift modifier active |
+| `control` | boolean | Control modifier active |
+| `alt` | boolean | Alt modifier active |
+| `meta` | boolean | Meta/Command modifier active |
+| `phase` | `"down" \| "repeat" \| "up"` | Key phase |
+
+---
+
+## TextInputInvocation
+
+Text input payload exposed via `listenerContext:asTextInput()`.
+
+| Field | Type | Description |
+|---|---|---|
+| `text` | string | Committed text input |
+
+---
+
+## FocusInvocation
+
+Focus payload exposed via `listenerContext:asFocus()`.
+
+| Field | Type | Description |
+|---|---|---|
+| `isFocus` | boolean | `true` when focus gained, `false` when focus lost |
+
+---
+
+## ReportedEventInvocation
+
+`listenerContext:asReportedEvent()` is available, but payload exposure is currently limited in this runtime baseline.
+
+- Confirmed field: `delaySeconds`
+- Treat additional reported-event fields as compatibility-sensitive until validated in a newer baseline.
+
+---
+
+## ViewModelChangeInvocation
+
+`listenerContext:asViewModelChange()` is available, but payload detail is currently minimal in this baseline (type presence + branching support).
+
+---
+
+## GamepadInvocation
+
+Gamepad payload exposed via `listenerContext:asGamepad()`.
+
+| Field | Type | Description |
+|---|---|---|
+| `deviceId` | number | Runtime gamepad device ID |
+| `buttonMask` | number | Bitmask of pressed buttons |
+| `axis0` | number | Primary analog axis value |
+
+---
+
+## NoneInvocation
+
+Fallback event shape for unsupported/unknown listener invocations.
+
+- Check with `listenerContext:isNone()`
+- Access with `listenerContext:asNone()`
+
+---
+
 ## Trigger
 
 See [Data & Input: Trigger](./data-input#inputtrigger) for the `Trigger` type reference, and [Trigger Inputs](/rive/inputs#trigger-inputs) for the full usage guide.
 
+## Knowledge Check
+
+<Quiz
+  question="What is the safest pattern for accessing listener event payloads?"
+  id="api-events-q1"
+  options={[
+    { text: "Call asPointerEvent() and assume it always returns a value." },
+    { text: "Branch with is...(), then call the matching as...() accessor.", correct: true },
+    { text: "Use perform(self, pointerEvent) only, even for keyboard/text listeners." },
+    { text: "ListenerAction events always contain keyboard fields." },
+  ]}
+  explanation="ListenerContext is a tagged union. Use is... guards first, then the matching as... accessor. This applies to pointer, keyboard, text, focus, reported, gamepad, and none invocations."
+/>
+
+<Quiz
+  question="Which GamepadInvocation field is currently exposed in ListenerContext payloads?"
+  id="api-events-q2"
+  options={[
+    { text: "thumbstickY" },
+    { text: "buttonMask", correct: true },
+    { text: "vendorName" },
+    { text: "batteryPercent" },
+  ]}
+  explanation="At this runtime baseline, GamepadInvocation exposes `deviceId`, `buttonMask`, and `axis0`."
+/>
+
 ## Next Steps
 
 - Continue to [Assets](/api/assets)
+- Verify surface status in [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Need a refresher? Review [Quick Reference](/quick-reference)

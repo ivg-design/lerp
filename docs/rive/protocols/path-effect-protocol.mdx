@@ -83,19 +83,19 @@ function update(self: MyPathEffect, inPath: PathData, node: NodeReadData): PathD
     local path = Path.new()
 
     for _, cmd in ipairs(inPath) do
-        if cmd.type == CommandType.moveTo then
+        if cmd.type == "moveTo" then
             path:moveTo(cmd[1])
 
-        elseif cmd.type == CommandType.lineTo then
+        elseif cmd.type == "lineTo" then
             path:lineTo(cmd[1])
 
-        elseif cmd.type == CommandType.quadTo then
+        elseif cmd.type == "quadTo" then
             path:quadTo(cmd[1], cmd[2])
 
-        elseif cmd.type == CommandType.cubicTo then
+        elseif cmd.type == "cubicTo" then
             path:cubicTo(cmd[1], cmd[2], cmd[3])
 
-        elseif cmd.type == CommandType.close then
+        elseif cmd.type == "close" then
             path:close()
         end
     end
@@ -147,13 +147,15 @@ end
 
 | Command Type | Points | Description |
 |--------------|--------|-------------|
-| `CommandType.moveTo` | 1 Vector (`cmd[1]`) | Move to point |
-| `CommandType.lineTo` | 1 Vector (`cmd[1]`) | Line to point |
-| `CommandType.quadTo` | 2 Vectors (`cmd[1]`=control, `cmd[2]`=end) | Quadratic curve |
-| `CommandType.cubicTo` | 3 Vectors (`cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end) | Cubic curve |
-| `CommandType.close` | 0 | Close path |
+| `"moveTo"` | 1 Vector (`cmd[1]`) | Move to point |
+| `"lineTo"` | 1 Vector (`cmd[1]`) | Line to point |
+| `"quadTo"` | 2 Vectors (`cmd[1]`=control, `cmd[2]`=end) | Quadratic curve |
+| `"cubicTo"` | 3 Vectors (`cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end) | Cubic curve |
+| `"close"` | 0 | Close path |
 
 > **Note:** Each point is a `Vector` object. Access coordinates via `cmd[1].x` and `cmd[1].y`.
+>
+> **Editor note:** In currently validated editor scripts, compare `cmd.type` against string names (`"moveTo"`, `"lineTo"`, etc.). Do not assume a global `CommandType` table exists at runtime.
 
 ---
 
@@ -220,7 +222,7 @@ local count = #inPath
 
 -- Iterate through all commands
 for _, cmd in ipairs(inPath) do
-    local cmdType = cmd.type     -- CommandType enum
+    local cmdType = cmd.type     -- command name string (for example "lineTo")
     local pointCount = #cmd      -- Number of points (Vectors)
 
     -- Access points by index
@@ -233,15 +235,15 @@ end
 
 ---
 
-## CommandType Values
+## PathCommand Type Values (`cmd.type`)
 
 | Type | Points | Values | Description |
 |------|--------|--------|-------------|
-| `CommandType.moveTo` | 1 | `cmd[1]` = Vector | Move cursor to position |
-| `CommandType.lineTo` | 1 | `cmd[1]` = Vector | Draw straight line |
-| `CommandType.quadTo` | 2 | `cmd[1]`=control, `cmd[2]`=end | Quadratic bezier curve |
-| `CommandType.cubicTo` | 3 | `cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end | Cubic bezier curve |
-| `CommandType.close` | 0 | *(none)* | Close path to start |
+| `"moveTo"` | 1 | `cmd[1]` = Vector | Move cursor to position |
+| `"lineTo"` | 1 | `cmd[1]` = Vector | Draw straight line |
+| `"quadTo"` | 2 | `cmd[1]`=control, `cmd[2]`=end | Quadratic bezier curve |
+| `"cubicTo"` | 3 | `cmd[1]`=cp1, `cmd[2]`=cp2, `cmd[3]`=end | Cubic bezier curve |
+| `"close"` | 0 | *(none)* | Close path to start |
 
 ---
 
@@ -306,23 +308,23 @@ function update(self: Exercise1, inPath: PathData, node: NodeReadData): PathData
         cmdCount += 1
 
         -- TODO: Handle each command type
-        if cmd.type == CommandType.moveTo then
+        if cmd.type == "moveTo" then
             path:moveTo(cmd[1])
 
-        elseif cmd.type == CommandType.lineTo then
+        elseif cmd.type == "lineTo" then
             -- TODO: Copy lineTo command
             path:lineTo(cmd[1])
 
-        elseif cmd.type == CommandType.quadTo then
+        elseif cmd.type == "quadTo" then
             -- TODO: Copy quadTo command (control + end)
             path:quadTo(cmd[1], cmd[2])
 
-        elseif cmd.type == CommandType.cubicTo then
+        elseif cmd.type == "cubicTo" then
             -- TODO: Copy cubicTo with all 3 vectors
             -- Hint: cmd[1]=controlOut, cmd[2]=controlIn, cmd[3]=end
             path:cubicTo(cmd[1], cmd[2], cmd[3])
 
-        elseif cmd.type == CommandType.close then
+        elseif cmd.type == "close" then
             path:close()
         end
     end
@@ -416,7 +418,7 @@ function update(self: Exercise2, inPath: PathData, node: NodeReadData): PathData
     local offset = self.offsetY or 20
 
     for _, cmd in ipairs(inPath) do
-        if cmd.type == CommandType.moveTo then
+        if cmd.type == "moveTo" then
             -- TODO: Add offset to Y coordinate
             -- Original: cmd[1] is a Vector
             local p = cmd[1]
@@ -425,12 +427,12 @@ function update(self: Exercise2, inPath: PathData, node: NodeReadData): PathData
 
             path:moveTo(Vector.xy(x, y))
 
-        elseif cmd.type == CommandType.lineTo then
+        elseif cmd.type == "lineTo" then
             -- TODO: Add offset to Y coordinate
             local p = cmd[1]
             path:lineTo(Vector.xy(p.x, p.y + offset))
 
-        elseif cmd.type == CommandType.quadTo then
+        elseif cmd.type == "quadTo" then
             -- TODO: Add offset to control and end points
             local c = cmd[1]
             local e = cmd[2]
@@ -439,7 +441,7 @@ function update(self: Exercise2, inPath: PathData, node: NodeReadData): PathData
                 Vector.xy(e.x, e.y + offset)
             )
 
-        elseif cmd.type == CommandType.cubicTo then
+        elseif cmd.type == "cubicTo" then
             -- TODO: Add offset to all 3 points
             local c1 = cmd[1]
             local c2 = cmd[2]
@@ -450,7 +452,7 @@ function update(self: Exercise2, inPath: PathData, node: NodeReadData): PathData
                 Vector.xy(e.x, e.y + offset)
             )
 
-        elseif cmd.type == CommandType.close then
+        elseif cmd.type == "close" then
             path:close()
         end
     end
@@ -566,17 +568,17 @@ function update(self: Exercise3, inPath: PathData, node: NodeReadData): PathData
     local t = self.time
 
     for _, cmd in ipairs(inPath) do
-        if cmd.type == CommandType.moveTo then
+        if cmd.type == "moveTo" then
             local p = cmd[1]
             local offset = waveOffset(p.y, t, amp, freq)
             path:moveTo(Vector.xy(p.x + offset, p.y))
 
-        elseif cmd.type == CommandType.lineTo then
+        elseif cmd.type == "lineTo" then
             local p = cmd[1]
             local offset = waveOffset(p.y, t, amp, freq)
             path:lineTo(Vector.xy(p.x + offset, p.y))
 
-        elseif cmd.type == CommandType.quadTo then
+        elseif cmd.type == "quadTo" then
             local c = cmd[1]
             local e = cmd[2]
             local oc = waveOffset(c.y, t, amp, freq)
@@ -586,7 +588,7 @@ function update(self: Exercise3, inPath: PathData, node: NodeReadData): PathData
                 Vector.xy(e.x + oe, e.y)
             )
 
-        elseif cmd.type == CommandType.cubicTo then
+        elseif cmd.type == "cubicTo" then
             local c1 = cmd[1]
             local c2 = cmd[2]
             local e = cmd[3]
@@ -600,7 +602,7 @@ function update(self: Exercise3, inPath: PathData, node: NodeReadData): PathData
                 Vector.xy(e.x + o3, e.y)
             )
 
-        elseif cmd.type == CommandType.close then
+        elseif cmd.type == "close" then
             path:close()
         end
     end
@@ -717,18 +719,18 @@ Your console output should show time incrementing and amplitude.
    ```lua
    -- WRONG: Only handling moveTo and lineTo
    for _, cmd in ipairs(inPath) do
-       if cmd.type == CommandType.moveTo then ...
-       elseif cmd.type == CommandType.lineTo then ...
+       if cmd.type == "moveTo" then ...
+       elseif cmd.type == "lineTo" then ...
        -- Missing cubicTo, quadTo, close!
    end
 
    -- CORRECT: Handle all types
    for _, cmd in ipairs(inPath) do
-       if cmd.type == CommandType.moveTo then ...
-       elseif cmd.type == CommandType.lineTo then ...
-       elseif cmd.type == CommandType.cubicTo then ...
-       elseif cmd.type == CommandType.quadTo then ...
-       elseif cmd.type == CommandType.close then ...
+       if cmd.type == "moveTo" then ...
+       elseif cmd.type == "lineTo" then ...
+       elseif cmd.type == "cubicTo" then ...
+       elseif cmd.type == "quadTo" then ...
+       elseif cmd.type == "close" then ...
        end
    end
    ```
@@ -803,7 +805,7 @@ Your console output should show time incrementing and amplitude.
 
 - [ ] I understand that update() transforms PathData → PathData
 - [ ] I can iterate through PathData commands with ipairs
-- [ ] I know the point layout for each CommandType (`cmd[i]` are Vectors)
+- [ ] I know the point layout for each command type (`cmd[i]` are Vectors)
 - [ ] I can create animated effects using advance() and time
 - [ ] I understand that advance() should return true for animations
 

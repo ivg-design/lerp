@@ -1,9 +1,129 @@
 {
   "buildCommand": "node scripts/build-with-landing.mjs",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    }
+  ],
   "redirects": [
+    {
+      "source": "/getting-started",
+      "destination": "/apps/lerp/getting-started/welcome",
+      "permanent": true
+    },
+    {
+      "source": "/fundamentals",
+      "destination": "/apps/lerp/fundamentals/variables",
+      "permanent": true
+    },
+    {
+      "source": "/types",
+      "destination": "/apps/lerp/types/intro",
+      "permanent": true
+    },
+    {
+      "source": "/oop",
+      "destination": "/apps/lerp/oop/prototype-based",
+      "permanent": true
+    },
+    {
+      "source": "/rive",
+      "destination": "/apps/lerp/rive/environment",
+      "permanent": true
+    },
+    {
+      "source": "/advanced",
+      "destination": "/apps/lerp/advanced/core-types",
+      "permanent": true
+    },
+    {
+      "source": "/best-practices",
+      "destination": "/apps/lerp/best-practices/architecture",
+      "permanent": true
+    },
+    {
+      "source": "/projects",
+      "destination": "/apps/lerp/projects/interactive-button",
+      "permanent": true
+    },
+    {
+      "source": "/api",
+      "destination": "/apps/lerp/category/api-reference",
+      "permanent": true
+    },
+    {
+      "source": "/examples",
+      "destination": "/apps/lerp/examples/sample-exercise",
+      "permanent": true
+    },
     {
       "source": "/apps/lerp",
       "destination": "/apps/lerp/",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/getting-started",
+      "destination": "/apps/lerp/getting-started/welcome",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/fundamentals",
+      "destination": "/apps/lerp/fundamentals/variables",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/types",
+      "destination": "/apps/lerp/types/intro",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/oop",
+      "destination": "/apps/lerp/oop/prototype-based",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/rive",
+      "destination": "/apps/lerp/rive/environment",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/advanced",
+      "destination": "/apps/lerp/advanced/core-types",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/best-practices",
+      "destination": "/apps/lerp/best-practices/architecture",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/projects",
+      "destination": "/apps/lerp/projects/interactive-button",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/api",
+      "destination": "/apps/lerp/category/api-reference",
+      "permanent": true
+    },
+    {
+      "source": "/apps/lerp/examples",
+      "destination": "/apps/lerp/examples/sample-exercise",
       "permanent": true
     }
   ],
@@ -15,17 +135,6 @@
     {
       "source": "/apps/lerp/:path*",
       "destination": "/:path*"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Robots-Tag",
-          "value": "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"
-        }
-      ]
     }
   ]
 }

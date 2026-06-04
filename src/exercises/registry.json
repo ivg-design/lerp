@@ -4763,6 +4763,99 @@
       ]
     },
     {
+      "id": "advanced-gpu-shaders-1",
+      "title": "Defensive Shader Loading",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: shader-guard",
+      "docPath": "/advanced/gpu-shaders#exercise-1-defensive-shader-loading",
+      "hints": [
+        "The current shader lookup method is context:shader(name)",
+        "The shader variable must exist before the nil check",
+        "Both success and missing-shader paths should print the same ANSWER line"
+      ],
+      "explanation": "Early-access shader assets may be absent because of naming, packaging, or runtime channel availability. Guarding the optional Shader handle keeps the script stable while you diagnose the workflow.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shaders",
+          "href": "/advanced/gpu-shaders"
+        },
+        {
+          "label": "GPU Shaders API",
+          "href": "/api/gpu-shaders"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "shader",
+        "context",
+        "guard"
+      ]
+    },
+    {
+      "id": "advanced-gpu-shaders-2",
+      "title": "Match Vertex Layout to WGSL Locations",
+      "difficulty": 2,
+      "chapter": "advanced",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: vertex-layout",
+      "docPath": "/advanced/gpu-shaders#exercise-2-match-vertex-layout-to-wgsl-locations",
+      "hints": [
+        "Each vec2<f32> is 8 bytes",
+        "The second attribute starts after the first vec2",
+        "WGSL @location(1) maps to slot = 1"
+      ],
+      "explanation": "Vertex layouts define how packed bytes are decoded before the vertex shader runs. The slot values must match WGSL @location declarations.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shaders",
+          "href": "/advanced/gpu-shaders"
+        },
+        {
+          "label": "GPU Shaders API",
+          "href": "/api/gpu-shaders#descriptor-types"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "vertex-layout",
+        "wgsl",
+        "buffers"
+      ]
+    },
+    {
+      "id": "advanced-gpu-shaders-3",
+      "title": "Update a Time Uniform",
+      "difficulty": 3,
+      "chapter": "advanced",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: uniform-updated",
+      "docPath": "/advanced/gpu-shaders#exercise-3-update-a-time-uniform",
+      "hints": [
+        "Uniform data is byte-addressed",
+        "Use buffer.writef32 for scalar f32 values",
+        "GPUBuffer:write uploads the CPU-side buffer into the GPU buffer"
+      ],
+      "explanation": "Uniform buffers carry shared values such as time, strength, colors, and matrices into shader code through bind groups.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shaders",
+          "href": "/advanced/gpu-shaders"
+        },
+        {
+          "label": "GPU Shaders API",
+          "href": "/api/gpu-shaders#gpubuffer"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "uniform-buffer",
+        "buffer",
+        "advance"
+      ]
+    },
+    {
       "id": "best-practices-arch-1",
       "title": "Single Responsibility Principle",
       "difficulty": 2,
@@ -5010,6 +5103,102 @@
         "print",
         "setup"
       ]
+    },
+    {
+      "id": "projects-gpu-shader-labs-1",
+      "title": "Convert Inline Descriptors to Typed Locals",
+      "difficulty": 2,
+      "chapter": "projects",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: typed-descriptors",
+      "docPath": "/projects/gpu-shader-labs#exercise-1-convert-inline-descriptors",
+      "hints": [
+        "Create attributes: { VertexAttribute } first",
+        "Cast each descriptor table with :: VertexAttribute, :: VertexBufferLayout, and :: ColorTarget",
+        "Pass the typed local variables into GPUPipeline.new"
+      ],
+      "explanation": "Typed descriptor locals keep checked GPU constructors predictable and avoid exact-table inference problems in nested descriptor arrays.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shader Example Labs",
+          "href": "/projects/gpu-shader-labs"
+        },
+        {
+          "label": "GPU Shaders API",
+          "href": "/api/gpu-shaders"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "shaders",
+        "types",
+        "descriptors",
+        "pipelines"
+      ]
+    },
+    {
+      "id": "projects-gpu-shader-labs-2",
+      "title": "Guard an Image Shader",
+      "difficulty": 2,
+      "chapter": "projects",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: image-guard",
+      "docPath": "/projects/gpu-shader-labs#exercise-2-guard-an-image-shader",
+      "hints": [
+        "Use context:shader without the .wgsl extension",
+        "Use context:image(IMAGE_ASSET_NAME) and check the result before image:view()",
+        "The local image variable is non-nil only after the guard"
+      ],
+      "explanation": "Texture bind groups should only be created after both the shader and source image handles are confirmed.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shader Example Labs",
+          "href": "/projects/gpu-shader-labs"
+        },
+        {
+          "label": "Assets API",
+          "href": "/api/assets"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "shaders",
+        "images",
+        "textures",
+        "guards"
+      ]
+    },
+    {
+      "id": "projects-gpu-shader-labs-3",
+      "title": "Pick the Right Source Texture Strategy",
+      "difficulty": 3,
+      "chapter": "projects",
+      "topic": "gpu-shaders",
+      "expectedAnswer": "ANSWER: render-to-texture",
+      "docPath": "/projects/gpu-shader-labs#exercise-3-pick-the-right-source-texture-strategy",
+      "hints": [
+        "The source background must be rendered into a texture or canvas first",
+        "The glass shader samples the explicit source texture",
+        "The final GPUCanvas image is composited in draw"
+      ],
+      "explanation": "The shader API exposes explicit resources, not an automatic readback of the composited framebuffer behind the node.",
+      "reviewLinks": [
+        {
+          "label": "GPU Shader Example Labs",
+          "href": "/projects/gpu-shader-labs"
+        },
+        {
+          "label": "GPU Shaders and 3D Rendering",
+          "href": "/advanced/gpu-shaders"
+        }
+      ],
+      "tags": [
+        "gpu",
+        "shaders",
+        "post-processing",
+        "render-to-texture",
+        "glass"
+      ]
     }
   ],
   "chapters": {
@@ -5044,6 +5233,10 @@
     "best-practices": {
       "title": "Part 7: Best Practices",
       "order": 7
+    },
+    "projects": {
+      "title": "Part 8: Projects",
+      "order": 8
     }
   }
 }

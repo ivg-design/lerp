@@ -154,6 +154,8 @@ Enum describing path drawing command types.
 | `cubicTo` | Cubic Bezier curve |
 | `close` | Close the path |
 
+> **Editor note:** In current editor-validated scripts, `command.type` is compared against string values (for example `"moveTo"`). Do not assume a global `CommandType` Luau table exists at runtime.
+
 **See Also:** [PathCommand](#pathcommand)
 
 ## Next Steps

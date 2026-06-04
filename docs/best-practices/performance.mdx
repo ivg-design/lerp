@@ -383,11 +383,29 @@ end
 
 ---
 
+## GPU Shader Performance
+
+Shader workflows add GPU resources to the same lifecycle discipline:
+
+- Create pipelines, static vertex buffers, samplers, and stable bind groups in `init` or when inputs change.
+- Update small uniform buffers in `advance`; do not rebuild the pipeline every frame.
+- Keep `drawCanvas` focused on pass setup, binding existing resources, draw calls, and `pass:finish()`.
+- Recreate size-dependent textures only from `resize` or explicit size changes.
+- Use immutable `GPUBuffer` objects for static geometry.
+- Prefer dynamic uniform buffers for many objects instead of creating many bind groups per frame.
+- Use `loadOp = "clear"` unless previous attachment contents are required.
+- Use `storeOp = "discard"` for transient MSAA and depth attachments after resolve.
+
+For shader-specific API details, see [GPU Shaders](/api/gpu-shaders).
+
+---
+
 ## Key Takeaways
 
 - Fast scripts are about *when* and *where* you do work
 - Cache objects in `init`, rebuild on demand in `update`
 - Keep `draw` as lightweight as possible
+- Keep `drawCanvas` lightweight too: bind existing GPU resources and draw
 - Avoid allocations in hot loops
 - Use `context:markNeedsUpdate()` to signal the system when redraw is needed
 
