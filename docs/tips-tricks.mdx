@@ -51,18 +51,47 @@ Use string keys as namespaces so multiple independent instances can coexist with
 
 ### Common Use Cases
 
-**Getting bounds in a Node script:** Attach a PathEffect to the target shape. PathEffect scripts receive the `path` object in `draw()`, and `path:bounds()` returns an AABB. Write it to the bus for a Node script to read.
+**Getting bounds-like data in a Node script:** Apply a Path Effect to the target shape. Path Effect scripts receive `PathData` and `NodeReadData` in `update(self, inPath, node)`. A Node script does not receive the target shape's `PathData`, so write the measured data to a bus for the Node script to read.
 
 ```lua
 -- PATH EFFECT on the hitbox shape
 local Bus = require("HitboxBus")
 
-function draw(self, renderer, path)
-    local b = path:bounds()
-    Bus.set(self.hitboxKey, {
-        minX = b.minX, minY = b.minY,
-        maxX = b.maxX, maxY = b.maxY,
-    })
+export type HitboxBoundsWriter = {
+    hitboxKey: string,
+}
+
+function update(self: HitboxBoundsWriter, inPath: PathData, _node: NodeReadData): PathData
+    local minX = math.huge
+    local minY = math.huge
+    local maxX = -math.huge
+    local maxY = -math.huge
+
+    for _, cmd in ipairs(inPath) do
+        for i = 1, #cmd do
+            local p = cmd[i]
+            minX = math.min(minX, p.x)
+            minY = math.min(minY, p.y)
+            maxX = math.max(maxX, p.x)
+            maxY = math.max(maxY, p.y)
+        end
+    end
+
+    if minX < math.huge then
+        Bus.set(self.hitboxKey, {
+            minX = minX, minY = minY,
+            maxX = maxX, maxY = maxY,
+        })
+    end
+
+    return inPath
+end
+
+return function(): PathEffect<HitboxBoundsWriter>
+    return {
+        update = update,
+        hitboxKey = "player_hitbox",
+    }
 end
 ```
 

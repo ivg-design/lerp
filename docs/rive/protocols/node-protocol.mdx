@@ -23,7 +23,7 @@ import Term from '@site/src/components/Term';
 - Understand the complete Node script structure
 - Know which functions are required vs optional
 - Master the factory function pattern
-- Attach scripts to <Term>Artboard</Term> nodes
+- Add Node scripts as script nodes in the <Term>Artboard</Term> hierarchy
 
 ---
 
@@ -235,10 +235,16 @@ Use `drawCanvas(self)` for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPa
 ## How to Run Any Node Script
 
 1. Assets panel → **+** → Script → **Node**
-2. Paste the script
-3. Drag it onto a Node in the artboard
-4. Open the Console panel
-5. Press Play
+2. Paste or write the script
+3. Save the script so it recompiles
+4. Add the script to the artboard
+5. Position it or nest the script node where its transform and draw order should live
+6. Open the Console panel
+7. Press Play
+
+:::info Script node placement
+A Node script is added as its own script node in the artboard hierarchy. Nesting that script node under a group or shape affects normal hierarchy behavior such as transform inheritance, opacity, and draw order. Node script callbacks do not receive host `NodeData` or existing shape `PathData`; use a Path Effect script when you need the path data of an existing stroke or fill.
+:::
 
 :::tip Console Output
 `print()` statements in your script appear in Rive's Console panel, not your browser's developer console.
@@ -276,8 +282,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise1_Exercise1HelloRive`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -380,8 +386,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise2_Exercise2FrameTimer`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -499,8 +505,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise3_Exercise3DrawASimpleShape`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -619,8 +625,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise4_Exercise4CompleteProtocolExample`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console

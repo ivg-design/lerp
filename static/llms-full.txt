@@ -1,5 +1,5 @@
 # LERP Full Knowledge Surface (llms-full)
-Generated: 2026-06-04T01:53:26.044Z
+Generated: 2026-06-04T22:20:47.865Z
 Canonical: https://forge.mograph.life/apps/lerp/
 Scope: Complete documentation route inventory with page metadata for AI retrieval and citation.
 

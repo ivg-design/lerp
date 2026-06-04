@@ -256,7 +256,7 @@ end
 
 **Editor setup:**
 1. Create a ViewModel in the Rive editor (e.g. `Character` with `posX` and `posY` number properties)
-2. Attach the script to a node
+2. Add the script to the artboard so Rive creates a script node
 3. In the script's input panel, assign the ViewModel instance to `character`
 
 :::tip Why `.value`?
@@ -315,7 +315,7 @@ end
 
 **Editor setup:**
 1. Create a component artboard (the thing you want to repeat)
-2. Attach the script to a node
+2. Add the script to the artboard so Rive creates a script node
 3. In the script's input panel, assign the component to `template`
 
 :::note No `context:artboard(...)` helper
@@ -616,7 +616,7 @@ context:markNeedsUpdate()
 Connects editor elements to data and code. Provides access to bound properties by type.
 
 :::warning Runtime baseline note
-At the current compatibility baseline (npm runtime line `2.37.6`, source snapshot `runtime-v0.1.64` at `b25a322`, audited May 12, 2026), `viewModel.name` is documented upstream but not exposed in the C++ Luau bindings.
+At the current compatibility baseline (public npm runtime line `2.37.8`, source-level API snapshot `runtime-v0.1.106`, revalidated June 4, 2026), `viewModel.name` is documented upstream but not exposed in the C++ Luau bindings.
 Use explicit property lookups (`getNumber`, `getString`, etc.) instead of relying on a `name` field.
 :::
 

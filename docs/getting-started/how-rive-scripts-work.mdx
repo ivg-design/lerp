@@ -96,15 +96,17 @@ Think of it like this:
 
 ### What is a "Node"?
 
-In Rive, a **Node** is any element in your hierarchy - groups, paths, images, text, shapes, etc. Scripts attach to nodes and control their behavior.
+In Rive, a **Node** is any element in your hierarchy - groups, paths, images, text, shapes, script nodes, etc.
 
-**To attach a script to a node:**
-1. Select the node in the Rive Editor
-2. Open the Inspector panel
-3. Click "Add Script" or drag a script file onto the node
-4. Configure inputs in the Inspector
+When you add a Node script to the scene, Rive creates a **script node** in the artboard hierarchy. You can place that script node at the artboard root, move it on the canvas, or nest it under a group or shape. Its position, rotation, scale, opacity, draw order, and inherited parent transforms work like normal scene hierarchy behavior.
 
-When a script is attached to a node, that script can draw graphics at that node's position and respond to pointer events within that node's bounds.
+Nesting a Node script under a shape or group does **not** give the script a special "this shape" object or extra access to that parent's geometry. A Node script gets its documented lifecycle parameters: `context` in `init`, `renderer` in `draw`, `seconds` in `advance`, and pointer events in pointer callbacks. To read or modify an existing shape's path data, use a <Term>Path</Term> Effect script. To access a specific scene node from a Node script, use an explicit reference such as `artboard:node(name)` or an editor input when that pattern is available.
+
+**To add a Node script to the scene:**
+1. Create a script asset in the Assets panel
+2. Add the script to the artboard
+3. Position it or nest it in the hierarchy where its transform and draw order should live
+4. Configure inputs on the script node in the Inspector
 
 ---
 
@@ -243,7 +245,7 @@ end
 
 **Why it exists:** Rive's rendering system needs to know what to draw. The `renderer` parameter is how you tell Rive to draw shapes, paths, etc.
 
-**Even if empty, it must exist!** Rive needs this function to recognize your script as a Node script. Without it, you can't attach the script to nodes.
+**Even if empty, it must exist!** Rive needs this function to recognize your script as a Node script. Without it, you can't add the script to the scene as a Node script.
 
 **Coming from JavaScript Canvas?**
 ```javascript
@@ -271,7 +273,7 @@ end
 
 **What it does:** Returns a "factory" — a function that creates new instances of your script.
 
-**Why it exists:** You might attach your script to 10 different objects. Each one needs its own separate data. The factory function creates a fresh copy for each.
+**Why it exists:** You might use your script asset in 10 different places. Each script node needs its own separate data. The factory function creates a fresh copy for each.
 
 **Coming from JavaScript classes?**
 ```javascript

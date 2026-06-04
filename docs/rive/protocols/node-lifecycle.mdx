@@ -114,7 +114,13 @@ The `context` parameter passed to lifecycle functions provides access to the run
 | Method | Returns | Description |
 |--------|---------|-------------|
 | `context:viewModel()` | `ViewModel?` | Gets the current node data-context ViewModel (if bound) |
+| `context:rootViewModel()` | `ViewModel?` | Gets the root ViewModel in the data-context hierarchy |
+| `context:dataContext()` | `DataContext?` | Gets the current data-context wrapper for ViewModel traversal |
 | `context:markNeedsUpdate()` | *void* | Requests a redraw on the next frame |
+
+:::info Context is not the scene host node
+`Context` gives a script access to data context, assets, and redraw requests. It does not expose an implicit "parent shape" or host `NodeData` object. Nesting a Node script under a shape or group affects transform, opacity, and draw order through the normal hierarchy, but it does not change which lifecycle parameters the script receives.
+:::
 
 ### Common Usage
 
@@ -152,7 +158,7 @@ Call `markNeedsUpdate()` when external changes (like ViewModel property updates)
 
 ```mermaid
 flowchart TD
-    A[Script Attached] --> B[init self, context]
+    A[Script Node Added] --> B[init self, context]
     B --> |Create paths, paints, listeners<br/>Initialize state on self<br/>Return true to continue| C{Success?}
     C -->|false| D[Script Disabled]
     C -->|true| E[Runtime Loop]
@@ -202,8 +208,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise1_Exercise1LifecycleProbe`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -321,8 +327,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise2_Exercise2RebuildOnlyOnUpdates`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -454,8 +460,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise3_Exercise3CombiningLifecycleCallbacks`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -674,8 +680,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise4_Exercise4ClickCounter`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console

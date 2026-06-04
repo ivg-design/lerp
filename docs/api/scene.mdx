@@ -112,6 +112,8 @@ artboard:pointerExit(event: PointerEvent): number
 
 A scripted node that can be attached to any Node in Rive. Renders in the local transform space of the hosting Node.
 
+The hosting Node is a scene-hierarchy relationship, not an extra lifecycle parameter. Nesting a script node under a group or shape affects transform inheritance, opacity, and draw order. A Node script still receives the normal Node protocol values (`context`, `renderer`, `seconds`, pointer events) and does not automatically receive the parent shape's `NodeData` or `PathData`.
+
 ### Protocol Methods
 
 #### `init(self, context): boolean`

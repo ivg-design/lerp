@@ -16,6 +16,7 @@ import FillBlanks from '@site/src/components/FillBlanks';
 import ParsonsProblem from '@site/src/components/ParsonsProblems';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
 import Term from '@site/src/components/Term';
+import scriptSaveStateIndicator from '@site/static/img/course/script-save-state-indicator.png';
 
 # Your First Rive Script
 
@@ -441,13 +442,13 @@ end
 
 **Why is this necessary?**
 
-Imagine you attach your script to 5 different shapes. Each shape needs its own separate data. If they shared the same variables, changing one would change all of them!
+Imagine you use the same script asset in 5 different places. Each script node needs its own separate data. If they shared the same variables, changing one would change all of them!
 
-The **factory function** creates a fresh copy of your script for each shape. Every time Rive needs a new instance, it calls this function to get one.
+The **factory function** creates a fresh copy of your script for each script node. Every time Rive needs a new instance, it calls this function to get one.
 
 Think of it like a cookie cutter:
 - The factory function is the cookie cutter
-- Each shape gets its own fresh cookie (instance)
+- Each script node gets its own fresh cookie (instance)
 - They all look the same but are separate cookies
 
 <Quiz
@@ -455,11 +456,11 @@ Think of it like a cookie cutter:
   id="beginner-q11"
   options={[
     { text: "To make the code run faster" },
-    { text: "To create separate data for each shape using the script", correct: true },
+    { text: "To create separate data for each script node using the script", correct: true },
     { text: "It's optional, just for style" },
     { text: "To connect to the internet" },
   ]}
-  explanation="The factory function creates a fresh set of data for each shape. Without it, all shapes would share the same variables!"
+  explanation="The factory function creates a fresh set of data for each script node. Without it, all instances would share the same variables!"
 />
 
 ---
@@ -488,7 +489,7 @@ Now let's arrange these parts in the correct order:
 
 ### Premise
 
-Now it's time to create a real script in Rive! This exercise walks you through the complete process: creating a script, attaching it to a shape, and seeing it run.
+Now it's time to create a real script in Rive! This exercise walks you through the complete process: creating a script, adding it to the artboard, and seeing it run.
 
 :::info Goal
 By the end of this exercise, you will have created and run your first Rive script, seen console output, and understood what happens when something goes wrong.
@@ -500,7 +501,7 @@ This is the foundation for everything you'll build in Rive scripts.
 
 **What you'll learn:**
 - How to create a Node Script in Rive
-- How to attach a script to a shape
+- How to add a script node to the artboard
 - How to see console output
 - What errors look like in the Problems panel
 
@@ -514,7 +515,7 @@ This is the foundation for everything you'll build in Rive scripts.
 
 2. **Draw any shape:**
    - Use the Rectangle or Ellipse tool to draw a shape on the Artboard
-   - This gives your script something to attach to
+   - This gives you a visual reference while the script runs
 
 3. **Create the script:**
    - Go to the Assets panel (left side)
@@ -584,18 +585,27 @@ end
 
 ---
 
+:::warning Save to recompile
+After you paste or edit code, look at the script tab. A blue dot next to the script name means the script has unsaved changes. Save with **Cmd+S** on macOS or **Ctrl+S** on Windows/Linux, or rename the script from the Assets panel to trigger a save. Saving recompiles the script and applies your changes. Until the blue dot disappears, the running scene may still use the previous compiled version.
+:::
+
+<img src={scriptSaveStateIndicator} alt="Blue save-state dot beside an unsaved Rive script tab" />
+
+---
+
 ### Assignment
 
 Complete these steps:
 
 1. **Paste the code** into your Node Script
-2. **Attach the script to your shape:**
-   - Select your shape on the Artboard
-   - In the Inspector (right panel), find "Scripts"
-   - Click `+` and select `MyFirstScript`
-3. **Press Play** (the ▶ button or spacebar)
-4. **Check the Console** - you should see the messages from `print()`
-5. **Find the `ANSWER:` line** and copy it into the validator
+2. **Save the script** so the blue dot disappears and Rive recompiles it
+3. **Add the script to the artboard:**
+   - Right-click the artboard and choose `MyFirstScript` from the script menu
+   - Position the script node anywhere visible on the artboard
+   - You may leave it at the artboard root or nest it under your shape; nesting affects hierarchy behavior, but it does not pass the parent shape's `NodeData` or `PathData` into this Node script
+4. **Press Play** (the ▶ button or spacebar)
+5. **Check the Console** - you should see the messages from `print()`
+6. **Find the `ANSWER:` line** and copy it into the validator
 
 ---
 
@@ -666,7 +676,8 @@ The type checker caught your typo before you even ran the script!
 ### Checklist
 
 - [ ] Script created and named
-- [ ] Script attached to a shape
+- [ ] Script saved/recompiled after pasting
+- [ ] Script node added to the artboard
 - [ ] Pressed Play and script ran
 - [ ] Console shows the expected messages
 - [ ] `ANSWER:` line appears in Console and validated successfully

@@ -22,16 +22,21 @@ This page tracks three independent dimensions for Luau surfaces:
 
 ## Baseline Snapshot
 
-- **Audit date:** May 12, 2026
+- **Audit date:** June 4, 2026
 - **Runtime repo:** `rive-app/rive-runtime`
-- **Upstream source snapshot (API surface audit):** `runtime-v0.1.64` at commit `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
-- **Current C++ WASM runtime release line (npm):** `2.37.6`
-- **Checked npm packages:** `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced` (all resolved to `2.37.6`)
-- **Runtime source gitHead (npm metadata for `@rive-app/canvas@2.37.6`):** `2833de372c0d22596494c89c328008ce5b1106d7`
-- **npm publish timestamp for `2.37.6`:** May 8, 2026 (UTC)
-- **Docs comparison source:** `https://rive.app/docs/llms-full.txt` (sections marked `(Coming soon)`)
+- **Current C++ WASM runtime release line (npm):** `2.37.8`
+- **Checked npm packages:** `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced` (all resolved to `2.37.8`)
+- **Runtime source gitHead (npm metadata for `2.37.8` packages):** `bc560112ab2ee7d0afd3418bd97970c2fcb36532`
+- **npm publish timestamp for `@rive-app/canvas@2.37.8`:** May 21, 2026 18:06:40 UTC
+- **Docs comparison source:** `https://rive.app/docs/llms-full.txt` fetched June 4, 2026
+- **Source-level API snapshot checked:** `runtime-v0.1.106` at commit `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
+- **Superseded historical source audit:** `runtime-v0.1.64` at commit `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
 
 Use this snapshot when deciding whether LERP content is current for C++ runtime behavior.
+
+:::caution Separate runtime facts from editor rollout
+LERP now tracks the public package/docs baseline (`2.37.8`), the source-level API snapshot used for binding checks (`runtime-v0.1.106`), and the editor availability tier separately. Shader/GPU APIs are present in the source-level snapshot and public docs, but the shader asset workflow remains **Rive Early Access only** and should not be assumed available in standard workspaces.
+:::
 
 :::note Source-of-truth rule
 For release tracking, LERP records both:
@@ -79,9 +84,9 @@ Status legend:
 
 ---
 
-## Newly Validated Runtime Surfaces (May 12, 2026)
+## Runtime Surfaces Tracked in Current Baseline
 
-These were validated against upstream `runtime-v0.1.64` and are now reflected in LERP course docs.
+The rows below were revalidated against the June 4 public package/docs baseline (`2.37.8`) and source-level API snapshot (`runtime-v0.1.106`). Shader/GPU rows are live in the checked source/docs, but remain Early Access editor workflow material.
 
 | Surface | Runtime status | LERP tier | Notes |
 |---|---|---|---|
@@ -105,12 +110,13 @@ These were validated against upstream `runtime-v0.1.64` and are now reflected in
 
 ## Shader Early-Access Baseline Addendum (June 4, 2026)
 
-The main baseline above remains the May 12, 2026 course-wide audit. Shader/GPU scripting now has a newer **shader-specific baseline** based on the runtime-v0.1.106 shader reference and corrected local shader examples, but this material is currently **Rive Early Access only**.
+The public npm/docs baseline above has been rechecked at `2.37.8`, and the current source-level audit uses `runtime-v0.1.106`. Shader/GPU scripting is part of that current source snapshot, but this material is currently **Rive Early Access only** because the editor workflow for shader assets is not broadly available.
 
 Use this addendum as the source of truth for LERP's shader lessons, not as a signal that shader scripting is broadly released in standard Rive workspaces.
 
 - **Shader baseline date:** June 4, 2026
-- **Shader API reference reviewed:** `runtime-v0.1.106` shader reference
+- **Shader API source reviewed:** `runtime-v0.1.106` at commit `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
+- **Public docs source checked:** `https://rive.app/docs/llms-full.txt`, including GPUCanvas, GPU object-family pages, `context:gpuCanvas`, `context:features`, `context:shader`, and `drawCanvas`
 - **Local reference document:** `/Users/ivg/github/luau-scripting/rive_shader_api_reference_runtime_v0106_type_safe.md`
 - **Local example corpus:** `/Users/ivg/github/luau-scripting/gpu_shaders`
 - **Current availability tier:** **Rive Early Access only**
@@ -168,6 +174,25 @@ Compatibility naming note: older docs and examples may mention `context:loadShad
 ---
 
 ## Audit Protocol (what this update checked)
+
+For the June 4, 2026 pass, LERP used this verification sequence:
+
+1. **Runtime release check via npm registry**
+   - Ran `npm view` for `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, and `@rive-app/canvas-advanced`
+   - Confirmed all report `2.37.8`
+2. **npm source pin**
+   - Pinned npm `gitHead` `bc560112ab2ee7d0afd3418bd97970c2fcb36532` for runtime line `2.37.8`
+   - Recorded the `@rive-app/canvas@2.37.8` publish timestamp: May 21, 2026 18:06:40 UTC
+3. **Public docs source**
+   - Fetched `https://rive.app/docs/llms-full.txt`
+   - Confirmed the docs now include GPUCanvas, GPU object-family pages, `context:gpuCanvas`, `context:features`, `context:shader`, and `drawCanvas`
+   - Confirmed `Output` remains marked `(Coming soon)`
+4. **Shader/API source pin**
+   - Pinned `runtime-v0.1.106` at `5360c834eac2adbdfc49c808d1b2a8c61b014bbf` for source-level API verification
+   - Spot-checked the compatibility rows in Luau binding headers/source/tests, including listener payloads, `NodeReadData.paint`, `asPath`, `asPaint`, audio duration, ViewModel property/list helpers, Promise/async, `Mat4`, canvas/GPU context APIs, GPU object bindings, and Scripted Interpolator
+   - Kept shader/GPU lessons in **Rive Early Access only** tier because editor-side shader asset workflow availability is not broadly assumed
+5. **Course sync pass**
+   - Updated runtime compatibility notes, API baseline callouts, errata header, and changelog wording
 
 For the May 12, 2026 pass, LERP used this verification sequence:
 

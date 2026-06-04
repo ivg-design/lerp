@@ -5081,11 +5081,11 @@
       "docPath": "/getting-started/your-first-script#exercise-your-first-working-script",
       "hints": [
         "Make sure you created a Node Script (not Util Script)",
-        "The script must be attached to a shape on the Artboard",
+        "Add the script to the Artboard so Rive creates a script node",
         "Press Play to run the script and see console output",
         "Check the Console panel (View → Console) for the ANSWER line"
       ],
-      "explanation": "This exercise teaches the complete workflow: creating a script, attaching it to a shape, and verifying it runs correctly via console output. The Problems panel catches errors before you run.",
+      "explanation": "This exercise teaches the complete workflow: creating a script, saving it so Rive recompiles it, adding it to the artboard, and verifying it runs correctly via console output. The Problems panel catches errors before you run.",
       "reviewLinks": [
         {
           "label": "Your First Script",

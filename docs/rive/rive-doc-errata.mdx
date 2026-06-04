@@ -11,7 +11,7 @@ keywords:
 
 # LERP Rive Documentation Errata Tracker
 
-Last revalidated against runtime baseline: 2026-05-12 (`2.37.6`, upstream `runtime-v0.1.64` / `b25a322`)
+Last revalidated against runtime baseline: 2026-06-04 (`2.37.8` public npm line; source-level API snapshot `runtime-v0.1.106` / `5360c834`; shader/GPU editor workflow remains Early Access only)
 Initial errata tracker open date: 2026-04-26
 
 Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
@@ -38,6 +38,9 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-ERR-010 | Exercise validator whitespace feedback | resolved | high | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): failed-answer boxes now preserve exact whitespace and warn on whitespace-only mismatches. |
+| LERP-GAP-009 | Script save/recompile workflow | resolved | medium | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): first-script onboarding now explains the blue save-state dot and save-to-recompile behavior. |
+| LERP-GAP-008 | Node script placement | resolved | medium | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): docs now describe Node scripts as artboard script nodes and clarify nesting does not pass parent `NodeData` or `PathData` into callbacks. |
 | LERP-ERR-006 | PropertyList API | resolved | medium | Resolved in LERP on 2026-05-12: list docs now use `list.length` + `list[index]` and include `clear`, `removeAt`, and `removeAllOf`. |
 | LERP-ERR-007 | Runtime surface drift | resolved | high | Resolved in LERP on 2026-04-27: docs now include a pinned runtime compatibility baseline and corrected live/partial/not-exposed status for docs-labeled "Coming soon" APIs. |
 | LERP-ERR-005 | Node pointer events | resolved | medium | Resolved in LERP on 2026-04-26: Node pointer-event docs now use `event:hit()` / `event:hit(true)` instead of boolean consume/propagate returns. |
@@ -45,6 +48,134 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-ERR-010 - Exercise validator feedback collapsed meaningful whitespace
+
+Status: resolved in LERP 2026-06-04 (was confirmed)
+
+Severity: high
+
+Reported by:
+
+- Rive Community user [Avo](https://community.rive.app/u/7a2efe62)
+
+Affected local code before fix:
+
+- `/Users/ivg/github/lerp/src/components/ExerciseValidator.tsx`
+- `/Users/ivg/github/lerp/src/components/ExerciseValidator.module.css`
+
+User-reported evidence:
+
+- In Fundamentals → Variables → Exercise 4, a submitted answer with extra spaces around the first pipe was correctly rejected by strict validation.
+- The failed-answer display rendered the submitted string in normal HTML whitespace mode, visually collapsing the repeated spaces.
+- Copying the displayed failed answer therefore produced a normalized-looking answer that could pass, making the original rejection impossible for the learner to diagnose.
+
+Why this matters:
+
+The validator must be strict enough to catch exact-output mistakes, but the feedback UI must show the exact submitted string. If the display changes whitespace, it can make a correct validation failure look arbitrary.
+
+Correct guidance:
+
+- Preserve exact whitespace in displayed submitted and expected answers.
+- Warn learners when a failed answer only differs by spacing.
+
+Fix implemented in LERP (2026-06-04):
+
+- `ExerciseValidator` now detects whitespace-only mismatches after collapsed-whitespace comparison.
+- Answer display blocks now use whitespace-preserving styling.
+- The failed-answer UI now warns that extra, missing, or tabbed spacing is the difference.
+
+---
+
+## LERP-GAP-009 - First-script onboarding did not explain save-to-recompile
+
+Status: resolved in LERP 2026-06-04 (was gap)
+
+Severity: medium
+
+Reported by:
+
+- Rive Community user [Avo](https://community.rive.app/u/7a2efe62)
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/getting-started/your-first-script.mdx`
+
+User-reported evidence:
+
+- Learners could paste or write a script, see the blue dot in the script tab, and then test without realizing the script had unsaved changes.
+- Without saving, the script is not recompiled, so new code may not affect the running artboard.
+
+Why this matters:
+
+The first scripting exercise is where learners form their debugging model. If they do not know that save triggers recompilation, they can chase code mistakes that are really editor-state mistakes.
+
+Correct guidance:
+
+- The blue dot beside the script tab means unsaved changes.
+- Double-clicking/renaming from the Assets panel can autosave, and Cmd+S / Ctrl+S saves explicitly.
+- Saving recompiles the script and applies changes.
+
+Fix implemented in LERP (2026-06-04):
+
+- Added an early save/recompile warning to the first-script exercise.
+- Added the save-state indicator screenshot.
+- Updated the first-script assignment to include saving before validation.
+
+---
+
+## LERP-GAP-008 - Node script placement wording implied host-shape code access
+
+Status: resolved in LERP 2026-06-04 (was gap)
+
+Severity: medium
+
+Reported by:
+
+- Rive Community user [Avo](https://community.rive.app/u/7a2efe62)
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/getting-started/your-first-script.mdx`
+- `/Users/ivg/github/lerp/docs/getting-started/how-rive-scripts-work.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+- `/Users/ivg/github/lerp/docs/rive/environment.mdx`
+- Repeated exercise setup text across fundamentals, types, OOP, advanced, best-practices, and project pages
+
+Local LERP evidence:
+
+- Several lessons and project pages instructed learners to "attach" or "drag" a Node script to a shape or group.
+- Other reference pages described Node lifecycle callbacks by protocol shape, not by a host-shape object, creating a misleading gap in the mental model.
+
+Runtime source check used for the correction:
+
+- Runtime source snapshot checked on 2026-06-04: `/Users/ivg/github/rive-runtime` at `a5e6bcf1` (working tree dirty).
+- `scripted_object.cpp` calls Node `init` with `self` and `Context`.
+- `scripted_drawable.cpp` calls Node `draw` with `self` and `Renderer`, with pointer callbacks receiving `PointerEvent`.
+- `lua_scripted_context.cpp` exposes context/data/assets/redraw methods, not an implicit parent-shape handle.
+- `scripted_path_effect.cpp` is the protocol that passes `PathData` and host node data into `update`.
+
+Why this matters:
+
+Learners could reasonably infer that nesting a Node script under a shape gives the script a special "this shape" API surface. That is not how the Node protocol is shaped. Nesting affects normal scene hierarchy behavior such as transform inheritance, opacity, and draw order; it does not pass parent `NodeData` or existing shape `PathData` into Node callbacks.
+
+Correct guidance:
+
+- Add a Node script to the artboard so Rive creates a script node.
+- Position or nest that script node when hierarchy behavior matters.
+- Use a Path Effect script when the code needs the existing path data of a stroke/fill.
+- Use explicit references, inputs, or documented artboard lookup patterns when a Node script needs a specific scene node.
+
+Fix implemented in LERP (2026-06-04):
+
+- Added an early save/recompile note with the save-state screenshot in `your-first-script.mdx`.
+- Reworded first-script and protocol setup steps from "attach to shape" toward "add to the artboard, position or nest the script node."
+- Added Node placement boundary notes to the Node protocol, lifecycle, script type, scene API, environment, and capability matrix pages.
+- Swept exercises and project pages for misleading attach/drag-to-shape wording.
+- Corrected related Path Effect examples that implied Node scripts receive existing path geometry through `draw`.
 
 ---
 

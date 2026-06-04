@@ -23,7 +23,7 @@ Use this page when you need exact boundaries such as:
 - "Where do script inputs actually come from?"
 
 :::info Runtime baseline
-Matrix details are aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026), plus the June 3, 2026 shader early-access addendum for GPU callback guidance. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+Matrix details are aligned to the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8` plus source-level API snapshot `runtime-v0.1.106`. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 ---
@@ -53,7 +53,7 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 
 | Capability | Node | Layout | Converter | Path Effect |
 |------------|------|--------|-----------|-------------|
-| Attach to scene/binding target | ✅ | ✅ | ✅ | ✅ |
+| Place or bind to scene target | ✅ | ✅ | ✅ | ✅ |
 | Read editor `Input<T>` fields | ✅ | ✅ | ⚠️ 1 | ✅ |
 | Access `Context` in `init` | ✅ | ✅ | ✅ | ✅ |
 | Custom render with `Renderer` | ✅ | ✅ | ❌ | ❌ |
@@ -68,7 +68,7 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 
 | Capability | ListenerAction | TransitionCondition | Util | Test |
 |------------|----------------|---------------------|------|------|
-| Attach to scene/binding target | ✅ | ✅ | ❌ | ❌ |
+| Place or bind to scene target | ✅ | ✅ | ❌ | ❌ |
 | Read editor `Input<T>` fields | ⚠️ 2 | ✅ 3 | ❌ | ❌ |
 | Access `Context` in `init` | ✅ | ✅ | ❌ | ❌ |
 | Custom render with `Renderer` | ❌ | ❌ | ❌ | ❌ |
@@ -102,9 +102,10 @@ Notes:
 
 1. **Only Path Effect scripts receive `PathData` of an existing host shape**.
 2. **Node scripts can draw custom `Path` objects**, but do not receive `inPath: PathData` from an existing stroke/fill.
-3. **`Listener<T>` is not a script type**; it is a function signature used by `addListener()`/`removeListener()` APIs.
-4. **Util/Test scripts are non-attached scripts**: Util is imported code; Test is manual test execution.
-5. **ListenerContext payload detail is not uniform across kinds** at this baseline (`ReportedEvent` and `ViewModelChange` are currently limited payloads).
+3. **Nesting a Node script under a shape or group affects hierarchy behavior, not callback shape**. It changes local transform, inherited opacity, and draw order, but it does not pass an implicit host `NodeData` or parent `PathData` into Node callbacks.
+4. **`Listener<T>` is not a script type**; it is a function signature used by `addListener()`/`removeListener()` APIs.
+5. **Util/Test scripts are non-attached scripts**: Util is imported code; Test is manual test execution.
+6. **ListenerContext payload detail is not uniform across kinds** at this baseline (`ReportedEvent` and `ViewModelChange` are currently limited payloads).
 
 ---
 

@@ -158,7 +158,7 @@ class MyNode {
 **Characteristics:**
 - Must have `init` and `draw` functions
 - Can have `update`, `advance`, and pointer handlers
-- Attach to nodes in the artboard hierarchy
+- Add as script nodes in the artboard hierarchy
 - Have access to a `Renderer` for drawing
 
 ### Util Scripts
@@ -250,8 +250,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise1_Exercise1ConsoleExploration`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -364,8 +364,8 @@ Vectors are fundamental to all positioning and movement in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise2_VectorConstructors`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -483,8 +483,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise3_Exercise3TypeSafetyWithStrict`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -602,8 +602,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise4_Exercise4WorkingWithinTheSandbox`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -747,12 +747,16 @@ For runtime compatibility, keep integer-style values 32-bit safe unless you expl
 2. Choose **Node** or **Util**
 3. Name your script
 4. Write your code in the built-in editor
+5. Save the script to recompile it before testing
 
-### Attaching Node Scripts
+### Adding Node Scripts to the Artboard
 
-1. Select a node in the artboard
-2. In the properties panel, find the Script section
-3. Select your Node script from the dropdown
+1. Right-click the artboard and choose your Node script from the script menu
+2. Position the script node on the artboard
+3. Optionally nest it under a group or shape when you want normal hierarchy behavior such as inherited transform or draw order
+4. Configure inputs on the script node in the Inspector
+
+Nesting does not pass the parent node's `NodeData` or `PathData` into Node script callbacks. If you need existing shape path data, use a Path Effect script. If you need a specific scene node, pass it explicitly through an input or retrieve it by name from an artboard reference when that pattern is available.
 
 ### Script Errors
 

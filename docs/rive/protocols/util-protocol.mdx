@@ -173,8 +173,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise1_Exercise1MathutilsModule`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -307,8 +307,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise2_Exercise2ExportedTypesFromUtilScripts`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -461,8 +461,8 @@ This pattern shows up whenever you build behavior in Rive scripts.
    - Assets panel → `+` → Script → Node Script
    - Name it `Exercise3_Exercise3SpringAnimationUtil`
 
-2. **Attach and run:**
-   - Attach to any shape and press Play
+2. **Add and run:**
+   - Add the script to the artboard, position or nest the script node, then press Play
 
 3. **Open the Console:**
    - View → Console
@@ -826,12 +826,41 @@ return HitboxBus
 -- PATH EFFECT SCRIPT: writes bounds data to the bus
 local Bus = require("HitboxBus")
 
-function draw(self, renderer, path)
-    local bounds = path:bounds()
-    Bus.set(self.busKey, {
-        minX = bounds.minX, minY = bounds.minY,
-        maxX = bounds.maxX, maxY = bounds.maxY,
-    })
+export type HitboxBoundsWriter = {
+    busKey: string,
+}
+
+function update(self: HitboxBoundsWriter, inPath: PathData, _node: NodeReadData): PathData
+    local minX = math.huge
+    local minY = math.huge
+    local maxX = -math.huge
+    local maxY = -math.huge
+
+    for _, cmd in ipairs(inPath) do
+        for i = 1, #cmd do
+            local p = cmd[i]
+            minX = math.min(minX, p.x)
+            minY = math.min(minY, p.y)
+            maxX = math.max(maxX, p.x)
+            maxY = math.max(maxY, p.y)
+        end
+    end
+
+    if minX < math.huge then
+        Bus.set(self.busKey, {
+            minX = minX, minY = minY,
+            maxX = maxX, maxY = maxY,
+        })
+    end
+
+    return inPath
+end
+
+return function(): PathEffect<HitboxBoundsWriter>
+    return {
+        update = update,
+        busKey = "player_hitbox",
+    }
 end
 ```
 

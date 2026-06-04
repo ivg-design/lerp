@@ -167,7 +167,12 @@
   background: var(--ifm-background-color);
   border-radius: 4px;
   font-size: 0.9rem;
-  word-break: break-all;
+  line-height: 1.5;
+  overflow-x: auto;
+  overflow-wrap: anywhere;
+  tab-size: 4;
+  white-space: pre-wrap;
+  word-break: normal;
 }
 
 /* Error state */
@@ -328,6 +333,21 @@
   font-size: 0.85rem;
   color: var(--ifm-color-emphasis-700);
   margin-bottom: 0.25rem;
+}
+
+.whitespaceWarning {
+  padding: 0.75rem 1rem;
+  background: var(--ifm-color-warning-lightest);
+  border-left: 3px solid var(--ifm-color-warning);
+  border-radius: 6px;
+  color: var(--ifm-color-warning-contrast-foreground);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.whitespaceWarning strong {
+  color: var(--ifm-color-warning-dark);
 }
 
 /* Reveal button */

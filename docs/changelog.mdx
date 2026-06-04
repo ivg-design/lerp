@@ -10,6 +10,22 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.9] — 2026-06-04
+
+### Added
+- **Script save/recompile onboarding note** — added an early first-script warning with the save-state indicator screenshot so learners know the blue tab dot means unsaved changes and saving recompiles the script. Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62).
+- **Avo-reported errata tracker entries** — added resolved errata entries for script save/recompile workflow, Node script placement/code-access wording, and exercise validator whitespace feedback.
+
+### Changed
+- **Runtime compatibility baseline revalidated** — updated the current public runtime package line from `2.37.6` to `2.37.8`, pinned npm `gitHead` `bc560112ab2ee7d0afd3418bd97970c2fcb36532`, revalidated source-level API rows against `runtime-v0.1.106` (`5360c834eac2adbdfc49c808d1b2a8c61b014bbf`), and clarified that shader/GPU lessons remain Rive Early Access editor-only.
+- **Node script placement language clarified** — reworded setup steps across lessons, exercises, project pages, API references, and the exercise registry from "attach to a shape" toward "add to the artboard, position or nest the script node." Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62).
+
+### Fixed
+- **Node placement code-access gap (LERP-GAP-008)** — clarified that nesting a Node script under a shape/group affects normal hierarchy behavior, but does not pass parent `NodeData` or existing shape `PathData` into Node callbacks. Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62).
+- **Exercise validator whitespace feedback (LERP-ERR-010)** — failed-answer displays now preserve exact spaces/tabs and call out whitespace-only mismatches, so copying a displayed failed answer cannot silently normalize spacing. Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62).
+
+---
+
 ## [1.2.8] — 2026-06-04
 
 ### Added

@@ -19,7 +19,7 @@ import Term from '@site/src/components/Term';
 Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
 :::info Runtime baseline
-This overview is aligned to npm runtime line `2.37.6` with upstream source snapshot `runtime-v0.1.64` (`b25a322`, audited May 12, 2026), plus the June 3, 2026 shader early-access addendum for GPU callback guidance. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This overview is aligned to the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8` plus source-level API snapshot `runtime-v0.1.106`. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 :::info Need Full Access/Limitations Matrix?
@@ -34,9 +34,9 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 
 ## The 8 Script Types
 
-| Script Type | Primary Purpose | Attach To |
+| Script Type | Primary Purpose | Placement / Binding Target |
 |-------------|-----------------|-----------|
-| **[<Term>Node</Term> Script](#node-script)** | Animation logic, custom rendering | Any node |
+| **[<Term>Node</Term> Script](#node-script)** | Animation logic, custom rendering | Scene script node |
 | **[Layout Script](#layout-script)** | Custom layout behavior | Layout components |
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
 | **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes & Fills |
@@ -62,6 +62,8 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 - Access to <Term>Renderer</Term> for custom drawing
 - Access to `Canvas` / `GPUCanvas` render phases for offscreen and shader workflows
 - Can have inputs from the editor
+
+**Placement:** A Node script is added to the artboard as a script node. You can leave it at the artboard root or nest it under a group/shape for normal hierarchy behavior such as transform inheritance and draw order. Nesting does not pass the parent shape's `NodeData` or `PathData` into the Node callbacks.
 
 **Typical use cases:**
 - Procedural animations (particles, physics)
@@ -222,7 +224,7 @@ end
 **Use when:** You need custom interpolation curves at runtime for keyframe value blending and want script-controlled easing behavior.
 
 **Current status:**
-- Runtime support is present in the audited C++ bindings (`runtime-v0.1.64`).
+- Runtime support is present in the audited C++ bindings tracked by the current compatibility baseline.
 - This protocol is documented in LERP for compatibility tracking and advanced usage.
 - Editor UI exposure can lag runtime support; verify availability in your current editor build before production use.
 

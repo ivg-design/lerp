@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './ExerciseValidator.module.css';
 
+const NO_ANSWER_LINE = '(No ANSWER: line found)';
+
 interface ExerciseValidatorProps {
   exerciseId: string;           // "fundamentals-variables-1"
   expectedAnswer: string;       // "ANSWER: Warrior, Lv.5, 1250.5xp, ult=true"
@@ -85,11 +87,15 @@ export default function ExerciseValidator({
     return normalized;
   };
 
+  const collapseWhitespaceForComparison = (answer: string): string => {
+    return normalize(answer).replace(/\s+/g, ' ');
+  };
+
   const handleSubmit = () => {
     const extracted = extractAnswer(input);
 
     if (!extracted) {
-      setUserAnswer('(No ANSWER: line found)');
+      setUserAnswer(NO_ANSWER_LINE);
       setIsCorrect(false);
       setSubmitted(true);
       return;
@@ -142,6 +148,12 @@ export default function ExerciseValidator({
     const hintIndex = Math.min(attempts - 1, hints.length - 1);
     return hintIndex >= 0 ? hints[hintIndex] : null;
   };
+
+  const hasWhitespaceOnlyMismatch =
+    submitted &&
+    !isCorrect &&
+    userAnswer !== NO_ANSWER_LINE &&
+    collapseWhitespaceForComparison(userAnswer) === collapseWhitespaceForComparison(expectedAnswer);
 
   if (completed && !submitted) {
     // Show completed state on page load
@@ -227,7 +239,7 @@ export default function ExerciseValidator({
                 <span className={styles.errorTitle}>Not quite right</span>
               </div>
 
-              {userAnswer === '(No ANSWER: line found)' ? (
+              {userAnswer === NO_ANSWER_LINE ? (
                 <p className={styles.errorMessage}>
                   Could not find an <code>ANSWER:</code> line in your input.
                   Make sure to copy the full console output including the line that starts with <code>ANSWER:</code>
@@ -242,6 +254,13 @@ export default function ExerciseValidator({
                     <span className={styles.yourAnswerLabel}>Your answer:</span>
                     <code className={styles.answerCode}>{userAnswer}</code>
                   </div>
+
+                  {hasWhitespaceOnlyMismatch && (
+                    <div className={styles.whitespaceWarning}>
+                      <strong>Whitespace mismatch:</strong> Extra, missing, or tabbed spacing is the difference.
+                      The answer box preserves exact spacing, and copying from it preserves those spaces.
+                    </div>
+                  )}
 
                   {getCurrentHint() && (
                     <div className={styles.hintBox}>
@@ -266,7 +285,7 @@ export default function ExerciseValidator({
                 <button className={styles.tryAgainBtn} onClick={handleReset}>
                   Try Again
                 </button>
-                {!answerRevealed && userAnswer !== '(No ANSWER: line found)' && (
+                {!answerRevealed && userAnswer !== NO_ANSWER_LINE && (
                   <button className={styles.revealBtn} onClick={handleRevealAnswer}>
                     Reveal Answer
                   </button>
