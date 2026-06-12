@@ -197,7 +197,7 @@ path:lineTo(Vector.xy(100, 100))
 path:close()
 ```
 
-If a path uses a fill, ensure the path is closed.
+If a path uses a fill, ensure the path is closed **and wound clockwise** (y points down) — counter-clockwise contours render invisible in the current renderer.
 
 ### Paint
 ```lua

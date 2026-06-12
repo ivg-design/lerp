@@ -493,6 +493,10 @@ ANSWER: 2.00
 
 Procedural graphics in Rive use the <Term>Path</Term> API (moveTo, lineTo, close) combined with <Term>Paint</Term> for styling. Create these objects in init(), then use <Term>Renderer</Term>:drawPath() in draw().
 
+:::warning Wind your points clockwise
+The current Rive renderer fills **clockwise-wound** contours. If you connect the same three points counter-clockwise (top → bottom-left → bottom-right), the script compiles and runs but the triangle renders invisible. Order your points clockwise on screen — and remember that y points **down** in artboard coordinates. Editor-validated 2026-06-12 with side-by-side CW/CCW triangles; reported by community member belal-sweileh in [issue #2](https://github.com/ivg-design/lerp/issues/2).
+:::
+
 :::info Goal
 By the end of this exercise, you will be able to Complete the init function to create a triangle path (3 points) and a green fill paint. The draw function should render the path.
 :::
@@ -540,9 +544,10 @@ function init(self: DrawTriangle, context: Context): boolean
     self.path = nil  -- Replace with Path.new()
 
     -- TODO 2: Build a triangle using moveTo, lineTo, lineTo, close
+    -- Wind the points CLOCKWISE or the fill will not render (see note above):
     -- Point 1: (0, -40) - top
-    -- Point 2: (-40, 40) - bottom left
-    -- Point 3: (40, 40) - bottom right
+    -- Point 2: (40, 40) - bottom right
+    -- Point 3: (-40, 40) - bottom left
 
     -- TODO 3: Create a Paint with green fill color
     -- Use Paint.with({ style = "fill", color = Color.rgb(80, 200, 120) })

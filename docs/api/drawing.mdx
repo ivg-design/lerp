@@ -132,6 +132,10 @@ path:lineTo(Vector.xy(0, 100))
 path:close()
 ```
 
+:::warning Winding direction matters for fills
+The current renderer fills **clockwise-wound** contours (in artboard coordinates, where y points down). A single counter-clockwise contour renders invisible with a fill paint — editor-validated 2026-06-12 with side-by-side CW/CCW triangles. Order your points clockwise, like the example above (top → bottom-right → bottom-left). The scripting API currently exposes no fill-rule control on `Path` or `Paint`.
+:::
+
 **See Also:** [PathMeasure](#pathmeasure), [Renderer.drawPath](#rendererdrawpathpath-paint)
 
 ---

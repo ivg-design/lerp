@@ -4,6 +4,17 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.11] — 2026-06-12
+
+### Fixed
+- **Exercise 3 triangle winding (LERP-ERR-015)** — the Node Protocol drawing exercise (`docs/rive/protocols/node-protocol.mdx`) described its triangle points in counter-clockwise order, which the current clockwise-fill renderer does not draw, so following the exercise exactly produced an invisible shape. Point order corrected to clockwise. Reported by GitHub user [belal-sweileh](https://github.com/ivg-design/lerp/issues/2) in issue #2; reproduced live in the Early Access editor (2026-06-12) with a side-by-side CW/CCW probe.
+
+### Added
+- **Winding-direction guidance** — new warnings in the Exercise 3 premise, `docs/api/drawing.mdx`, and `docs/quick-reference.mdx`: fills require clockwise winding (y points down in artboard coordinates), and the scripting API currently exposes no fill-rule control on `Path` or `Paint`.
+- **Errata entry LERP-ERR-015** — full evidence trail for the winding behavior, including the runtime's clockwise fill pipeline.
+
+---
+
 ## [1.2.10] — 2026-06-12
 
 All items in this release were validated live in the Rive Early Access editor (2026-06-11) using instrumented probe Node scripts and Test-protocol runtime checks driven through the Rive MCP, cross-checked against the editor's built-in scripting reference.
