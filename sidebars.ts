@@ -190,7 +190,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'html',
       value:
-        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> June 4, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
+        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> June 12, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
       defaultStyle: false,
     },
   ],

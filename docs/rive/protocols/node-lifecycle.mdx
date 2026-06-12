@@ -77,7 +77,7 @@ Rive calls your script functions in a specific order. Understanding this lets yo
 **Lifecycle order:**
 1. `init(self, context)` - runs once at startup
 2. `update(self)` - runs when any <Term>Input</Term> changes (NO context param!)
-3. `advance(self, seconds)` - runs every animation frame (logic)
+3. `advance(self, seconds)` - runs every playback frame (logic); at design time it only fires as zero-delta settle passes
 4. `drawCanvas(self)` - runs during the canvas render phase for offscreen `Canvas` / `GPUCanvas` work
 5. `draw(self, renderer)` - runs on canvas repaint (normal renderer compositing, keep pure!)
 
@@ -91,7 +91,7 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 |----------|---------|-----------|------------------|
 | **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
 | **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
-| **advance** | Update time-based state (movement, physics, timers) | Every animation frame | `requestAnimationFrame` logic |
+| **advance** | Update time-based state (movement, physics, timers) | Every playback frame (design mode: settle passes only) | `requestAnimationFrame` logic |
 | **drawCanvas** | Render into offscreen `Canvas` / `GPUCanvas` targets | During canvas render phase | WebGL/WebGPU render pass |
 | **draw** | Issue <Term>Renderer</Term> commands only (no state changes!) | On canvas repaint | Canvas `ctx.draw()` calls |
 
@@ -102,6 +102,28 @@ Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding
 :::info Shader and offscreen canvas rule
 Call `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` from `drawCanvas(self)`. Composite the resulting `canvas.image` or `gpuCanvas.image` from `draw(self, renderer)`.
 :::
+
+---
+
+## Playback vs Design Mode: The Two advance() Clocks
+
+`advance` runs against two very different schedulers depending on whether the artboard is playing. All of the following was validated live in the Rive Early Access editor (2026-06-11) with instrumented probe scripts:
+
+| | Playback (Play / runtime) | Design mode (editing) |
+|---|---|---|
+| `advance` cadence | Every frame (~60/s) | Event-driven settle passes only (object moves, pointer over canvas, adds, recompiles) |
+| `seconds` (delta) | Real elapsed time | **Always `0`** — no clock exists; accumulated time never grows |
+| `return false` | Unsubscribes this instance from the advance loop | **Ignored** — editor events keep re-advancing the node |
+| `draw` | Every frame, independent of advance | Every repaint, independent (camera pan/zoom repaints without advancing) |
+
+The probe evidence: a node whose `advance` returned `false` received **zero** advance calls during ~10 seconds of playback while drawing ~600 frames alongside an always-`true` node ticking at exactly 60/s. The same false-returning node was re-advanced 200+ times by design-mode editor events with `seconds = 0` on every call.
+
+**Practical rules:**
+
+- Never divide by `seconds` or assume it is non-zero — design-mode settle passes always pass `0`. Guard time-based math: `if seconds > 0 then ... end`.
+- Returning `false` from `advance` is a real playback optimization for nodes that have finished animating — but it does not stop `draw`, and it does not reduce design-time work.
+- A node that returns `false` still needs its `draw` to render current state on every repaint.
+- `draw` can fire before the first `advance` — never rely on advance having run.
 
 ---
 
