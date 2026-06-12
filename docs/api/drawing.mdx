@@ -136,6 +136,8 @@ path:close()
 Script-drawn paths fill **clockwise-wound** contours (in artboard coordinates, where y points down). A single counter-clockwise contour renders invisible with a fill paint — editor-validated 2026-06-12 with side-by-side CW/CCW triangles. Order your points clockwise, like the example above (top → bottom-right → bottom-left).
 
 Fill rule is a property of authored **Fill components**, not of script objects: shapes drawn in the editor carry a Fill whose rule is selectable (`nonZero` / `evenOdd` / `clockWise`) in the inspector, but a script-drawn path has no Fill component and always uses the clockwise rule. The scripting API exposes no fill-rule control — `Paint.with({ fillRule = ... })` and dynamic writes like `paint.fillRule = "evenOdd"` are accepted and **silently ignored** (validated visually with nested-contour rings: no even-odd hole appears).
+
+Runtime-source confirmation: script render paths are created with the fill rule hard-coded to clockwise (`src/lua/renderer/lua_path.cpp` — `m_renderPath->fillRule(FillRule::clockwise)`), and the Paint binding has no `fillRule` key. The one exception is **Path Effect scripts**: the effect's output path inherits the host Fill component's rule (`src/scripted/scripted_path_effect.cpp` — `path->rewind(source->isLocal(), source->fillRule())`), so an authored fill set to evenOdd keeps even-odd behavior through the effect.
 :::
 
 **See Also:** [PathMeasure](#pathmeasure), [Renderer.drawPath](#rendererdrawpathpath-paint)
