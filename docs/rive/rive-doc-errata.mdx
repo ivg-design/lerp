@@ -39,6 +39,7 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-ERR-015 | Path winding / fill rule | resolved | high | Resolved in LERP on 2026-06-12 after a report from GitHub user [belal-sweileh](https://github.com/ivg-design/lerp/issues/2): Exercise 3's described point order wound the triangle counter-clockwise, which the current clockwise-fill renderer does not draw; exercise reordered and winding rule documented. |
 | LERP-ERR-011 | Node protocol | resolved | high | Resolved in LERP on 2026-06-12: `draw` was documented as required for add-menu listing; editor-validated that draw-less Node scripts list, place, and run. |
 | LERP-GAP-012 | Node advance semantics | resolved | high | Resolved in LERP on 2026-06-12: documented the playback-vs-design-mode advance model — `return false` unsubscribes from the playback advance loop only, `draw` is independent, design-mode settle passes always pass `seconds = 0` and ignore the return value. |
 | LERP-ERR-013 | Vector deprecated usage | resolved | low | Resolved in LERP on 2026-06-12: glossary and environment exercise still taught deprecated `vec:length()` style despite the core-types deprecation table; switched to static `Vector.*` calls. |
@@ -53,6 +54,37 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-ERR-015 - Exercise 3 triangle wound counter-clockwise renders invisible
+
+Status: resolved in LERP 2026-06-12 (was confirmed)
+
+Severity: high
+
+Reported by:
+
+- GitHub user [belal-sweileh](https://github.com/ivg-design/lerp/issues/2) (issue #2, 2026-05-19)
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx` (Exercise 3 starter point order)
+- `/Users/ivg/github/lerp/docs/api/drawing.mdx` and `/Users/ivg/github/lerp/docs/quick-reference.mdx` (no winding guidance)
+
+Evidence:
+
+- Live editor validation (Rive Early Access, 2026-06-12) with a side-by-side probe (`FillRuleProbe`): the reporter's exact counter-clockwise triangle (top → bottom-left → bottom-right) rendered invisible while the clockwise twin rendered normally.
+- The Rive runtime ships a clockwise fill pipeline (`FillRule::clockwise`; see runtime shader/pipeline docs), consistent with the observed behavior.
+- The scripting API exposes no fill-rule control on `Path` or `Paint` (also answering the reporter's API question).
+
+Why this matters:
+
+A beginner following the exercise exactly as written gets a compiling, running script that draws nothing — with no error pointing at winding order.
+
+Fix implemented in LERP (2026-06-12):
+
+- Exercise 3 point order changed to clockwise; winding warnings added to the exercise premise, the Path API reference, and the quick reference.
 
 ---
 
