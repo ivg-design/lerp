@@ -4,6 +4,27 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.10] — 2026-06-12
+
+All items in this release were validated live in the Rive Early Access editor (2026-06-11) using instrumented probe Node scripts and Test-protocol runtime checks driven through the Rive MCP, cross-checked against the editor's built-in scripting reference.
+
+### Added
+- **Node advance two-clock model (LERP-GAP-012)** — new "Playback vs Design Mode: The Two advance() Clocks" section in `docs/rive/protocols/node-lifecycle.mdx` plus an advance-semantics admonition in `docs/rive/protocols/node-protocol.mdx`: returning `false` unsubscribes from the playback advance loop only (a false-returning probe received zero advance calls during ~10 s of playback while drawing ~600 frames); `draw` is fully independent; design-mode `advance` fires as event-driven settle passes with `seconds = 0` and ignores the return value. Includes guard rules for time-based math.
+- **`Color.toFloat` in the Color reference** — surfaced in `docs/api/core-types.mdx` (previously only documented in the GPU shaders page) with runtime-confirmed output values.
+- **Color runtime representation** — documented that `Color` is a plain Luau `number` (ARGB packed integer) and that raw hex literals such as `0xFFFF0000` are valid `Color` values.
+- **Vector `z` component and `[3]` indexing** — documented in `docs/api/core-types.mdx` (always `0` for 2D vectors; populated by 3D APIs such as `Mat4:transformPoint`).
+- **Errata tracker entries** — added LERP-ERR-011, LERP-GAP-012, LERP-ERR-013, and LERP-GAP-014 with live-probe evidence, including the upstream Rive report (the editor reference's `Paint.with` example uses `Color.hex`, which does not exist at runtime, and its `advance` comment contradicts measured behavior).
+
+### Fixed
+- **Node `draw` requirement (LERP-ERR-011)** — `draw` was incorrectly documented as required for a Node script to appear in the add-to-scene menu. Editor-validated: a draw-less script compiles cleanly, appears in the menu, places as a script node, and runs `init`/`advance`. Updated the requirements block, protocol table, AE/JS comparison, common-mistakes section, exercise premise, and quiz `node-protocol-q1` in `docs/rive/protocols/node-protocol.mdx`.
+- **Deprecated Vector instance-method usage (LERP-ERR-013)** — the glossary Vector entry and the environment Vector exercise still taught `vec:length()` / `vec:normalized()` despite the core-types deprecation table; both now use static `Vector.length(...)` / `Vector.normalized(...)`.
+- **Styling/Path reference drift (LERP-GAP-014)** — `PaintDefinition.gradient` is now typed `(Gradient | false)?` with a note that assigning `false` also clears the live `paint.gradient` property (reads back `nil`); the path mutation rule is now stated generally (any mutation after drawing requires waiting a frame, not just `reset()`); `path:add` accepts any `PathData`; `positionAndTangent` documents distance clamping and the normalized tangent; `extract` documents clamping and the `startWithMove` default of `true`.
+
+### Changed
+- **Course metadata refresh** — sidebar "Last reviewed" date updated for this errata pass.
+
+---
+
 ## [1.2.9] — 2026-06-04
 
 ### Added

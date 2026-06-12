@@ -36,7 +36,7 @@ import Term from '@site/src/components/Term';
 | Constructor | `constructor() { }` | `init(self, context)` |
 | Instance method | `this.method()` | `function method(self)` |
 | Factory pattern | `new MyClass()` or `createInstance()` | `return function(): Node<T>` |
-| Required interface | `implements Interface` | Must have `init` and `draw` |
+| Required interface | `implements Interface` | Must return a factory; implement the lifecycle functions you need |
 | Export | `export default` or `module.exports` | `return function(): Node<T>` |
 
 :::danger Critical Difference: The Factory Function Pattern
@@ -67,15 +67,15 @@ Why? This pattern lets Rive:
 
 ## Rive Context: A Node Script Is Not a Normal Luau File
 
-Node scripts run **inside Rive** and must follow a protocol. The editor only lists scripts that return a factory function with at least `init` and `draw`.
+Node scripts run **inside Rive** and must follow a protocol. The editor lists scripts that return a factory function matching the Node protocol.
 
 **Minimum requirements:**
 1. Exported type for script state (`export type`)
-2. `init(self, context)` and `draw(self, renderer)` functions
-3. `return function(): Node<YourType>` factory function
+2. `return function(): Node<YourType>` factory function
+3. In practice, an `init(self, context)` function — every real script needs setup
 
-:::warning Important
-If `draw` is missing, the script will not appear in the add-to-scene menu. This is a common source of confusion for beginners.
+:::info draw is optional
+`draw` is **not** required for a script to appear in the add-to-scene menu. Editor-validated (Early Access, 2026-06-11): a Node script with only `init` and `advance` compiles cleanly, appears in the add menu, places as a script node, and runs its lifecycle — it just renders nothing. Omit `draw` for logic-only scripts (timers, data orchestration); this also avoids an unnecessary per-repaint call. Include `draw` whenever the script renders.
 :::
 
 ---
@@ -217,9 +217,9 @@ Every Node script you write will follow this structure. The exported type define
 | Function | Required | Parameters | Return | Called When |
 |----------|----------|------------|--------|-------------|
 | `init` | ✅ Yes | `self`, `context` | `boolean` | Once at startup |
-| `draw` | ✅ Yes | `self`, `renderer` | none | On canvas repaint |
+| `draw` | Optional (needed to render) | `self`, `renderer` | none | On canvas repaint |
 | `update` | Optional | `self` | none | <Term>Input</Term> changes |
-| `advance` | Optional | `self`, `seconds` | `boolean` | Every animation frame |
+| `advance` | Optional | `self`, `seconds` | `boolean` | Every playback frame; design-mode settle passes (see below) |
 | `drawCanvas` | Optional | `self` | none | Canvas/GPU render phase before `draw` |
 | `pointerDown` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch move |
@@ -228,6 +228,16 @@ Every Node script you write will follow this structure. The exported type define
 
 :::info GPU and offscreen canvas callback
 Use `drawCanvas(self)` for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` work. Use `draw(self, renderer)` afterward to composite the resulting `canvas.image` or `gpuCanvas.image`.
+:::
+
+:::info advance() return value — playback vs design mode
+`advance` behaves differently depending on whether the artboard is playing (editor-validated, Early Access, 2026-06-11):
+
+**Playback (Play button / runtime):** `advance` is called every frame with real delta time. Return `true` to keep receiving advance calls; return `false` to unsubscribe this instance from the advance loop. `draw` is fully independent — it keeps firing on every repaint either way (a false-returning test node received zero advance calls during ~10 s of playback while drawing ~600 frames).
+
+**Design mode (editing, not playing):** there is no advance loop and no clock. `advance` fires as a settle pass with `seconds = 0` whenever the artboard changes (moving objects, pointer over the canvas, recompiles), and the return value is ignored. Elapsed time never accumulates at design time.
+
+Practical rules: never divide by `seconds` or assume it is non-zero; returning `false` is a playback optimization for nodes that have finished animating, not a way to stop drawing; `draw` can also fire before the first `advance`.
 :::
 
 ---
@@ -258,7 +268,7 @@ A Node script is added as its own script node in the artboard hierarchy. Nesting
 
 ### Premise
 
-Every Node script must have init() and draw() functions. init() runs once when the script starts and is the place to print debug messages and set up initial state.
+Node scripts implement lifecycle functions such as init() and draw(). init() runs once when the script starts and is the place to print debug messages and set up initial state.
 
 :::info Goal
 By the end of this exercise, you will be able to Complete the init function to print a greeting message and the answer. The script structure (export type, factory function) is already provided.
@@ -738,15 +748,15 @@ ANSWER: complete
 ## Knowledge Check
 
 <Quiz
-  question="What is the minimum set of functions required for a Node script to appear in Rive's add-to-scene menu?"
+  question="Is the draw function required for a Node script to appear in the add-to-scene menu?"
   id="node-protocol-q1"
   options={[
-    { text: "init only" },
-    { text: "draw only" },
-    { text: "init and draw", correct: true },
-    { text: "init, advance, and draw" },
+    { text: "Yes — scripts without draw are hidden from the menu" },
+    { text: "No — a draw-less script lists, places, and runs init/advance; it just renders nothing", correct: true },
+    { text: "Only if the script also defines advance" },
+    { text: "Yes, and it must contain at least one renderer call" },
   ]}
-  explanation="A Node script must have at least init and draw functions to be recognized by Rive. The draw function is specifically required for the script to appear in the add-to-scene menu."
+  explanation="Editor-validated (Early Access, 2026-06-11): a Node script with no draw function compiles cleanly, appears in the add menu, places as a script node, and runs init/advance normally. Omit draw for logic-only scripts; include it whenever the script renders."
 />
 
 <Quiz
@@ -804,22 +814,24 @@ return function(): Node<MyNode>
 end
 ```
 
-### 2. Forgetting draw (Even If Empty)
+### 2. Expecting Visuals Without draw
 
 ```lua
--- WRONG: No draw function
+-- VALID but renders nothing: draw-less scripts list, place, and run
 return function(): Node<MyNode>
-    return { init = init }  -- Script won't appear in menu!
+    return { init = init, advance = advance }  -- Fine for logic-only scripts
 end
 
--- CORRECT: Include draw even if empty
+-- To actually render, include draw:
 return function(): Node<MyNode>
     return {
         init = init,
-        draw = draw,  -- Required!
+        draw = draw,  -- Needed for anything visual
     }
 end
 ```
+
+A script node that "doesn't show up on the canvas" usually isn't broken — it just has no `draw` (or its `draw` issues no renderer commands). Omitting `draw` on purpose is a valid optimization for timers and data-orchestration scripts.
 
 ### 3. Factory vs init() Object Creation
 

@@ -84,12 +84,16 @@ Clears all path data. **Warning:** Don't call while rendering.
 path:reset()
 ```
 
+:::warning Mutation rule
+An unchanged path can be drawn multiple times per frame. But once a path has been drawn (passed to `renderer:drawPath`), **any** mutation — `moveTo`, `lineTo`, `cubicTo`, `add`, `reset`, etc. — must wait until the next frame before the path can be drawn again. The `reset()` warning above is one case of this general rule.
+:::
+
 #### `path:add(other, transform?)`
 
-Merges another path into this one.
+Merges another path (or any `PathData`, such as the input collection a Path Effect receives) into this one.
 
 ```lua
-path:add(other: Path, transform?: Mat2D)
+path:add(other: PathData | Path, transform?: Mat2D)
 ```
 
 #### `path:measure()`
@@ -150,13 +154,13 @@ True only if the path has exactly one closed contour. **Type:** `boolean` (read-
 
 #### `measure:positionAndTangent(distance)`
 
-Returns the position and tangent at a distance along the path.
+Returns the position and tangent at a distance along the path. The distance is clamped to `[0, measure.length]`, and the returned tangent is a normalized (unit) vector.
 
 ```lua
 measure:positionAndTangent(distance: number): Vector, Vector
 ```
 
-**Returns:** position, tangent (both Vector)
+**Returns:** position, normalized tangent (both Vector)
 
 **Example:**
 ```lua
@@ -200,7 +204,7 @@ local rightOffset = measure:warp(Vector.xy(measure.length * 0.5, -10))
 
 #### `measure:extract(start, end, dest, startWithMove?)`
 
-Extracts a segment into a destination path.
+Extracts a segment into a destination path. Distances are clamped to `[0, measure.length]`. `startWithMove` defaults to `true` (the segment begins with a `moveTo`); pass `false` to continue from the destination path's previous point — useful when stitching a wrap-around extraction from two calls.
 
 ```lua
 measure:extract(startDist: number, endDist: number, dest: Path, startWithMove?: boolean)
@@ -320,11 +324,13 @@ type PaintDefinition = {
     join: ("round" | "bevel" | "miter")?, -- Corner style (stroke only)
     blendMode: BlendMode?,             -- Compositing mode
     feather: number?,                  -- Feathering amount
-    gradient: Gradient?,               -- Applied gradient
+    gradient: (Gradient | false)?,     -- Applied gradient (false removes an existing gradient)
 }
 ```
 
 All fields are optional. Unspecified fields use Paint defaults.
+
+Setting `gradient = false` removes an existing gradient — useful with `paint:copy()` to derive a solid-color paint from a gradient paint. Editor-validated: assigning `false` to the live `paint.gradient` property also works and the property reads back as `nil` afterwards.
 
 **Example:**
 ```lua
@@ -348,7 +354,7 @@ local stroke = Paint.with({
 | `join` | `"round"`, `"bevel"`, `"miter"` | Corner style (stroke only) |
 | `blendMode` | BlendMode | Compositing mode |
 | `feather` | number | Feathering amount |
-| `gradient` | Gradient? | Applied gradient |
+| `gradient` | Gradient? | Applied gradient (assign `false` to remove; reads back as `nil`) |
 
 ### Methods
 

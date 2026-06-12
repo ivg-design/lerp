@@ -12,6 +12,7 @@ keywords:
 # LERP Rive Documentation Errata Tracker
 
 Last revalidated against runtime baseline: 2026-06-04 (`2.37.8` public npm line; source-level API snapshot `runtime-v0.1.106` / `5360c834`; shader/GPU editor workflow remains Early Access only)
+Last editor-validated errata batch: 2026-06-12 (Rive Early Access editor, live instrumented probe scripts and Test-protocol runtime checks via the Rive MCP)
 Initial errata tracker open date: 2026-04-26
 
 Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
@@ -38,6 +39,10 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-ERR-011 | Node protocol | resolved | high | Resolved in LERP on 2026-06-12: `draw` was documented as required for add-menu listing; editor-validated that draw-less Node scripts list, place, and run. |
+| LERP-GAP-012 | Node advance semantics | resolved | high | Resolved in LERP on 2026-06-12: documented the playback-vs-design-mode advance model — `return false` unsubscribes from the playback advance loop only, `draw` is independent, design-mode settle passes always pass `seconds = 0` and ignore the return value. |
+| LERP-ERR-013 | Vector deprecated usage | resolved | low | Resolved in LERP on 2026-06-12: glossary and environment exercise still taught deprecated `vec:length()` style despite the core-types deprecation table; switched to static `Vector.*` calls. |
+| LERP-GAP-014 | Styling/Path API drift | resolved | medium | Resolved in LERP on 2026-06-12: `PaintDefinition.gradient` now typed `(Gradient \| false)?`, `Color.toFloat` surfaced in core-types, Color documented as a raw packed number, Vector `z`/`[3]` documented, general path mutate-after-draw rule added, `extract`/`positionAndTangent` clamping and defaults documented. |
 | LERP-ERR-010 | Exercise validator whitespace feedback | resolved | high | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): failed-answer boxes now preserve exact whitespace and warn on whitespace-only mismatches. |
 | LERP-GAP-009 | Script save/recompile workflow | resolved | medium | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): first-script onboarding now explains the blue save-state dot and save-to-recompile behavior. |
 | LERP-GAP-008 | Node script placement | resolved | medium | Resolved in LERP on 2026-06-04 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): docs now describe Node scripts as artboard script nodes and clarify nesting does not pass parent `NodeData` or `PathData` into callbacks. |
@@ -48,6 +53,122 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-ERR-011 - draw incorrectly documented as required for add-menu listing
+
+Status: resolved in LERP 2026-06-12 (was confirmed)
+
+Severity: high
+
+Reported by:
+
+- Live editor validation (Rive Early Access, 2026-06-11): instrumented probe scripts placed and run via the Rive MCP
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
+
+Evidence:
+
+- A Node script with only `init` and `advance` (no `draw`) compiled with zero diagnostics, appeared in the add-to-scene menu, was placed as a script node (`ScriptedDrawable`), and ran `init`/`advance` normally.
+- LERP claimed "If `draw` is missing, the script will not appear in the add-to-scene menu" and quiz `node-protocol-q1` keyed "init and draw" as the required minimum.
+
+Why this matters:
+
+Learners building logic-only scripts (timers, orchestration) were told to add an empty `draw`, which adds an unnecessary per-repaint call; and the false claim misdirects debugging when a script "doesn't show up."
+
+Fix implemented in LERP (2026-06-12):
+
+- Requirements block, protocol table, AE/JS comparison row, common-mistake section, exercise premise, and quiz `node-protocol-q1` updated: `draw` is optional and only needed for rendering.
+
+---
+
+## LERP-GAP-012 - Node advance return semantics and design-mode clock undocumented
+
+Status: resolved in LERP 2026-06-12 (was gap)
+
+Severity: high
+
+Reported by:
+
+- Live editor validation (Rive Early Access, 2026-06-11): paired probe nodes (`advance` returning `false` after 3 calls vs always `true`) instrumented with per-call prints, observed across design-mode interaction and ~10 s of playback
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
+- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+
+Evidence:
+
+- Playback: the always-`true` node ticked at exactly 60/s with real accumulating delta; the `false`-returning node received zero advance calls while drawing ~600 frames in the same window — so `return false` unsubscribes from the advance loop and `draw` is fully independent.
+- Design mode: no advance loop and no clock exist; `advance` fired as settle passes with `seconds = 0` on artboard-dirtying events (object moves, pointer over canvas, recompiles), and the `false` return was ignored across 200+ event-driven re-advances.
+- The Rive editor's own built-in example comment ("returns true if it needs to keep drawing") is contradicted by this behavior and was reported upstream.
+
+Why this matters:
+
+Time-based scripts that divide by `seconds` break at design time (`seconds = 0`); scripts that return `false` expecting drawing to stop are misdesigned; LERP previously never defined the Node `advance` return value at all.
+
+Fix implemented in LERP (2026-06-12):
+
+- Added the "Playback vs Design Mode: The Two advance() Clocks" section to node-lifecycle and an advance-semantics admonition to node-protocol, including the practical guard rules.
+
+---
+
+## LERP-ERR-013 - Deprecated Vector instance methods still taught outside core-types
+
+Status: resolved in LERP 2026-06-12 (was confirmed)
+
+Severity: low
+
+Reported by:
+
+- Internal docs cross-validation against the editor scripting reference and `Vector` deprecation attributes (`@[deprecated{ use = "Vector.*" }]`)
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/glossary.mdx` (Vector entry used `pos:length()` / `pos:normalized()`)
+- `/Users/ivg/github/lerp/docs/rive/environment.mdx` (exercise TODO used `diff:length()`)
+
+Why this matters:
+
+`api/core-types.mdx` deprecates all seven Vector instance methods in favor of static `Vector.*` calls; teaching the deprecated style elsewhere contradicts the course's own guidance.
+
+Fix implemented in LERP (2026-06-12):
+
+- Both occurrences switched to `Vector.length(...)` / `Vector.normalized(...)`.
+
+---
+
+## LERP-GAP-014 - Styling and Path API reference drift vs editor scripting reference
+
+Status: resolved in LERP 2026-06-12 (was gap)
+
+Severity: medium
+
+Reported by:
+
+- Cross-validation of the editor's built-in scripting reference (`rive/paint`, `rive/color`, `rive/vector`, `rive/path` definitions) against LERP API pages, with runtime confirmation via Test-protocol scripts run in the Early Access editor (2026-06-11)
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/api/drawing.mdx`
+- `/Users/ivg/github/lerp/docs/api/core-types.mdx`
+
+Runtime-confirmed findings folded into this entry:
+
+- `PaintDefinition.gradient` is `(Gradient | false)?`; assigning `false` removes a gradient and also works on the live `paint.gradient` property (reads back `nil`).
+- `Color.toFloat(color)` exists (returns `{r, g, b, a}` in 0–1) but was only documented in the GPU shaders page; now surfaced in the core-types Color section.
+- `Color` is a plain Luau `number` (ARGB packed); raw literals like `0xFFFF0000` are valid and equal `Color.rgb(255, 0, 0)`.
+- `Vector` has a read-only `z` component and `[3]` indexing (`0` for 2D vectors; populated by 3D APIs such as `Mat4:transformPoint`).
+- The path mutation rule is general (any mutation after drawing requires waiting a frame), not just `reset()`; `path:add` accepts any `PathData`.
+- `positionAndTangent` clamps distance and returns a normalized tangent; `extract` clamps distances and `startWithMove` defaults to `true`.
+- Related upstream finding reported to Rive: the editor reference's `Paint.with` example uses `Color.hex('#FF0066')`, but `Color.hex` does not exist at runtime (`type(Color.hex)` is `nil`); LERP already used `Color.rgb(255, 0, 102)`.
+
+Fix implemented in LERP (2026-06-12):
+
+- All of the above documented in `api/drawing.mdx` and `api/core-types.mdx` with editor-validation notes.
 
 ---
 

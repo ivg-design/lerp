@@ -67,6 +67,11 @@ The X component. **Type:** `number` (read-only)
 #### `vec.y`
 The Y component. **Type:** `number` (read-only)
 
+#### `vec.z`
+The Z component. **Type:** `number` (read-only)
+
+Always `0` for vectors created with `Vector.xy()`. Populated by 3D APIs that return a `Vector`, such as [`Mat4:transformPoint`](#mat4). Editor-validated: `Vector.xy(1, 2).z` returns `0`.
+
 ### Indexing
 
 Vectors support indexed access:
@@ -75,6 +80,7 @@ Vectors support indexed access:
 local v = Vector.xy(10, 20)
 print(v[1])  -- 10 (x component)
 print(v[2])  -- 20 (y component)
+print(v[3])  -- 0  (z component)
 ```
 
 ### Static Methods (Preferred)
@@ -376,6 +382,28 @@ local startColor = Color.rgb(255, 0, 0)  -- Red
 local endColor = Color.rgb(0, 0, 255)    -- Blue
 local purple = Color.lerp(startColor, endColor, 0.5)
 ```
+
+#### `Color.toFloat(color)`
+
+Converts a Color (ARGB packed integer) to an `{r, g, b, a}` array table with values in the 0.0–1.0 range. Primarily used with `clearColor` in GPU render passes.
+
+```lua
+Color.toFloat(color: Color): { number }
+```
+
+**Example:**
+```lua
+local cc = Color.toFloat(Color.rgba(255, 0, 0, 128))
+-- cc = { 1.0, 0.0, 0.0, 0.502 }
+```
+
+Editor-validated 2026-06-11: `type(Color.toFloat)` is `function`; the example above returns exactly `{1, 0, 0, 0.5019607843137255}`.
+
+See [GPU Shaders](/api/gpu-shaders) for usage in render pass descriptors.
+
+### Runtime Representation
+
+A `Color` is a plain Luau `number` at runtime — an ARGB packed integer. `type(Color.rgb(255, 0, 0))` returns `"number"`, and raw packed values such as `0xFFFF0000` are accepted anywhere a `Color` is expected (`0xFFFF0000 == Color.rgb(255, 0, 0)`). Prefer the `Color.*` constructors for readability, but raw hex literals are not an error.
 
 **See Also:** [<Term>Paint</Term>](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
 
