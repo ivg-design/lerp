@@ -77,6 +77,7 @@ Evidence:
 - Live editor validation (Rive Early Access, 2026-06-12) with a side-by-side probe (`FillRuleProbe`): the reporter's exact counter-clockwise triangle (top → bottom-left → bottom-right) rendered invisible while the clockwise twin rendered normally.
 - The Rive runtime ships a clockwise fill pipeline (`FillRule::clockwise`; see runtime shader/pipeline docs), consistent with the observed behavior.
 - The scripting API exposes no fill-rule control on `Path` or `Paint` (also answering the reporter's API question).
+- Follow-up object-model validation (same day): authored **Fill components** DO carry a `fillrule` property (key 40, enum `nonZero`/`evenOdd`/`clockWise`) settable in the inspector — fill rule is per-Fill in the editor data model, while script-drawn paths (which have no Fill component) are fixed to the clockwise rule. Runtime probes confirmed `path.fillRule` write throws, `paint.fillRule` and `Paint.with({ fillRule = ... })` are accepted but silently ignored (Paint swallows unknown property writes), and a visual nested-contour ring test showed no even-odd effect.
 
 Why this matters:
 

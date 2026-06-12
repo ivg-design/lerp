@@ -133,7 +133,9 @@ path:close()
 ```
 
 :::warning Winding direction matters for fills
-The current renderer fills **clockwise-wound** contours (in artboard coordinates, where y points down). A single counter-clockwise contour renders invisible with a fill paint — editor-validated 2026-06-12 with side-by-side CW/CCW triangles. Order your points clockwise, like the example above (top → bottom-right → bottom-left). The scripting API currently exposes no fill-rule control on `Path` or `Paint`.
+Script-drawn paths fill **clockwise-wound** contours (in artboard coordinates, where y points down). A single counter-clockwise contour renders invisible with a fill paint — editor-validated 2026-06-12 with side-by-side CW/CCW triangles. Order your points clockwise, like the example above (top → bottom-right → bottom-left).
+
+Fill rule is a property of authored **Fill components**, not of script objects: shapes drawn in the editor carry a Fill whose rule is selectable (`nonZero` / `evenOdd` / `clockWise`) in the inspector, but a script-drawn path has no Fill component and always uses the clockwise rule. The scripting API exposes no fill-rule control — `Paint.with({ fillRule = ... })` and dynamic writes like `paint.fillRule = "evenOdd"` are accepted and **silently ignored** (validated visually with nested-contour rings: no even-odd hole appears).
 :::
 
 **See Also:** [PathMeasure](#pathmeasure), [Renderer.drawPath](#rendererdrawpathpath-paint)
