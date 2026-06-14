@@ -10,6 +10,16 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.2.12] — 2026-06-14
+
+### Added
+- **While-loop freeze guard guidance (LERP-GAP-016)** — strengthened the Fundamentals -> Iteration infinite-loop warning and added an Exercise 4 safety note in Fundamentals -> Control Flow. Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62). The note calls out the exact failure mode from the reported `Exercise4_WhileCountdown` script: a `while energy > 0 do` loop that increments `steps` but never changes `energy`, causing `init()` to never return.
+
+### Fixed
+- **Control Flow Exercise 4 learner-safety gap** — the exercise now explicitly warns not to run a while loop unless the loop body changes the countdown value, because a non-ending loop in `init()` can make affected Rive editor builds unresponsive. Reported by Rive Community user [Avo](https://community.rive.app/u/7a2efe62).
+
+---
+
 ## [1.2.11] — 2026-06-12
 
 ### Fixed

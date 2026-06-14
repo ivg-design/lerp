@@ -32,6 +32,7 @@ yarn-error.log*
 .vercel
 
 # Local agent/editor workspace files
+outputs/
 .vscode/devmirror/
 AGENTS.md
 DISCUSSION_CONTEXT.md

@@ -180,6 +180,8 @@ while (health > 0) {
 :::warning Infinite Loop Danger
 If the condition never becomes false, the loop runs forever and freezes your animation. Always ensure loop conditions can eventually become false.
 
+Rive does not move to the next script line until the loop ends. If a loop inside `init()` never ends, setup never finishes. In affected editor builds, that can make the file or editor unresponsive. Keep while loops small, bounded, and easy to exit while learning.
+
 ```lua
 -- DANGER: Infinite loop!
 local x = 1

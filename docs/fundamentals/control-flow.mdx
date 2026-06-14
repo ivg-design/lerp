@@ -806,6 +806,32 @@ return function(): Node<Exercise4>
 end
 ```
 
+:::warning Before You Press Play
+Every `while` loop must change something that can make its condition false.
+
+Do not save or run a loop like this:
+
+```lua
+while energy > 0 do
+    steps += 1
+end
+```
+
+Rive runs this code line by line, in order. When it reaches `while energy > 0 do`, it checks the value of `energy`.
+
+At the start, `energy` is `3`, so `energy > 0` is true. Rive enters the loop and runs the line inside it:
+
+```lua
+steps += 1
+```
+
+That line only changes `steps`. It does not change `energy`.
+
+Then the loop checks `energy > 0` again. `energy` is still `3`, so the answer is still true. The loop runs again. Then it checks again. `energy` is still `3`. This never ends.
+
+This exercise runs inside `init()`. `init()` is the setup function Rive calls when the script starts. If the script gets stuck inside `init()`, it never reaches the `print(...)` line or `return true`. In affected editor builds, that can leave the file or editor waiting on setup forever and may make Rive appear frozen.
+:::
+
 ---
 
 ### Assignment
@@ -838,6 +864,7 @@ Your console output should display:
 ### Checklist
 
 - [ ] While loop runs until energy is 0
+- [ ] The loop body changes `energy`, so the condition can become false
 - [ ] steps ends at 3
 - [ ] Output matches the expected line
 

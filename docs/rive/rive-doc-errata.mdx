@@ -39,6 +39,7 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-GAP-016 | While loops / script timeout recovery | resolved | high | Resolved in LERP on 2026-06-14 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): the submitted `Exercise4_WhileCountdown` file froze the Rive editor because its `while energy > 0 do` loop incremented `steps` but never changed `energy`, so `init()` never returned. Course now warns at the general while-loop section and inside the exercise itself. |
 | LERP-ERR-015 | Path winding / fill rule | resolved | high | Resolved in LERP on 2026-06-12 after a report from GitHub user [belal-sweileh](https://github.com/ivg-design/lerp/issues/2): Exercise 3's described point order wound the triangle counter-clockwise, which the current clockwise-fill renderer does not draw; exercise reordered and winding rule documented. |
 | LERP-ERR-011 | Node protocol | resolved | high | Resolved in LERP on 2026-06-12: `draw` was documented as required for add-menu listing; editor-validated that draw-less Node scripts list, place, and run. |
 | LERP-GAP-012 | Node advance semantics | resolved | high | Resolved in LERP on 2026-06-12: documented the playback-vs-design-mode advance model — `return false` unsubscribes from the playback advance loop only, `draw` is independent, design-mode settle passes always pass `seconds = 0` and ignore the return value. |
@@ -54,6 +55,57 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-GAP-016 - while-loop exercise could freeze affected editor builds
+
+Status: resolved in LERP 2026-06-14 (was gap)
+
+Severity: high
+
+Reported by:
+
+- Rive Community user [Avo](https://community.rive.app/u/7a2efe62), via LERP course report with frozen editor and unrecoverable `.rev` open path
+
+Affected local docs before fix:
+
+- `/Users/ivg/github/lerp/docs/fundamentals/control-flow.mdx` (Exercise 4 while-countdown exercise)
+- `/Users/ivg/github/lerp/docs/fundamentals/iteration.mdx` (general while-loop warning was present, but did not mention `init()` startup blocking)
+
+Evidence:
+
+- Binary text recovery from the reported `ScriptCourse_Broken.rev` found the `Exercise4_WhileCountdown` script fragments:
+
+```lua
+local energy = 3
+local steps = 0
+
+while energy > 0 do
+    steps += 1
+end
+
+print(`ANSWER: steps={steps},energy={energy}`)
+```
+
+- No recovered script fragment changed `energy` inside the loop. Because `energy` stays `3`, `energy > 0` stays true forever, `print()` never runs, and `init()` never reaches `return true`.
+- Local Rive runtime source includes a timed scripting context with a default timeout and wraps Lua calls through a guarded `pCall`, so an editor freeze indicates an editor/runtime safety gap in the affected open/evaluation path rather than a normal recoverable script error.
+
+Why this matters:
+
+This is an easy beginner mistake in the exact exercise where students first practice `while`. In a vulnerable editor path, the result is not just a failed answer; it can make the editor or file open path unresponsive enough to require force quitting.
+
+Fix implemented in LERP (2026-06-14):
+
+- Strengthened the Fundamentals -> Iteration infinite-loop warning to explain that non-ending loops run synchronously inside the active callback, and `init()` can block startup.
+- Added an Exercise 4 warning showing the exact unsafe loop shape and stating that the countdown variable must change inside the loop body.
+- Added a checklist item requiring the loop body to change `energy`.
+
+Recommended upstream Rive fix:
+
+- Ensure all user-authored Luau execution paths in the editor are covered by a watchdog or interrupt budget, including file open/recovery, script top-level evaluation, `init`, `advance`, `draw`, listeners, converters, layout scripts, and path effects.
+- On timeout, mark the offending script asset or node as errored, skip it for the session, surface a diagnostic with the callback/script name, and keep the editor/file open.
+- Provide an "open with scripts disabled" recovery mode for files saved with broken user scripts.
 
 ---
 
