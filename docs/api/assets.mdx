@@ -1,7 +1,7 @@
 ---
 sidebar_position: 6
 title: Assets
-description: Image, ImageFilter, ImageSampler, and ImageWrap
+description: Image, Blob, AudioSource, AudioSound, sampling, and Early Access GPU texture-view boundaries
 keywords:
   - rive
   - luau
@@ -11,6 +11,10 @@ keywords:
   - assets
   - image
   - imagefilter
+  - blob
+  - audio
+  - audiosound
+  - gputextureview
 ---
 import Term from '@site/src/components/Term';
 
@@ -59,6 +63,22 @@ textures = {{ slot = 1, view = image:view() }}
 ```
 
 **See Also:** [<Term>Renderer</Term>.drawImage](./drawing#rendererdrawimageimage-sampler-blendmode-opacity), [GPU Shaders](./gpu-shaders#image-color-and-buffer-utilities)
+
+### `GPUTextureView.format`
+
+The pinned runtime source declares a texture-view format field, but the August
+14 Rive Beta MCP probe could not read it:
+
+```lua
+local texture = GPUTexture.new({ width = 64, height = 64, renderTarget = true })
+local view = texture:view()
+print(view.format) -- Live failure: attempt to index userdata with 'format'
+```
+
+Treat this as source-only Early Access material, not a working Editor property.
+The same live build executed GPU constructors and ranged `GPUBuffer` writes
+despite reporting the GPU constructor globals as unknown in the analyzer; that
+analyzer/runtime mismatch does not make `format` usable.
 
 ---
 
@@ -120,7 +140,9 @@ Defines how texture coordinates outside the [0, 1] range are handled.
 
 ## Blob
 
-Binary data asset accessed via `context:blob(name)`.
+Binary data can arrive either as an asset lookup or as a data-bound property.
+These are separate APIs: `context:blob(name)` resolves a packaged asset, while
+`viewModel:getBlob(name)` returns a mutable `Property<Blob>`.
 
 ### Attributes
 
@@ -130,7 +152,12 @@ Binary data asset accessed via `context:blob(name)`.
 | `size` | number | Data size in bytes (read-only) |
 | `data` | buffer | Raw binary data (read-only) |
 
-**See Also:** [Context](./data-input#context)
+**See Also:** [Context](./data-input#context), [Property&lt;Blob&gt;](./data-values#propertyblob)
+
+An empty string or empty buffer assigned to a `Property<Blob>` creates a real
+zero-byte Blob. Assigning `nil` clears the property. Repeated reads of an
+unchanged asset-valued property preserve wrapper identity; a replacement
+invalidates the cached wrapper.
 
 ---
 
@@ -208,6 +235,34 @@ Stops playback.
 ```lua
 sound:stop()
 ```
+
+#### `sound:pause()`
+
+Pauses playback.
+
+```lua
+sound:pause()
+```
+
+#### `sound:resume()`
+
+Resumes paused playback.
+
+```lua
+sound:resume()
+```
+
+#### `sound:play()`
+
+Starts or restarts playback for this sound instance.
+
+```lua
+sound:play()
+```
+
+The current Editor reference and analyzer accept these three transport
+methods. The August 14 probe did not execute the calls, so this is static
+Editor evidence rather than runtime playback evidence.
 
 #### `sound:seek(seconds)`
 

@@ -10,6 +10,55 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.3.0] — 2026-08-14
+
+### Changed
+
+- **Runtime boundary refresh** — aligned the compatibility record to released
+  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept the parser canary
+  `runtime-v0.1.272` separate.
+- **Retired `drawCanvas` migration** — removed the callback from active Node,
+  Layout, lifecycle, quick-reference, shader, and lab guidance. Canvas and
+  GPUCanvas recording now belongs in `draw(self, renderer)` with balanced
+  frame/pass completion.
+- **Expanded callable API coverage** — documented source-confirmed 3D Vector
+  (`xyz`, `cross3`, buffer writes), `Mat4.lookAt`/`ortho`, partial GPU buffer
+  writes, source-only GPU texture-view format, Global ViewModels, Font/Blob
+  properties, and library-scoped assets with explicit rollout tiers.
+- **Lifecycle and correctness guidance** — covered detached ViewModel advance,
+  input wake-up, collapsed-node behavior, async context retention, converter
+  safety, unsigned colors, scripted clipping, TextInput behavior, stable asset
+  identity, and deferred Early Access GPU allocation.
+- **API boundaries** — marked host/embedder APIs and editor/export metadata
+  (including FileFormat/TextFileFormat and retired method bits) as non-callable
+  Luau surfaces.
+- **Deterministic discovery feeds** — AI feed generation now honors
+  `SOURCE_DATE_EPOCH` and otherwise derives a stable timestamp from this newest
+  release heading, so required generation and production builds are
+  byte-identical when source content is unchanged.
+- **[Errata LERP-GAP-017](./rive/rive-doc-errata)** — recorded the August 14
+  MCP-driven Rive Beta 0.8.5390 build 5377 validation of Vector/Mat4 math,
+  buffer writes, Mat2D/Mat4 equality, typed ViewModel lookups, the explicit
+  `any` cast required for Blob string/buffer/`nil` runtime writes, a successful
+  ranged GPUBuffer write with both overflow rejections, and the failed live
+  `GPUTextureView.format` access. Context global-VM, imported-library, broader
+  GPU lifecycle, and released Web 2.40.0 behavior remain unexecuted.
+- **[Errata LERP-ERR-018](./rive/rive-doc-errata)** — reconciled the complete
+  event surface to the live Editor reference and a diagnostics-clean analyzer
+  probe: current event names, exact `PointerType`, full gamepad payloads,
+  ListenerContext guards/accessors, and Node callbacks. Historical
+  `*Invocation` wrapper names are now source/runtime compatibility notes rather
+  than current Editor authoring guidance. The same probe accepted
+  `AudioSound:pause/resume/play`; event dispatch and audio calls remain
+  runtime-unexecuted.
+
+### Added
+
+- `learn_luau_rive_scripts/runtime-v0262-surface.luau` as the focused static/LSP
+  reconciliation fixture for the new math, ViewModel, and lifecycle surface.
+
+---
+
 ## [1.2.12] — 2026-06-14
 
 ### Added

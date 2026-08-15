@@ -11,8 +11,8 @@ keywords:
 
 # LERP Rive Documentation Errata Tracker
 
-Last revalidated against runtime baseline: 2026-06-04 (`2.37.8` public npm line; source-level API snapshot `runtime-v0.1.106` / `5360c834`; shader/GPU editor workflow remains Early Access only)
-Last editor-validated errata batch: 2026-06-12 (Rive Early Access editor, live instrumented probe scripts and Test-protocol runtime checks via the Rive MCP)
+Last revalidated against the released runtime boundary: 2026-08-14 (`2.40.0` Web line -> C++ `runtime-v0.1.271`; shader/GPU editor workflow remains Early Access only). Historical errata entries retain their original evidence dates.
+Last editor-validated errata batch: 2026-08-14 (Rive Beta 0.8.5390 build 5377, MCP-driven Tests-protocol runtime validation plus current event-reference analyzer probe)
 Initial errata tracker open date: 2026-04-26
 
 Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
@@ -39,6 +39,8 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-ERR-018 | Event names and gamepad payloads | resolved | high | Current-facing pages used historical `*Invocation` wrapper names, extra PointerEvent fields, and a stale generic gamepad payload instead of the Editor-reference event names and connected/event/disconnected triad. |
+| LERP-GAP-017 | Runtime surface/editor type boundary | resolved | high | August 14 MCP validation records runtime passes for matrix equality and ranged GPUBuffer writes, the failed GPUTextureView format access, analyzer-only event/audio coverage, and the remaining Context/library/GPU/Web boundaries. |
 | LERP-GAP-016 | While loops / script timeout recovery | resolved | high | Resolved in LERP on 2026-06-14 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): the submitted `Exercise4_WhileCountdown` file froze the Rive editor because its `while energy > 0 do` loop incremented `steps` but never changed `energy`, so `init()` never returned. Course now warns at the general while-loop section and inside the exercise itself. |
 | LERP-ERR-015 | Path winding / fill rule | resolved | high | Resolved in LERP on 2026-06-12 after a report from GitHub user [belal-sweileh](https://github.com/ivg-design/lerp/issues/2): Exercise 3's described point order wound the triangle counter-clockwise, which the current clockwise-fill renderer does not draw; exercise reordered and winding rule documented. |
 | LERP-ERR-011 | Node protocol | resolved | high | Resolved in LERP on 2026-06-12: `draw` was documented as required for add-menu listing; editor-validated that draw-less Node scripts list, place, and run. |
@@ -55,6 +57,138 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-ERR-018 - Current Editor event names and gamepad triad {#lerp-err-018}
+
+Status: resolved in LERP 2026-08-14
+
+Severity: high
+
+Reported by:
+
+- MCP comparison against the live Rive Editor built-in `rive/artboards` and
+  `rive/interfaces` scripting references
+
+Affected local docs before fix:
+
+- `docs/api/events.mdx`
+- `docs/quick-reference.mdx`
+- `docs/rive/protocols/listener-action-protocol.mdx`
+- `docs/rive/protocols/node-protocol.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/runtime-compatibility.mdx`
+- `docs/rive/script-capability-matrix.mdx`
+- `docs/rive/script-types.mdx`
+
+What was wrong:
+
+- Current-facing event sections used the historical runtime wrapper names
+  `KeyboardInvocation`, `TextInputInvocation`, `FocusInvocation`,
+  `ReportedEventInvocation`, `ViewModelChangeInvocation`, and `NoneInvocation`
+  instead of the current Editor names `KeyboardEvent`, `TextInput`,
+  `FocusEvent`, `ReportedEvent`, `ViewModelChange`, and `NoneEvent`.
+- `PointerEvent` claimed `previousPosition` and `timeStamp`, which are not
+  fields in the current Editor reference; `type` was documented as a plain
+  string instead of the exact `PointerType` union.
+- Gamepad guidance collapsed all payloads into stale
+  `isGamepad()` / `asGamepad()` / `GamepadInvocation` APIs with an `axis0`
+  field. The current reference uses three distinct connected, changed, and
+  disconnected payloads.
+- `ReportedEvent.delaySeconds` was presented as current even though the current
+  Editor `ReportedEvent` reference exposes no public fields. That property is
+  evidenced only on the historical runtime `ReportedEventInvocation` wrapper.
+
+Evidence:
+
+- `rive/artboards` returned the exact `PointerType`, `PointerEvent`, `KeyPhase`,
+  event payload, gamepad field/method, and `ListenerContext` definitions.
+- `rive/interfaces` returned the exact optional Node callbacks
+  `gamepadConnected`, `gamepadEvent`, and `gamepadDisconnected`.
+- A temporary Tests script covering all of those types, fields, guards,
+  accessors, and Node callbacks recompiled with diagnostics `[]`. The probe was
+  removed; the original three `LERP_130_Runtime_Surface_Tests` cases still
+  passed and final diagnostics remained clean.
+- Pinned `runtime-v0.1.262` source confirms why older names exist:
+  `rive_lua_libs.hpp` and `lua_listener_invocation.cpp` register the historical
+  `*Invocation` Lua userdata wrappers, while that same source snapshot already
+  implements the three-way gamepad surface.
+
+Untested boundary:
+
+- The analyzer probe did not synthesize keyboard, focus, reported,
+  view-model-change, or hardware gamepad events. It proves current Editor type
+  acceptance, not runtime dispatch or released Web `2.40.0` behavior.
+
+Fix implemented in LERP (2026-08-14):
+
+- Replaced all current-facing event signatures with the exact Editor reference.
+- Added full gamepad state/change fields, query methods, ListenerContext triad,
+  and Node callbacks.
+- Moved old `*Invocation` names into explicitly historical/source-runtime
+  compatibility notes and removed unsupported current-facing fields.
+- Updated the compatibility matrix and changelog so analyzer acceptance,
+  source confirmation, runtime dispatch, and released Web claims remain
+  separate.
+
+---
+
+## LERP-GAP-017 - August 14 runtime surface validation and editor type-check boundary {#lerp-gap-017}
+
+Status: resolved in LERP 2026-08-14 (was gap)
+
+Severity: high
+
+Reported by:
+
+- MCP-driven live validation in a fresh Untitled composition, Rive Beta 0.8.5390 build 5377
+
+Affected local docs before fix:
+
+- `docs/api/core-types.mdx`
+- `docs/api/data-input.mdx`
+- `docs/api/data-values.mdx`
+- `docs/advanced/viewmodels.mdx`
+- `docs/rive/runtime-compatibility.mdx`
+
+Evidence:
+
+- The real Tests-protocol script `LERP_130_Runtime_Surface_Tests` recompiled successfully with final diagnostics `[]`.
+- `Vector.xyz`, `Vector.cross3`, vector buffer writes, and `Mat4.lookAt`/`Mat4.ortho` composition and `writeToBuffer` all passed.
+- `Mat2D` and `Mat4` equality passed live: identity matrices compared equal and translated matrices compared unequal.
+- `ViewModel1` exposed `fontProp: Property<Font>`, `imageProp: Property<Image>`, and `payload: Property<Blob>`. Typed `getBlob`/`getFont`/`getImage` lookup, missing/null behavior, and Blob string/buffer/`nil` runtime writes passed after an explicit `payload :: any` cast.
+- Before that cast, the current editor analyzer rejected the string, buffer, and `nil` setters with `Expected this to be Blob`. The course now teaches this distinction instead of presenting the runtime-accepted forms as unconditionally type-safe.
+- `Data.ViewModel1.new('name')` returned `nil`; `Data.ViewModel1.new()` succeeded.
+- `GPUBuffer:write(source, destinationOffset, sourceOffset, byteLength)` executed successfully for a valid range; both source- and destination-overflow probes were rejected.
+- The runtime executed `GPUBuffer`/`GPUTexture` constructors even though the current Editor analyzer reported those names as unknown globals.
+- `GPUTextureView.format` was executed and failed with `attempt to index userdata with 'format'`.
+- A temporary exact-reference probe accepted the current event/gamepad surface and `AudioSound:pause()`, `resume()`, and `play()` with diagnostics `[]`; this is analyzer evidence, not runtime dispatch/call evidence.
+
+Untested boundaries:
+
+- `Context:globalViewModel()` and `Context:globalViewModelNames()` were not executed.
+- Imported-library blob/shader resolution was not executed.
+- Event/gamepad dispatch and the `AudioSound` transport calls were not executed.
+- The broader GPUCanvas/render-pass/shader lifecycle was not executed and remains Early Access material. The ranged GPUBuffer operation is the narrow live exception; `GPUTextureView.format` is a recorded live failure, not an untested surface.
+- Released Web `2.40.0` behavior was not established by this editor probe.
+
+Why this matters:
+
+The runtime source snapshot, editor analyzer, and runtime behavior do not form
+one undifferentiated availability claim. Learners need the editor-confirmed
+subset, the explicit Blob cast requirement, the narrow GPUBuffer pass, the
+GPUTextureView failure, and the still-unexecuted Context/library/broader-GPU/Web
+boundaries to remain visible when choosing APIs for a course exercise.
+
+Fix implemented in LERP (2026-08-14):
+
+- Added this traceable errata entry and linked it from the 1.3.0 changelog.
+- Updated the core-types, ViewModel, data-value, and compatibility guidance with the Beta validation tier and the uncast Blob setter diagnostic.
+- Preserved preview/rollout-dependent wording for released Web, Context, imported-library, and broader GPU surfaces while recording the exact GPUBuffer pass and GPUTextureView failure.
+- Machine-readable validation evidence is retained with the 2026-08-14
+  release-suite run at `evidence/rive-editor/rive-editor-validation-2026-08-14.json`;
+  it is release evidence, not a public course route.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 sidebar_position: 5
 title: Events
-description: PointerEvent plus ListenerContext payload invocations for listener-driven scripts
+description: Current Editor event types, ListenerContext payloads, and Node gamepad callbacks
 keywords:
   - rive
   - luau
@@ -22,7 +22,17 @@ import Quiz from '@site/src/components/Quiz';
 APIs for pointer interactions and listener-trigger payloads.
 
 :::info Runtime baseline
-This page reflects the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8`, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This page reflects the released Web `2.40.0` -> C++ `runtime-v0.1.271` boundary, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
+:::note August 14 Editor reference validation
+The names and signatures below were revalidated through the Rive MCP against
+the built-in `rive/artboards` and `rive/interfaces` references in Rive Beta
+0.8.5390 build 5377. A temporary Tests script covering the complete surface
+recompiled with diagnostics `[]`; the original three runtime cases still
+passed after the probe was removed. This proves Editor analyzer acceptance, not
+hardware gamepad dispatch or the released Web runtime path. Those evidence
+tiers remain separate in the compatibility page.
 :::
 
 ---
@@ -30,6 +40,26 @@ This page reflects the June 4, 2026 compatibility baseline: public npm runtime l
 ## PointerEvent
 
 Pointer interaction event data.
+
+### `PointerType`
+
+The current Editor reference types `PointerEvent.type` with this string union:
+
+```lua
+export type PointerType =
+    "pointerEnter"
+    | "pointerExit"
+    | "pointerDown"
+    | "pointerUp"
+    | "pointerMove"
+    | "click"
+    | "pointerDrag"
+    | "unknown"
+```
+
+The upstream reference still labels the standalone alias "Coming soon," even
+though the current Editor reference exposes it and uses it for
+`PointerEvent.type`. It is a type alias, not a runtime enum table.
 
 ### Constructor
 
@@ -54,9 +84,7 @@ local childEvent = PointerEvent.new(event.id, childPos)
 |-----------|------|-------------|
 | `position` | Vector | Local coordinates |
 | `id` | number | Pointer ID (for multitouch) |
-| `type` | string | Event type (`pointerDown`, `pointerUp`, `pointerMove`, `pointerExit`, `pointerEnter`, `click`, `pointerDrag`, `unknown`) |
-| `previousPosition` | Vector | Previous pointer position (when available) |
-| `timeStamp` | number | Event timestamp (seconds) |
+| `type` | `PointerType` | Current event-kind string |
 
 ### Methods
 
@@ -99,19 +127,23 @@ end
 - `listenerContext:isFocus()`
 - `listenerContext:isReportedEvent()`
 - `listenerContext:isViewModelChange()`
-- `listenerContext:isGamepad()`
+- `listenerContext:isGamepadConnected()`
+- `listenerContext:isGamepadEvent()`
+- `listenerContext:isGamepadDisconnected()`
 - `listenerContext:isNone()`
 
 ### Typed Accessors
 
 - `listenerContext:asPointerEvent(): PointerEvent?`
-- `listenerContext:asKeyboardEvent(): KeyboardInvocation?`
-- `listenerContext:asTextInput(): TextInputInvocation?`
-- `listenerContext:asFocus(): FocusInvocation?`
-- `listenerContext:asReportedEvent(): ReportedEventInvocation?`
-- `listenerContext:asViewModelChange(): ViewModelChangeInvocation?`
-- `listenerContext:asGamepad(): GamepadInvocation?`
-- `listenerContext:asNone(): NoneInvocation?`
+- `listenerContext:asKeyboardEvent(): KeyboardEvent?`
+- `listenerContext:asTextInput(): TextInput?`
+- `listenerContext:asFocus(): FocusEvent?`
+- `listenerContext:asReportedEvent(): ReportedEvent?`
+- `listenerContext:asViewModelChange(): ViewModelChange?`
+- `listenerContext:asGamepadConnected(): GamepadConnected?`
+- `listenerContext:asGamepadEvent(): GamepadEvent?`
+- `listenerContext:asGamepadDisconnected(): GamepadDisconnected?`
+- `listenerContext:asNone(): NoneEvent?`
 
 ### Safe Branching Example
 
@@ -132,10 +164,10 @@ function performAction(self: MyAction, listenerContext: ListenerContext)
         if evt then
             print("text:", evt.text)
         end
-    elseif listenerContext:isGamepad() then
-        local evt = listenerContext:asGamepad()
+    elseif listenerContext:isGamepadEvent() then
+        local evt = listenerContext:asGamepadEvent()
         if evt then
-            print("gamepad:", evt.deviceId, evt.buttonMask, evt.axis0)
+            print("gamepad change:", evt.changeKind, evt.changeIndex, evt.changeValue)
         end
     end
 end
@@ -143,9 +175,13 @@ end
 
 ---
 
-## KeyboardInvocation
+## KeyboardEvent
 
 Keyboard payload exposed via `listenerContext:asKeyboardEvent()`.
+
+```lua
+export type KeyPhase = "down" | "repeat" | "up"
+```
 
 | Field | Type | Description |
 |---|---|---|
@@ -154,11 +190,11 @@ Keyboard payload exposed via `listenerContext:asKeyboardEvent()`.
 | `control` | boolean | Control modifier active |
 | `alt` | boolean | Alt modifier active |
 | `meta` | boolean | Meta/Command modifier active |
-| `phase` | `"down" \| "repeat" \| "up"` | Key phase |
+| `phase` | `KeyPhase` | `"down"`, `"repeat"`, or `"up"` |
 
 ---
 
-## TextInputInvocation
+## TextInput
 
 Text input payload exposed via `listenerContext:asTextInput()`.
 
@@ -168,7 +204,7 @@ Text input payload exposed via `listenerContext:asTextInput()`.
 
 ---
 
-## FocusInvocation
+## FocusEvent
 
 Focus payload exposed via `listenerContext:asFocus()`.
 
@@ -178,39 +214,122 @@ Focus payload exposed via `listenerContext:asFocus()`.
 
 ---
 
-## ReportedEventInvocation
+## ReportedEvent
 
-`listenerContext:asReportedEvent()` is available, but payload exposure is currently limited in this runtime baseline.
-
-- Confirmed field: `delaySeconds`
-- Treat additional reported-event fields as compatibility-sensitive until validated in a newer baseline.
-
----
-
-## ViewModelChangeInvocation
-
-`listenerContext:asViewModelChange()` is available, but payload detail is currently minimal in this baseline (type presence + branching support).
+`listenerContext:asReportedEvent()` returns `ReportedEvent?`. The current Editor
+reference declares no public fields on this type, so current-facing examples
+must treat it as a presence/kind signal only.
 
 ---
 
-## GamepadInvocation
+## ViewModelChange
 
-Gamepad payload exposed via `listenerContext:asGamepad()`.
+`listenerContext:asViewModelChange()` returns `ViewModelChange?`. The current
+Editor reference declares no public fields on this type.
+
+---
+
+## Gamepad Events
+
+Gamepad listener payloads are three distinct types. Do not collapse them into a
+generic `GamepadInvocation`.
+
+```lua
+export type GamepadMappingKind = "standard" | "unknown"
+```
+
+### `GamepadConnected`
+
+Access with `isGamepadConnected()` and `asGamepadConnected()`.
 
 | Field | Type | Description |
 |---|---|---|
-| `deviceId` | number | Runtime gamepad device ID |
-| `buttonMask` | number | Bitmask of pressed buttons |
-| `axis0` | number | Primary analog axis value |
+| `deviceId` | number | Stable device ID for the logical gamepad session |
+| `buttonMask` | number | Pressed-button bitmask |
+| `buttons` | `{ number }` | 1-based analog button values |
+| `axes` | `{ number }` | 1-based analog axes |
+| `isStandardMapping` | boolean | Whether the embedder normalized the standard layout |
+| `mapping` | `GamepadMappingKind` | `"standard"` or `"unknown"` |
+| `gamepadMapping` | number | Raw mapping enum value (`0` standard, `1` unknown) |
+| `west`, `south`, `north`, `east` | boolean | Standard face-button state |
+| `leftShoulder`, `rightShoulder` | boolean | Shoulder-button state |
+| `back`, `forward`, `start` | boolean | Standard navigation/start-button state |
+| `leftStickButton`, `rightStickButton` | boolean | Stick-click state |
+| `dpadUp`, `dpadDown`, `dpadLeft`, `dpadRight` | boolean | Direction-pad state |
+| `leftStick`, `rightStick` | Vector | Analog stick vectors |
+| `leftTrigger`, `rightTrigger` | number | Analog trigger values |
+| `leftTriggerPressed`, `rightTriggerPressed` | boolean | Digital trigger-button state |
+
+Methods:
+
+- `event:buttonPressed(index: number): boolean`
+- `event:buttonValue(index: number): number`
+- `event:axis(index: number): number`
+
+The current reference documents these indices as 1-based.
+
+### `GamepadEvent`
+
+Access with `isGamepadEvent()` and `asGamepadEvent()`. It contains the same full
+device-state fields and query methods as `GamepadConnected`, plus:
+
+| Field | Type | Description |
+|---|---|---|
+| `changeKind` | string | `"button"` or `"axis"` |
+| `changeIndex` | number | 1-based button or axis index |
+| `changeValue` | number | New analog value |
+| `hasStandardButtonIntent` | boolean | Whether a standard button intent exists |
+| `hasStandardAxisIntent` | boolean | Whether a standard axis intent exists |
+| `intentButton` | string? | Optional semantic button intent |
+| `intentAxis` | string? | Optional semantic axis intent |
+
+### `GamepadDisconnected`
+
+Access with `isGamepadDisconnected()` and `asGamepadDisconnected()`. It exposes
+only `deviceId: number`.
+
+### Node Gamepad Callbacks
+
+The current Editor `Node<T>` reference exposes these optional callbacks:
+
+```lua
+function gamepadConnected(self: MyNode, event: GamepadConnected)
+    print("connected", event.deviceId, event.mapping)
+end
+
+function gamepadEvent(self: MyNode, event: GamepadEvent)
+    print(event.changeKind, event.changeIndex, event.changeValue)
+end
+
+function gamepadDisconnected(self: MyNode, event: GamepadDisconnected)
+    print("disconnected", event.deviceId)
+end
+```
 
 ---
 
-## NoneInvocation
+## NoneEvent
 
-Fallback event shape for unsupported/unknown listener invocations.
+Fallback event shape for unknown or unsupported listener event kinds. The
+current Editor reference declares no public fields.
 
 - Check with `listenerContext:isNone()`
 - Access with `listenerContext:asNone()`
+
+---
+
+## Historical Runtime Wrapper Names
+
+The pinned `runtime-v0.1.262` source snapshot still uses Lua userdata wrapper
+names such as `KeyboardInvocation`, `TextInputInvocation`, `FocusInvocation`,
+`ReportedEventInvocation`, `ViewModelChangeInvocation`, and `NoneInvocation`.
+It also exposes `delaySeconds` on that historical reported-event wrapper. These
+names explain older source and LERP material; they are not the type names in the
+current Editor reference and should not be used for new Editor-authored code.
+
+The generic `GamepadInvocation` / `isGamepad()` / `asGamepad()` shape previously
+shown by LERP is not the current reference contract. Current gamepad code must
+use the connected/event/disconnected triad above.
 
 ---
 
@@ -229,19 +348,19 @@ See [Data & Input: Trigger](./data-input#inputtrigger) for the `Trigger` type re
     { text: "Use perform(self, pointerEvent) only, even for keyboard/text listeners." },
     { text: "ListenerAction events always contain keyboard fields." },
   ]}
-  explanation="ListenerContext is a tagged union. Use is... guards first, then the matching as... accessor. This applies to pointer, keyboard, text, focus, reported, gamepad, and none invocations."
+  explanation="ListenerContext is a tagged union. Use is... guards first, then the matching as... accessor. Gamepad payloads have separate connected, event, and disconnected branches."
 />
 
 <Quiz
-  question="Which GamepadInvocation field is currently exposed in ListenerContext payloads?"
+  question="Which guard reads a changed gamepad button or axis payload?"
   id="api-events-q2"
   options={[
-    { text: "thumbstickY" },
-    { text: "buttonMask", correct: true },
-    { text: "vendorName" },
-    { text: "batteryPercent" },
+    { text: "isGamepad()" },
+    { text: "isGamepadConnected()" },
+    { text: "isGamepadEvent()", correct: true },
+    { text: "isGamepadDisconnected()" },
   ]}
-  explanation="At this runtime baseline, GamepadInvocation exposes `deviceId`, `buttonMask`, and `axis0`."
+  explanation="Use isGamepadEvent(), then asGamepadEvent(), for a button or axis change. Connection and disconnection are separate payload kinds."
 />
 
 ## Next Steps

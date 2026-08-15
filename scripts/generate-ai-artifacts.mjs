@@ -9,6 +9,39 @@ const staticDir = path.join(root, 'static');
 const wellKnownDir = path.join(staticDir, '.well-known');
 const canonicalBase = 'https://forge.mograph.life/apps/lerp';
 
+function resolveGeneratedAt() {
+  const sourceDateEpoch = process.env.SOURCE_DATE_EPOCH;
+  if (sourceDateEpoch !== undefined) {
+    if (!/^\d+$/.test(sourceDateEpoch)) {
+      throw new Error('SOURCE_DATE_EPOCH must be a non-negative integer number of seconds.');
+    }
+
+    const seconds = Number(sourceDateEpoch);
+    const timestamp = new Date(seconds * 1000);
+    if (!Number.isSafeInteger(seconds) || Number.isNaN(timestamp.getTime())) {
+      throw new Error('SOURCE_DATE_EPOCH is outside the supported JavaScript date range.');
+    }
+    return timestamp.toISOString();
+  }
+
+  const changelog = fs.readFileSync(path.join(docsDir, 'changelog.mdx'), 'utf8');
+  const releaseDateMatch = changelog.match(
+    /^## \[[^\]]+\]\s+(?:—|-)\s+(\d{4}-\d{2}-\d{2})\s*$/m,
+  );
+  if (!releaseDateMatch) {
+    throw new Error(
+      'Unable to derive a stable artifact timestamp from docs/changelog.mdx; set SOURCE_DATE_EPOCH.',
+    );
+  }
+
+  const releaseDate = releaseDateMatch[1];
+  const timestamp = new Date(`${releaseDate}T00:00:00.000Z`);
+  if (Number.isNaN(timestamp.getTime()) || timestamp.toISOString().slice(0, 10) !== releaseDate) {
+    throw new Error(`Invalid release date in docs/changelog.mdx: ${releaseDate}`);
+  }
+  return timestamp.toISOString();
+}
+
 function slugify(value) {
   return value
     .toLowerCase()
@@ -170,10 +203,10 @@ function buildDocuments() {
   return Array.from(byUrl.values());
 }
 
-function writeLlmsFull(documents) {
+function writeLlmsFull(documents, generatedAt) {
   const lines = [];
   lines.push('# LERP Full Knowledge Surface (llms-full)');
-  lines.push(`Generated: ${new Date().toISOString()}`);
+  lines.push(`Generated: ${generatedAt}`);
   lines.push(`Canonical: ${canonicalBase}/`);
   lines.push('Scope: Complete documentation route inventory with page metadata for AI retrieval and citation.');
   lines.push('');
@@ -206,10 +239,10 @@ function writeLlmsFull(documents) {
   fs.writeFileSync(path.join(wellKnownDir, 'llms-full.txt'), `See: ${canonicalBase}/llms-full.txt\n`);
 }
 
-function writeAiFeed(documents) {
+function writeAiFeed(documents, generatedAt) {
   const feed = {
     version: '1.0',
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     canonical: `${canonicalBase}/`,
     site: {
       name: 'LERP',
@@ -362,8 +395,9 @@ if (!fs.existsSync(docsDir)) {
 
 fs.mkdirSync(wellKnownDir, { recursive: true });
 const documents = buildDocuments().sort((a, b) => a.url.localeCompare(b.url));
-writeLlmsFull(documents);
-writeAiFeed(documents);
+const generatedAt = resolveGeneratedAt();
+writeLlmsFull(documents, generatedAt);
+writeAiFeed(documents, generatedAt);
 writeCourseSitemap(documents);
 writeHtmlSiteMap(documents);
 

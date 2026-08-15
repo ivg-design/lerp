@@ -26,9 +26,9 @@ Each lab has one `.wgsl` shader asset and one `.luau` <Term>Node</Term> script. 
 
 - create resources in local non-null variables in `init`
 - use typed descriptor locals for pipeline and bind-group arrays
-- do GPU render-pass work in `drawCanvas`
+- do GPU render-pass work at the start of `draw`, before compositing
 - composite `GPUCanvas.image` in `draw`
-- return early from `drawCanvas` when any optional GPU handle is missing
+- return early from `draw` when any optional GPU handle is missing
 
 ---
 
@@ -118,7 +118,7 @@ Checkpoints:
 - `hello_triangle.wgsl` is loaded with `context:shader("hello_triangle")`
 - vertex data is packed as `position.xy, color.rgb`
 - `makeTriangleVertexLayout()` returns `{ VertexBufferLayout }`
-- `drawCanvas` begins and finishes one render pass
+- `draw` begins and finishes one render pass before compositing
 - `draw` composites `gpu.image`
 
 This is the base template for a new shader node. If this lab fails, do not move on to image sampling or multi-pass rendering yet.

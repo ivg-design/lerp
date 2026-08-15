@@ -76,6 +76,27 @@ Use Util scripts for:
 - Reusable data structures (springs, timers, palettes)
 - Constants and configuration
 
+## Library scope and dependency resolution
+
+When a Util, shader, or Blob is exported through an imported library, asset
+lookup can be scoped explicitly:
+
+```lua
+context:shader("bareName")
+context:shader("lib:LibraryLabel/path/to/shader")
+context:blob("bareName")
+context:blob("lib:LibraryLabel/path/to/blob")
+```
+
+Inside an imported library, a bare name prefers that library's scope and then
+host assets. At host scope, a bare name does not leak into a versioned library.
+Use the `lib:<label>/...` form when the authoring contract depends on a
+particular library. Export rewrites `require` dependencies to versioned flat
+keys (for example `draco@2/mesh`) so multiple library versions can coexist;
+trace output may show those keys. This is runtime/export source evidence from
+the v0.1.262 impact snapshot, not a promise that every editor/Web lane has the
+same library packaging behavior.
+
 :::note Key Difference
 Unlike Node scripts, Util scripts have no `init`, `draw`, or `advance` functions. They are pure modules that export functions and types.
 :::

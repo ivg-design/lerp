@@ -23,7 +23,7 @@ Essential data types for positions, colors, and 2D/3D transformations.
 
 ## Vector
 
-2D vector type for positions, directions, and sizes. Vector components are **read-only** and operations return new vectors.
+Vector type for positions, directions, and sizes. `Vector.xy` creates a 2D vector; the runtime also supports a z component for 3D math. Components are **read-only** and operations return new vectors.
 
 > **Note:** Some examples may show `Vec2D` which is an alias for `Vector`.
 
@@ -50,6 +50,22 @@ Vector.xy(x: number, y: number): Vector
 local position = Vector.xy(100, 50)
 local direction = Vector.xy(1, 0)  -- Unit vector pointing right
 ```
+
+#### `Vector.xyz(x, y, z)`
+
+Creates a vector with an explicit z component. This is a runtime-v0.1.262
+source-level API; verify the selected editor and published Web runtime before
+using it in a production course exercise.
+
+```lua
+Vector.xyz(x: number, y: number, z: number): Vector
+
+local normal = Vector.xyz(0, 0, 1)
+```
+
+Focused validation in Rive Beta 0.8.5390 (build 5377) passed `Vector.xyz`,
+`Vector.cross3`, and vector buffer writes. This confirms the selected editor
+lane only; it does not establish availability in released Web 2.40.0.
 
 #### `Vector.origin()`
 
@@ -173,6 +189,37 @@ local c = Vector.cross(Vector.xy(1, 0), Vector.xy(0, 1))  -- 1
 ```
 
 **When to use:** Determining winding order (clockwise vs counter-clockwise), computing signed areas, checking which side of a line a point is on.
+
+#### `Vector.cross3(a, b)`
+
+Returns the 3D vector cross product. Do not substitute this for `Vector.cross`:
+`cross` returns the scalar z-component used by 2D winding/math, while `cross3`
+returns a `Vector`.
+
+```lua
+Vector.cross3(a: Vector, b: Vector): Vector
+
+local normal = Vector.cross3(Vector.xyz(1, 0, 0), Vector.xyz(0, 1, 0))
+-- Vector(0, 0, 1)
+```
+
+#### Buffer writes
+
+The target runtime can write vector components as `float32` values.
+`writeToBuffer` writes 12 bytes (`x`, `y`, `z`) and `writeVec4` writes 16
+bytes (`x`, `y`, `z`, `w`). Both validate destination bounds.
+
+```lua
+vector:writeToBuffer(destination: buffer, byteOffset: number): ()
+vector:writeVec4(destination: buffer, byteOffset: number, w: number): ()
+
+local bytes = buffer.create(32)
+Vector.xyz(1, 2, 3):writeToBuffer(bytes, 4) -- bytes 4..15
+Vector.xyz(1, 2, 3):writeVec4(bytes, 16, 1) -- bytes 16..31
+```
+
+Writing past the destination reports an error rather than silently truncating;
+cover both valid layouts and negative bounds cases in shader tests.
 
 #### `Vector.scaleAndAdd(a, b, scale)`
 
@@ -557,6 +604,9 @@ local combined = mat1 * mat2  -- Apply mat2 first, then mat1
 
 Returns true if all components are equal.
 
+The August 14 Rive Beta MCP runtime probe confirmed this operator: two identity
+`Mat2D` values compared equal and an identity/translated pair compared unequal.
+
 ```lua
 if mat1 == mat2 then
     print("Same transform")
@@ -602,6 +652,8 @@ Mat4.fromRotationY(radians: number): Mat4
 Mat4.fromRotationZ(radians: number): Mat4
 Mat4.perspective(fovY: number, aspect: number, near: number, far: number): Mat4
 Mat4.perspectiveReverseZ(fovY: number, aspect: number, near: number): Mat4
+Mat4.lookAt(eye: Vector, center: Vector, up: Vector): Mat4
+Mat4.ortho(left: number, right: number, bottom: number, top: number, near: number, far: number): Mat4
 Mat4.multiply(out: Mat4, a: Mat4, b: Mat4): Mat4
 Mat4.multiplyAffine(out: Mat4, a: Mat4, b: Mat4): Mat4
 Mat4.invert(out: Mat4, input: Mat4): boolean
@@ -628,6 +680,10 @@ Mat4 * Mat4 -> Mat4
 matA == matB -> boolean
 ```
 
+The August 14 Rive Beta MCP runtime probe confirmed `Mat4` equality: two
+identity matrices compared equal and an identity/translated pair compared
+unequal.
+
 ### Example
 
 ```lua
@@ -653,6 +709,18 @@ self.cameraBuffer:write(bytes, 0)
 ```
 
 For reverse-Z depth, use `Mat4.perspectiveReverseZ(...)`, clear depth to `0.0`, and use depth compare `"greater"`.
+
+`Mat4.lookAt` creates a right-handed view matrix. `Mat4.ortho` creates a
+right-handed orthographic projection with depth mapped to `[0, 1]`. These are
+math helpers for scripted rendering; they do not make the general Rive scene
+graph a 3D scene.
+
+```lua
+local eye = Vector.xyz(0, 0, 4)
+local view = Mat4.lookAt(eye, Vector.xyz(0, 0, 0), Vector.xyz(0, 1, 0))
+local projection = Mat4.ortho(-2, 2, -2, 2, 0.1, 100)
+local viewProjection = projection * view
+```
 
 ## Next Steps
 

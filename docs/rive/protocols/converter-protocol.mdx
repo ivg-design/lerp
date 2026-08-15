@@ -669,6 +669,13 @@ Your console output should display the formatted currency string.
 
 ---
 
+## Current runtime correctness notes
+
+The source snapshot hardens two-way converters against alternating DataValue
+types (for example Number to String and back) and guards an unhydrated converter before
+dereferencing it. The protocol signatures do not change: keep both conversion
+directions type-safe and test a two-way Number-to-String round trip.
+
 ## Self-Assessment Checklist
 
 - [ ] I understand when to use Converter Scripts

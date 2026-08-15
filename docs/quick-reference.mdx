@@ -21,7 +21,7 @@ See [Script Capability Matrix](/rive/script-capability-matrix) for a comprehensi
 :::
 
 :::info Need version-locked API status?
-See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for the current C++ WASM runtime release line (`2.37.8`), npm source pin (`bc560112`), source-level API snapshot (`runtime-v0.1.106`), and shader/GPU Early Access tier.
+See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for the released Web line (`2.40.0` -> C++ `runtime-v0.1.271`), separate parser canary pin, and shader/GPU Early Access tier.
 :::
 
 :::tip Writing scripts outside Rive?
@@ -67,14 +67,11 @@ return function(): Node<MyNode>
 end
 ```
 
-### Optional GPU/Canvas Phase
+### Canvas/GPU work inside `draw`
 ```lua
-function drawCanvas(self: MyNode)
-    -- Canvas:beginFrame(...) or GPUCanvas:beginRenderPass(...) work
-end
-
 function draw(self: MyNode, renderer: Renderer)
-    -- Composite canvas.image or gpuCanvas.image here
+    -- Pair Canvas:beginFrame/endFrame or GPUCanvas:beginRenderPass/finish.
+    -- Composite canvas.image or gpuCanvas.image with renderer here.
 end
 ```
 
@@ -82,8 +79,7 @@ end
 1. `init(self, context)` - once on start
 2. `update(self)` - when inputs change (NO context param!)
 3. `advance(self, seconds)` - every animation frame
-4. `drawCanvas(self)` - optional offscreen Canvas/GPUCanvas render phase
-5. `draw(self, renderer)` - on canvas repaint (keep pure, no state changes!)
+4. `draw(self, renderer)` - records optional offscreen Canvas/GPUCanvas work and composites on repaint
 
 ### Runtime Guardrails
 - Use pure Luau + Rive APIs; do not use Roblox runtime globals (`game`, `workspace`, `Instance`).
@@ -161,14 +157,25 @@ end
 ### ListenerContext Safe Payload Branching
 ```lua
 function performAction(self: MyAction, listenerContext: ListenerContext)
-    if listenerContext:isGamepad() then
-        local g = listenerContext:asGamepad()
+    if listenerContext:isGamepadEvent() then
+        local g = listenerContext:asGamepadEvent()
         if g then
-            print(g.deviceId, g.buttonMask, g.axis0)
+            print(g.changeKind, g.changeIndex, g.changeValue)
         end
+    elseif listenerContext:isGamepadConnected() then
+        local g = listenerContext:asGamepadConnected()
+        if g then print(g.deviceId, g.mapping, g.leftStick) end
+    elseif listenerContext:isGamepadDisconnected() then
+        local g = listenerContext:asGamepadDisconnected()
+        if g then print(g.deviceId) end
     end
 end
 ```
+
+Current Editor event names are `KeyboardEvent`, `TextInput`, `FocusEvent`,
+`ReportedEvent`, `ViewModelChange`, `NoneEvent`, `GamepadConnected`,
+`GamepadEvent`, and `GamepadDisconnected`. Older `*Invocation` names belong to
+pinned runtime-source compatibility, not new Editor-authored examples.
 
 ### Promise / async / await
 ```lua
@@ -242,7 +249,7 @@ function init(self: ShaderNode, context: Context): boolean
     return true
 end
 
-function drawCanvas(self: ShaderNode)
+function draw(self: ShaderNode, renderer: Renderer)
     if not self.pipeline or self.gpuCanvas.width == 0 then return end
     local pass = self.gpuCanvas:beginRenderPass({
         color = {{ loadOp = "clear", storeOp = "store", clearColor = { 0, 0, 0, 0 } }},
@@ -251,9 +258,6 @@ function drawCanvas(self: ShaderNode)
     pass:setVertexBuffer(0, self.vertexBuffer)
     pass:draw(self.vertexCount)
     pass:finish()
-end
-
-function draw(self: ShaderNode, renderer: Renderer)
     if self.gpuCanvas.width > 0 then
         renderer:drawImage(self.gpuCanvas.image, self.imageSampler, "srcOver", 1)
     end

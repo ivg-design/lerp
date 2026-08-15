@@ -23,7 +23,14 @@ import Term from '@site/src/components/Term';
 ListenerAction scripts run custom code when a <Term>State Machine</Term> listener event fires. Unlike [Listeners](./listener-protocol) (which are function signatures for `addListener()`), ListenerAction is a **script type** that you attach to state machine listener events.
 
 :::info Runtime baseline
-This page is aligned to the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8`, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This page is aligned to the August 14, 2026 compatibility baseline: released Web runtime line `@rive-app/*@2.40.0` backed by C++ `runtime-v0.1.271`, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
+:::note Current Editor type surface
+The current Rive Editor analyzer accepts `KeyboardEvent`, `TextInput`,
+`FocusEvent`, `ReportedEvent`, `ViewModelChange`, `NoneEvent`, and the three
+gamepad payload types below. Older `*Invocation` names remain relevant when
+reading pinned runtime source, but are not the current Editor reference names.
 :::
 
 **When to use ListenerAction scripts:**
@@ -79,14 +86,21 @@ end
 
 | Guard | Accessor | Typical fields |
 |---|---|---|
-| `isPointerEvent()` | `asPointerEvent()` | `id`, `position`, `type`, `previousPosition`, `timeStamp` |
-| `isKeyboardEvent()` | `asKeyboardEvent()` | `key`, `shift`, `control`, `alt`, `meta`, `phase` |
-| `isTextInput()` | `asTextInput()` | `text` |
-| `isFocus()` | `asFocus()` | `isFocus` |
-| `isReportedEvent()` | `asReportedEvent()` | `delaySeconds` (payload is limited at this baseline) |
-| `isViewModelChange()` | `asViewModelChange()` | kind/presence only (payload is limited at this baseline) |
-| `isGamepad()` | `asGamepad()` | `deviceId`, `buttonMask`, `axis0` |
-| `isNone()` | `asNone()` | fallback/unknown kind |
+| `isPointerEvent()` | `asPointerEvent(): PointerEvent?` | `id`, `position`, `type: PointerType` |
+| `isKeyboardEvent()` | `asKeyboardEvent(): KeyboardEvent?` | `key`, `shift`, `control`, `alt`, `meta`, `phase: KeyPhase` |
+| `isTextInput()` | `asTextInput(): TextInput?` | `text` |
+| `isFocus()` | `asFocus(): FocusEvent?` | `isFocus` |
+| `isReportedEvent()` | `asReportedEvent(): ReportedEvent?` | Presence/kind only in the current Editor reference |
+| `isViewModelChange()` | `asViewModelChange(): ViewModelChange?` | Presence/kind only in the current Editor reference |
+| `isGamepadConnected()` | `asGamepadConnected(): GamepadConnected?` | Full connected-device state |
+| `isGamepadEvent()` | `asGamepadEvent(): GamepadEvent?` | Change metadata plus full device state |
+| `isGamepadDisconnected()` | `asGamepadDisconnected(): GamepadDisconnected?` | `deviceId` |
+| `isNone()` | `asNone(): NoneEvent?` | Fallback/unknown kind |
+
+For gamepad state, the current reference includes `buttons`, `axes`, mapping
+metadata, named standard buttons, stick vectors, triggers, and the
+`buttonPressed`, `buttonValue`, and `axis` query methods. See the
+[Events API](/api/events#gamepad-events) for the complete field map.
 
 ### `perform(self, pointerEvent)` — Legacy/Deprecated
 

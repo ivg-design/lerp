@@ -936,6 +936,20 @@ ANSWER: 75%
 
 ---
 
+## TextInput behavior boundary
+
+Current TextInput behavior includes focus/cursor visibility, selection clearing
+on focus loss, clamped scrolling, Home/End and Shift+Home/End, Cmd/Ctrl+A,
+double-click word selection, and triple-click line selection. These are editor
+and runtime behavior corrections, not new Luau keyboard/text callback names.
+The pinned runtime source still contains `keyboardEvent` / `textEvent`
+callbacks with historical `KeyboardInvocation` / `TextInputInvocation`
+wrappers, but the August 14 current Editor `Node<T>` reference does not list
+those callbacks. In `ListenerContext`, the current Editor payload types are
+`KeyboardEvent` and `TextInput`. Do not invent TextInput methods in a script
+lesson, and confirm the editor node-setting surface before giving UI
+instructions.
+
 ## Knowledge Check
 
 <Quiz

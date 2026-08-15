@@ -23,7 +23,16 @@ Use this page when you need exact boundaries such as:
 - "Where do script inputs actually come from?"
 
 :::info Runtime baseline
-Matrix details are aligned to the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8` plus source-level API snapshot `runtime-v0.1.106`. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+Matrix details use the accepted released Web boundary `2.40.0` -> C++ `runtime-v0.1.271`; newer source findings are labelled preview/canary. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+:::
+
+:::warning Three separate truths
+Runtime source registration, public documentation, and editor/release
+availability are separate claims. Parser JSON fields, serialized implemented
+method bits, `scriptProtocolValue`, dependency verification, and FileFormat /
+TextFileFormat metadata are not callable Luau APIs. Native host methods such as
+`StateMachineInstance:keyInput`, global-model binding, logging sinks, and
+module trace labels are also not Luau contracts.
 :::
 
 ---
@@ -34,8 +43,8 @@ This is the quickest way to see all runtime callback parameters by script type.
 
 | Script Type | Required Callbacks | Callback Parameters You Get |
 |-------------|--------------------|-----------------------------|
-| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), no-argument canvas phase (`drawCanvas`), `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`), keyboard/text invocations (`keyboardEvent`, `textEvent`) |
-| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), no-argument canvas phase (`drawCanvas`), `seconds: number` (`advance`) |
+| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`), current Editor-reference gamepad payloads (`gamepadConnected/Event/Disconnected`); source/runtime-only keyboard/text callbacks are tracked separately |
+| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`) |
 | **Converter** | `convert`, `reverseConvert` | `input: DataInputs` (`convert`), `input: DataOutput` (`reverseConvert`), optional `context: Context` (`init`), optional `seconds: number` (`advance`) |
 | **Path Effect** | `update` | `inPath: PathData` + `node: NodeReadData` (`update`), `seconds: number` (`advance`), optional `context: Context` (`init`) |
 | **ListenerAction** | `performAction` | `listenerContext: ListenerContext` (`performAction`), optional `context: Context` (`init`) |
@@ -57,7 +66,7 @@ Legend: `✅` supported, `⚠️` conditional/indirect, `❌` not supported.
 | Read editor `Input<T>` fields | ✅ | ✅ | ⚠️ 1 | ✅ |
 | Access `Context` in `init` | ✅ | ✅ | ✅ | ✅ |
 | Custom render with `Renderer` | ✅ | ✅ | ❌ | ❌ |
-| Offscreen `Canvas` / `GPUCanvas` render phase | ⚠️ 5 | ⚠️ 5 | ❌ | ❌ |
+| Offscreen `Canvas` / `GPUCanvas` render work inside `draw` | ⚠️ 5 | ⚠️ 5 | ❌ | ❌ |
 | Receive `PointerEvent` directly | ✅ | ❌ | ❌ | ❌ |
 | Transform host `PathData` geometry | ❌ | ❌ | ❌ | ✅ |
 | Has per-frame callback | ✅ | ✅ | ⚠️ 4 | ✅ |
@@ -83,7 +92,7 @@ Notes:
 2. ListenerAction scripts are event-driven (`performAction(listenerContext)`). Pointer data is accessed through listener context when the listener event carries it.
 3. TransitionCondition scripts often use threshold-style inputs plus ViewModel/context state to decide `evaluate()`.
 4. Converter scripts can optionally define `advance(self, seconds)` for time-based conversion logic, but many converters are purely data-driven.
-5. Node and Layout scripts can use `drawCanvas(self)` for offscreen `Canvas` and early-access `GPUCanvas` render passes, then composite the resulting image from `draw(self, renderer)`.
+5. Node and Layout scripts merge offscreen `Canvas`/Early Access `GPUCanvas` render passes into `draw(self, renderer)` and composite the resulting image there. The retired `drawCanvas` name must not be added to new scripts.
 
 ### 2C) Script-by-Script Boundaries
 
@@ -105,7 +114,12 @@ Notes:
 3. **Nesting a Node script under a shape or group affects hierarchy behavior, not callback shape**. It changes local transform, inherited opacity, and draw order, but it does not pass an implicit host `NodeData` or parent `PathData` into Node callbacks.
 4. **`Listener<T>` is not a script type**; it is a function signature used by `addListener()`/`removeListener()` APIs.
 5. **Util/Test scripts are non-attached scripts**: Util is imported code; Test is manual test execution.
-6. **ListenerContext payload detail is not uniform across kinds** at this baseline (`ReportedEvent` and `ViewModelChange` are currently limited payloads).
+6. **ListenerContext payload detail is not uniform across kinds**. In the
+   August 14 current Editor reference, `ReportedEvent`, `ViewModelChange`, and
+   `NoneEvent` expose no public fields, while gamepad payloads use three
+   distinct connected/event/disconnected types with full state on the first
+   two. Historical `*Invocation` wrapper names belong to pinned runtime source,
+   not current Editor-authored examples.
 
 ---
 
@@ -122,7 +136,7 @@ Notes:
 | Need | Use |
 |------|-----|
 | Draw custom graphics every frame | **Node** (`draw`, optional `advance`) |
-| Render GPU shader effects or post-processing | **Node** or **Layout** with `drawCanvas` + `GPUCanvas`, preview / rollout-dependent |
+| Render GPU shader effects or post-processing | **Node** or **Layout** with merged `draw` + `GPUCanvas`, Early Access / rollout-dependent |
 | Position/size children in a layout | **Layout** (`resize`, optional `measure`) |
 | Transform binding values | **Converter** (`convert`, `reverseConvert`) |
 | Distort or rebuild existing shape path geometry | **Path Effect** (`update(inPath, node)`) |

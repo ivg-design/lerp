@@ -169,6 +169,60 @@ dv.alpha = 255
 
 **See Also:** [DataValue](#datavalue), [Color](./core-types#color)
 
+## Asset-valued properties
+
+ViewModel properties can carry opaque asset values in the target runtime.
+These are distinct from strings, buffers, and editor asset IDs.
+
+### `Property<Font>`
+
+`Property<Font>` reads an opaque `Font` userdata or `nil`:
+
+```lua
+local fontProperty: Property<Font>? = viewModel:getFont("font")
+if fontProperty then
+    local font = fontProperty.value
+    if font then
+        textStyle.fontAssetId = font
+    end
+end
+```
+
+The Luau setter accepts another `Font` userdata. It does not accept a string,
+buffer, or `nil`; a native host may clear the value with a null font. Keep the
+property handle alive when registering listeners.
+
+### `Property<Blob>`
+
+`Property<Blob>` reads a `Blob?`; the runtime accepts a Blob, buffer, string, or
+`nil`. In the current editor type checker, use an explicit `any` cast for
+these writable input forms:
+
+```lua
+local payload: Property<Blob>? = viewModel:getBlob("payload")
+if payload then
+    local writable = payload :: any
+    writable.value = buffer.fromstring("hello")
+    writable.value = "raw bytes"
+    local blob = payload.value
+    if blob and blob.data then
+        print(blob.name, blob.size, buffer.readu8(blob.data, 0))
+    end
+    writable.value = nil -- clear the bound value
+end
+```
+
+Without that cast, the editor reports `Expected this to be Blob` for string,
+buffer, and `nil` assignments even though the runtime accepts them. A focused
+Rive Beta 0.8.5390 (build 5377) probe passed `getBlob`, `getFont`,
+`getImage`, missing/null handling, and all three Blob assignment forms after
+the explicit cast. This is editor-lane evidence, not released Web 2.40.0
+compatibility proof.
+
+An empty string or empty buffer is a real zero-byte Blob, not `nil`. The
+`Blob.name`, `Blob.size`, and `Blob.data` fields are the data-access surface;
+there are no implied Blob mutation methods.
+
 ---
 
 ## Converter
