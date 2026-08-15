@@ -22,7 +22,7 @@ import Term from '@site/src/components/Term';
 
 :::info Prerequisites
 Before this section, complete:
-- [Node Lifecycle](/rive/protocols/node-lifecycle) - where `init`, `advance`, `drawCanvas`, and `draw` belong
+- [Node Lifecycle](/rive/protocols/node-lifecycle) - where `init`, `advance`, and merged `draw` work belong
 - [Drawing API](/advanced/drawing-api) - renderer state and image compositing
 - [Core Types](/api/core-types#mat4) - `Mat4` for 3D-style transforms
 - [Performance Optimization](/best-practices/performance) - allocation and hot-loop discipline
@@ -35,7 +35,7 @@ Shader scripting is a preview / rollout-dependent surface. Runtime support, edit
 GPU shaders give Rive scripts a low-level rendering path for custom materials, post-processing, image treatments, and 3D-style geometry. The workflow has two parts:
 
 1. A `.wgsl` shader asset in the Rive file.
-2. A Luau script that creates GPU resources, opens render passes in `drawCanvas`, and composites the result back into the normal Rive renderer in `draw`.
+2. A Luau script that creates GPU resources, opens render passes and composites the result in one merged `draw` callback.
 
 The shader does not automatically receive Rive vector shapes. It only sees the vertex buffers, uniform buffers, textures, samplers, and bind groups that your script provides.
 
@@ -75,7 +75,7 @@ The safest pattern is:
 2. Build descriptor arrays in helper functions with explicit return types.
 3. Call methods such as `pipeline:getBindGroupLayout(0)` on the local `pipeline`, not on `self.pipeline` while it is still `GPUPipeline?`.
 4. Assign the completed resources to `self` after the pipeline and bind groups exist.
-5. In `drawCanvas`, copy optional `self.*` resources into locals and return early when any required handle is missing.
+5. In `draw`, copy optional `self.*` resources into locals and return early when any required handle is missing.
 
 ```lua
 local function makeFullscreenQuadVertexLayout(): { VertexBufferLayout }
@@ -117,19 +117,18 @@ Shader scripts split GPU work and normal Rive drawing:
 | `init(self, context)` | Create the `GPUCanvas`, load shader assets, create buffers, create pipeline and bind groups |
 | `update(self)` | Rebuild resources when editor inputs change |
 | `advance(self, seconds)` | Update time, animation values, and dynamic uniform buffers |
-| `drawCanvas(self)` | Open GPU render passes and issue `GPURenderPass` draw calls |
-| `draw(self, renderer)` | Composite `gpuCanvas.image` with the normal `Renderer` |
+| `draw(self, renderer)` | Open GPU render passes, issue draw calls, and composite `gpuCanvas.image` with the normal `Renderer` |
 
 The important boundary:
 
 ```text
-GPU rendering:        drawCanvas()
-Normal compositing:   draw(renderer)
+GPU rendering + compositing: draw(renderer)
 Animation state:      advance(seconds)
 Resource setup:       init() / update() / resize()
 ```
 
-`beginRenderPass()` belongs in `drawCanvas`, not `draw`. `renderer:drawImage(...)` belongs in `draw`, after the GPU canvas has produced an image.
+`beginRenderPass()` and `renderer:drawImage(...)` belong in the same `draw`
+callback. Finish the pass before compositing the produced image.
 
 ---
 
@@ -245,7 +244,7 @@ function init(self: HelloTriangle, context: Context): boolean
     return true
 end
 
-function drawCanvas(self: HelloTriangle)
+local function renderGpu(self: HelloTriangle)
     local gpu = self.gpu
     local pipeline = self.pipeline
     local vbo = self.vbo
@@ -277,6 +276,8 @@ function draw(self: HelloTriangle, renderer: Renderer)
         return
     end
 
+    renderGpu(self)
+
     renderer:drawImage(gpu.image, imageSampler, "srcOver", 1)
 end
 
@@ -288,7 +289,6 @@ return function(): Node<HelloTriangle>
         pipeline = nil,
         vbo = nil,
         init = init,
-        drawCanvas = drawCanvas,
         draw = draw,
     }
 end
@@ -300,8 +300,8 @@ Why this works:
 - WGSL `@location(1)` matches `VertexAttribute.slot = 1`.
 - The pipeline color target uses the local `gpu.format`.
 - The render pass omits `view`, so the color attachment defaults to the canvas backing view.
-- `drawCanvas` uses local non-null resources and returns before rendering if any required resource is missing.
-- `draw` composites `GPUCanvas.image` with the normal renderer.
+- `renderGpu` uses local non-null resources and returns before rendering if any required resource is missing.
+- `draw` finishes GPU work before compositing `GPUCanvas.image` with the normal renderer.
 
 ---
 
@@ -537,7 +537,7 @@ The course shader examples are based on the corrected local example pack in `/Us
 
 | Example | What it teaches | Course role |
 |---------|-----------------|-------------|
-| `01_hello_gpu_canvas_triangle` | First `GPUCanvas`, typed vertex layout, pipeline, and `drawCanvas` pass | Starter template for new shader nodes |
+| `01_hello_gpu_canvas_triangle` | First `GPUCanvas`, typed vertex layout, pipeline, and merged `draw` pass | Starter template for new shader nodes |
 | `02_animated_gradient_quad` | Uniform buffer updates from `advance` | First animated shader |
 | `03_uv_checkerboard` | UV debugging and fullscreen quad coordinates | Debugging texture-space mistakes |
 | `04_image_texture_tint` | `context:image(name)`, `Image:view()`, texture binding, and tint uniforms | First image sampling lab |
@@ -558,7 +558,7 @@ Work through the guided version in [GPU Shader Example Labs](/projects/gpu-shade
 |---------|-------|
 | `context:shader(name)` returns `nil` | Asset name without `.wgsl`, shader asset packaging, shader compile status, editor channel, runtime channel |
 | `colorView()` errors | Deferred canvas has not been resized |
-| Nothing appears | `drawCanvas` is returned from the factory, `pass:finish()` is called, and `draw` composites `gpuCanvas.image` |
+| Nothing appears | GPU work and `pass:finish()` are inside `draw`, which then composites `gpuCanvas.image` |
 | Wrong colors or broken geometry | WGSL `@location` values match vertex layout `slot` and `offset` |
 | Bind group errors | WGSL `@group` / `@binding` values match `GPUBindGroup` entries |
 | Luau rejects nested descriptor tables | Move `attributes`, `vertexLayout`, `colorTargets`, `ubos`, `textures`, and `samplers` into explicitly typed locals |
@@ -805,10 +805,9 @@ Complete the four TODOs and run the script.
   options={[
     { text: "init" },
     { text: "advance" },
-    { text: "drawCanvas", correct: true },
-    { text: "draw" },
+    { text: "draw", correct: true },
   ]}
-  explanation="GPU render passes belong in drawCanvas. The normal draw callback is for compositing the resulting image with the Renderer."
+  explanation="GPU render passes and compositing belong in the merged draw callback; finish the pass before drawing its image with the Renderer."
 />
 
 <Quiz

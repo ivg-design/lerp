@@ -466,6 +466,21 @@ Gets the root ViewModel of the artboard data hierarchy.
 context:rootViewModel(): ViewModel?
 ```
 
+#### `context:globalViewModel(name)`
+
+Gets a file-global ViewModel by its declared name. Only models explicitly
+declared global resolve; an unknown or non-global name returns `nil`.
+
+```lua
+context:globalViewModel(name: string): ViewModel?
+context:globalViewModelNames(): {string}
+```
+
+Names are returned as a 1-based Luau array. With no file attached the names
+array is allocated but empty. Global-model access is source-confirmed in
+runtime-v0.1.262 and should remain a compatibility-preview lesson until the
+editor and selected Web package are independently verified.
+
 #### `context:dataContext()`
 
 Gets the DataContext for hierarchy traversal.
@@ -597,6 +612,13 @@ The following constructors and object APIs are runtime-bound and documented upst
 - `GPUTextureView.format`
 - `Image:view()` for sampling an image asset as a shader texture
 
+Live Editor evidence is mixed. A ranged `GPUBuffer:write` succeeded and both
+overflow cases were rejected, even though the analyzer called the GPU
+constructor globals unknown. `GPUTextureView.format` then failed at runtime
+with `attempt to index userdata with 'format'`. Keep the whole family Early
+Access; do not infer GPUCanvas/render-pass/shader-lifecycle coverage from the
+single buffer probe.
+
 For course-stability policy, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 
 #### `context:markNeedsUpdate()`
@@ -616,7 +638,9 @@ context:markNeedsUpdate()
 Connects editor elements to data and code. Provides access to bound properties by type.
 
 :::warning Runtime baseline note
-At the current compatibility baseline (public npm runtime line `2.37.8`, source-level API snapshot `runtime-v0.1.106`, revalidated June 4, 2026), `viewModel.name` is documented upstream but not exposed in the C++ Luau bindings.
+At the accepted released compatibility boundary (`@rive-app/*@2.40.0`, C++
+`runtime-v0.1.271`), `viewModel.name` remains a documentation/source distinction
+that is not a callable Luau field in the checked binding surface.
 Use explicit property lookups (`getNumber`, `getString`, etc.) instead of relying on a `name` field.
 :::
 
@@ -677,6 +701,21 @@ Gets an image property by name.
 ```lua
 viewModel:getImage(name: string): Property<Image>?
 ```
+
+#### `viewModel:getFont(name)` and `viewModel:getBlob(name)`
+
+Typed asset-valued properties are nullable when the named property is absent:
+
+```lua
+viewModel:getFont(name: string): Property<Font>?
+viewModel:getBlob(name: string): Property<Blob>?
+```
+
+`Property<Font>.value` reads a `Font?` but the Luau setter requires a `Font`;
+host-side null clearing is a native integration operation. The Blob runtime
+setter accepts Blob userdata, a buffer, a string, or `nil`; in the current
+editor type checker, use an explicit `property :: any` cast for the latter
+three forms. Empty payloads remain real zero-byte Blobs. See [Data Values](./data-values#asset-valued-properties).
 
 #### `viewModel:getViewModel(name)`
 

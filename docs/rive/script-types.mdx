@@ -19,7 +19,7 @@ import Term from '@site/src/components/Term';
 Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
 
 :::info Runtime baseline
-This overview is aligned to the June 4, 2026 compatibility baseline: public npm runtime line `2.37.8` plus source-level API snapshot `runtime-v0.1.106`. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This overview is aligned to the released Web `2.40.0` -> C++ `runtime-v0.1.271` boundary. Newer source findings and GPU guidance remain explicitly tiered. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 :::info Need Full Access/Limitations Matrix?
@@ -56,11 +56,12 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 **Use when:** You need animation logic, custom drawing, or interactive behavior on a node.
 
 **Key features:**
-- Lifecycle callbacks: `init`, `update`, `advance`, `drawCanvas`, `draw`
+- Lifecycle callbacks: `init`, `update`, `advance`, `draw`
 - Pointer event handlers: `pointerDown`, `pointerMove`, `pointerUp`
-- Text/keyboard handlers: `textEvent`, `keyboardEvent`
+- Current Editor-reference gamepad handlers: `gamepadConnected`, `gamepadEvent`, `gamepadDisconnected`
+- Source/runtime compatibility handlers: `textEvent`, `keyboardEvent` (not listed in the August 14 current Editor `Node<T>` reference)
 - Access to <Term>Renderer</Term> for custom drawing
-- Access to `Canvas` / `GPUCanvas` render phases for offscreen and shader workflows
+- Access to `Canvas` / `GPUCanvas` render work from `draw` for offscreen and shader workflows (Early Access for GPU)
 - Can have inputs from the editor
 
 **Placement:** A Node script is added to the artboard as a script node. You can leave it at the artboard root or nest it under a group/shape for normal hierarchy behavior such as transform inheritance and draw order. Nesting does not pass the parent shape's `NodeData` or `PathData` into the Node callbacks.

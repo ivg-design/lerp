@@ -78,10 +78,22 @@ Rive calls your script functions in a specific order. Understanding this lets yo
 1. `init(self, context)` - runs once at startup
 2. `update(self)` - runs when any <Term>Input</Term> changes (NO context param!)
 3. `advance(self, seconds)` - runs every playback frame (logic); at design time it only fires as zero-delta settle passes
-4. `drawCanvas(self)` - runs during the canvas render phase for offscreen `Canvas` / `GPUCanvas` work
-5. `draw(self, renderer)` - runs on canvas repaint (normal renderer compositing, keep pure!)
+4. `draw(self, renderer)` - records offscreen `Canvas` / `GPUCanvas` work and runs normal renderer compositing
 
 Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user interacts with the script node.
+
+### Lifecycle corrections in the current source snapshot
+
+- A parked Node (`advance` returned `false`) can wake when pointer, keyboard,
+  text, or gamepad input arrives. `false` still parks ordinary per-frame work.
+- Collapsed `ScriptedDrawable` nodes do not advance; do not use hidden nodes as
+  background workers. Editor reinitialization may still perform a zero-step
+  settle/update to record paused GPU content once.
+- Detached ViewModel instances owned by a script advance at frame end, so
+  triggers and listeners can reset. Bound instances are not double-advanced.
+- `async(...)` coroutines retain their scripting context across `await`; keep
+  ordinary disposed-object and lifetime checks, but do not warn that all
+  context-dependent calls are invalid after an await.
 
 ---
 
@@ -92,15 +104,17 @@ Pointer event handlers (`pointerDown`, `pointerMove`, etc.) run when the user in
 | **init** | Create paths, paints, listeners, long-lived objects | Once | `constructor()` |
 | **update** | Respond to input changes; rebuild paths or cached values | On input change | `componentDidUpdate()` |
 | **advance** | Update time-based state (movement, physics, timers) | Every playback frame (design mode: settle passes only) | `requestAnimationFrame` logic |
-| **drawCanvas** | Render into offscreen `Canvas` / `GPUCanvas` targets | During canvas render phase | WebGL/WebGPU render pass |
-| **draw** | Issue <Term>Renderer</Term> commands only (no state changes!) | On canvas repaint | Canvas `ctx.draw()` calls |
+| **draw** | Record offscreen targets, finish passes, issue <Term>Renderer</Term> commands, and composite images | On canvas repaint | Rive renderer / Early Access GPU |
 
 :::tip Performance Rule
 Put expensive work in `update` or `init`, not in `draw` or `advance`. Rebuilding geometry in `advance` (called every frame) wastes resources if inputs haven't changed.
 :::
 
 :::info Shader and offscreen canvas rule
-Call `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` from `drawCanvas(self)`. Composite the resulting `canvas.image` or `gpuCanvas.image` from `draw(self, renderer)`.
+Call `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` from
+`draw(self, renderer)`, pair them with `endFrame()`/`finish()`, then composite
+the resulting image in the same callback. `drawCanvas` is a retired callback;
+serialized method bit 15 is reserved for old files only.
 :::
 
 ---
@@ -191,9 +205,8 @@ flowchart TD
     F -->|no| H
 
     subgraph H[Frame Loop]
-        I[advance self, seconds] --> |Update timers<br/>Physics/movement| J[drawCanvas self]
-        J --> |Offscreen Canvas/GPUCanvas work| K[draw self, renderer]
-        K --> |Render commands only| L[next frame]
+        I[advance self, seconds] --> |Update timers<br/>Physics/movement| J[draw self, renderer]
+        J --> |Canvas/GPUCanvas work + compositing| L[next frame]
         L --> I
     end
 ```
@@ -648,9 +661,11 @@ return function(): Node<MyNode>
 end
 ```
 
-## Keyboard and Text Events
+## Keyboard and Text Events (Source/Runtime Compatibility)
 
-Node scripts can also handle keyboard and committed text input payloads:
+Pinned runtime source includes Node callbacks named `keyboardEvent` and
+`textEvent`, using the historical Lua wrapper names `KeyboardInvocation` and
+`TextInputInvocation`:
 
 ```lua
 function keyboardEvent(self: MyNode, event: KeyboardInvocation): boolean
@@ -670,7 +685,34 @@ function textEvent(self: MyNode, event: TextInputInvocation): boolean
 end
 ```
 
-If these callbacks return `true`, propagation stops. If they return `false` (or nothing), other listeners may still receive the event.
+If these callbacks return `true`, the pinned runtime source stops propagation.
+They are not listed in the August 14 current Editor `Node<T>` reference and were
+not executed in the current MCP probe, so treat them as source/runtime
+compatibility rather than current Editor-reference parity. Inside
+`ListenerContext`, use the current Editor names `KeyboardEvent` and `TextInput`.
+
+## Gamepad Events (Current Editor Reference)
+
+The current Editor `Node<T>` reference exposes three distinct callbacks:
+
+```lua
+function gamepadConnected(self: MyNode, event: GamepadConnected)
+    print("connected", event.deviceId, event.mapping)
+end
+
+function gamepadEvent(self: MyNode, event: GamepadEvent)
+    print(event.changeKind, event.changeIndex, event.changeValue)
+end
+
+function gamepadDisconnected(self: MyNode, event: GamepadDisconnected)
+    print("disconnected", event.deviceId)
+end
+```
+
+These signatures passed the August 14 Editor analyzer probe. Hardware gamepad
+dispatch was not executed. ListenerAction scripts use the matching
+`isGamepadConnected` / `isGamepadEvent` / `isGamepadDisconnected` guards and
+`as...` accessors documented in [Events](/api/events#gamepad-events).
 
 ---
 
@@ -876,7 +918,7 @@ ANSWER: interactive
     { text: "Automatically calls context:markNeedsUpdate()" },
     { text: "Converts the event to a PointerEvent" },
   ]}
-  explanation="In current runtime bindings, returning true from keyboardEvent/textEvent marks the event consumed and stops propagation."
+  explanation="In the pinned runtime-source callback contract, returning true from keyboardEvent/textEvent marks the event consumed and stops propagation. These callbacks are tracked as source/runtime compatibility because the current Editor Node reference does not list them."
 />
 
 ---

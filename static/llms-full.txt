@@ -1,5 +1,5 @@
 # LERP Full Knowledge Surface (llms-full)
-Generated: 2026-06-14T19:49:54.328Z
+Generated: 2026-08-14T00:00:00.000Z
 Canonical: https://forge.mograph.life/apps/lerp/
 Scope: Complete documentation route inventory with page metadata for AI retrieval and citation.
 
@@ -21,12 +21,12 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Dynamic Instantiation | https://forge.mograph.life/apps/lerp/advanced/instantiation | docs/advanced/instantiation.mdx |  |
 | Procedural Geometry | https://forge.mograph.life/apps/lerp/advanced/procedural | docs/advanced/procedural.mdx | Dynamic Path generation, animated shapes, and particle systems in Rive |
 | ViewModels | https://forge.mograph.life/apps/lerp/advanced/viewmodels | docs/advanced/viewmodels.mdx | Binding scripts to ViewModels for reactive data-driven animations |
-| Assets | https://forge.mograph.life/apps/lerp/api/assets | docs/api/assets.mdx | Image, ImageFilter, ImageSampler, and ImageWrap |
+| Assets | https://forge.mograph.life/apps/lerp/api/assets | docs/api/assets.mdx | Image, Blob, AudioSource, AudioSound, sampling, and Early Access GPU texture-view boundaries |
 | Core Types | https://forge.mograph.life/apps/lerp/api/core-types | docs/api/core-types.mdx | Vector, Color, Mat2D, and Mat4 types |
 | Data & Input | https://forge.mograph.life/apps/lerp/api/data-input | docs/api/data-input.mdx | Input, Property, Context, and ViewModel for data binding |
 | Data Values | https://forge.mograph.life/apps/lerp/api/data-values | docs/api/data-values.mdx | DataValue types, Converter, and Property types |
 | Drawing | https://forge.mograph.life/apps/lerp/api/drawing | docs/api/drawing.mdx | Path, Paint, Gradient, and Renderer for custom drawing |
-| Events | https://forge.mograph.life/apps/lerp/api/events | docs/api/events.mdx | PointerEvent plus ListenerContext payload invocations for listener-driven scripts |
+| Events | https://forge.mograph.life/apps/lerp/api/events | docs/api/events.mdx | Current Editor event types, ListenerContext payloads, and Node gamepad callbacks |
 | GPU Shaders | https://forge.mograph.life/apps/lerp/api/gpu-shaders | docs/api/gpu-shaders.mdx | GPUCanvas, Shader, GPUPipeline, GPUBuffer, GPUTexture, GPUSampler, bind groups, and shader descriptor types |
 | Hierarchy | https://forge.mograph.life/apps/lerp/api/hierarchy | docs/api/hierarchy.mdx | NodeData, NodeReadData, and Layout |
 | Interpolation | https://forge.mograph.life/apps/lerp/api/interpolation | docs/api/interpolation.mdx | ScriptedInterpolator runtime API surface and callback contracts |

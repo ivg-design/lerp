@@ -81,6 +81,13 @@ Regenerate derived discovery artifacts:
 npm run generate:ai-artifacts
 ```
 
+Generation is reproducible. By default, the `Generated` / `generatedAt`
+timestamp is derived from the newest release heading in `docs/changelog.mdx`
+at `00:00:00.000Z`. Re-running the command without source changes must therefore
+produce byte-identical files. Reproducible-build callers may override that
+default with an integer Unix timestamp in `SOURCE_DATE_EPOCH`; invalid values
+fail closed.
+
 Then run the production build again:
 
 ```bash

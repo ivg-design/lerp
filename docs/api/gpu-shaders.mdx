@@ -96,7 +96,7 @@ local samplers: { SamplerEntry } = {
 }
 ```
 
-Create GPU resources in non-null locals inside `init`, call methods on those locals, then assign them to optional `self.*` fields after setup succeeds. In `drawCanvas`, localize optional fields and return before issuing render work if any required handle is missing.
+Create GPU resources in non-null locals inside `init`, call methods on those locals, then assign them to optional `self.*` fields after setup succeeds. In `draw`, localize optional fields and return before issuing render work if any required handle is missing.
 
 ---
 
@@ -147,6 +147,14 @@ elseif features.maxSamples >= 2 then
     sampleCount = 2
 end
 ```
+
+In the current Early Access source path, `context:features()` can fail when a
+deferred recorder has no replay device yet. Query it from a render-time method
+after a device/first frame is available, not at module scope. Size-less
+`canvas()` and `gpuCanvas()` handles may exist before allocation; dimensions can
+remain pending until a device is attached. A resize to the current size is a
+no-op. Treat these as lifecycle constraints, not guarantees of editor/Web
+availability.
 
 ### `context:shader(name)`
 
@@ -227,7 +235,7 @@ declare extern type Canvas with
 end
 ```
 
-Use `beginFrame` / `endFrame` inside `drawCanvas`.
+Use `beginFrame` / `endFrame` inside `draw`.
 
 ### GPUCanvas
 
@@ -252,7 +260,7 @@ end
 | `format` | Pixel format of the backing texture; use for pipeline color targets |
 | `resize(w, h)` | Recreates the backing texture |
 | `colorView()` | Returns a `GPUTextureView` for the backing texture |
-| `beginRenderPass(desc)` | Opens a render pass; call inside `drawCanvas` |
+| `beginRenderPass(desc)` | Opens a render pass; call inside `draw` |
 
 ---
 
@@ -355,7 +363,7 @@ GPU memory for vertices, indices, or uniforms.
 ```lua
 declare extern type GPUBuffer with
     size: number
-    function write(self, data: buffer, offset: number?): ()
+    function write(self, data: buffer, destinationOffset: number?, sourceOffset: number?, byteLength: number?): ()
 end
 
 declare GPUBuffer: {
@@ -400,6 +408,14 @@ buffer.writef32(self.uniformBytes, 0, self.time)
 buffer.writef32(self.uniformBytes, 4, self.strength)
 self.uniformBuffer:write(self.uniformBytes, 0)
 ```
+
+The optional `sourceOffset` and `byteLength` arguments permit partial uploads:
+`write(source, destinationOffset?, sourceOffset?, byteLength?)`. The runtime
+validates both source and destination ranges. In the August 14 Rive Beta MCP
+probe, a valid ranged write succeeded and both source- and destination-overflow
+cases were rejected. The Editor analyzer still reported `GPUBuffer` as an
+unknown global, so this remains a narrow runtime pass inside an Early Access
+surface rather than a broadly authorable GPU workflow.
 
 ---
 
@@ -474,7 +490,12 @@ declare extern type GPUTextureView with
 end
 ```
 
-Use a texture view as a render attachment, MSAA resolve target, depth/stencil attachment, shader texture binding, or `Image:view()` result.
+Use a texture view as a render attachment, MSAA resolve target, depth/stencil
+attachment, shader texture binding, or `Image:view()` result. The `format`
+field exists in the pinned source declaration, but live access in Rive Beta
+0.8.5390 build 5377 failed with
+`attempt to index userdata with 'format'`. Treat it as source-only Early Access
+material until an Editor/runtime probe succeeds.
 
 ---
 
@@ -1021,7 +1042,7 @@ The GPU API does not provide a full scene graph, material system, lighting syste
 |---------|------------|
 | `context:shader(name)` returns `nil` | Check asset name without `.wgsl`, shader compile status, shader packaging, and editor/runtime channel |
 | `colorView()` throws | Resize deferred `GPUCanvas` before rendering |
-| Nothing renders | Return `drawCanvas` from the factory, call `pass:finish()`, and composite `gpuCanvas.image` in `draw` |
+| Nothing renders | Keep GPU work and `pass:finish()` inside `draw`, then composite `gpuCanvas.image` |
 | Interleaved attributes read wrong | Verify every byte `offset` and `stride` |
 | Bind group mismatch | Match `@group` and `@binding` to bind group index and `slot` |
 | Luau rejects `vertexLayout`, `colorTargets`, `ubos`, `textures`, or `samplers` | Move nested descriptors into explicitly typed locals such as `{ VertexAttribute }`, `{ VertexBufferLayout }`, `{ ColorTarget }`, `{ UBOEntry }`, `{ TextureEntry }`, and `{ SamplerEntry }` |

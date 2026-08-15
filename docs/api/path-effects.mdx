@@ -137,6 +137,14 @@ end
 
 **See Also:** [PathData](#pathdata), [PathMeasure](./drawing#pathmeasure)
 
+### Clipping and empty geometry
+
+In the target source snapshot, clipping uses the post-effect fill path. A
+scripted PathEffect can therefore change the clip geometry; an empty effect
+path clips everything, while strokes do not define the clip. Remove older
+warnings that PathEffects can never affect clipping and test the empty-path
+case explicitly.
+
 ---
 
 ## CommandType

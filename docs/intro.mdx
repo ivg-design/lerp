@@ -44,12 +44,23 @@ LERP teaches practical Luau for Rive creators through short lessons, buildable e
 
 LERP now tracks a pinned runtime audit baseline so you can verify exactly which APIs were confirmed at review time.
 
-- Public runtime release line: `2.37.8` (C++ WASM npm packages)
-- Public runtime npm gitHead: `bc560112ab2ee7d0afd3418bd97970c2fcb36532`
-- Source-level API audit snapshot: `runtime-v0.1.106` at `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
+- Released Web runtime line: `@rive-app/*@2.40.0`, backed by C++ `runtime-v0.1.271`
+- Released C++ runtime commit: `526625850eaf34fc1263d181808ffca10cae6ac1`
+- Released Web package gitHead: `1e9391880df1d501b98d165d2db89284025462eb`
+- Parser canary: `runtime-v0.1.272` remains separate from the released Web boundary
 - Shader/GPU rollout tier: Rive Early Access editor workflow only
-- Baseline revalidated: June 4, 2026
-- Full matrix: [Runtime Compatibility Baseline](/rive/runtime-compatibility)
+- Baseline revalidated: August 14, 2026
+- MCP editor validation: Rive Beta `0.8.5390` build `5377` passed the scoped Vector/Mat4/ViewModel cases, `Mat2D`/`Mat4` equality, and ranged `GPUBuffer` writes; Blob string/buffer/`nil` writes required an explicit `any` cast in the current editor checker
+- Analyzer validation: exact current event/gamepad declarations and `AudioSound:pause/resume/play` compiled with diagnostics `[]`; those callbacks/calls were not runtime-executed
+- Full matrix: [Runtime Compatibility Baseline](/rive/runtime-compatibility); validation details: [Rive Script Errata](/rive/rive-doc-errata#lerp-gap-017)
+
+The GPU evidence is deliberately narrow: `GPUBuffer`/`GPUTexture` constructors
+executed despite analyzer unknown-global diagnostics, while live
+`GPUTextureView.format` access failed. The probe does not establish
+`Context:globalViewModel*`, imported-library asset resolution, event/audio
+runtime dispatch, the broader GPUCanvas/shader lifecycle, or released Web
+behavior. Keep those boundaries preview/rollout-dependent until independently
+verified.
 
 ## What You'll Learn
 
@@ -85,7 +96,7 @@ Each section includes:
 - Click **linked terms** to see definitions
 - Use the **search** (Ctrl/Cmd + K) to find anything
 
-## Course at a Glance (Updated June 4, 2026)
+## Course at a Glance (Updated August 14, 2026)
 
 | Signal | Value | Why it matters |
 | --- | ---: | --- |

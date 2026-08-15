@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generatedAt": "2026-06-14T19:49:54.330Z",
+  "generatedAt": "2026-08-14T00:00:00.000Z",
   "canonical": "https://forge.mograph.life/apps/lerp/",
   "site": {
     "name": "LERP",
@@ -220,7 +220,7 @@
     {
       "id": "api-assets",
       "title": "Assets",
-      "description": "Image, ImageFilter, ImageSampler, and ImageWrap",
+      "description": "Image, Blob, AudioSource, AudioSound, sampling, and Early Access GPU texture-view boundaries",
       "url": "https://forge.mograph.life/apps/lerp/api/assets",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/assets",
       "group": "api",
@@ -232,7 +232,11 @@
         "reference",
         "assets",
         "image",
-        "imagefilter"
+        "imagefilter",
+        "blob",
+        "audio",
+        "audiosound",
+        "gputextureview"
       ],
       "sourcePath": "docs/api/assets.mdx",
       "contentType": "documentation",
@@ -326,7 +330,7 @@
     {
       "id": "api-events",
       "title": "Events",
-      "description": "PointerEvent plus ListenerContext payload invocations for listener-driven scripts",
+      "description": "Current Editor event types, ListenerContext payloads, and Node gamepad callbacks",
       "url": "https://forge.mograph.life/apps/lerp/api/events",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/events",
       "group": "api",

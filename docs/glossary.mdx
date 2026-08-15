@@ -128,7 +128,10 @@ end
 
 ### AudioSound {#audiosound}
 
-A playing audio instance returned by `Audio.play()`. Provides playback control including `stop()`, `seek()`, `volume`, and `completed()`.
+A playing audio instance returned by `Audio.play()`. Provides playback control
+including `pause()`, `resume()`, `play()`, `stop()`, `seek()`, `volume`, and
+`completed()`. The current Editor reference/analyzer accepts the three transport
+methods; the August 14 probe did not execute them.
 
 ```lua
 local sound = Audio.play(source)
@@ -1634,18 +1637,23 @@ If omitted or failing, runtime falls back to linear interpolation.
 
 ---
 
-### drawCanvas() {#drawcanvas}
+### Retired `drawCanvas()` callback {#drawcanvas}
 
-An optional Node/Layout lifecycle callback for offscreen `Canvas` and early-access `GPUCanvas` rendering. Use it for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)`; use `draw(self, renderer)` afterward to composite the resulting image.
+`drawCanvas` was the old Node/Layout lifecycle callback for offscreen Canvas
+and GPUCanvas work. It is retired in the target runtime: merge
+`Canvas:beginFrame(...)`/`endFrame()` or `GPUCanvas:beginRenderPass(...)`/`finish()`
+into `draw(self, renderer)`, then composite the image in that callback. The
+serialized method bit is reserved legacy metadata, not a callable API.
 
 ```lua
-function drawCanvas(self: ShaderNode)
+function draw(self: ShaderNode, renderer: Renderer)
     local pass = self.gpuCanvas:beginRenderPass({
         color = {{ loadOp = "clear", storeOp = "store", clearColor = { 0, 0, 0, 0 } }},
     })
     pass:setPipeline(self.pipeline)
     pass:draw(self.vertexCount)
     pass:finish()
+    renderer:drawImage(self.gpuCanvas.image, self.imageSampler, "srcOver", 1)
 end
 ```
 
@@ -1717,7 +1725,7 @@ fn fsMain() -> @location(0) vec4<f32> {
 
 | Category | Terms |
 |----------|-------|
-| **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [drawCanvas](#drawcanvas), [draw](#draw), [Lifecycle](#lifecycle) |
+| **Lifecycle** | [init](#init), [update](#update), [advance](#advance), [draw](#draw), [Lifecycle](#lifecycle) |
 | **Types** | [export type](#export-type), [Generic](#generic), [Union Type](#union-type), [Optional Type](#optional-type), [Intersection Type](#intersection-type), [Type Alias](#type-alias), [Type Guard](#type-guard), [Type Narrowing](#type-narrowing) |
 | **Data** | [Input](#input), [Property](#property), [ViewModel](#viewmodel), [Trigger](#trigger), [Output](#output), [late()](#late), [Data Binding](#data-binding), [DataContext](#datacontext), [Listener](#listener) |
 | **Drawing** | [Path](#path), [Paint](#paint), [Renderer](#renderer), [Color](#color), [Gradient](#gradient), [Mat2D](#mat2d), [Mat4](#mat4), [Vector](#vector), [ImageSampler](#imagesampler) |

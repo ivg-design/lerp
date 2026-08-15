@@ -4,6 +4,45 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.3.0] — 2026-08-14
+
+### Changed
+
+- **Runtime boundary refresh** — aligned the compatibility record to released
+  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept parser canary
+  `runtime-v0.1.272` separate.
+- **Retired `drawCanvas` migration** — active Node/Layout and shader guidance
+  now merges Canvas/GPUCanvas recording into `draw(self, renderer)`.
+- **Expanded Luau and lifecycle coverage** — added source-confirmed 3D math,
+  typed Font/Blob and Global ViewModel properties, scoped library assets,
+  partial GPU writes, lifecycle corrections, and explicit host/editor metadata
+  boundaries with Early Access tiers.
+- **Deterministic discovery feeds** — AI feed generation now honors
+  `SOURCE_DATE_EPOCH` and otherwise derives a stable timestamp from the newest
+  release heading, so required generation and production builds are
+  byte-identical when source content is unchanged.
+- **[Errata LERP-GAP-017](docs/rive/rive-doc-errata.mdx)** — recorded the
+  August 14 MCP-driven Rive Beta 0.8.5390 build 5377 validation: Vector/Mat4
+  math and buffer writes, Mat2D/Mat4 equality, typed ViewModel lookups, the
+  explicit `any` cast required for runtime-accepted Blob string/buffer/`nil`
+  writes, a successful ranged GPUBuffer write with both overflow rejections,
+  and the failed live `GPUTextureView.format` access. Context global-VM,
+  imported-library, broader GPU lifecycle, and released Web 2.40.0 behavior
+  remain unexecuted.
+- **[Errata LERP-ERR-018](docs/rive/rive-doc-errata.mdx)** — reconciled the
+  complete event surface to the live Editor reference and a clean analyzer
+  probe: current event type names, exact `PointerType`, the full three-way
+  gamepad payload/ListenerContext/Node callback contract, and explicit
+  historical labeling for older runtime `*Invocation` wrappers. The same probe
+  accepted `AudioSound:pause/resume/play`; event dispatch and audio calls remain
+  runtime-unexecuted.
+
+### Added
+
+- `learn_luau_rive_scripts/runtime-v0262-surface.luau` static/LSP reconciliation fixture.
+
+---
+
 ## [1.2.12] — 2026-06-14
 
 ### Added

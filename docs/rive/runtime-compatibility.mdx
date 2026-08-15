@@ -22,20 +22,19 @@ This page tracks three independent dimensions for Luau surfaces:
 
 ## Baseline Snapshot
 
-- **Audit date:** June 4, 2026
+- **Audit date:** August 14, 2026
 - **Runtime repo:** `rive-app/rive-runtime`
-- **Current C++ WASM runtime release line (npm):** `2.37.8`
-- **Checked npm packages:** `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, `@rive-app/canvas-advanced` (all resolved to `2.37.8`)
-- **Runtime source gitHead (npm metadata for `2.37.8` packages):** `bc560112ab2ee7d0afd3418bd97970c2fcb36532`
-- **npm publish timestamp for `@rive-app/canvas@2.37.8`:** May 21, 2026 18:06:40 UTC
-- **Docs comparison source:** `https://rive.app/docs/llms-full.txt` fetched June 4, 2026
-- **Source-level API snapshot checked:** `runtime-v0.1.106` at commit `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
+- **Released C++ WASM runtime line:** `@rive-app/*@2.40.0`, backed by `runtime-v0.1.271` at `526625850eaf34fc1263d181808ffca10cae6ac1`
+- **Released package gitHead:** `1e9391880df1d501b98d165d2db89284025462eb` (all four checked packages aligned)
+- **Canary parser pin:** `runtime-v0.1.272` remains a parser canary and is not the released Web boundary
+- **Docs comparison source:** local `/Users/ivg/github/rive-docs` and `/Users/ivg/github/rive-runtime-docs`, reviewed August 14, 2026
+- **Source-level impact snapshot:** runtime-v0.1.262 through the RFP-authored impact note; claims below distinguish that source evidence from the released Web line
 - **Superseded historical source audit:** `runtime-v0.1.64` at commit `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
 
 Use this snapshot when deciding whether LERP content is current for C++ runtime behavior.
 
 :::caution Separate runtime facts from editor rollout
-LERP now tracks the public package/docs baseline (`2.37.8`), the source-level API snapshot used for binding checks (`runtime-v0.1.106`), and the editor availability tier separately. Shader/GPU APIs are present in the source-level snapshot and public docs, but the shader asset workflow remains **Rive Early Access only** and should not be assumed available in standard workspaces.
+LERP now tracks the released package/docs baseline (`2.40.0` -> `runtime-v0.1.271`), the source-level impact snapshot, and the editor availability tier separately. Shader/GPU APIs remain **Rive Early Access only** unless a focused probe proves otherwise.
 :::
 
 :::note Source-of-truth rule
@@ -57,66 +56,94 @@ LERP uses the following tier labels:
 
 This prevents course drift when upstream API pages move faster than editor rollout.
 
+:::warning Released boundary versus source/canary evidence
+The accepted suite boundary is released Web `2.40.0` -> C++ `runtime-v0.1.271`.
+The RFP parser canary pin `runtime-v0.1.272` is intentionally separate. The
+new Luau surfaces below were identified in the v0.1.262 source impact snapshot;
+do not present them as released Web/editor behavior without a focused probe.
+:::
+
 ---
 
-## "Coming Soon" Reality Check
+## Current Editor Reference and "Coming Soon" Reality Check
 
 Status legend:
 - **Live:** Exposed and usable in current runtime bindings
-- **Partial:** Surface exists but is limited vs docs wording
+- **Analyzer-accepted:** The current Editor reference and checker accept the type/signature
+- **Source-confirmed:** The pinned runtime source contains the corresponding binding/dispatch path
 - **Not exposed:** Not currently available in Luau bindings at this baseline
 
-| Surface in docs | Runtime status | Notes |
+| Surface in docs | Current evidence | Notes |
 |---|---|---|
-| `FocusEvent` | **Live** | `listenerContext:asFocus()` returns focus payload with `isFocus` |
-| `KeyPhase` | **Live** | Exposed as `"down"`, `"repeat"`, `"up"` through keyboard invocation |
-| `KeyboardEvent` | **Live** | `key`, modifier flags, and `phase` are available |
-| `ListenerContext` | **Live** | `is...` / `as...` methods are implemented and wired |
-| `TextInput` | **Live** | `listenerContext:asTextInput().text` is available |
-| `NoneEvent` | **Live** | `isNone()` and `asNone()` are available |
+| `PointerType` + `PointerEvent.type` | **Analyzer-accepted; reference label still says "Coming soon"** | `PointerType` is the exact eight-string union used by `PointerEvent.type`; it is not a runtime enum table |
+| `KeyPhase` + `KeyboardEvent` | **Analyzer-accepted; source wrapper uses historical name** | Current fields are `key`, modifiers, and `phase`; pinned runtime source calls the Lua wrapper `KeyboardInvocation` |
+| `TextInput` | **Analyzer-accepted; source wrapper uses historical name** | Current reference exposes `text`; pinned runtime source calls the wrapper `TextInputInvocation` |
+| `FocusEvent` | **Analyzer-accepted; source wrapper uses historical name** | Current reference exposes `isFocus`; pinned runtime source calls the wrapper `FocusInvocation` |
+| `ReportedEvent` | **Analyzer-accepted; empty in current reference** | Do not teach `delaySeconds` as a current Editor field; that field belongs to the historical `ReportedEventInvocation` source wrapper |
+| `ViewModelChange` | **Analyzer-accepted; empty in current reference** | Current Editor reference exposes presence/kind only |
+| `NoneEvent` | **Analyzer-accepted; empty in current reference** | `isNone()` / `asNone()` are current; the pinned source wrapper name is `NoneInvocation` |
+| `GamepadMappingKind`, `GamepadConnected`, `GamepadEvent`, `GamepadDisconnected` | **Analyzer-accepted + source-confirmed** | Full connected/change state and query methods are referenced; hardware gamepad dispatch was not executed in the August 14 probe |
+| `ListenerContext` | **Analyzer-accepted + source-confirmed** | Current gamepad API is the connected/event/disconnected guard/accessor triad; generic `isGamepad()` / `asGamepad()` is stale |
+| Node `gamepadConnected` / `gamepadEvent` / `gamepadDisconnected` | **Analyzer-accepted + source-confirmed** | Exact current `Node<T>` signatures passed the analyzer probe; actual gamepad dispatch was not executed |
 | `NodeReadData.paint` + `node:asPath()` + `node:asPaint()` | **Live** | Paint/path access is implemented in Lua artboard bindings |
 | `AudioSource.duration` | **Live** | `source.duration` is exposed in Lua audio bindings |
-| `ReportedEvent` | **Partial** | Invocation exists; exposed payload is currently limited (`delaySeconds`) |
-| `ViewModelChange` | **Partial** | Invocation exists; payload wrapper is currently minimal |
-| `PointerType` | **Partial** | No standalone type table; `PointerEvent.type` string values are live |
 | `ViewModel.name` | **Not exposed** | Documented upstream but not exposed in current Lua ViewModel wrapper |
 | `Output` | **Not exposed** | No runtime Lua `Output` surface at this baseline |
 
 ---
 
-## Runtime Surfaces Tracked in Current Baseline
+## Runtime Surfaces Tracked in the August 14 Current Baseline
 
-The rows below were revalidated against the June 4 public package/docs baseline (`2.37.8`) and source-level API snapshot (`runtime-v0.1.106`). Shader/GPU rows are live in the checked source/docs, but remain Early Access editor workflow material.
+These rows are re-evaluated against the released Web `2.40.0` / C++
+`runtime-v0.1.271` boundary and the local source/docs snapshot reviewed on
+August 14. The **Evidence basis** column is deliberately separate from
+runtime status: the focused MCP passes covered Vector/Mat4/ViewModel behavior,
+matrix equality, a ranged `GPUBuffer` write, and exact analyzer-reference
+surfaces. They did not execute every row below.
 
-| Surface | Runtime status | LERP tier | Notes |
+| Surface | Runtime status | LERP tier | Evidence basis and notes |
 |---|---|---|---|
-| `Mat4` | **Live** | **Officially released** | Full constructors, multiplication, inversion, transpose, and vector transforms are bound |
-| `Promise`, `async`, `await` | **Live** | **Officially released** | Promise chaining/cancel/status APIs plus async coroutine bridge are available |
-| `ViewModel:getImage(name)` | **Live** | **Officially released** | Returns `Property<Image>?` |
-| `ViewModel:getIndex()` | **Live** | **Officially released** | Returns list-item index; returns `-1` when VM is not list-bound |
-| `PropertyList:removeAt`, `removeAllOf`, `clear` | **Live** | **Officially released** | Removal/clear operations are implemented, with 1-based `removeAt` input |
-| `ListenerContext:isGamepad()` / `asGamepad()` | **Live** | **Officially released** | Gamepad invocation payload is exposed (`deviceId`, `buttonMask`, `axis0`) |
-| Node `keyboardEvent(self, event)` | **Live** | **Officially released** | Returning `true` stops propagation |
-| Node `textEvent(self, event)` | **Live** | **Officially released** | Returning `true` stops propagation |
-| `context:canvas(options)` + `Canvas` methods | **Live** | **Officially released** | Offscreen canvas with `beginFrame` / `endFrame` / `resize`, plus `image/width/height` |
-| `context:decodeImage(buffer)` + `DecodedImage` | **Live** | **Officially released** | Promise resolves to `{ data, width, height }` RGBA premultiplied pixels |
-| `context:gpuCanvas(options)` + `GPUCanvas` | **Live** | **Rive Early Access only** | Runtime surface exists, but shader/GPU editor workflow availability currently requires Rive Early Access |
-| `context:features()` + `GPUFeatures` | **Live** | **Rive Early Access only** | Capability flags and limits for GPU preview workflows; relevant to Early Access shader material |
-| `context:shader(name)` + `Shader` | **Live** | **Rive Early Access only** | Requires shader assets and Early Access editor visibility; can return `nil` in non-enabled workflows |
-| `GPUBuffer`, `GPUTexture`, `GPUSampler`, `GPUBindGroup`, `GPUBindGroupLayout`, `GPUPipeline`, `GPURenderPass`, `GPUTextureView` | **Live** | **Rive Early Access only** | Exposed in the shader reference/runtime surface, but taught as Early Access until editor/tooling rollout is broad |
-| Scripted Interpolator protocol | **Live (runtime-backed)** | **Officially released** | `transform` / `transformValue` hooks available with linear fallback behavior |
+| `Mat4` | **Source-confirmed + MCP-tested subset** | **Officially released** | Runtime/docs confirm the broader constructors, multiplication, inversion, transpose, and transforms; MCP tested composition and buffer writing, not every method |
+| `Vector.xyz`, `Vector.cross3`, vector buffer writes | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Rive Beta 0.8.5390 build 5377 passed the named constructors, cross product, and buffer writes; released Web availability remains separate |
+| `Mat4.lookAt`, `Mat4.ortho` | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Rive Beta 0.8.5390 build 5377 passed both helpers, composition, and `writeToBuffer`; helpers do not make the scene graph generally 3D |
+| `Mat2D` / `Mat4` equality (`==`) | **Editor-reference-confirmed + MCP runtime-tested** | **Officially released** | Identity matrices compared equal and translated matrices compared unequal for both types in the live Tests-protocol probe |
+| `Promise`, `async`, `await` | **Source-confirmed** | **Officially released** | Runtime/docs confirm the chaining, cancellation/status, and coroutine bridge; not live-tested in the August 14 MCP script |
+| `ViewModel:getImage(name)` | **Source-confirmed + MCP-tested** | **Officially released** | Rive Beta 0.8.5390 build 5377 returned the typed image property; broader image workflows were not live-tested |
+| `Context:globalViewModel(name)` / `globalViewModelNames()` | **Source-confirmed** | **Preview / rollout-dependent** | Runtime/source docs describe named file-global models and unknown-name `nil`; explicitly not executed in the MCP probe |
+| `ViewModel:getFont(name)` / `getBlob(name)` | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Beta probe passed typed lookup and missing/null behavior; Blob string/buffer/`nil` writes passed only after `payload :: any`, while uncast values were rejected by the editor checker |
+| `ViewModel:getIndex()` | **Source-confirmed** | **Officially released** | Runtime/docs confirm list-item index and detached `-1`; not live-tested in the August 14 MCP script |
+| `PropertyList:removeAt`, `removeAllOf`, `clear` | **Source-confirmed** | **Officially released** | Runtime/docs confirm removal and clear operations, including 1-based `removeAt`; not live-tested in this probe |
+| Current event types + `ListenerContext` guard/accessor set | **Source-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | Exact Pointer/keyboard/text/focus/reported/view-model/none and three-way gamepad signatures passed with diagnostics `[]`; event dispatch was not executed |
+| Node `gamepadConnected` / `gamepadEvent` / `gamepadDisconnected` | **Source-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | Exact `Node<T>` callbacks passed the Editor checker; hardware gamepad dispatch was not executed |
+| `AudioSound:pause()` / `resume()` / `play()` | **Editor-reference-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | The exact no-argument transport methods passed with diagnostics `[]`; the calls were not runtime-executed |
+| Node `keyboardEvent(self, event)` | **Source-confirmed; absent from current Editor `Node<T>` reference** | **Preview / rollout-dependent** | Pinned runtime source uses `KeyboardInvocation` and stops propagation on `true`; not executed in the August 14 probe |
+| Node `textEvent(self, event)` | **Source-confirmed; absent from current Editor `Node<T>` reference** | **Preview / rollout-dependent** | Pinned runtime source uses `TextInputInvocation` and stops propagation on `true`; not executed in the August 14 probe |
+| `context:canvas(options)` + `Canvas` methods | **Source-confirmed** | **Officially released** | Runtime/docs confirm offscreen canvas frame/resize/image methods; not live-tested in this probe |
+| `context:decodeImage(buffer)` + `DecodedImage` | **Source-confirmed** | **Officially released** | Runtime/docs confirm the promise and RGBA payload shape; not live-tested in this probe |
+| `context:gpuCanvas(options)` + `GPUCanvas` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | The broader GPUCanvas/render-pass lifecycle was not executed; one standalone GPUBuffer allocation/write probe does not establish this workflow |
+| `context:features()` + `GPUFeatures` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | Capability flags/limits are documented for GPU preview; the live probe did not execute this Context method |
+| `context:shader(name)` + `Shader` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | Shader asset lookup is documented, but the current Editor analyzer did not expose `Context.shader` and no imported shader asset was executed |
+| `GPUBuffer`, `GPUTexture`, `GPUSampler`, `GPUBindGroup`, `GPUBindGroupLayout`, `GPUPipeline`, `GPURenderPass`, `GPUTextureView` | **Mixed live evidence; analyzer omits GPU globals** | **Rive Early Access only** | `GPUBuffer`/`GPUTexture` constructors executed despite unknown-global analyzer diagnostics; the broader object-family lifecycle was not executed |
+| `GPUBuffer:write(source, destinationOffset, sourceOffset, byteLength)` | **MCP runtime-tested; analyzer omits `GPUBuffer`** | **Rive Early Access only** | A valid ranged write passed and both source- and destination-overflow cases were rejected in Rive Beta; this is narrow buffer evidence, not full GPU workflow validation |
+| `GPUTextureView.format` | **Source-confirmed; MCP runtime probe failed** | **Rive Early Access only** | Live access failed with `attempt to index userdata with 'format'`; do not teach it as a working property in this Editor build |
+| `drawCanvas` callback | **Source/docs-confirmed retired** | **Migration required** | Current guidance merges Canvas/GPUCanvas work into `draw(self, renderer)`; serialized bit 15 remains legacy metadata, not a callable callback |
+| Scripted Interpolator protocol | **Source/docs-confirmed** | **Officially released** | `transform` / `transformValue` hooks and linear fallback are documented/source-confirmed; not live-tested in this probe |
 
 ---
 
-## Shader Early-Access Baseline Addendum (June 4, 2026)
+## Historical (June 4, 2026) Shader Early-Access Baseline Addendum
 
-The public npm/docs baseline above has been rechecked at `2.37.8`, and the current source-level audit uses `runtime-v0.1.106`. Shader/GPU scripting is part of that current source snapshot, but this material is currently **Rive Early Access only** because the editor workflow for shader assets is not broadly available.
+This appendix preserves the June 4, 2026 shader audit evidence. It is not the
+current release baseline above: that historical pass used public npm/docs
+`2.37.8` and source-level `runtime-v0.1.106`. Shader/GPU scripting was and
+remains **Rive Early Access only** because the editor workflow for shader assets
+is not broadly available.
 
 Use this addendum as the source of truth for LERP's shader lessons, not as a signal that shader scripting is broadly released in standard Rive workspaces.
 
 - **Shader baseline date:** June 4, 2026
 - **Shader API source reviewed:** `runtime-v0.1.106` at commit `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
-- **Public docs source checked:** `https://rive.app/docs/llms-full.txt`, including GPUCanvas, GPU object-family pages, `context:gpuCanvas`, `context:features`, `context:shader`, and `drawCanvas`
+- **Public/local docs source checked:** current local scripting protocol pages and runtime source bindings; older `drawCanvas` examples are treated as migration inputs, not current guidance
 - **Local reference document:** `/Users/ivg/github/luau-scripting/rive_shader_api_reference_runtime_v0106_type_safe.md`
 - **Local example corpus:** `/Users/ivg/github/luau-scripting/gpu_shaders`
 - **Current availability tier:** **Rive Early Access only**
@@ -125,7 +152,7 @@ LERP now teaches the following shader-specific rules:
 
 | Surface | LERP guidance | Notes |
 |---|---|---|
-| `drawCanvas(self)` | Use for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` | `draw(self, renderer)` remains the normal compositing callback |
+| `draw(self, renderer)` | Record Canvas/GPUCanvas work and composite with `Renderer` | `drawCanvas` is retired; keep frame/pass pairing inside `draw` |
 | `context:shader(name)` | Use for compiled `.wgsl` shader asset lookup | Returns `Shader?`; guard `nil` |
 | `GPUCanvas.format` | Use for pipeline color-target format | Avoid hard-coded formats unless you intentionally own the render target |
 | `Image:view()` | Use to sample image assets in shader bind groups | Shader usage is Rive Early Access only because it depends on GPU workflow availability |
@@ -140,14 +167,16 @@ Compatibility naming note: older docs and examples may mention `context:loadShad
 
 - Teach `ListenerAction.performAction(self, listenerContext)` as the primary listener callback shape.
 - Use `listenerContext:is...()` and `listenerContext:as...()` for event-safe branching.
-- Treat `PointerEvent.type` as string-based (`"pointerDown"`, `"pointerMove"`, etc.).
+- Treat `PointerEvent.type` as the `PointerType` string union; do not invent a runtime enum table.
+- Use separate `isGamepadConnected/Event/Disconnected` and matching `as...` methods. Do not use the stale generic `isGamepad()` / `asGamepad()` form.
+- Use current Editor event type names in new examples. Keep `*Invocation` names only when explicitly discussing pinned source/runtime compatibility.
 - Do not teach `viewModel.name` as available in Luau at this baseline.
 - Do not present `Output<T>` as currently exposed in C++ Luau bindings.
 - For list-bound ViewModels, use `viewModel:getIndex()` and handle detached state (`-1`).
 - For `PropertyList:removeAt(index)`, use 1-based indices and validate bounds.
 - Keep GPU shader/pipeline material in **Rive Early Access only** sections until editor-side shader asset visibility is broadly available.
 - When `context:shader(name)` returns `nil`, treat that as a possible asset name, packaging, or rollout/tooling gap before assuming script logic failure.
-- Use `drawCanvas(self)` for GPU and offscreen-canvas render passes; use `draw(self, renderer)` to composite the resulting image.
+- Merge GPU/offscreen Canvas recording and normal compositing into `draw(self, renderer)`; keep `beginFrame`/`endFrame` and `beginRenderPass`/`finish` paired. `drawCanvas` is retired and its serialized method bit is reserved legacy metadata.
 
 ---
 
@@ -174,6 +203,44 @@ Compatibility naming note: older docs and examples may mention `context:loadShad
 ---
 
 ## Audit Protocol (what this update checked)
+
+For the August 14, 2026 pass, LERP used this verification sequence:
+
+1. **Released boundary and source separation**
+   - Pinned released Web `2.40.0` to C++ `runtime-v0.1.271` and recorded the aligned package `gitHead`.
+   - Kept parser canary `runtime-v0.1.272` and the RFP source-impact snapshot separate from released-runtime claims.
+2. **Live Editor runtime cases through the Rive MCP**
+   - Ran `LERP_130_Runtime_Surface_Tests` in Rive Beta 0.8.5390 build 5377.
+   - All three original Vector/Mat4/ViewModel cases passed with final diagnostics `[]`.
+   - Focused follow-up runtime assertions passed for `Mat2D`/`Mat4` equality and
+     ranged `GPUBuffer:write`; the valid range succeeded and both source- and
+     destination-overflow cases were rejected.
+   - `GPUTextureView.format` was also executed and failed with
+     `attempt to index userdata with 'format'`.
+3. **Current Editor reference and analyzer reconciliation**
+   - Retrieved `rive/artboards` and `rive/interfaces` from the live built-in scripting reference.
+   - Compiled a temporary Tests probe covering the exact event types,
+     `ListenerContext` guards/accessors, full gamepad fields/methods,
+     `AudioSound:pause/resume/play`, and Node gamepad callbacks; diagnostics
+     were `[]`.
+   - Recorded that the same analyzer omits the `GPUBuffer` and `GPUTexture`
+     globals even though their runtime constructors executed.
+   - Removed the temporary probe, reran the original three cases, and confirmed
+     final diagnostics remained clean.
+4. **Pinned runtime-source comparison**
+   - Confirmed why historical `*Invocation` names appear in
+     `runtime-v0.1.262` Lua userdata wrappers.
+   - Confirmed that the same source snapshot already uses the current
+     connected/event/disconnected gamepad triad, so LERP's former generic
+     `GamepadInvocation` surface was stale rather than a required compatibility
+     alias.
+5. **Explicit non-claims**
+   - The event probe validated analyzer acceptance, not keyboard/focus/reported/
+     view-model-change or hardware gamepad dispatch; the AudioSound transport
+     calls were likewise not executed.
+   - Released Web `2.40.0`, global ViewModel Context methods, imported-library
+     asset resolution, and the broader Early Access GPUCanvas/shader/lifecycle
+     workflow were not established by the Editor probe.
 
 For the June 4, 2026 pass, LERP used this verification sequence:
 

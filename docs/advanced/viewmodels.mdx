@@ -1010,6 +1010,39 @@ ANSWER: nested
 
 ---
 
+## Global models and asset-valued data
+
+`context:globalViewModel(name)` and `context:globalViewModelNames()` expose
+only ViewModels declared global in the file. Unknown names return `nil`; keep
+the name explicit because global access increases coupling between components.
+Use `context:viewModel()` for the immediate context and
+`context:rootViewModel()` for the root model.
+
+```lua
+function init(self: SharedState, context: Context): boolean
+    local names = context:globalViewModelNames()
+    self.global = context:globalViewModel("Theme")
+    if not self.global then
+        return false
+    end
+    return #names > 0
+end
+```
+
+The target source also supports `getFont` and `getBlob`. A detached instance
+created with `viewModel:instance()` advances at frame end when owned by a
+scripted wrapper, so trigger/listener state can reset on the next frame. Do
+not rely on detached triggers staying latched. A property-valued Font is
+opaque and cannot be cleared with `nil` from Luau; Blob properties accept Blob
+userdata, buffers, strings, and `nil`, with empty payloads distinct from nil.
+The current editor type checker requires an explicit `property :: any` cast
+for the buffer/string/nil setter forms.
+
+These additions are source-confirmed in the v0.1.262 impact snapshot. Rive
+Beta 0.8.5390 (build 5377) independently passed the typed property and Blob
+runtime checks, but the released Web lane remains unprobed; keep this
+compatibility-preview material until that lane is verified.
+
 ## Knowledge Check
 
 <Quiz

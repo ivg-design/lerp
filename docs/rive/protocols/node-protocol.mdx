@@ -217,17 +217,32 @@ Every Node script you write will follow this structure. The exported type define
 | Function | Required | Parameters | Return | Called When |
 |----------|----------|------------|--------|-------------|
 | `init` | ✅ Yes | `self`, `context` | `boolean` | Once at startup |
-| `draw` | Optional (needed to render) | `self`, `renderer` | none | On canvas repaint |
+| `draw` | Optional (needed to render) | `self`, `renderer` | none | Record optional offscreen Canvas/GPU work and issue normal Renderer commands on repaint |
 | `update` | Optional | `self` | none | <Term>Input</Term> changes |
 | `advance` | Optional | `self`, `seconds` | `boolean` | Every playback frame; design-mode settle passes (see below) |
-| `drawCanvas` | Optional | `self` | none | Canvas/GPU render phase before `draw` |
 | `pointerDown` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch down |
 | `pointerMove` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch move |
 | `pointerUp` | Optional | `self`, `event: PointerEvent` | none | Mouse/touch up |
 | `pointerExit` | Optional | `self`, `event: PointerEvent` | none | Pointer leaves node |
+| `gamepadConnected` | Optional | `self`, `event: GamepadConnected` | none | A gamepad session connects |
+| `gamepadEvent` | Optional | `self`, `event: GamepadEvent` | none | A gamepad button or axis changes |
+| `gamepadDisconnected` | Optional | `self`, `event: GamepadDisconnected` | none | A gamepad session disconnects |
+
+The three gamepad callbacks above are present in the current Editor `Node<T>`
+reference and passed an analyzer probe on August 14, 2026. That probe did not
+execute hardware gamepad dispatch. See [Events](/api/events#gamepad-events) for
+the full payload fields and the matching `ListenerContext` guard/accessor triad.
+
+Source-level `keyboardEvent` / `textEvent` callbacks are tracked separately in
+the [runtime compatibility baseline](/rive/runtime-compatibility): they are not
+listed in the current Editor `Node<T>` reference snapshot, so do not infer
+Editor-reference parity from the source wrapper names alone.
 
 :::info GPU and offscreen canvas callback
-Use `drawCanvas(self)` for `Canvas:beginFrame(...)` and `GPUCanvas:beginRenderPass(...)` work. Use `draw(self, renderer)` afterward to composite the resulting `canvas.image` or `gpuCanvas.image`.
+The retired `drawCanvas(self)` callback is not dispatched by the target runtime.
+Merge `Canvas:beginFrame(...)`/`endFrame()` or
+`GPUCanvas:beginRenderPass(...)`/`finish()` work into `draw(self, renderer)` and
+composite the resulting image there. Keep frame/pass completion balanced.
 :::
 
 :::info advance() return value — playback vs design mode
