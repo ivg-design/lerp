@@ -11,8 +11,13 @@ keywords:
 
 # LERP Rive Documentation Errata Tracker
 
-Last revalidated against the released runtime boundary: 2026-08-14 (`2.40.0` Web line -> C++ `runtime-v0.1.271`; shader/GPU editor workflow remains Early Access only). Historical errata entries retain their original evidence dates.
-Last editor-validated errata batch: 2026-08-14 (Rive Beta 0.8.5390 build 5377, MCP-driven Tests-protocol runtime validation plus current event-reference analyzer probe)
+Last revalidated against the released runtime boundary: 2026-09-01 (direct
+Web `2.41.1` line -> C++ `runtime-v0.1.344`; released tag, canary, and main refs
+agree, the bundled React landing resolves Canvas `2.41.1`, and shader/GPU
+editor workflow remains Early Access only).
+Historical errata entries retain their original evidence dates.
+Last editor-reference comparison: 2026-08-31 (read-only MCP reference pass for
+`rive/interfaces`, `rive/fileFormat`, and `rive/testing`; no live-file mutation)
 Initial errata tracker open date: 2026-04-26
 
 Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
@@ -39,6 +44,12 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-GAP-024 | Pre-7.3 layout-controlled text | resolved for 1.4.0; pixel watch remains | high | Web `2.41.1` embeds runtime `344`, including the `341` compatibility repair. Every checked-in file-format `7.0` path is rendered through released Canvas and WebGL2 instead of treating static headers as pixel evidence. |
+| LERP-ERR-023 | Web state-machine selection | resolved in LERP | medium | Exact Web `2.41.1` source prefers singular `stateMachine`, while reviewed Web/React docs still teach deprecated plural `stateMachines`. LERP uses singular selection without claiming the legacy 2.x surface was removed. |
+| LERP-ERR-022 | Upstream `drawCanvas` examples | resolved in LERP | high | Current target dispatch and the current Node reference retire `drawCanvas`, while current public shader material still contains stale examples using it. LERP keeps all active rendering in `draw(self, renderer)`. |
+| LERP-GAP-021 | Context logging and global ViewModels | resolved | high | Global ViewModels are present in the exact target and current docs/editor; `Context.log` is current editor surface but absent from the target C++ Luau Context. The course now separates those claims and preserves dot-call syntax. |
+| LERP-ERR-020 | Layout resize requirement and scale drift | resolved | high | Runtime `344` treats `resize` as optional, passes `size` plus `displayScale`, redispatches scale changes, and preserves old two-parameter Luau callbacks. |
+| LERP-ERR-019 | FileFormat callable surface | resolved | high | LERP 1.3.0 grouped FileFormat/TextFileFormat with non-callable metadata. Current public/editor references expose real editor Luau protocols with document, analysis, view, and EditorContext callbacks. |
 | LERP-ERR-018 | Event names and gamepad payloads | resolved | high | Current-facing pages used historical `*Invocation` wrapper names, extra PointerEvent fields, and a stale generic gamepad payload instead of the Editor-reference event names and connected/event/disconnected triad. |
 | LERP-GAP-017 | Runtime surface/editor type boundary | resolved | high | August 14 MCP validation records runtime passes for matrix equality and ranged GPUBuffer writes, the failed GPUTextureView format access, analyzer-only event/audio coverage, and the remaining Context/library/GPU/Web boundaries. |
 | LERP-GAP-016 | While loops / script timeout recovery | resolved | high | Resolved in LERP on 2026-06-14 after a report from Rive Community user [Avo](https://community.rive.app/u/7a2efe62): the submitted `Exercise4_WhileCountdown` file froze the Rive editor because its `while energy > 0 do` loop incremented `steps` but never changed `energy`, so `init()` never returned. Course now warns at the general while-loop section and inside the exercise itself. |
@@ -57,6 +68,216 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-GAP-024 - Pre-7.3 layout-controlled text needs released-runtime pixel evidence {#lerp-gap-024}
+
+Status: resolved for the LERP 1.4.0 candidate on 2026-09-01; retain a pixel
+comparison watch because no pre-341 reference frame is available
+
+Severity: high
+
+Evidence:
+
+- Web `2.41.1` embeds C++ `runtime-v0.1.344`.
+- Runtime `344` retains runtime `341`'s file-version gate that restores pre-7.3
+  content-sized bounds and overflow behavior for layout-controlled auto-sized
+  text.
+- The repository contains six checked-in `.riv` paths. Their SHA-256 values
+  collapse to three unique payloads, and every payload has a file-format `7.0`
+  header.
+- Header inspection proves the file version only. It does not establish
+  layout/text structure or pixels, so every checked-in path was loaded with
+  both `@rive-app/canvas@2.41.1` and `@rive-app/webgl2@2.41.1`, and its first
+  state machine was run.
+- Both renderers produced non-empty frames for the header, desktop, and
+  portrait payloads without a page error, failed request, or Rive load error.
+
+Why this matters:
+
+A clean import, header version, or static analyzer cannot prove text bounds,
+overflow, clipping, or pixels. The real renderer run proves the accepted
+compatibility path executes; it does not prove exact identity to a historical
+known-good frame.
+
+Fix implemented in LERP:
+
+- Added the complete checked-in asset inventory and rendered every pre-7.3
+  path through the released Canvas and WebGL2 packages.
+- Recorded the exact observed load and pixel evidence without claiming a
+  pre-341 pixel match; no known-good comparison frame was available.
+- Promoted the retained `341` compatibility behavior into the direct Web
+  `2.41.1` / runtime `344` release target.
+
+---
+
+## LERP-ERR-023 - Local Web docs lag singular stateMachine migration {#lerp-err-023}
+
+Status: resolved in LERP 2026-09-01; upstream documentation lag remains
+
+Severity: medium
+
+Evidence:
+
+- Exact Web `2.41.1` source declares singular `stateMachine` on constructor,
+  `load`, and `reset` parameters and gives it priority over legacy playback
+  parameters.
+- Exact Web `2.41.1` tests cover singular startup/reset and separately prove
+  deprecated plural `stateMachines` still starts playback.
+- The same source retains direct state-machine inputs, Rive/state-change
+  events, text-run controls, and multiple playback on the 2.x line while
+  marking those paths for migration.
+- The local Web parameters, state-machine, and React pages reviewed on
+  2026-09-01 still use plural `stateMachines` in current examples.
+
+Why this matters:
+
+Copying the local examples into a new Web `2.41.1` integration selects a
+deprecated path and can produce migration warnings. Calling the legacy paths
+removed would be equally misleading because the exact 2.x source and tests
+still support them.
+
+Fix implemented in LERP:
+
+- The bundled React landing uses singular `stateMachine` for both assets.
+- The compatibility baseline records singular selection as preferred and
+  preserves the exact callable-but-deprecated status of legacy 2.x controls.
+- No Web-wrapper migration is presented as a Luau or editor protocol change.
+
+---
+
+## LERP-ERR-022 - Current upstream shader examples still use retired drawCanvas {#lerp-err-022}
+
+Status: resolved in LERP 2026-08-31; upstream documentation conflict remains
+
+Severity: high
+
+Evidence:
+
+- The exact `runtime-v0.1.344` target does not dispatch a current
+  `drawCanvas` Node/Layout callback.
+- The current editor `Node<T>` reference explicitly describes `drawCanvas` as
+  removed.
+- The August 31 public `llms-full.txt` snapshot still contains shader examples
+  that define or wire `drawCanvas`, despite the newer Node guidance.
+
+Why this matters:
+
+Copying those shader examples can produce a callback that never runs. A
+serialized legacy method bit or an old example does not restore dispatch.
+
+Fix implemented in LERP:
+
+- All current Canvas/GPUCanvas guidance keeps frame/pass work and compositing
+  in `draw(self, renderer)`.
+- The compatibility page records the upstream conflict and keeps legacy
+  serialized method metadata non-callable.
+
+---
+
+## LERP-GAP-021 - Context.log and global ViewModel evidence lanes were conflated {#lerp-gap-021}
+
+Status: resolved in LERP 2026-08-31
+
+Severity: high
+
+Evidence:
+
+- `runtime-v0.1.344` contains `globalViewModel` and
+  `globalViewModelNames` atoms, dispatch cases, and focused tests for missing
+  files, empty names, named globals, fallback chains, and unknown/non-global
+  names.
+- Current public docs and the current editor reference expose both methods.
+- The current editor reference declares `Context.log` as a function-valued
+  property, called with dot notation.
+- The exact target's C++ Luau atoms and Context dispatch contain no `log`
+  entry.
+
+What was wrong:
+
+LERP still labeled global ViewModels preview/rollout-dependent and did not
+document current `Context.log`. Treating both as one host logging/global-model
+bucket would also overstate target portability.
+
+Fix implemented in LERP:
+
+- Promoted global ViewModels to the exact released target surface, including
+  `nil`/empty-array behavior.
+- Documented `context.log("message")` as current editor/host surface and kept
+  `print(...)` as the portable Web `2.41.1` choice.
+
+---
+
+## LERP-ERR-020 - Layout resize was called required and later scale was not tiered {#lerp-err-020}
+
+Status: resolved in LERP 2026-08-31
+
+Severity: high
+
+Evidence:
+
+- `runtime-v0.1.344` checks whether `resize` is a function and returns without
+  error when it is absent.
+- Its Luau backend calls `resize(self, size, displayScale)`; the WASM host uses
+  the scale-aware export when available and falls back to the legacy export.
+- Current public docs and the current editor/LSP reference publish the same
+  optional three-argument callback.
+- `runtime-v0.1.335` introduced scale-aware resize plumbing, which remains in
+  the accepted `runtime-v0.1.344` target. The `337` tag remains useful as the
+  historical origin of the generated layout matrix.
+- Runtime tests cover initial three-argument dispatch, scale-change redispatch,
+  silence for an unchanged scale, and existing two-parameter callbacks.
+
+What was wrong:
+
+The Layout lesson, API page, matrix, quiz, and common-mistakes section called
+`resize` the only required callback. They also lacked a clear target/current
+editor split for the later `scale` argument.
+
+Fix implemented in LERP:
+
+- Marked `resize` optional and corrected the quiz and examples.
+- Updated Web `2.41.1` examples to `(self, size, displayScale)` while recording
+  compatibility for existing two-parameter callbacks.
+- Documented scale-change redispatch and the unchanged-scale no-op.
+
+---
+
+## LERP-ERR-019 - FileFormat and TextFileFormat were misclassified as non-callable metadata {#lerp-err-019}
+
+Status: resolved in LERP 2026-08-31
+
+Severity: high
+
+Evidence:
+
+- Current public Rive docs define `FileFormat`, `TextFileFormat`,
+  `FormatDocument`, `FormatView`, `EditorContext`, and the token, diagnostic,
+  completion, hover, theme, scroll, and surface records.
+- The current editor built-in `rive/fileFormat` reference exposes the same core
+  callback/data/view surface.
+- Local `luau-scripting` contains `RsvgFileFormat_v1.0.0.luau`, a shipped
+  `TextFileFormat` implementation with exact factory, highlight, and diagnostic
+  callbacks; its text document exports as a Blob.
+- The local `rive-docs` checkout reviewed in this pass had not yet acquired
+  the FileFormat pages, proving that local docs and current public/editor
+  rollout can differ.
+
+What was wrong:
+
+LERP 1.3.0 grouped FileFormat/TextFileFormat with serialized/export metadata and
+called the whole group non-callable. The serialized IDs and records are still
+non-callable, but the editor protocols are real Luau contracts.
+
+Fix implemented in LERP:
+
+- Added the complete FileFormat API page, minimal proved examples, and explicit
+  EditorContext/view/analysis lifecycle guidance.
+- Added the protocols to script-type, capability, quick-reference, asset,
+  module, and test guidance.
+- Preserved the exported runtime handoff through `context:blob(name)` and kept
+  serialized host metadata, internal IDs, and workspace messages out of Luau.
 
 ---
 
@@ -186,9 +407,8 @@ Fix implemented in LERP (2026-08-14):
 - Added this traceable errata entry and linked it from the 1.3.0 changelog.
 - Updated the core-types, ViewModel, data-value, and compatibility guidance with the Beta validation tier and the uncast Blob setter diagnostic.
 - Preserved preview/rollout-dependent wording for released Web, Context, imported-library, and broader GPU surfaces while recording the exact GPUBuffer pass and GPUTextureView failure.
-- Machine-readable validation evidence is retained with the 2026-08-14
-  release-suite run at `evidence/rive-editor/rive-editor-validation-2026-08-14.json`;
-  it is release evidence, not a public course route.
+- Machine-readable validation evidence was retained for the 2026-08-14 audit;
+  it is supporting evidence, not a public course route.
 
 ---
 
@@ -204,8 +424,8 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/fundamentals/control-flow.mdx` (Exercise 4 while-countdown exercise)
-- `/Users/ivg/github/lerp/docs/fundamentals/iteration.mdx` (general while-loop warning was present, but did not mention `init()` startup blocking)
+- `docs/fundamentals/control-flow.mdx` (Exercise 4 while-countdown exercise)
+- `docs/fundamentals/iteration.mdx` (general while-loop warning was present, but did not mention `init()` startup blocking)
 
 Evidence:
 
@@ -255,8 +475,8 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx` (Exercise 3 starter point order)
-- `/Users/ivg/github/lerp/docs/api/drawing.mdx` and `/Users/ivg/github/lerp/docs/quick-reference.mdx` (no winding guidance)
+- `docs/rive/protocols/node-protocol.mdx` (Exercise 3 starter point order)
+- `docs/api/drawing.mdx` and `docs/quick-reference.mdx` (no winding guidance)
 
 Evidence:
 
@@ -288,7 +508,7 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
+- `docs/rive/protocols/node-protocol.mdx`
 
 Evidence:
 
@@ -317,8 +537,8 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/protocols/node-protocol.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
 
 Evidence:
 
@@ -348,8 +568,8 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/glossary.mdx` (Vector entry used `pos:length()` / `pos:normalized()`)
-- `/Users/ivg/github/lerp/docs/rive/environment.mdx` (exercise TODO used `diff:length()`)
+- `docs/glossary.mdx` (Vector entry used `pos:length()` / `pos:normalized()`)
+- `docs/rive/environment.mdx` (exercise TODO used `diff:length()`)
 
 Why this matters:
 
@@ -373,8 +593,8 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/api/drawing.mdx`
-- `/Users/ivg/github/lerp/docs/api/core-types.mdx`
+- `docs/api/drawing.mdx`
+- `docs/api/core-types.mdx`
 
 Runtime-confirmed findings folded into this entry:
 
@@ -404,8 +624,8 @@ Reported by:
 
 Affected local code before fix:
 
-- `/Users/ivg/github/lerp/src/components/ExerciseValidator.tsx`
-- `/Users/ivg/github/lerp/src/components/ExerciseValidator.module.css`
+- `src/components/ExerciseValidator.tsx`
+- `src/components/ExerciseValidator.module.css`
 
 User-reported evidence:
 
@@ -442,7 +662,7 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/getting-started/your-first-script.mdx`
+- `docs/getting-started/your-first-script.mdx`
 
 User-reported evidence:
 
@@ -479,11 +699,11 @@ Reported by:
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/getting-started/your-first-script.mdx`
-- `/Users/ivg/github/lerp/docs/getting-started/how-rive-scripts-work.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
-- `/Users/ivg/github/lerp/docs/rive/environment.mdx`
+- `docs/getting-started/your-first-script.mdx`
+- `docs/getting-started/how-rive-scripts-work.mdx`
+- `docs/rive/protocols/node-protocol.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/environment.mdx`
 - Repeated exercise setup text across fundamentals, types, OOP, advanced, best-practices, and project pages
 
 Local LERP evidence:
@@ -493,7 +713,7 @@ Local LERP evidence:
 
 Runtime source check used for the correction:
 
-- Runtime source snapshot checked on 2026-06-04: `/Users/ivg/github/rive-runtime` at `a5e6bcf1` (working tree dirty).
+- Runtime source snapshot checked on 2026-06-04: the public Rive runtime checkout at `a5e6bcf1` (working tree dirty).
 - `scripted_object.cpp` calls Node `init` with `self` and `Context`.
 - `scripted_drawable.cpp` calls Node `draw` with `self` and `Renderer`, with pointer callbacks receiving `PointerEvent`.
 - `lua_scripted_context.cpp` exposes context/data/assets/redraw methods, not an implicit parent-shape handle.
@@ -528,9 +748,9 @@ Severity: medium
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
-- `/Users/ivg/github/lerp/docs/api/data-values.mdx`
-- `/Users/ivg/github/rive-runtime-docs/8.3-lua-api-reference.md` as a comparison source
+- `docs/advanced/viewmodels.mdx`
+- `docs/api/data-values.mdx`
+- the reviewed runtime API reference snapshot as a comparison source
 
 Local LERP evidence:
 
@@ -595,10 +815,10 @@ Severity: high
 
 Affected local docs before fix:
 
-- `/Users/ivg/github/lerp/docs/api/events.mdx`
-- `/Users/ivg/github/lerp/docs/api/system.mdx`
-- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
+- `docs/api/events.mdx`
+- `docs/api/system.mdx`
+- `docs/api/data-input.mdx`
+- `docs/rive/protocols/listener-action-protocol.mdx`
 
 What was wrong:
 
@@ -614,7 +834,7 @@ Evidence baseline used:
 
 Fix implemented in LERP:
 
-- Added `/Users/ivg/github/lerp/docs/rive/runtime-compatibility.mdx` with:
+- Added `docs/rive/runtime-compatibility.mdx` with:
   - pinned runtime commit/date
   - live/partial/not-exposed matrix for docs-labeled "Coming soon" surfaces
   - repeatable re-audit workflow
@@ -630,7 +850,7 @@ Severity: medium
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
 
 Local LERP evidence:
 
@@ -685,8 +905,8 @@ Severity: medium
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
-- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
+- `docs/api/data-input.mdx`
+- `docs/advanced/viewmodels.mdx`
 - any LERP examples that call `property:addListener(...)`
 
 Local LERP evidence:
@@ -754,10 +974,10 @@ Severity: medium
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
-- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
-- `/Users/ivg/github/lerp/docs/rive/inputs.mdx`
+- `docs/advanced/viewmodels.mdx`
+- `docs/api/data-input.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/inputs.mdx`
 
 Local LERP wording:
 
@@ -813,8 +1033,8 @@ Severity: high
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/path-effect-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/site-map.mdx` describes the Path Effects API as including `CommandType`
+- `docs/rive/protocols/path-effect-protocol.mdx`
+- `docs/site-map.mdx` describes the Path Effects API as including `CommandType`
 
 Local LERP evidence:
 
@@ -884,9 +1104,9 @@ Severity: high
 
 Affected local docs:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/rive/script-capability-matrix.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/transition-condition-protocol.mdx` indirectly references `perform(self, pointerEvent)` as the ListenerAction callback
+- `docs/rive/protocols/listener-action-protocol.mdx`
+- `docs/rive/script-capability-matrix.mdx`
+- `docs/rive/protocols/transition-condition-protocol.mdx` indirectly references `perform(self, pointerEvent)` as the ListenerAction callback
 
 Local LERP evidence:
 
@@ -959,20 +1179,20 @@ Official Rive docs checked during this errata pass:
 
 Local LERP docs checked during this errata pass:
 
-- `/Users/ivg/github/lerp/docs/rive/protocols/listener-action-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/rive/script-capability-matrix.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/path-effect-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/api/data-input.mdx`
-- `/Users/ivg/github/lerp/docs/api/data-values.mdx`
-- `/Users/ivg/github/lerp/docs/advanced/viewmodels.mdx`
-- `/Users/ivg/github/lerp/docs/rive/inputs.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/node-lifecycle.mdx`
-- `/Users/ivg/github/lerp/docs/rive/protocols/layout-protocol.mdx`
-- `/Users/ivg/github/lerp/docs/rive/runtime-compatibility.mdx`
-- `/Users/ivg/github/rive-docs/editor/data-binding/lists.mdx`
-- `/Users/ivg/github/rive-docs/editor/layouts/scrolling.mdx`
-- `/Users/ivg/github/rive-docs/editor/layouts/layout-parameters.mdx`
-- `/Users/ivg/github/rive-runtime-docs/8.3-lua-api-reference.md`
+- `docs/rive/protocols/listener-action-protocol.mdx`
+- `docs/rive/script-capability-matrix.mdx`
+- `docs/rive/protocols/path-effect-protocol.mdx`
+- `docs/api/data-input.mdx`
+- `docs/api/data-values.mdx`
+- `docs/advanced/viewmodels.mdx`
+- `docs/rive/inputs.mdx`
+- `docs/rive/protocols/node-lifecycle.mdx`
+- `docs/rive/protocols/layout-protocol.mdx`
+- `docs/rive/runtime-compatibility.mdx`
+- `rive-docs/editor/data-binding/lists.mdx`
+- `rive-docs/editor/layouts/scrolling.mdx`
+- `rive-docs/editor/layouts/layout-parameters.mdx`
+- the reviewed runtime API reference snapshot
 - npm metadata check (`npm view @rive-app/canvas@2.37.4 gitHead`) returning `5581955bf70d8976c60254de1a9c50c128e70582`
 - npm metadata check (`npm view @rive-app/canvas@2.37.6 gitHead`) returning `2833de372c0d22596494c89c328008ce5b1106d7`
 

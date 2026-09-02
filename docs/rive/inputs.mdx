@@ -942,9 +942,18 @@ Current TextInput behavior includes focus/cursor visibility, selection clearing
 on focus loss, clamped scrolling, Home/End and Shift+Home/End, Cmd/Ctrl+A,
 double-click word selection, and triple-click line selection. These are editor
 and runtime behavior corrections, not new Luau keyboard/text callback names.
+The Web `2.41.1` target also carries TextInput dirt/hug/edit/font fixes and text
+font-fit/background-feather corrections. Re-test the actual editable text and
+Hug fixture because those changes are behavioral.
+
+Serialized `alignValue` (key `222`) and `verticalAlignValue` (key `1094`) are
+serialized/editor component metadata, not fields on the Luau `TextInput` event.
+The accepted runtime also retains serialized `obscured` key `1095`; it must not
+be treated as a Luau event field.
+
 The pinned runtime source still contains `keyboardEvent` / `textEvent`
 callbacks with historical `KeyboardInvocation` / `TextInputInvocation`
-wrappers, but the August 14 current Editor `Node<T>` reference does not list
+wrappers, but the current Editor `Node<T>` reference read for this audit does not list
 those callbacks. In `ListenerContext`, the current Editor payload types are
 `KeyboardEvent` and `TextInput`. Do not invent TextInput methods in a script
 lesson, and confirm the editor node-setting surface before giving UI

@@ -11,7 +11,7 @@ const OG_IMAGE = `${SITE_URL}/og-image_sm.png`;
 export const metadata: Metadata = {
   title: "LERP — Luau Education for Rive Professionals",
   description:
-    "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+    "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
   metadataBase: new URL(SITE_ROOT),
   alternates: {
     canonical: SITE_ROOT,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
+      "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
     url: SITE_ROOT,
     siteName: "LERP",
     type: "website",
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 600,
-        alt: "LERP — Luau Education for Rive Professionals. 90 docs pages, 222 exercises, 203 quizzes.",
+        alt: "LERP — Luau Education for Rive Professionals. 91 docs pages, 222 exercises, 203 quizzes.",
         type: "image/png",
       },
     ],
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes. Free forever.",
+      "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever.",
     images: [
       {
         url: OG_IMAGE,
@@ -123,7 +123,7 @@ const jsonLd = {
       url: `${SITE_URL}/`,
       name: "LERP — Luau Education for Rive Professionals",
       description:
-        "The first interactive Luau scripting course for Rive. 90 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+        "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#course` },
       primaryImageOfPage: {
@@ -154,7 +154,7 @@ const jsonLd = {
       name: "LERP: Luau Education for Rive Professionals",
       alternateName: "LERP",
       description:
-        "The first interactive course built specifically for Rive's Luau scripting runtime. LERP takes you from absolute beginner to confident Rive scripter through 90 docs pages, 222 hands-on exercises, and 203 quizzes — all inside the Rive Editor. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
+        "The first interactive course built specifically for Rive's Luau scripting runtime. LERP takes you from absolute beginner to confident Rive scripter through 91 docs pages, 222 hands-on exercises, and 203 quizzes — all inside the Rive Editor. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
       url: COURSE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       creator: { "@id": `${SITE_URL}/#author` },

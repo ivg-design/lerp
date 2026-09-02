@@ -144,13 +144,17 @@ Binary data can arrive either as an asset lookup or as a data-bound property.
 These are separate APIs: `context:blob(name)` resolves a packaged asset, while
 `viewModel:getBlob(name)` returns a mutable `Property<Blob>`.
 
+Editable documents claimed by a `TextFileFormat` also export as ordinary Blob
+assets. The editor-side document callbacks use `FormatDocument`; the runtime
+consumer uses `context:blob(name)`. See [File Formats](./file-formats).
+
 ### Attributes
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `name` | string | Asset name (read-only) |
 | `size` | number | Data size in bytes (read-only) |
-| `data` | buffer | Raw binary data (read-only) |
+| `data` | buffer? | Raw binary data; `nil` for a zero-byte Blob (read-only) |
 
 **See Also:** [Context](./data-input#context), [Property&lt;Blob&gt;](./data-values#propertyblob)
 
@@ -158,6 +162,10 @@ An empty string or empty buffer assigned to a `Property<Blob>` creates a real
 zero-byte Blob. Assigning `nil` clears the property. Repeated reads of an
 unchanged asset-valued property preserve wrapper identity; a replacement
 invalidates the cached wrapper.
+
+`runtime-v0.1.344` exposes no Blob string-conversion method. Guard `data` and
+use `buffer.tostring(blob.data)` when the bytes represent text; for an empty
+Blob, `size == 0` and `data == nil`.
 
 ---
 

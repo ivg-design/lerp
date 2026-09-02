@@ -26,13 +26,22 @@ import Term from '@site/src/components/Term';
 - Use `resize()` to react to container size changes
 - Position children programmatically within layouts
 
+:::info Runtime signature for this course
+Web `2.41.1` backed by `runtime-v0.1.344` calls
+`resize(self, size: Vector, displayScale: number)`. The callback is optional;
+the runtime no-ops when it is absent. `displayScale` is device pixels per layout
+point. A presenting-surface scale change after a valid size redispatches
+`resize`; an unchanged scale is silent. Existing two-parameter Luau callbacks
+remain compatible because Luau ignores extra arguments.
+:::
+
 ---
 
 ## AE/JS Syntax Comparison
 
 | Concept | CSS/JavaScript | Luau (Rive Layout Scripts) |
 |---------|---------------|----------------------------|
-| Container query | `@container (min-width)` | `resize(self, size)` callback |
+| Container query | `@container (min-width)` | `resize(self, size, displayScale)` callback |
 | Preferred size | `width: fit-content` | `measure()` returns Vector |
 | Flexbox gap | `gap: 10px` | Manual positioning in `resize()` |
 | Grid layout | `display: grid` | Custom logic in `resize()` |
@@ -53,6 +62,14 @@ Layout Scripts extend <Term>Node</Term> Scripts to give you programmatic control
 - Programmatic child arrangement
 - Data-driven layout systems
 
+:::note Runtime behavior rebaseline
+Web `2.41.1` includes layout and animation correctness fixes for integer grid
+placement, bound keyframes, Yoga property writes, Solo sizing, nested Fill/Hug
+layout, layout consistency, and component-list parent discovery. These changes
+do not add Luau calls. Re-run the real custom-layout fixture after upgrading,
+especially when it combines nested Fit modes, animation, or component lists.
+:::
+
 ---
 
 ## The Layout Script Template
@@ -61,6 +78,9 @@ Layout Scripts extend <Term>Node</Term> Scripts to give you programmatic control
 export type MyLayout = {
     spacing: Input<number>,
     columns: Input<number>,
+    width: number,
+    height: number,
+    displayScale: number,
 }
 
 function init(self: MyLayout, context: Context): boolean
@@ -86,11 +106,12 @@ function measure(self: MyLayout): Vector
     return Vector.xy(200, 150)
 end
 
--- REQUIRED: React to container size changes
-function resize(self: MyLayout, size: Vector)
+-- Optional: react to container size changes
+function resize(self: MyLayout, size: Vector, displayScale: number)
     -- Position children based on available size
-    local width = size.x
-    local height = size.y
+    self.width = size.x
+    self.height = size.y
+    self.displayScale = displayScale
     -- ... layout logic here
 end
 
@@ -104,6 +125,9 @@ return function(): Layout<MyLayout>
         resize = resize,
         spacing = 10,
         columns = 3,
+        width = 0,
+        height = 0,
+        displayScale = 1,
     }
 end
 ```
@@ -117,7 +141,7 @@ end
 | Function | Signature | Required | Description |
 |----------|-----------|----------|-------------|
 | `init` | `(self: T, context: Context): boolean` | Yes | Initialize layout state |
-| `resize` | `(self: T, size: Vector)` | **Yes** | React to container size changes |
+| `resize` | `(self: T, size: Vector, displayScale: number)` | No | React to box or presenting-surface scale changes |
 | `measure` | `(self: T): Vector` | No | Propose ideal size (Hug fit only) |
 | `update` | `(self: T)` | No | Respond to input changes |
 | `advance` | `(self: T, seconds: number): boolean` | No | Per-frame animation updates |
@@ -133,7 +157,7 @@ end
 return function(): Layout<YourLayoutType>
     return {
         init = init,
-        resize = resize,    -- Required
+        resize = resize,    -- Optional; include when the script reacts to its box
         measure = measure,  -- Optional
         update = update,    -- Optional
         -- ... your inputs with defaults
@@ -145,13 +169,15 @@ end
 
 ## Lifecycle Functions
 
-### `resize(self, size: Vector)` — **REQUIRED**
+### `resize(self, size: Vector, displayScale: number)` — Optional
 
-Called whenever the layout container changes size. This is where you position children.
+Called after the layout receives a valid size and again when that size or the
+presenting surface's display scale changes. This is where you position children
+or update scale-sensitive resources.
 
 ```lua
-function resize(self: MyLayout, size: Vector)
-    print(`Container resized to: {size.x} x {size.y}`)
+function resize(self: MyLayout, size: Vector, displayScale: number)
+    print(`Container resized to: {size.x} x {size.y} at {displayScale}x`)
     -- Position children here
 end
 ```
@@ -160,6 +186,12 @@ end
 - On initial layout load
 - When the container resizes
 - When parent layout changes
+- When the presenting-surface scale changes after a valid size
+
+If the callback is omitted, `runtime-v0.1.344` performs no script resize work.
+An unchanged display scale does not trigger another callback. Existing
+`resize(self, size)` scripts remain valid, but new scale-aware code should use
+the full signature.
 
 ---
 
@@ -189,7 +221,6 @@ Layout Scripts inherit all Node Script lifecycle functions:
 | `init(self, context)` | One-time initialization |
 | `advance(self, seconds)` | Per-frame updates (for animations) |
 | `update(self)` | React to <Term>Input</Term> changes |
-| `draw(self, renderer)` | Render into offscreen `Canvas` / `GPUCanvas` targets and composite them |
 | `draw(self, renderer)` | Custom rendering |
 
 ---
@@ -260,9 +291,10 @@ export type Exercise1 = {
     itemCount: Input<number>,
 }
 
-function resize(self: Exercise1, size: Vector)
+function resize(self: Exercise1, size: Vector, displayScale: number)
     local count = self.itemCount
     local width = size.x
+    -- displayScale is available for device-pixel-sensitive resources.
 
     -- TODO: Calculate spacing between items
     -- Formula: spacing = width / (count + 1)
@@ -349,10 +381,11 @@ export type Exercise2 = {
     itemCount: Input<number>,
 }
 
-function resize(self: Exercise2, size: Vector)
+function resize(self: Exercise2, size: Vector, displayScale: number)
     local itemSize = self.itemSize
     local itemCount = self.itemCount
     local width = size.x
+    -- This layout uses logical dimensions, so displayScale is not needed here.
 
     -- TODO 1: Calculate columns that fit in width
     -- Use: math.floor(width / itemSize)
@@ -470,8 +503,8 @@ function measure(self: Exercise3): Vector
     return Vector.xy(totalWidth, totalHeight)
 end
 
-function resize(self: Exercise3, size: Vector)
-    -- Layout positioning would go here
+function resize(self: Exercise3, size: Vector, displayScale: number)
+    -- Layout positioning would go here; displayScale is available when needed.
 end
 
 return function(): Layout<Exercise3>
@@ -547,7 +580,7 @@ Your console output should display the proposed width and height for the hug lay
 />
 
 <Quiz
-  question="Which lifecycle function is REQUIRED in a Layout Script?"
+  question="Which optional callback receives the granted layout box size?"
   id="layout-q3"
   options={[
     { text: "init()" },
@@ -555,7 +588,7 @@ Your console output should display the proposed width and height for the hug lay
     { text: "resize()", correct: true },
     { text: "advance()" },
   ]}
-  explanation="resize() is the only required function. It's called when the layout container changes size, and you must handle positioning children there."
+  explanation="resize() receives the granted size and display scale when it is implemented. At runtime-v0.1.344 it is optional, and a missing callback is a no-op."
 />
 
 <Quiz
@@ -576,14 +609,17 @@ Your console output should display the proposed width and height for the hug lay
 
 :::danger Avoid These Errors
 
-1. **Forgetting resize() is required**
+1. **Expecting custom layout work without `resize()`**
    ```lua
-   -- WRONG: No resize function
+   -- Valid, but it performs no custom resize work
    return function(): Layout<MyLayout>
-       return { measure = measure }  -- Error!
+       return { measure = measure }
    end
+   ```
 
-   -- CORRECT: Always include resize
+   Include `resize` when the script must position children:
+
+   ```lua
    return function(): Layout<MyLayout>
        return { resize = resize, measure = measure }
    end
@@ -598,12 +634,12 @@ Your console output should display the proposed width and height for the hug lay
 3. **Not using the size parameter in resize()**
    ```lua
    -- WRONG: Ignoring container size
-   function resize(self: MyLayout, size: Vector)
+   function resize(self: MyLayout, size: Vector, displayScale: number)
        positionAt(100, 100)  -- Hardcoded, doesn't adapt!
    end
 
    -- CORRECT: Use size to calculate positions
-   function resize(self: MyLayout, size: Vector)
+   function resize(self: MyLayout, size: Vector, displayScale: number)
        local centerX = size.x / 2
        local centerY = size.y / 2
        positionAt(centerX, centerY)

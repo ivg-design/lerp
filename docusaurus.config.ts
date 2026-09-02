@@ -9,6 +9,9 @@ const config: Config = {
 
   future: {
     v4: true,
+    faster: {
+      swcHtmlMinimizer: false,
+    },
   },
 
   url: 'https://forge.mograph.life',
@@ -21,6 +24,11 @@ const config: Config = {
 
   markdown: {
     mermaid: true,
+    mdx1Compat: {
+      comments: true,
+      admonitions: true,
+      headingIds: true,
+    },
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -123,9 +131,10 @@ const config: Config = {
   themes: [
     '@docusaurus/theme-mermaid',
     [
-      require.resolve('@easyops-cn/docusaurus-search-local'),
+      '@easyops-cn/docusaurus-search-local',
       {
         hashed: true,
+        indexBlog: false,
         language: ['en'],
         highlightSearchTermsOnTargetPage: true,
         explicitSearchResultPath: true,

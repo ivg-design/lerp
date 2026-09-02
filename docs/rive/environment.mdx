@@ -80,6 +80,27 @@ This is especially useful for shader-era scripts because typed GPU descriptors, 
 Keep the Rive editor open for asset wiring, script inputs, and final playback checks. Use the language server for faster iteration in an external editor, then validate behavior in Rive with the Console panel.
 :::
 
+### Command-line analyzer and stdio server
+
+From a built source checkout, run static analysis through the Rive wrapper:
+
+```bash
+./bin/rive/rive-luau-analyze --formatter=plain path/to/script.luau
+```
+
+Analyzer options must come before the first file or directory. A zero exit
+proves compatibility with the bundled declarations; it does not execute the
+script or prove editor registration, export, playback, or pixels.
+
+Configure this wrapper itself as an LSP client's stdio command:
+
+```bash
+./bin/rive/rive-luau-lsp
+```
+
+Do not append an additional `lsp` subcommand. The wrapper supplies the
+underlying mode and loads its Rive definitions and documentation.
+
 ---
 
 ## The Console Panel
@@ -156,7 +177,8 @@ class MyNode {
 ```
 
 **Characteristics:**
-- Must have `init` and `draw` functions
+- Return a `Node<T>` factory and use `init` for setup
+- Include `draw` only when the script renders
 - Can have `update`, `advance`, and pointer handlers
 - Add as script nodes in the artboard hierarchy
 - Have access to a `Renderer` for drawing

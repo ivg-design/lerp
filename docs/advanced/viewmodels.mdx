@@ -1038,10 +1038,12 @@ userdata, buffers, strings, and `nil`, with empty payloads distinct from nil.
 The current editor type checker requires an explicit `property :: any` cast
 for the buffer/string/nil setter forms.
 
-These additions are source-confirmed in the v0.1.262 impact snapshot. Rive
-Beta 0.8.5390 (build 5377) independently passed the typed property and Blob
-runtime checks, but the released Web lane remains unprobed; keep this
-compatibility-preview material until that lane is verified.
+Global ViewModel lookup and the typed asset-property paths remain
+source-confirmed in the exact `runtime-v0.1.344` target. The earlier Rive Beta
+0.8.5390 (build 5377) probe independently passed the typed property and Blob
+runtime checks. This downstream audit executed the bundled landing assets, but
+not a focused exported scripting fixture for these calls, so source support
+and exported script behavior remain separate evidence.
 
 ## Knowledge Check
 

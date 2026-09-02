@@ -71,6 +71,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://forge.mograph.life/apps/lerp/api/file-formats</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://forge.mograph.life/apps/lerp/api/gpu-shaders</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

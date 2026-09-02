@@ -22,7 +22,8 @@ import Quiz from '@site/src/components/Quiz';
 APIs for pointer interactions and listener-trigger payloads.
 
 :::info Runtime baseline
-This page reflects the released Web `2.40.0` -> C++ `runtime-v0.1.271` boundary, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This page reflects released Web `2.41.1` -> C++ `runtime-v0.1.344`, with
+source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 :::note August 14 Editor reference validation
@@ -202,6 +203,11 @@ Text input payload exposed via `listenerContext:asTextInput()`.
 |---|---|---|
 | `text` | string | Committed text input |
 
+`alignValue` (serialized key `222`) and `verticalAlignValue` (key `1094`) are
+TextInput component metadata parsed from `.riv` files; they are not fields on
+this Luau event payload. The accepted runtime also retains serialized
+`obscured` key `1095`; it is likewise not a Luau event field.
+
 ---
 
 ## FocusEvent
@@ -211,6 +217,11 @@ Focus payload exposed via `listenerContext:asFocus()`.
 | Field | Type | Description |
 |---|---|---|
 | `isFocus` | boolean | `true` when focus gained, `false` when focus lost |
+
+The accepted target includes fixes for gamepad device indexing, root-artboard
+FocusManager ownership, re-homing focus for nested instances, visibility
+transitions, and destroyed focus-tree state. Those are runtime behavior fixes;
+they do not add fields to `FocusEvent` or change callback signatures.
 
 ---
 
@@ -305,6 +316,10 @@ function gamepadDisconnected(self: MyNode, event: GamepadDisconnected)
     print("disconnected", event.deviceId)
 end
 ```
+
+`runtime-v0.1.344` also corrects gamepad focus-device selection. Re-test real
+controller navigation and focus destruction/restoration in the selected
+runtime because analyzer acceptance alone does not execute those paths.
 
 ---
 

@@ -19,8 +19,10 @@ import Term from '@site/src/components/Term';
 <Term>Node</Term> data access and layout scripting.
 
 :::info Runtime baseline
-`NodeReadData.paint`, `node:asPath()`, and `node:asPaint()` remain tracked as live in the August 14, 2026 compatibility baseline. See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for the released Web line and source pins.
-See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for tracked status.
+`NodeReadData.paint`, `node:asPath()`, and `node:asPaint()` remain tracked in
+the September 1, 2026 compatibility baseline. See
+[Runtime Compatibility Baseline](/rive/runtime-compatibility) for the released
+Web line and source pins.
 :::
 
 ---
@@ -110,16 +112,26 @@ function measure(self: MyLayout): Vector
 end
 ```
 
-#### `resize(self, size)`
+#### `resize(self, size, displayScale)`
 
-Required. Called on initial size and whenever size changes.
+Optional. When implemented, called after the layout receives a valid size and
+whenever that size or the presenting-surface display scale changes. A missing
+callback is a no-op; an unchanged scale does not redispatch it.
 
 ```lua
-function resize(self: MyLayout, size: Vector)
+function resize(self: MyLayout, size: Vector, displayScale: number)
     self.width = size.x
     self.height = size.y
+    self.pixelWidth = size.x * displayScale
 end
 ```
+
+:::info Existing callback compatibility
+Direct Web `2.41.1`, C++ `runtime-v0.1.344`, and the current editor/LSP surface
+agree on the three-argument form. `displayScale` is device pixels per layout
+point. Existing two-parameter Luau callbacks remain compatible because extra
+arguments are ignored.
+:::
 
 **Note:** Layout extends the Node protocol. Layout scripts inherit all Node callbacks (`init`, `advance`, `draw`, pointer event handlers) in addition to `measure` and `resize`.
 

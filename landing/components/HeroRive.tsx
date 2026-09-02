@@ -23,7 +23,7 @@ function DesktopRive() {
     src: "/apps/lerp/lerp-full-scren-hero.riv",
     autoplay: true,
     autoBind: true,
-    stateMachines: "State Machine 1",
+    stateMachine: "State Machine 1",
     layout: new Layout({ fit: Fit.Fill }),
   });
   return <RiveComponent />;
@@ -35,7 +35,7 @@ function PortraitRive() {
     src: "/apps/lerp/lerp-portrait.riv",
     autoplay: true,
     autoBind: true,
-    stateMachines: "State Machine 1",
+    stateMachine: "State Machine 1",
     layout: new Layout({ fit: Fit.Fill }),
   });
 

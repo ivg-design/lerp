@@ -24,6 +24,7 @@ import Term from '@site/src/components/Term';
 - Understand when and why to use Test Scripts
 - Write test cases using `case()` and `group()`
 - Use expect matchers for assertions
+- Resolve Blob fixtures through the current `Tester.blob` helper
 - Run and interpret test results in the Rive editor
 
 ---
@@ -129,6 +130,32 @@ group('Rectangle functions', function()
     end)
 end)
 ```
+
+### `test.blob(name)` — Resolve a Blob Fixture
+
+The current editor testing reference exposes `blob` as a function-valued
+`Tester` property. It returns `nil` when the fixture is missing.
+
+```lua
+function setup(test: Tester)
+    test.case("fixture is packaged", function(expect)
+        local fixture = test.blob("SampleData")
+        expect(fixture ~= nil).is(true)
+    end)
+end
+```
+
+This is current editor/test-host evidence. A successful editor test does not
+prove that an exported runtime uses the same asset name; validate the runtime
+consumer with `context:blob(name)` separately.
+
+:::note Workspace protocol boundary
+The released source contains RASC workspace/test messages and an in-memory
+compiler/bake lane. Those messages are tooling internals. Test scripts still
+return `function(): Tests`, receive `Tester`, and use `test.case`,
+`test.group`, and current `test.blob`; they do not call the workspace protocol
+or consume serialized host records.
+:::
 
 ---
 
@@ -588,6 +615,7 @@ Your console output should confirm both negative assertions.
 - [ ] I understand that Test Scripts only test Util Scripts
 - [ ] I can write test cases using `case()`
 - [ ] I can organize tests using `group()`
+- [ ] I can guard a Blob returned by `test.blob(name)`
 - [ ] I know how to use expect matchers (is, greaterThan, etc.)
 - [ ] I can negate assertions with `.never`
 - [ ] I can run tests in the Rive editor

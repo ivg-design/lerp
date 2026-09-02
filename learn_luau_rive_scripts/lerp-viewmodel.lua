@@ -154,6 +154,10 @@ function init(self: ViewModelDemo, context: Context): boolean
     
     -- Get the ViewModel from context
     local vm = context:viewModel()
+    if not vm then
+        print("❌ No ViewModel is bound to this node. Assign an instance before running the exercise.")
+        return false
+    end
     
     print("\n📊 EXERCISE 2: Getting Properties")
     print("─────────────────────────────────────")

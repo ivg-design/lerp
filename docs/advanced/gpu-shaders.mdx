@@ -472,11 +472,18 @@ function init(self: MyLayout, context: Context): boolean
     return true
 end
 
-function resize(self: MyLayout, size: Vector)
-    self.gpuCanvas:resize(size.x, size.y)
+function resize(self: MyLayout, size: Vector, displayScale: number)
+    local pixelWidth = math.max(1, math.ceil(size.x * displayScale))
+    local pixelHeight = math.max(1, math.ceil(size.y * displayScale))
+    self.gpuCanvas:resize(pixelWidth, pixelHeight)
     -- Recreate depth, MSAA, and offscreen textures here.
 end
 ```
+
+`size` uses layout points; `displayScale` converts those dimensions to backing
+pixels. Runtime `344` redispatches this optional callback when the presenting
+surface scale changes, so scale-sensitive targets can be recreated even when
+the logical box is unchanged. Existing two-parameter callbacks remain valid.
 
 Guard rendering until the backing texture exists:
 
@@ -533,7 +540,7 @@ This is also the safe strategy for glass or background-distortion effects. A sha
 
 ## Example Pack Progression
 
-The course shader examples are based on the corrected local example pack in `/Users/ivg/github/luau-scripting/gpu_shaders`. Use them as a progression rather than as isolated demos:
+The course shader examples are based on the corrected [public Rive Luau example pack](https://github.com/ivg-design/luau-scripting/tree/main/gpu_shaders). Use them as a progression rather than as isolated demos:
 
 | Example | What it teaches | Course role |
 |---------|-----------------|-------------|
