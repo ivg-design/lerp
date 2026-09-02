@@ -715,12 +715,12 @@ The type checker caught your typo before you even ran the script!
   question="Which parts are REQUIRED in every Node script?"
   id="beginner-q13"
   options={[
-    { text: "Just init" },
+    { text: "init and the Node factory; draw only when rendering", correct: true },
     { text: "Just draw" },
-    { text: "init, draw, and the factory function", correct: true },
-    { text: "Only the factory function" },
+    { text: "init, draw, and advance in every script" },
+    { text: "Only an exported type" },
   ]}
-  explanation="Every Node script needs init (for setup), draw (for rendering), and the factory function (to create instances)."
+  explanation="Use init for setup and return a Node factory. draw is optional: include it when the script renders, and omit it for logic-only scripts."
 />
 
 ---

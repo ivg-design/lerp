@@ -714,6 +714,15 @@ dispatch was not executed. ListenerAction scripts use the matching
 `isGamepadConnected` / `isGamepadEvent` / `isGamepadDisconnected` guards and
 `as...` accessors documented in [Events](/api/events#gamepad-events).
 
+:::info Web 2.41.1 focus behavior baseline
+The accepted `runtime-v0.1.344` target fixes gamepad device indexing, keeps the
+FocusManager on the root artboard, re-homes focus for nested instances, updates
+focus with visibility changes, and clears destroyed focus-tree state. These
+changes require no new callback. Validate controller focus, nested-artboard
+visibility, node destruction, and focus restoration with the production
+`.riv`.
+:::
+
 ---
 
 ### Exercise 4: Click Counter ⭐⭐ {#exercise-4-click-counter}

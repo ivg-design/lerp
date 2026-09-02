@@ -37,7 +37,7 @@ When you create a script in Rive, you'll see this. Here's what each part does:
 | `export type MyNode = { path: Path, time: number, speed: Input<number> }` | **Define your script's data shape** — Rive objects (Path, Paint), state variables, editor inputs (`Input<T>`) |
 | `function init(self: MyNode, context: Context) ... end` | **Runs ONCE at startup** — Create Path, Paint objects, initialize state, access runtime context, return true to continue |
 | `function advance(self, seconds) ... end` | **Runs every animation frame (optional)** — Animation, physics, return true to keep running |
-| `function draw(self, renderer) ... end` | **Runs when canvas repaints (REQUIRED)** — Draw paths with renderer, should be pure (no state changes) |
+| `function draw(self, renderer) ... end` | **Runs when canvas repaints (optional)** — Include it when the script renders; keep it focused on render commands |
 | `return function(): Node<MyNode> ... end` | **Factory function (REQUIRED)** — Creates fresh instance per node, wire up lifecycle functions, set `Input<T>` defaults, use `late()` for runtime values |
 
 ---
@@ -136,7 +136,7 @@ This is why Rive scripts have a specific **structure** or "protocol" — it's ho
 
 A "protocol" is like a contract. Rive promises to call certain functions at certain times, and you promise to provide those functions in a specific format.
 
-### The Minimum Valid Script
+### A Minimal Rendering Script
 
 Here's the smallest script that works:
 
@@ -158,7 +158,9 @@ return function(): Node<MyScript>
 end
 ```
 
-**That's 17 lines before you even do anything!** Let's understand WHY each part exists.
+This rendering example includes `draw`. A logic-only Node can omit `draw` and
+still list, place, initialize, and advance; the factory return remains the
+protocol-defining structure.
 
 ---
 
@@ -658,8 +660,9 @@ flowchart TD
 Every Rive script follows this pattern:
 
 1. **Define your data type** (`export type`)
-3. **Implement lifecycle functions** (`init`, `draw`, optionally `advance`)
-4. **Return a factory function** that creates instances
+2. **Implement the lifecycle functions the script needs** (`init`, optional
+   `draw`, `advance`, `update`, and event callbacks)
+3. **Return a factory function** that creates instances
 
 Once you understand WHY each part exists, the structure becomes second nature!
 

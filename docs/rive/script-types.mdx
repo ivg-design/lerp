@@ -16,10 +16,16 @@ import Term from '@site/src/components/Term';
 
 # Script Types Overview
 
-Rive provides **8 script types**, each designed for a specific purpose. This page gives you the big picture — which script type to choose and when.
+Rive provides **8 runtime/course script types**, each designed for a specific
+purpose. The editor also exposes `FileFormat` and `TextFileFormat` extension
+protocols for custom documents; those are covered separately because they do
+not attach to an artboard or run as runtime behavior scripts.
 
 :::info Runtime baseline
-This overview is aligned to the released Web `2.40.0` -> C++ `runtime-v0.1.271` boundary. Newer source findings and GPU guidance remain explicitly tiered. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This overview is aligned to direct Web `2.41.1` -> C++
+`runtime-v0.1.344`. Current editor-only and later-source surfaces remain explicitly
+tiered. For versioned API tracking, see
+[Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 :::info Need Full Access/Limitations Matrix?
@@ -44,6 +50,17 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 | **[TransitionCondition Script](#transitioncondition-script)** | Custom transition evaluation logic | State machine transitions |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |
 | **[Test Script](#test-script)** | Unit testing Util Scripts | Nothing (run manually) |
+
+### Editor extension protocols
+
+| Protocol | Purpose | Placement |
+|---|---|---|
+| **[`FileFormat`](/api/file-formats)** | Claim a binary extension and optionally preview it | Script asset used by the editor/import pipeline |
+| **[`TextFileFormat`](/api/file-formats)** | Claim an editable text extension and provide highlighting, diagnostics, completions, hover, formatting, or previews | Script asset used by the editor/import pipeline |
+
+Text FileFormat documents export as Blob assets. Runtime scripts read the
+result with `context:blob(name)`; they do not receive `FormatDocument` or
+`EditorContext`.
 
 :::info Listeners
 `Listener<T>` is a **function signature**, not a script type. See [Listeners](./protocols/listener-protocol) for details.
@@ -92,7 +109,7 @@ end
 **Key features:**
 - All Node Script lifecycle callbacks PLUS:
 - `measure()` - Propose ideal size (for "Hug" fit type)
-- `resize(size)` - React to size changes, position children
+- optional `resize(size, displayScale)` - React to box or display-scale changes
 
 **Typical use cases:**
 - Masonry grids
@@ -107,6 +124,11 @@ return function(): Layout<MyLayout>
     return { init = init, measure = measure, resize = resize, draw = draw }
 end
 ```
+
+At the Web `2.41.1` target, Rive dispatches
+`resize(self, size, displayScale)`. `displayScale` is device pixels per layout
+point. A scale change after a valid size redispatches the callback; an unchanged
+scale is silent. Existing two-parameter callbacks remain compatible.
 
 **Learn more:** [Layout Script Protocol →](./protocols/layout-protocol)
 

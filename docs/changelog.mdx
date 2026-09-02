@@ -10,12 +10,77 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.4.0] — 2026-09-01
+
+### Changed
+
+- **Runtime boundary refresh** — aligned current course guidance to the direct
+  Web `2.41.1` package line, package gitHead
+  `4ebb27c8e39c5e21210f1e60b13d3d56f2c9f104`, and C++
+  `runtime-v0.1.344` at
+  `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`. Released tag, canary, and main
+  runtime refs agree. The `337` through `344` range adds layout, import,
+  WASM-host, text-compatibility, command-queue, renderer, and Vulkan work.
+- **Protocol and lifecycle rebaseline** — corrected Layout `resize` to the
+  optional `resize(self, size, displayScale)` target callback, documented
+  scale-change redispatch and two-parameter compatibility, preserved
+  `drawCanvas` retirement, promoted target-backed global ViewModels, and
+  recorded released focus, layout, text, nested-artboard, module, WASM, and
+  Web-host behavior.
+- **Host boundary cleanup** — separated current editor `Context.log`,
+  `Tester.blob`, FileFormat callbacks, and GPU rollout behavior from exact
+  target-runtime claims.
+- **Module/workspace boundary** — distinguished authored `ScriptAsset` modules
+  from the compiled `ScriptModuleAsset` host payload. Serialized language
+  values, method bits, handles, and IDs do not become globals or module names;
+  only the authored name enters `require("Name")`.
+- **Blob text reads** — documented the exact target fields (`name`, `size`,
+  `data`), zero-byte `data == nil` behavior, and guarded
+  `buffer.tostring(blob.data)` conversion; removed any implied Blob string
+  method.
+- **Runtime and landing alignment** — updated the landing to
+  `@rive-app/react-canvas@4.33.1`, which resolves Canvas `2.41.1`, and retained
+  its singular `stateMachine` configuration. Rendered all six checked-in
+  file-format `7.0` paths through Canvas and
+  WebGL2 `2.41.1`, exercising runtime `344`'s pre-7.3 compatibility branch.
+  Web `2.41.1` still accepts plural state-machine playback and legacy direct
+  controls while marking them for migration toward one state machine and data
+  binding.
+- **Dependency refresh** — updated the docs toolchain to Docusaurus `3.10.2`
+  and local search `0.55.3`, updated the landing to Next.js `16.3.4`, and
+  refreshed transitive locks. Remaining audit findings are upstream no-fix
+  build-tool paths and are recorded in the release evidence.
+- **Reproducible production install** — the combined deployment build now runs
+  `npm ci` for the nested landing application on every build. This replaces any
+  restored Vercel dependency cache with the exact reviewed lockfile graph before
+  TypeScript checks the current singular `stateMachine` integration.
+
+### Added
+
+- **File Formats API** — added complete `FileFormat`/`TextFileFormat`,
+  `FormatDocument`, `FormatSurface`, `FormatView`, `EditorContext`, theme,
+  scroll, highlighting, diagnostics, completion, hover, formatting, preview,
+  and export-to-Blob coverage.
+- **Focused Luau fixtures** — added runtime `344` plus current-editor
+  binary and text FileFormat fixtures for downstream LSP reconciliation.
+- **Analyzer and stdio commands** — documented options-before-paths analyzer
+  use and `rive-luau-lsp` as the complete stdio command, without an extra
+  `lsp` subcommand.
+- **Errata LERP-ERR-019 through LERP-GAP-024** — traced the FileFormat
+  misclassification, Layout requirement/signature drift, Context logging and
+  global-ViewModel evidence split, stale upstream `drawCanvas` examples, and
+  the local Web documentation lag around singular `stateMachine`; recorded the
+  pre-file-format-7.3 layout-controlled text risk and released-runtime asset
+  run separately from static header evidence.
+
+---
+
 ## [1.3.0] — 2026-08-14
 
 ### Changed
 
 - **Runtime boundary refresh** — aligned the compatibility record to released
-  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept the parser canary
+  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept evidence-only
   `runtime-v0.1.272` separate.
 - **Retired `drawCanvas` migration** — removed the callback from active Node,
   Layout, lifecycle, quick-reference, shader, and lab guidance. Canvas and

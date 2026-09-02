@@ -1,5 +1,5 @@
 # LERP Full Knowledge Surface (llms-full)
-Generated: 2026-08-14T00:00:00.000Z
+Generated: 2026-09-01T00:00:00.000Z
 Canonical: https://forge.mograph.life/apps/lerp/
 Scope: Complete documentation route inventory with page metadata for AI retrieval and citation.
 
@@ -27,6 +27,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Data Values | https://forge.mograph.life/apps/lerp/api/data-values | docs/api/data-values.mdx | DataValue types, Converter, and Property types |
 | Drawing | https://forge.mograph.life/apps/lerp/api/drawing | docs/api/drawing.mdx | Path, Paint, Gradient, and Renderer for custom drawing |
 | Events | https://forge.mograph.life/apps/lerp/api/events | docs/api/events.mdx | Current Editor event types, ListenerContext payloads, and Node gamepad callbacks |
+| File Formats | https://forge.mograph.life/apps/lerp/api/file-formats | docs/api/file-formats.mdx | FileFormat and TextFileFormat editor protocols, document intelligence, previews, and export-to-Blob behavior |
 | GPU Shaders | https://forge.mograph.life/apps/lerp/api/gpu-shaders | docs/api/gpu-shaders.mdx | GPUCanvas, Shader, GPUPipeline, GPUBuffer, GPUTexture, GPUSampler, bind groups, and shader descriptor types |
 | Hierarchy | https://forge.mograph.life/apps/lerp/api/hierarchy | docs/api/hierarchy.mdx | NodeData, NodeReadData, and Layout |
 | Interpolation | https://forge.mograph.life/apps/lerp/api/interpolation | docs/api/interpolation.mdx | ScriptedInterpolator runtime API surface and callback contracts |
@@ -90,7 +91,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | TransitionCondition Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/transition-condition-protocol | docs/rive/protocols/transition-condition-protocol.mdx | Custom state machine transition evaluation logic |
 | Util Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/util-protocol | docs/rive/protocols/util-protocol.mdx | Learn how to create reusable Util scripts for sharing code across Node scripts in Rive |
 | Rive Script Errata | https://forge.mograph.life/apps/lerp/rive/rive-doc-errata | docs/rive/rive-doc-errata.mdx | Living tracker of Rive scripting documentation corrections discovered during editor validation |
-| Runtime Compatibility Baseline | https://forge.mograph.life/apps/lerp/rive/runtime-compatibility | docs/rive/runtime-compatibility.mdx | Versioned baseline of runtime bindings, docs status, and editor rollout tier for Luau surfaces |
+| Runtime Compatibility Baseline | https://forge.mograph.life/apps/lerp/rive/runtime-compatibility | docs/rive/runtime-compatibility.mdx | Versioned baseline separating released runtime, public docs, editor rollout, and later-source evidence |
 | Script Capability Matrix | https://forge.mograph.life/apps/lerp/rive/script-capability-matrix | docs/rive/script-capability-matrix.mdx | Comprehensive matrix of what each Rive script type can access, what parameters it receives, and what it cannot do |
 | Script Types Overview | https://forge.mograph.life/apps/lerp/rive/script-types | docs/rive/script-types.mdx | All 8 Rive script types at a glance - when to use each one |
 | Site Map | https://forge.mograph.life/apps/lerp/site-map | docs/site-map.mdx | Crawl-friendly index of every canonical LERP page. |

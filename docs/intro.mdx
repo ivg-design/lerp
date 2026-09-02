@@ -44,23 +44,35 @@ LERP teaches practical Luau for Rive creators through short lessons, buildable e
 
 LERP now tracks a pinned runtime audit baseline so you can verify exactly which APIs were confirmed at review time.
 
-- Released Web runtime line: `@rive-app/*@2.40.0`, backed by C++ `runtime-v0.1.271`
-- Released C++ runtime commit: `526625850eaf34fc1263d181808ffca10cae6ac1`
-- Released Web package gitHead: `1e9391880df1d501b98d165d2db89284025462eb`
-- Parser canary: `runtime-v0.1.272` remains separate from the released Web boundary
+- Direct Web runtime line: Canvas, Canvas Lite, WebGL2, and Canvas Advanced
+  `2.41.1`, backed by C++ `runtime-v0.1.344`
+- Bundled landing integration: `@rive-app/react-canvas@4.33.1`, resolving
+  Canvas `2.41.1`
+- Released C++ runtime commit: `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`
+- Released Web package gitHead: `4ebb27c8e39c5e21210f1e60b13d3d56f2c9f104`
+- Released tag, canary, and main runtime refs agree on the accepted commit
 - Shader/GPU rollout tier: Rive Early Access editor workflow only
-- Baseline revalidated: August 14, 2026
-- MCP editor validation: Rive Beta `0.8.5390` build `5377` passed the scoped Vector/Mat4/ViewModel cases, `Mat2D`/`Mat4` equality, and ranged `GPUBuffer` writes; Blob string/buffer/`nil` writes required an explicit `any` cast in the current editor checker
-- Analyzer validation: exact current event/gamepad declarations and `AudioSound:pause/resume/play` compiled with diagnostics `[]`; those callbacks/calls were not runtime-executed
-- Full matrix: [Runtime Compatibility Baseline](/rive/runtime-compatibility); validation details: [Rive Script Errata](/rive/rive-doc-errata#lerp-gap-017)
+- Baseline revalidated: September 1, 2026
+- Released coverage: global ViewModels, optional three-argument Layout resize
+  with scale redispatch and old-callback compatibility, retired `drawCanvas`,
+  pre-7.3 text compatibility, WASM/module/workspace host changes, root-owned
+  focus, nested-artboard origin/layout behavior, and Web `2.41.1`'s preferred
+  singular `stateMachine` selection
+- Current editor coverage: `FileFormat`/`TextFileFormat`, their document/view/
+  EditorContext callbacks, `Context.log`, and `Tester.blob`, with host/runtime
+  boundaries called out
+- Full matrix: [Runtime Compatibility Baseline](/rive/runtime-compatibility);
+  validation details: [Rive Script Errata](/rive/rive-doc-errata)
 
-The GPU evidence is deliberately narrow: `GPUBuffer`/`GPUTexture` constructors
-executed despite analyzer unknown-global diagnostics, while live
-`GPUTextureView.format` access failed. The probe does not establish
-`Context:globalViewModel*`, imported-library asset resolution, event/audio
-runtime dispatch, the broader GPUCanvas/shader lifecycle, or released Web
-behavior. Keep those boundaries preview/rollout-dependent until independently
-verified.
+Runtime source, public docs, and editor rollout remain separate. Runtime `344`,
+the current editor/LSP declaration, and focused runtime tests agree on
+`resize(self, size, displayScale)`. The callback is optional, scale changes are
+redispatched after a valid size, and old two-parameter callbacks keep working.
+`Context.log` remains current editor surface without a matching target C++
+Luau dispatch. The `runtime-v0.1.337` through `runtime-v0.1.344` range also
+contains importer, WASM-host, text-compatibility, command-queue, renderer, and
+Vulkan work; most of that range changes behavior or host internals rather than
+adding course APIs.
 
 ## What You'll Learn
 
@@ -96,15 +108,15 @@ Each section includes:
 - Click **linked terms** to see definitions
 - Use the **search** (Ctrl/Cmd + K) to find anything
 
-## Course at a Glance (Updated August 14, 2026)
+## Course at a Glance (Updated September 1, 2026)
 
 | Signal | Value | Why it matters |
 | --- | ---: | --- |
-| Total docs pages | 90 | Broad coverage across beginner-to-advanced topics |
+| Total docs pages | 91 | Broad coverage across beginner-to-advanced topics |
 | Interactive quizzes | 203 | Frequent knowledge checks improve retention |
 | Exercise sections | 222 | Hands-on practice per concept cluster |
 | Rive protocol lessons | 11 | Explicit lifecycle and protocol implementation training |
-| API reference pages | 13 | Fast lookup for scripting surface area |
+| API reference pages | 14 | Fast lookup including editor FileFormat protocols |
 
 ## Core References
 

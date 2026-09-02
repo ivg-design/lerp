@@ -140,6 +140,7 @@ const sidebars: SidebarsConfig = {
         'api/events',
         'api/interpolation',
         'api/assets',
+        'api/file-formats',
         'api/path-effects',
         'api/data-values',
         'api/styling',
@@ -190,7 +191,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'html',
       value:
-        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> August 14, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
+        '<div class="sidebar-author-meta"><strong>Author:</strong> IVG Design (I.V.Gusinski)<br/><strong>Last reviewed:</strong> September 1, 2026<br/><strong>Editorial standard:</strong> <a href="/apps/lerp/editorial-methodology">Methodology</a> · <a href="/apps/lerp/corrections-policy">Corrections Policy</a> · <a href="/apps/lerp/contact-transparency">Contact</a></div>',
       defaultStyle: false,
     },
   ],

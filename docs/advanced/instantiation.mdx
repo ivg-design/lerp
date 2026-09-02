@@ -30,6 +30,14 @@ Spawn and manage Rive components at runtime to build particle systems, object po
 
 Rive lets you instance Artboards from script inputs. This is how you build reusable components (particles, enemies, cards, etc.) with real Rive visuals that can be spawned and controlled from code.
 
+:::info Nested-artboard behavior at the accepted target
+`runtime-v0.1.344` keeps nested-artboard semantic state on the nested instance,
+preserves nonzero nested origins through the layout matrix, and keeps focus
+ownership on the root artboard's FocusManager. These are runtime behavior
+corrections, not new Artboard methods. Re-test semantics, focus, layout, and
+event origin on the actual nested component after upgrading.
+:::
+
 **Core steps:**
 1. Add an `Input<Artboard<Data.YourVM>>` (or `Input<Artboard<nil>>`) to reference a component <Term>Artboard</Term>
 2. Call `self.yourInput:instance()` to create a new instance

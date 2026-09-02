@@ -21,12 +21,23 @@ See [Script Capability Matrix](/rive/script-capability-matrix) for a comprehensi
 :::
 
 :::info Need version-locked API status?
-See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for the released Web line (`2.40.0` -> C++ `runtime-v0.1.271`), separate parser canary pin, and shader/GPU Early Access tier.
+See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for direct
+Web `2.41.1` -> C++ `runtime-v0.1.344`, the separate landing wrapper lane, and
+editor/GPU tiers.
 :::
 
 :::tip Writing scripts outside Rive?
 Use the [Rive Luau VS Code extension](https://marketplace.visualstudio.com/items?itemName=IVGDesign.rive-luau) or the [Rive Luau LSP](https://github.com/ivg-design/rive-luau-lsp) when editing `.luau` files in VS Code, Cursor, Windsurf, or another LSP-capable editor. It provides Rive-parity diagnostics, autocomplete, hover docs, and IntelliSense before final validation in the Rive editor.
 :::
+
+For command-line analysis, place every analyzer option before the first path:
+
+```bash
+./bin/rive/rive-luau-analyze --formatter=plain path/to/script.luau
+```
+
+For an LSP client, configure `./bin/rive/rive-luau-lsp` itself as the stdio
+command. Do not append another `lsp` subcommand to the wrapper.
 
 ## Node Script Skeleton
 ```lua
@@ -136,6 +147,24 @@ function init(self: MyNode, context: Context): boolean
 end
 ```
 
+### Global ViewModels
+
+```lua
+function init(self: MyNode, context: Context): boolean
+    for _, name in context:globalViewModelNames() do
+        local global = context:globalViewModel(name)
+        if global then
+            print("Global ViewModel:", name)
+        end
+    end
+    return true
+end
+```
+
+Unknown or non-global names return `nil`. `Context.log` is a current editor
+function property called as `context.log("message")`, but it is absent from the
+exact target's C++ Luau Context; use `print(...)` for Web `2.41.1` portability.
+
 ### PropertyList Patterns
 ```lua
 local items = vm and vm:getList("items")
@@ -176,6 +205,24 @@ Current Editor event names are `KeyboardEvent`, `TextInput`, `FocusEvent`,
 `ReportedEvent`, `ViewModelChange`, `NoneEvent`, `GamepadConnected`,
 `GamepadEvent`, and `GamepadDisconnected`. Older `*Invocation` names belong to
 pinned runtime-source compatibility, not new Editor-authored examples.
+
+### FileFormat editor extension
+
+```lua
+local format: TextFileFormat = {
+    name = "Notes",
+    extensions = { "note" },
+}
+
+return function(): TextFileFormat
+    return format
+end
+```
+
+This is an editor protocol, not an artboard runtime script. Claimed text files
+export as Blob assets; runtime scripts use `context:blob(name)`. See
+[File Formats](/api/file-formats) for analysis, view, and EditorContext
+callbacks.
 
 ### Promise / async / await
 ```lua

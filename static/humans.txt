@@ -5,5 +5,5 @@ Site: https://forge.mograph.life/apps/lerp/
 
 /* SITE */
 Stack: Docusaurus
-Primary repo path: /Users/ivg/github/forge/apps/lerp
+Repository: https://github.com/ivg-design/lerp
 Canonical host: forge.mograph.life

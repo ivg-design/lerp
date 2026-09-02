@@ -53,9 +53,8 @@ local direction = Vector.xy(1, 0)  -- Unit vector pointing right
 
 #### `Vector.xyz(x, y, z)`
 
-Creates a vector with an explicit z component. This is a runtime-v0.1.262
-source-level API; verify the selected editor and published Web runtime before
-using it in a production course exercise.
+Creates a vector with an explicit z component. The API remains present in the
+accepted `runtime-v0.1.344` target.
 
 ```lua
 Vector.xyz(x: number, y: number, z: number): Vector
@@ -65,7 +64,8 @@ local normal = Vector.xyz(0, 0, 1)
 
 Focused validation in Rive Beta 0.8.5390 (build 5377) passed `Vector.xyz`,
 `Vector.cross3`, and vector buffer writes. This confirms the selected editor
-lane only; it does not establish availability in released Web 2.40.0.
+lane. Exact-target source confirmation and that editor execution remain
+separate evidence.
 
 #### `Vector.origin()`
 

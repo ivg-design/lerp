@@ -4,12 +4,65 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.4.0] — 2026-09-01
+
+### Changed
+
+- Aligned the current course to the direct Web `2.41.1` package line and C++
+  `runtime-v0.1.344`. The released tag, canary, and main runtime refs resolve to
+  the same accepted commit. The `337` through `344` range adds layout, import,
+  WASM-host, text-compatibility, command-queue, renderer, and Vulkan work.
+- Corrected Layout `resize` to the optional
+  `resize(self, size, displayScale)` target contract, including scale-change
+  redispatch and compatibility with existing two-parameter callbacks.
+- Preserved `drawCanvas` retirement, promoted target-backed global ViewModels,
+  and recorded released focus ownership, nested-artboard origin, pre-7.3 text,
+  and WASM host changes without inventing public APIs.
+- Separated editor FileFormat, `Context.log`, `Tester.blob`, and GPU rollout
+  surfaces from the exact runtime target.
+- Distinguished authored `ScriptAsset` modules from the compiled
+  `ScriptModuleAsset` host payload. Serialized language values, method bits,
+  handles, and IDs remain host metadata; only the authored module name enters
+  the public `require("Name")` contract.
+- Corrected Blob text reads to guard zero-byte `data == nil` and use
+  `buffer.tostring(data)`; the target Blob has no string-conversion method.
+- Updated the landing demo to `@rive-app/react-canvas@4.33.1`, which resolves
+  `@rive-app/canvas@2.41.1`, and retained the singular `stateMachine` option.
+  The bundled integration now matches the direct `2.41.1` course target.
+- Inventoried all six checked-in `.riv` paths and their three unique payloads.
+  Every file-format `7.0` path was rendered through both Canvas `2.41.1` and
+  WebGL2 `2.41.1`, exercising runtime `344`'s pre-7.3 compatibility branch.
+  Web `2.41.1` still accepts plural state-machine playback and legacy direct
+  controls while marking them for migration toward one state machine and data
+  binding.
+- Updated the docs toolchain to Docusaurus `3.10.2`, local search `0.55.3`, and
+  the landing to Next.js `16.3.4`; refreshed transitive locks after dependency
+  audit while retaining reviewed upstream no-fix build-tool advisories.
+- Made the production build run `npm ci` for the nested landing application on
+  every build, preventing a restored Vercel cache from substituting stale Rive
+  or Next.js types for the reviewed lockfile graph.
+
+### Added
+
+- Full FileFormat/TextFileFormat document, analysis, view, EditorContext,
+  theme, scroll, and export-to-Blob reference.
+- Runtime `344` plus current-editor binary and text FileFormat Luau
+  fixtures for LSP reconciliation.
+- Analyzer and stdio wrapper guidance: analyzer options precede paths, and
+  `rive-luau-lsp` itself is the stdio command with no appended `lsp` argument.
+- Errata LERP-ERR-019 through LERP-GAP-024 for FileFormat, Layout, Context,
+  global ViewModels, stale upstream `drawCanvas` guidance, the local Web
+  documentation lag around singular `stateMachine`, and pre-7.3
+  layout-controlled text compatibility.
+
+---
+
 ## [1.3.0] — 2026-08-14
 
 ### Changed
 
 - **Runtime boundary refresh** — aligned the compatibility record to released
-  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept parser canary
+  Web `2.40.0` backed by C++ `runtime-v0.1.271`; kept evidence-only
   `runtime-v0.1.272` separate.
 - **Retired `drawCanvas` migration** — active Node/Layout and shader guidance
   now merges Canvas/GPUCanvas recording into `draw(self, renderer)`.

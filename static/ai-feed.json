@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generatedAt": "2026-08-14T00:00:00.000Z",
+  "generatedAt": "2026-09-01T00:00:00.000Z",
   "canonical": "https://forge.mograph.life/apps/lerp/",
   "site": {
     "name": "LERP",
@@ -348,6 +348,27 @@
         "gamepad"
       ],
       "sourcePath": "docs/api/events.mdx",
+      "contentType": "documentation",
+      "language": "en"
+    },
+    {
+      "id": "api-file-formats",
+      "title": "File Formats",
+      "description": "FileFormat and TextFileFormat editor protocols, document intelligence, previews, and export-to-Blob behavior",
+      "url": "https://forge.mograph.life/apps/lerp/api/file-formats",
+      "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/file-formats",
+      "group": "api",
+      "tags": [
+        "rive",
+        "luau",
+        "scripting",
+        "api",
+        "fileformat",
+        "textfileformat",
+        "editorcontext",
+        "formatview"
+      ],
+      "sourcePath": "docs/api/file-formats.mdx",
       "contentType": "documentation",
       "language": "en"
     },
@@ -1595,7 +1616,7 @@
     {
       "id": "rive-runtime-compatibility",
       "title": "Runtime Compatibility Baseline",
-      "description": "Versioned baseline of runtime bindings, docs status, and editor rollout tier for Luau surfaces",
+      "description": "Versioned baseline separating released runtime, public docs, editor rollout, and later-source evidence",
       "url": "https://forge.mograph.life/apps/lerp/rive/runtime-compatibility",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/runtime-compatibility",
       "group": "rive",

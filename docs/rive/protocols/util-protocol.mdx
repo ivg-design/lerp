@@ -93,9 +93,39 @@ host assets. At host scope, a bare name does not leak into a versioned library.
 Use the `lib:<label>/...` form when the authoring contract depends on a
 particular library. Export rewrites `require` dependencies to versioned flat
 keys (for example `draco@2/mesh`) so multiple library versions can coexist;
-trace output may show those keys. This is runtime/export source evidence from
-the v0.1.262 impact snapshot, not a promise that every editor/Web lane has the
-same library packaging behavior.
+trace output may show those keys. This behavior is present in the accepted
+`runtime-v0.1.344` source. Exported asset names still need validation in the
+selected editor/Web lane.
+
+## Script modules and workspace boundaries
+
+The released runtime has two similarly named asset layers:
+
+- A `ScriptAsset` stores one authored Luau script. When its host `isModule`
+  flag is true, other authored scripts import it by its authored name.
+- A `ScriptModuleAsset` is a separate, self-contained compiled WASM host
+  payload containing a scripting VM, bindings, and compiled scripts. It is not
+  a Luau type or module namespace.
+
+The callable authoring contract remains:
+
+```lua
+local Geometry = require("Geometry")
+```
+
+Keep these boundaries explicit:
+
+- `require("Name")` uses the authored `ScriptAsset` module name.
+- `ScriptModuleAsset` language values, compiled handles, and reaping are
+  runtime internals; they do not become a global or `require` name.
+- Serialized asset metadata and internal IDs are host data.
+- RASC workspace/test messages and in-memory bake records are editor/compiler
+  protocol data.
+
+Do not expose any of those host records as a table, global, or alternate
+`require` path. If an imported module fails, diagnose the authored module name,
+library scope, packaging, and selected runtime rather than reading host
+serialization data from script code.
 
 :::note Key Difference
 Unlike Node scripts, Util scripts have no `init`, `draw`, or `advance` functions. They are pure modules that export functions and types.

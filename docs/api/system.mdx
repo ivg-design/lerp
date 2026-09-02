@@ -22,7 +22,8 @@ import Quiz from '@site/src/components/Quiz';
 System-level APIs and environment constraints.
 
 :::info Runtime baseline
-This page is aligned to the released Web `2.40.0` -> C++ `runtime-v0.1.271` boundary, with source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+This page is aligned to released Web `2.41.1` -> C++ `runtime-v0.1.344`, with
+source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 ---
@@ -169,6 +170,12 @@ end)
 | `loadfile`, `dofile`, `loadstring` | Not available |
 
 The `__gc` metamethod is also disabled.
+
+:::note Web host repair is not a Luau global
+The Web `2.41.1` line rebuilds Emscripten typed heap views from `wasmMemory`.
+That is an embedder/runtime compatibility fix and does not expose a memory
+object or heap-view API to sandboxed Luau.
+:::
 
 ---
 

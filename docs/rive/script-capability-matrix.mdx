@@ -23,16 +23,28 @@ Use this page when you need exact boundaries such as:
 - "Where do script inputs actually come from?"
 
 :::info Runtime baseline
-Matrix details use the accepted released Web boundary `2.40.0` -> C++ `runtime-v0.1.271`; newer source findings are labelled preview/canary. GPU callback guidance remains Rive Early Access editor workflow material. For versioned API-surface tracking, see [Runtime Compatibility Baseline](/rive/runtime-compatibility).
+Matrix details use the accepted direct Web boundary `2.41.1` -> C++
+`runtime-v0.1.344`; current editor-only and later-source findings are labelled
+separately. GPU callback guidance remains Rive Early Access editor workflow
+material. For versioned API tracking, see
+[Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
 :::warning Three separate truths
 Runtime source registration, public documentation, and editor/release
-availability are separate claims. Parser JSON fields, serialized implemented
-method bits, `scriptProtocolValue`, dependency verification, and FileFormat /
-TextFileFormat metadata are not callable Luau APIs. Native host methods such as
-`StateMachineInstance:keyInput`, global-model binding, logging sinks, and
-module trace labels are also not Luau contracts.
+availability are separate claims. `FileFormat` and `TextFileFormat` are current
+editor Luau protocols, but serialized host fields, implemented-method
+bits, `scriptProtocolValue`, dependency verification, module IDs, and RASC
+workspace messages are not callable APIs. Native host methods such as
+`StateMachineInstance:keyInput` and module trace labels are also not Luau
+contracts. `Context.log` is a current editor property, while the exact target's
+C++ Luau Context has no matching dispatch.
+
+An authored utility module is a `ScriptAsset` marked as a module and is loaded
+with its authored `require("Name")`. A `ScriptModuleAsset` is a distinct
+self-contained compiled WASM host payload. Its language value, handle, and
+serialized identity never become a Luau global, type, or alternate require
+name.
 :::
 
 ---
@@ -43,14 +55,21 @@ This is the quickest way to see all runtime callback parameters by script type.
 
 | Script Type | Required Callbacks | Callback Parameters You Get |
 |-------------|--------------------|-----------------------------|
-| **Node** | `init`, `draw` | `context: Context` (`init`), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`), current Editor-reference gamepad payloads (`gamepadConnected/Event/Disconnected`); source/runtime-only keyboard/text callbacks are tracked separately |
-| **Layout** | `init`, `resize` | `context: Context` (`init`), `size: Vector` (`resize`), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`) |
+| **Node** | `init`; `draw` only when rendering | `context: Context` (`init`), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`), `event: PointerEvent` (`pointerDown/Move/Up/Exit`), current Editor-reference gamepad payloads (`gamepadConnected/Event/Disconnected`); source/runtime-only keyboard/text callbacks are tracked separately |
+| **Layout** | `init`; `resize` is optional | `context: Context` (`init`), `size: Vector` and `displayScale: number` (`resize`; old two-parameter callbacks remain compatible), `renderer: Renderer` (`draw`), Canvas/GPUCanvas work merged into `draw`, `seconds: number` (`advance`) |
 | **Converter** | `convert`, `reverseConvert` | `input: DataInputs` (`convert`), `input: DataOutput` (`reverseConvert`), optional `context: Context` (`init`), optional `seconds: number` (`advance`) |
 | **Path Effect** | `update` | `inPath: PathData` + `node: NodeReadData` (`update`), `seconds: number` (`advance`), optional `context: Context` (`init`) |
 | **ListenerAction** | `performAction` | `listenerContext: ListenerContext` (`performAction`), optional `context: Context` (`init`) |
 | **TransitionCondition** | `evaluate` | no parameters (`evaluate`), optional `context: Context` (`init`) |
 | **Util** | none | no lifecycle callback params (module table only) |
 | **Test** | `setup(test: Tester)` | `test: Tester`, and `expect` inside each `test.case(...)` |
+
+### Editor document extensions
+
+| Protocol | Factory | Callback inputs | Runtime/export handoff |
+|---|---|---|---|
+| `FileFormat` | `return function(): FileFormat` | `FormatDocument`; optional `EditorContext`, `FormatSurface`, cached `buffer` | Binary Blob |
+| `TextFileFormat` | `return function(): TextFileFormat` | Same view inputs plus pure highlight, diagnostic, completion, hover, and format callbacks | Plain Blob via `context:blob(name)` |
 
 ---
 

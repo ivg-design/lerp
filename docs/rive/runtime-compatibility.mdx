@@ -1,7 +1,7 @@
 ---
 sidebar_position: 4
 title: Runtime Compatibility Baseline
-description: Versioned baseline of runtime bindings, docs status, and editor rollout tier for Luau surfaces
+description: Versioned baseline separating released runtime, public docs, editor rollout, and later-source evidence
 keywords:
   - rive
   - runtime
@@ -13,279 +13,259 @@ keywords:
 
 # Runtime Compatibility Baseline
 
-This page tracks three independent dimensions for Luau surfaces:
-- what is **bound in runtime**
-- what is **documented upstream**
-- what is **editor-visible / usable in typical production workflows**
+LERP tracks runtime source, public documentation, and editor rollout as separate
+claims. A declaration in one lane does not establish availability in another.
 
----
+## Accepted baseline
 
-## Baseline Snapshot
+- **Audit date:** September 1, 2026
+- **Direct Web runtime packages:** `@rive-app/canvas@2.41.1`,
+  `@rive-app/canvas-lite@2.41.1`, `@rive-app/webgl2@2.41.1`, and
+  `@rive-app/canvas-advanced@2.41.1`
+- **Web package gitHead:** `4ebb27c8e39c5e21210f1e60b13d3d56f2c9f104`
+- **C++ runtime:** `runtime-v0.1.344`
+- **C++ runtime commit:** `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`
+- **Runtime refs:** released tag, canary, and main all resolve to that commit
+- **Landing integration:** `@rive-app/react-canvas@4.33.1`, resolving
+  `@rive-app/canvas@2.41.1`
+- **Public docs snapshot:** Rive's `llms-full.txt`, retrieved August 31, 2026
+- **Supporting evidence:** current editor/LSP declarations, official docs,
+  runtime source, and reviewed script examples
 
-- **Audit date:** August 14, 2026
-- **Runtime repo:** `rive-app/rive-runtime`
-- **Released C++ WASM runtime line:** `@rive-app/*@2.40.0`, backed by `runtime-v0.1.271` at `526625850eaf34fc1263d181808ffca10cae6ac1`
-- **Released package gitHead:** `1e9391880df1d501b98d165d2db89284025462eb` (all four checked packages aligned)
-- **Canary parser pin:** `runtime-v0.1.272` remains a parser canary and is not the released Web boundary
-- **Docs comparison source:** local `/Users/ivg/github/rive-docs` and `/Users/ivg/github/rive-runtime-docs`, reviewed August 14, 2026
-- **Source-level impact snapshot:** runtime-v0.1.262 through the RFP-authored impact note; claims below distinguish that source evidence from the released Web line
-- **Superseded historical source audit:** `runtime-v0.1.64` at commit `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
-
-Use this snapshot when deciding whether LERP content is current for C++ runtime behavior.
-
-:::caution Separate runtime facts from editor rollout
-LERP now tracks the released package/docs baseline (`2.40.0` -> `runtime-v0.1.271`), the source-level impact snapshot, and the editor availability tier separately. Shader/GPU APIs remain **Rive Early Access only** unless a focused probe proves otherwise.
+:::caution Exact target
+Course examples and the bundled React landing target Web `2.41.1` backed by
+`runtime-v0.1.344`.
 :::
 
-:::note Source-of-truth rule
-For release tracking, LERP records both:
-- npm package metadata (`version`, `time`, `gitHead`) for shipped web runtime line
-- upstream runtime tag/commit used for binding-level API verification
-:::
+All six checked-in
+`.riv` paths have file-format `7.0` headers and collapse to three unique
+payloads. The direct-runtime harness loads every path through both Canvas
+`2.41.1` and WebGL2 `2.41.1`, starts its first state machine, and checks that a
+non-empty frame is rendered without a page, request, or Rive load error. Because
+all files predate format `7.3`, this run also exercises runtime `341`'s retained
+compatibility path in the accepted runtime `344`. Header inspection establishes
+the version only; the runtime run establishes pixels. The separate landing
+preview uses the preferred singular `stateMachine` option.
 
----
+## Evidence lanes
 
-## Release Tiering Used in LERP
-
-LERP uses the following tier labels:
-
-- **Officially released**: teach as stable curriculum surface (runtime + docs + editor workflow are broadly usable)
-- **Rive Early Access only**: runtime/reference material exists, but the editor workflow currently requires Rive Early Access; do not assume availability in standard workspaces
-- **Preview / rollout-dependent**: runtime/docs may expose it, but editor visibility/tooling is not consistently available yet
-- **Not exposed**: not usable from current C++ Luau bindings
-
-This prevents course drift when upstream API pages move faster than editor rollout.
-
-:::warning Released boundary versus source/canary evidence
-The accepted suite boundary is released Web `2.40.0` -> C++ `runtime-v0.1.271`.
-The RFP parser canary pin `runtime-v0.1.272` is intentionally separate. The
-new Luau surfaces below were identified in the v0.1.262 source impact snapshot;
-do not present them as released Web/editor behavior without a focused probe.
-:::
-
----
-
-## Current Editor Reference and "Coming Soon" Reality Check
-
-Status legend:
-- **Live:** Exposed and usable in current runtime bindings
-- **Analyzer-accepted:** The current Editor reference and checker accept the type/signature
-- **Source-confirmed:** The pinned runtime source contains the corresponding binding/dispatch path
-- **Not exposed:** Not currently available in Luau bindings at this baseline
-
-| Surface in docs | Current evidence | Notes |
+| Lane | What it establishes | What it does not establish |
 |---|---|---|
-| `PointerType` + `PointerEvent.type` | **Analyzer-accepted; reference label still says "Coming soon"** | `PointerType` is the exact eight-string union used by `PointerEvent.type`; it is not a runtime enum table |
-| `KeyPhase` + `KeyboardEvent` | **Analyzer-accepted; source wrapper uses historical name** | Current fields are `key`, modifiers, and `phase`; pinned runtime source calls the Lua wrapper `KeyboardInvocation` |
-| `TextInput` | **Analyzer-accepted; source wrapper uses historical name** | Current reference exposes `text`; pinned runtime source calls the wrapper `TextInputInvocation` |
-| `FocusEvent` | **Analyzer-accepted; source wrapper uses historical name** | Current reference exposes `isFocus`; pinned runtime source calls the wrapper `FocusInvocation` |
-| `ReportedEvent` | **Analyzer-accepted; empty in current reference** | Do not teach `delaySeconds` as a current Editor field; that field belongs to the historical `ReportedEventInvocation` source wrapper |
-| `ViewModelChange` | **Analyzer-accepted; empty in current reference** | Current Editor reference exposes presence/kind only |
-| `NoneEvent` | **Analyzer-accepted; empty in current reference** | `isNone()` / `asNone()` are current; the pinned source wrapper name is `NoneInvocation` |
-| `GamepadMappingKind`, `GamepadConnected`, `GamepadEvent`, `GamepadDisconnected` | **Analyzer-accepted + source-confirmed** | Full connected/change state and query methods are referenced; hardware gamepad dispatch was not executed in the August 14 probe |
-| `ListenerContext` | **Analyzer-accepted + source-confirmed** | Current gamepad API is the connected/event/disconnected guard/accessor triad; generic `isGamepad()` / `asGamepad()` is stale |
-| Node `gamepadConnected` / `gamepadEvent` / `gamepadDisconnected` | **Analyzer-accepted + source-confirmed** | Exact current `Node<T>` signatures passed the analyzer probe; actual gamepad dispatch was not executed |
-| `NodeReadData.paint` + `node:asPath()` + `node:asPaint()` | **Live** | Paint/path access is implemented in Lua artboard bindings |
-| `AudioSource.duration` | **Live** | `source.duration` is exposed in Lua audio bindings |
-| `ViewModel.name` | **Not exposed** | Documented upstream but not exposed in current Lua ViewModel wrapper |
-| `Output` | **Not exposed** | No runtime Lua `Output` surface at this baseline |
+| Released runtime source | A binding, dispatch path, or behavior exists in the exact C++ target | Public docs, editor availability, or a successful exported Web run |
+| Public Rive docs | Rive publishes a signature or workflow | Presence in the exact C++ Luau target |
+| Editor reference/analyzer | The current editor exposes and checks a declaration | Availability in Web `2.41.1` or runtime execution |
+| Live/editor execution | A focused case works in the observed editor environment | Other hosts, exports, or untested callbacks |
+| Later source | An implementation exists after the accepted runtime commit | Publication or support at the accepted target |
+| Serialized host data | Runtime/editor assets contain implementation metadata | A Luau global, type, or callable API exists |
 
----
+## Released target surface
 
-## Runtime Surfaces Tracked in the August 14 Current Baseline
-
-These rows are re-evaluated against the released Web `2.40.0` / C++
-`runtime-v0.1.271` boundary and the local source/docs snapshot reviewed on
-August 14. The **Evidence basis** column is deliberately separate from
-runtime status: the focused MCP passes covered Vector/Mat4/ViewModel behavior,
-matrix equality, a ranged `GPUBuffer` write, and exact analyzer-reference
-surfaces. They did not execute every row below.
-
-| Surface | Runtime status | LERP tier | Evidence basis and notes |
-|---|---|---|---|
-| `Mat4` | **Source-confirmed + MCP-tested subset** | **Officially released** | Runtime/docs confirm the broader constructors, multiplication, inversion, transpose, and transforms; MCP tested composition and buffer writing, not every method |
-| `Vector.xyz`, `Vector.cross3`, vector buffer writes | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Rive Beta 0.8.5390 build 5377 passed the named constructors, cross product, and buffer writes; released Web availability remains separate |
-| `Mat4.lookAt`, `Mat4.ortho` | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Rive Beta 0.8.5390 build 5377 passed both helpers, composition, and `writeToBuffer`; helpers do not make the scene graph generally 3D |
-| `Mat2D` / `Mat4` equality (`==`) | **Editor-reference-confirmed + MCP runtime-tested** | **Officially released** | Identity matrices compared equal and translated matrices compared unequal for both types in the live Tests-protocol probe |
-| `Promise`, `async`, `await` | **Source-confirmed** | **Officially released** | Runtime/docs confirm the chaining, cancellation/status, and coroutine bridge; not live-tested in the August 14 MCP script |
-| `ViewModel:getImage(name)` | **Source-confirmed + MCP-tested** | **Officially released** | Rive Beta 0.8.5390 build 5377 returned the typed image property; broader image workflows were not live-tested |
-| `Context:globalViewModel(name)` / `globalViewModelNames()` | **Source-confirmed** | **Preview / rollout-dependent** | Runtime/source docs describe named file-global models and unknown-name `nil`; explicitly not executed in the MCP probe |
-| `ViewModel:getFont(name)` / `getBlob(name)` | **Source-confirmed + MCP-tested** | **Preview / rollout-dependent** | Beta probe passed typed lookup and missing/null behavior; Blob string/buffer/`nil` writes passed only after `payload :: any`, while uncast values were rejected by the editor checker |
-| `ViewModel:getIndex()` | **Source-confirmed** | **Officially released** | Runtime/docs confirm list-item index and detached `-1`; not live-tested in the August 14 MCP script |
-| `PropertyList:removeAt`, `removeAllOf`, `clear` | **Source-confirmed** | **Officially released** | Runtime/docs confirm removal and clear operations, including 1-based `removeAt`; not live-tested in this probe |
-| Current event types + `ListenerContext` guard/accessor set | **Source-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | Exact Pointer/keyboard/text/focus/reported/view-model/none and three-way gamepad signatures passed with diagnostics `[]`; event dispatch was not executed |
-| Node `gamepadConnected` / `gamepadEvent` / `gamepadDisconnected` | **Source-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | Exact `Node<T>` callbacks passed the Editor checker; hardware gamepad dispatch was not executed |
-| `AudioSound:pause()` / `resume()` / `play()` | **Editor-reference-confirmed + Editor-analyzer-tested** | **Preview / rollout-dependent** | The exact no-argument transport methods passed with diagnostics `[]`; the calls were not runtime-executed |
-| Node `keyboardEvent(self, event)` | **Source-confirmed; absent from current Editor `Node<T>` reference** | **Preview / rollout-dependent** | Pinned runtime source uses `KeyboardInvocation` and stops propagation on `true`; not executed in the August 14 probe |
-| Node `textEvent(self, event)` | **Source-confirmed; absent from current Editor `Node<T>` reference** | **Preview / rollout-dependent** | Pinned runtime source uses `TextInputInvocation` and stops propagation on `true`; not executed in the August 14 probe |
-| `context:canvas(options)` + `Canvas` methods | **Source-confirmed** | **Officially released** | Runtime/docs confirm offscreen canvas frame/resize/image methods; not live-tested in this probe |
-| `context:decodeImage(buffer)` + `DecodedImage` | **Source-confirmed** | **Officially released** | Runtime/docs confirm the promise and RGBA payload shape; not live-tested in this probe |
-| `context:gpuCanvas(options)` + `GPUCanvas` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | The broader GPUCanvas/render-pass lifecycle was not executed; one standalone GPUBuffer allocation/write probe does not establish this workflow |
-| `context:features()` + `GPUFeatures` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | Capability flags/limits are documented for GPU preview; the live probe did not execute this Context method |
-| `context:shader(name)` + `Shader` | **Source/docs-confirmed; not runtime-tested** | **Rive Early Access only** | Shader asset lookup is documented, but the current Editor analyzer did not expose `Context.shader` and no imported shader asset was executed |
-| `GPUBuffer`, `GPUTexture`, `GPUSampler`, `GPUBindGroup`, `GPUBindGroupLayout`, `GPUPipeline`, `GPURenderPass`, `GPUTextureView` | **Mixed live evidence; analyzer omits GPU globals** | **Rive Early Access only** | `GPUBuffer`/`GPUTexture` constructors executed despite unknown-global analyzer diagnostics; the broader object-family lifecycle was not executed |
-| `GPUBuffer:write(source, destinationOffset, sourceOffset, byteLength)` | **MCP runtime-tested; analyzer omits `GPUBuffer`** | **Rive Early Access only** | A valid ranged write passed and both source- and destination-overflow cases were rejected in Rive Beta; this is narrow buffer evidence, not full GPU workflow validation |
-| `GPUTextureView.format` | **Source-confirmed; MCP runtime probe failed** | **Rive Early Access only** | Live access failed with `attempt to index userdata with 'format'`; do not teach it as a working property in this Editor build |
-| `drawCanvas` callback | **Source/docs-confirmed retired** | **Migration required** | Current guidance merges Canvas/GPUCanvas work into `draw(self, renderer)`; serialized bit 15 remains legacy metadata, not a callable callback |
-| Scripted Interpolator protocol | **Source/docs-confirmed** | **Officially released** | `transform` / `transformValue` hooks and linear fallback are documented/source-confirmed; not live-tested in this probe |
-
----
-
-## Historical (June 4, 2026) Shader Early-Access Baseline Addendum
-
-This appendix preserves the June 4, 2026 shader audit evidence. It is not the
-current release baseline above: that historical pass used public npm/docs
-`2.37.8` and source-level `runtime-v0.1.106`. Shader/GPU scripting was and
-remains **Rive Early Access only** because the editor workflow for shader assets
-is not broadly available.
-
-Use this addendum as the source of truth for LERP's shader lessons, not as a signal that shader scripting is broadly released in standard Rive workspaces.
-
-- **Shader baseline date:** June 4, 2026
-- **Shader API source reviewed:** `runtime-v0.1.106` at commit `5360c834eac2adbdfc49c808d1b2a8c61b014bbf`
-- **Public/local docs source checked:** current local scripting protocol pages and runtime source bindings; older `drawCanvas` examples are treated as migration inputs, not current guidance
-- **Local reference document:** `/Users/ivg/github/luau-scripting/rive_shader_api_reference_runtime_v0106_type_safe.md`
-- **Local example corpus:** `/Users/ivg/github/luau-scripting/gpu_shaders`
-- **Current availability tier:** **Rive Early Access only**
-
-LERP now teaches the following shader-specific rules:
-
-| Surface | LERP guidance | Notes |
+| Surface or behavior | Target status | Course treatment |
 |---|---|---|
-| `draw(self, renderer)` | Record Canvas/GPUCanvas work and composite with `Renderer` | `drawCanvas` is retired; keep frame/pass pairing inside `draw` |
-| `context:shader(name)` | Use for compiled `.wgsl` shader asset lookup | Returns `Shader?`; guard `nil` |
-| `GPUCanvas.format` | Use for pipeline color-target format | Avoid hard-coded formats unless you intentionally own the render target |
-| `Image:view()` | Use to sample image assets in shader bind groups | Shader usage is Rive Early Access only because it depends on GPU workflow availability |
-| Dynamic UBO offsets | Treat as layout/binding ordered byte offsets | Use 256-byte alignment |
-| Direct 3D model import | Not provided by the shader API itself | Convert mesh data externally into buffers/textures |
+| `Context:globalViewModel(name)` and `Context:globalViewModelNames()` | Source-confirmed in `runtime-v0.1.344`; current public/editor references agree | Released target API. Unknown or non-global names return `nil`; no attached file yields an empty names array. |
+| Layout `resize(self, size, displayScale)` | Source-confirmed three-argument Luau dispatch and scale-change redispatch; missing `resize` is a no-op | Optional target callback. `displayScale` is device pixels per layout point. Existing two-parameter Luau callbacks remain compatible because extra arguments are ignored. |
+| Retired `drawCanvas` callback | No current target dispatch; serialized legacy method metadata may remain | Keep Canvas/GPUCanvas work in `draw(self, renderer)`. Do not add `drawCanvas` to scripts. |
+| WASM scripting lane | Released runtime implementation | Host/runtime capability. It does not add a Luau global by itself. |
+| RASC workspace and test protocol | Released source contains the editor/compiler protocol and in-memory bake path | Tooling boundary. Do not model the private workspace protocol as callable Luau. |
+| Compiled module-handle reaping | Released host lifecycle fix | Internal resource management; no course signature. |
+| Luau `rive_0_734` baseline | Released language-engine update | Engine baseline only; do not infer unsupported syntax changes. |
+| `ScriptAsset` module | An authored Luau script whose host `isModule` flag is true | Import by its authored `require("Name")`; the flag itself is not a Luau global. |
+| `ScriptModuleAsset` | Separate self-contained compiled WASM host payload with language metadata, VM, bindings, and compiled scripts | It is not a Luau type, global, or require name. Serialized fields and internal IDs remain host data. |
+| TextInput alignment metadata | Serialized `alignValue` key `222` and `verticalAlignValue` key `1094` | Serialized/editor metadata, not Luau `TextInput` fields. |
+| Focus and gamepad corrections | Released fixes cover device indexing, root-artboard FocusManager ownership, re-homing focus, visibility transitions, and destroyed focus-tree state | Existing event callback signatures are unchanged; re-test controller and nested-artboard focus behavior. |
+| Layout and animation corrections | Released fixes cover integer grid placement, bound keyframes, Yoga writes, Solo sizing, nested Fill/Hug, component-list parent discovery, nonzero nested-artboard origins, and a generated layout matrix | The Layout callback gains `displayScale`; other changes are behavioral. Re-test affected files. |
+| Nested-artboard semantic state | Released state ownership moved to the nested instance | Lifecycle/semantic correction; no new Luau method. |
+| Text rendering and TextInput behavior | Released font-fit, feathering, dirt/hug/edit/font corrections | Behavioral baseline; serialized fields remain separate from script event payloads. |
+| Web heap views | Web bindings rebuild typed heap views from `wasmMemory` for the newer Emscripten toolchain | Embedder/runtime repair; no Luau API. |
+| WASM script-host hardening | Runtime `344` includes frame-generational collection and checked handles, keeps tier compilation/transplant tools-only, and adds native main/global ViewModel command-queue retrieval | Host behavior only; it adds no Luau or public Web-wrapper call. |
+| Pre-7.3 text compatibility | Runtime `341`'s file-version gate is retained in runtime `344` | Layout-controlled auto-sized text authored before format `7.3` uses the legacy sizing/overflow behavior. Validate pixels in real exports. |
+| Web state-machine selection | Web `2.41.1` prefers singular `stateMachine` for constructor, `load`, and `reset`; it takes priority over legacy playback parameters | Use singular selection in new integrations. Plural `stateMachines` remains callable on the 2.x line while integrations migrate. |
+| Legacy Web controls | Direct state-machine inputs, Rive/state-change events, text-run controls, and multiple playback remain present in Web `2.41.1` with deprecation guidance | Do not describe these APIs as removed. Prefer ViewModel data binding and one state machine for new work. |
 
-Compatibility naming note: older docs and examples may mention `context:loadShader(name)` or `context:preferredCanvasFormat()`. New LERP shader examples use `context:shader(name)` and `GPUCanvas.format`.
+The upstream `script_dependency_test.riv` fixture contains six `ScriptAsset`
+records: one protocol converter and five dependencies marked `isModule = true`.
+Its runtime test exercises a chained Luau `require` path. The file contains no
+serialized `ScriptModuleAsset` record (type `1071`), so it does not validate
+the compiled WASM/RASC module lane.
 
----
+The release also contains renderer, focus, text, and layout fixes that can change
+the result of an existing `.riv` without changing its script. Treat a clean
+compile as necessary evidence, then run the real layout, text, focus, or nested
+artboard fixture in the selected editor/export lane.
 
-## Practical Guidance for LERP Content
+### Pre-7.3 layout-controlled text check
 
-- Teach `ListenerAction.performAction(self, listenerContext)` as the primary listener callback shape.
-- Use `listenerContext:is...()` and `listenerContext:as...()` for event-safe branching.
-- Treat `PointerEvent.type` as the `PointerType` string union; do not invent a runtime enum table.
-- Use separate `isGamepadConnected/Event/Disconnected` and matching `as...` methods. Do not use the stale generic `isGamepad()` / `asGamepad()` form.
-- Use current Editor event type names in new examples. Keep `*Invocation` names only when explicitly discussing pinned source/runtime compatibility.
-- Do not teach `viewModel.name` as available in Luau at this baseline.
-- Do not present `Output<T>` as currently exposed in C++ Luau bindings.
-- For list-bound ViewModels, use `viewModel:getIndex()` and handle detached state (`-1`).
-- For `PropertyList:removeAt(index)`, use 1-based indices and validate bounds.
-- Keep GPU shader/pipeline material in **Rive Early Access only** sections until editor-side shader asset visibility is broadly available.
-- When `context:shader(name)` returns `nil`, treat that as a possible asset name, packaging, or rollout/tooling gap before assuming script logic failure.
-- Merge GPU/offscreen Canvas recording and normal compositing into `draw(self, renderer)`; keep `beginFrame`/`endFrame` and `beginRenderPass`/`finish` paired. `drawCanvas` is retired and its serialized method bit is reserved legacy metadata.
+Web `2.41.1` embeds runtime `344`, which retains runtime `341`'s repair for
+layout-controlled auto-sized text authored before file format `7.3`. The LERP
+asset inventory found six checked-in `.riv` paths, three unique payloads, all
+with `7.0` headers. Because the header cannot prove whether a file contains the
+affected layout/text combination or what it draws, every checked-in path is run
+through both released renderer packages.
 
----
+The exact observed result was:
 
-## Re-Audit Workflow (for future updates)
+| Payload | Runtime result |
+|---|---|
+| Header paths | Canvas and WebGL2 loaded `State Machine 1`; non-empty pixels rendered with no page/load error |
+| Desktop hero paths | Canvas and WebGL2 loaded `State Machine 1`; non-empty pixels rendered with no page/load error |
+| Portrait hero paths | Canvas and WebGL2 loaded `State Machine 1`; non-empty pixels rendered with no page/load error |
 
-1. Fetch latest runtime: `git clone`/`git pull` `rive-app/rive-runtime`.
-2. Record latest npm release line for C++ WASM runtime packages:
-   - `npm view @rive-app/canvas version`
-   - `npm view @rive-app/canvas-lite version`
-   - `npm view @rive-app/webgl2 version`
-   - `npm view @rive-app/canvas-advanced version`
-3. Pin npm `gitHead` hash and npm publish timestamp in this page.
-4. Pin upstream runtime source tag/commit used for API verification.
-5. Pull latest docs machine-readable source (`/docs/llms-full.txt`) and list `(Coming soon)` API sections.
-6. For each surface, verify:
-   - type/wrapper exists in runtime headers
-   - Lua atoms/bindings exist
-   - invocation/dispatch path exists (not only a stub)
-7. Update:
-   - this page
-   - affected API lessons/examples/quizzes
-   - changelog entry with audit protocol details
+The run did not compare against a pre-341 known-good pixel reference, so it
+does not prove pixel identity or that every animation state is unaffected. It
+does prove both released renderer packages loaded and drew each checked-in
+path through the compatibility branch.
 
----
+## Current public and editor surface
 
-## Audit Protocol (what this update checked)
+These declarations are useful for editor authoring. The table keeps host-only
+surfaces distinct from the exact C++ runtime even when both are current.
 
-For the August 14, 2026 pass, LERP used this verification sequence:
+| Surface | Current evidence | Boundary |
+|---|---|---|
+| `FileFormat` / `TextFileFormat` | Current public docs, editor/LSP declarations, and a reviewed shipped `.rsvg` implementation | Editor extension protocols. Text documents export as Blob assets and runtime scripts read them with `context:blob(name)`. |
+| `FormatDocument`, `FormatView`, `EditorContext`, tokens, diagnostics, completion, and hover records | Current editor/LSP declarations | Callback/data/view surface for FileFormat scripts, not serialized host JSON. |
+| `Context.log` | Current editor reference declares `log: (message: string) -> ()` | Function-valued property called with `context.log(...)`. No matching C++ Luau Context dispatch exists in `runtime-v0.1.344`; use `print(...)` for portable target scripts. |
+| Layout `resize(self, size, displayScale)` | Runtime `344`, current editor/LSP declarations, and runtime tests agree | Released optional callback. Scale changes are redispatched after a valid size; an unchanged scale is silent. Two-parameter callbacks remain compatible. |
+| `Tester:blob(name)` | Current editor reference | Editor test helper; verify the current editor when a test depends on an asset. |
 
-1. **Released boundary and source separation**
-   - Pinned released Web `2.40.0` to C++ `runtime-v0.1.271` and recorded the aligned package `gitHead`.
-   - Kept parser canary `runtime-v0.1.272` and the RFP source-impact snapshot separate from released-runtime claims.
-2. **Live Editor runtime cases through the Rive MCP**
-   - Ran `LERP_130_Runtime_Surface_Tests` in Rive Beta 0.8.5390 build 5377.
-   - All three original Vector/Mat4/ViewModel cases passed with final diagnostics `[]`.
-   - Focused follow-up runtime assertions passed for `Mat2D`/`Mat4` equality and
-     ranged `GPUBuffer:write`; the valid range succeeded and both source- and
-     destination-overflow cases were rejected.
-   - `GPUTextureView.format` was also executed and failed with
-     `attempt to index userdata with 'format'`.
-3. **Current Editor reference and analyzer reconciliation**
-   - Retrieved `rive/artboards` and `rive/interfaces` from the live built-in scripting reference.
-   - Compiled a temporary Tests probe covering the exact event types,
-     `ListenerContext` guards/accessors, full gamepad fields/methods,
-     `AudioSound:pause/resume/play`, and Node gamepad callbacks; diagnostics
-     were `[]`.
-   - Recorded that the same analyzer omits the `GPUBuffer` and `GPUTexture`
-     globals even though their runtime constructors executed.
-   - Removed the temporary probe, reran the original three cases, and confirmed
-     final diagnostics remained clean.
-4. **Pinned runtime-source comparison**
-   - Confirmed why historical `*Invocation` names appear in
-     `runtime-v0.1.262` Lua userdata wrappers.
-   - Confirmed that the same source snapshot already uses the current
-     connected/event/disconnected gamepad triad, so LERP's former generic
-     `GamepadInvocation` surface was stale rather than a required compatibility
-     alias.
-5. **Explicit non-claims**
-   - The event probe validated analyzer acceptance, not keyboard/focus/reported/
-     view-model-change or hardware gamepad dispatch; the AudioSound transport
-     calls were likewise not executed.
-   - Released Web `2.40.0`, global ViewModel Context methods, imported-library
-     asset resolution, and the broader Early Access GPUCanvas/shader/lifecycle
-     workflow were not established by the Editor probe.
+The reviewed official-docs checkout did not yet contain the FileFormat API
+pages. The current public machine-readable docs and editor/LSP declarations
+therefore provide newer evidence than that snapshot.
 
-For the June 4, 2026 pass, LERP used this verification sequence:
+See [File Formats](/api/file-formats) for the callback contracts and a minimal
+`TextFileFormat` example.
 
-1. **Runtime release check via npm registry**
-   - Ran `npm view` for `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, and `@rive-app/canvas-advanced`
-   - Confirmed all report `2.37.8`
-2. **npm source pin**
-   - Pinned npm `gitHead` `bc560112ab2ee7d0afd3418bd97970c2fcb36532` for runtime line `2.37.8`
-   - Recorded the `@rive-app/canvas@2.37.8` publish timestamp: May 21, 2026 18:06:40 UTC
-3. **Public docs source**
-   - Fetched `https://rive.app/docs/llms-full.txt`
-   - Confirmed the docs now include GPUCanvas, GPU object-family pages, `context:gpuCanvas`, `context:features`, `context:shader`, and `drawCanvas`
-   - Confirmed `Output` remains marked `(Coming soon)`
-4. **Shader/API source pin**
-   - Pinned `runtime-v0.1.106` at `5360c834eac2adbdfc49c808d1b2a8c61b014bbf` for source-level API verification
-   - Spot-checked the compatibility rows in Luau binding headers/source/tests, including listener payloads, `NodeReadData.paint`, `asPath`, `asPaint`, audio duration, ViewModel property/list helpers, Promise/async, `Mat4`, canvas/GPU context APIs, GPU object bindings, and Scripted Interpolator
-   - Kept shader/GPU lessons in **Rive Early Access only** tier because editor-side shader asset workflow availability is not broadly assumed
-5. **Course sync pass**
-   - Updated runtime compatibility notes, API baseline callouts, errata header, and changelog wording
+## Adjacent findings and non-API boundaries
 
-For the May 12, 2026 pass, LERP used this verification sequence:
+| Finding | Course treatment |
+|---|---|
+| TextInput `obscured` key `1095` | Retained in runtime `344` as serialized/editor metadata. It is not a Luau `TextInput` field. |
+| SemanticData mixed-state removal/tri-state behavior | Retained in runtime `344`; no LERP Luau signature changes. |
+| Layout display scale | Introduced in runtime `335` and released in the accepted runtime `344`; teach the three-argument optional callback and old-callback compatibility. |
+| Runtime `337` layout matrix | The generated cross-runtime matrix and test-only inspection helpers establish layout behavior. They add no Luau method beyond the scale-aware callback. |
+| State-machine import tolerance | Runtime `338` tolerates layers without Any/Exit while still requiring Entry. This importer behavior adds no LERP API and has no checked-in fixture. |
+| WASM host hardening | Runtime `339` adds frame-generational collection and checked handles; `342` restricts tier compilation/transplant to tools builds. These are released host changes, not Luau calls. |
+| Pre-7.3 text compatibility | Runtime `341` restores legacy layout-controlled text sizing/overflow by file version; direct Web `2.41.1` runtime smokes exercise the branch with the checked-in format `7.0` files. |
+| ViewModel command queue | Runtime `343` adds native main/global ViewModel retrieval callbacks. This is a released host path, not a Luau or public Web-wrapper method. |
+| Renderer/Vulkan | Runtime `340` restructures image draw instances; `344` adds Vulkan multi-swap-chain synchronization. Neither adds a LERP call. |
+| Runtime `337` through `344` API range | No generated serialization or public Lua/Luau protocol delta beyond Layout display scale was found. |
 
-1. **Runtime release check via npm registry**
-   - Ran `npm view` for `@rive-app/canvas`, `@rive-app/canvas-lite`, `@rive-app/webgl2`, and `@rive-app/canvas-advanced`
-   - Confirmed all report `2.37.6`
-2. **npm source pin**
-   - Pinned npm `gitHead` `2833de372c0d22596494c89c328008ce5b1106d7` for runtime line `2.37.6`
-3. **Upstream runtime API snapshot pin**
-   - Pinned `runtime-v0.1.64` at `b25a32218c6308ac8dc4b1cb69df62de84d78ba4`
-4. **Docs delta source**
-   - Compared against `https://rive.app/docs/llms-full.txt`, including APIs marked `(Coming soon)`
-5. **Binding-level verification**
-   - Confirmed availability/limits by checking runtime Luau bindings and invocation paths (not docs text alone)
-6. **Course sync pass**
-   - Updated API pages, lessons, examples, quizzes, and compatibility notes
+## FileFormat and runtime asset boundary
 
----
+`FileFormat` and `TextFileFormat` are callable editor protocols. Their
+documents, views, and analysis callbacks are real Luau surfaces in the current
+editor. The following neighboring data remains non-callable:
 
-## Changelog Requirements for Runtime Audits
+- serialized host asset records
+- serialized type/property keys and internal asset IDs
+- implemented-method bitsets
+- `ScriptModuleAsset` language values and compiled module handles
+- RASC workspace messages and compiler bookkeeping
 
-Every runtime-audit changelog entry should include:
+A custom text document becomes a normal Blob on export. The runtime-facing
+contract is therefore:
 
-- Audit date
-- Upstream source tag/commit used for API validation
-- npm runtime release line + packages checked
-- npm `gitHead` + npm publish timestamp
-- Which surfaces changed status (`Officially released`, `Rive Early Access only`, `Preview / rollout-dependent`, `Not exposed`)
-- Which course pages were updated (docs + lessons + quizzes)
+```lua
+local source = context:blob("DocumentName")
+if source then
+    if source.size == 0 then
+        print("")
+    else
+        local data = source.data
+        if data then
+            print(buffer.tostring(data))
+        end
+    end
+end
+```
+
+The runtime `344` Blob has `name`, `size`, and `data` fields only. Its `data` field is
+`nil` when the Blob has zero bytes.
+
+The editor callback contract and the exported runtime Blob contract should be
+tested independently.
+
+## Protocol and lifecycle guidance
+
+- Keep callback state on `self`; FileFormat analysis callbacks are pure
+  functions of `(doc, parsed)`, while per-surface state belongs in a
+  `FormatView`.
+- Keep module imports on the authored `ScriptAsset` name through
+  `require("ModuleName")`. A `ScriptModuleAsset`, workspace ID, compiled
+  handle, language value, or internal ID belongs to the host.
+- Keep `drawCanvas` retired. Pair Canvas/GPUCanvas frame or render-pass work
+  inside `draw(self, renderer)` and composite there.
+- Treat Layout `resize` as optional. At the accepted target, write
+  `resize(self, size, displayScale)` when scale matters. Existing two-parameter
+  callbacks remain valid.
+- Keep global ViewModel handles or properties alive when listeners depend on
+  them. Unknown names must be handled as `nil`.
+- Re-run focus, nested-artboard, TextInput, and custom-layout fixtures after a
+  runtime update because the accepted release changes behavior without adding
+  script calls.
+
+## Validation record
+
+The September 1 pass used this sequence:
+
+1. Verified all four direct Web `2.41.1` packages, their shared package
+   `gitHead`, and `runtime-v0.1.344`
+   independently.
+2. Inspected the exact runtime's Luau/WASM dispatch, scripted-context bindings,
+   tests, module lifecycle, focus, layout, text, semantic, and Web heap changes.
+3. Compared current public Rive docs, the current editor/LSP declarations,
+   official-docs snapshots, runtime source, and reviewed script examples.
+4. Reconciled each accepted runtime change through `344`, preserving the `337`
+   layout-matrix origin as historical detail. Layout display scale is the
+   callable Luau protocol change in that range; the remaining findings are
+   behavior or host internals.
+5. Reconciled Web `2.41.1` source and tests for singular `stateMachine`, legacy
+   2.x compatibility, and the associated deprecation boundary.
+6. Inventoried every checked-in `.riv` path, treated all three unique `7.0`
+   payloads as possible pre-7.3 text cases, and rendered every path with Canvas
+   and WebGL2 `2.41.1` instead of treating static headers as pixel evidence.
+7. Ran course generation, type checks, production build, route/link/anchor/feed
+   checks, and focused Luau analysis, recording pre-existing toolchain
+   conditions rather than converting them into API claims.
+
+### Known validation limits
+
+- All six bundled `.riv` paths were executed through Canvas and WebGL2
+  `2.41.1`. They loaded and rendered non-empty frames, but no pre-341 reference
+  image was available for exact pixel comparison.
+- No focused exported Luau fixture was executed for the scripting callbacks
+  documented in this rebaseline.
+- The live editor reference was read without mutating the open Rive file.
+- FileFormat callback execution was not repeated in the live editor; the
+  callable surface is supported by current public/editor/LSP declarations and
+  a reviewed shipped `.rsvg` implementation.
+- Final canonical analyzer runs completed without diagnostics for the existing
+  runtime fixture and the binary/text FileFormat fixtures. Static acceptance
+  still does not replace editor callback or exported-runtime execution.
+
+## Historical baselines
+
+Previous LERP releases preserve their original evidence in the changelog and
+errata tracker:
+
+- **1.3.0 (August 14, 2026):** Web `2.40.0` / `runtime-v0.1.271`, with a
+  separate evidence-only `runtime-v0.1.272` canary and focused editor probes.
+- **June 4, 2026 shader audit:** Web `2.37.8` and source-level
+  `runtime-v0.1.106`; shader/GPU workflows remained Rive Early Access.
+- **May 12, 2026 audit:** Web `2.37.6` and source-level `runtime-v0.1.64`.
+
+Historical version pins describe their releases only. New examples and the
+bundled landing use the September 1 target above.
+
+## Future re-audit checklist
+
+1. Pin the released Web version, package `gitHead`, C++ runtime tag, and commit.
+2. Keep serialized host records separate from callable Luau declarations.
+3. Inspect binding declarations and dispatch paths, including missing-method
+   behavior.
+4. Compare public docs, editor reference, local docs, and live execution as
+   separate evidence lanes.
+5. Run an exported runtime fixture for behavior-sensitive changes; for
+   pre-7.3 layout-controlled text, compare rendered output when possible.
+6. Update this page, API/protocol lessons, errata, changelog, generated AI
+   artifacts, and the LSP reconciliation manifest.

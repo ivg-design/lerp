@@ -1,0 +1,337 @@
+---
+sidebar_position: 8
+title: File Formats
+description: FileFormat and TextFileFormat editor protocols, document intelligence, previews, and export-to-Blob behavior
+keywords:
+  - rive
+  - luau
+  - scripting
+  - api
+  - fileformat
+  - textfileformat
+  - editorcontext
+  - formatview
+---
+
+# File Formats
+
+`FileFormat` and `TextFileFormat` let a Luau script claim custom file
+extensions in the Rive editor. They are editor extension protocols: they define
+import, analysis, and preview behavior. They are separate from runtime Node,
+Layout, Converter, and listener protocols.
+
+:::info Evidence tier
+The signatures on this page match the current public Rive docs and the current
+editor/LSP FileFormat declarations. They are not C++ runtime-v0.1.344 Context
+methods. The exact Web `2.41.1` target consumes exported text documents as Blob
+assets through `context:blob(name)`.
+:::
+
+## Choosing a protocol
+
+| Protocol | Imported document | Editor behavior | Exported asset |
+|---|---|---|---|
+| `FileFormat` | Binary bytes | Optional custom preview | Blob with original bytes |
+| `TextFileFormat` | Text | Editable, collaborative document plus optional language intelligence and preview | Plain Blob read with `context:blob(name)` |
+
+Both protocols use a zero-argument factory and require `name` and
+`extensions` fields. Extensions omit the leading dot.
+
+The protocol implementation is authored script code. The imported document is
+a separate asset: its editor callbacks receive `FormatDocument`, while an
+exported runtime receives a `Blob`. Neither a serialized `ScriptModuleAsset`
+nor its language/handle metadata becomes a FileFormat global or module name.
+
+## Minimal binary format
+
+```lua
+local format: FileFormat = {
+    name = "Model",
+    extensions = { "glb" },
+}
+
+return function(): FileFormat
+    return format
+end
+```
+
+## Minimal text format
+
+```lua
+local format: TextFileFormat = {
+    name = "Notes",
+    extensions = { "note" },
+}
+
+function format.highlight(
+    _self: TextFileFormat,
+    doc: FormatDocument,
+    _parsed: buffer?
+): { FormatToken }
+    if doc.text == nil or #doc.text == 0 then
+        return {}
+    end
+
+    return {{
+        line = 0,
+        column = 0,
+        length = #doc.text,
+        scope = "string",
+    }}
+end
+
+return function(): TextFileFormat
+    return format
+end
+```
+
+The callback uses a typed table method, so Rive passes the format table as
+`self`. Analysis callbacks should depend only on the supplied document and the
+optional parsed buffer. For `TextFileFormat`, type `self` as
+`TextFileFormat` in each callback.
+
+## Shared fields and callbacks
+
+### Fields
+
+```lua
+name: string
+extensions: { string }
+```
+
+### `parse(doc)`
+
+```lua
+parse(self: FileFormat, doc: FormatDocument) -> buffer?
+```
+
+Optional. Rive calls it once per document version and caches the returned
+buffer by content. The cached value is passed to the other callbacks. Keep it
+as derived data rather than hidden mutable view state.
+
+### `view(doc, editor, surface, parsed)`
+
+```lua
+view(
+    self: FileFormat,
+    doc: FormatDocument,
+    editor: EditorContext,
+    surface: FormatSurface,
+    parsed: buffer?
+) -> FormatView?
+```
+
+Optional. Each open surface receives a separate view. `FormatSurface.kind` is
+`"pane" | "inspector"`; `"pane"` covers both the editor split and a full
+viewer tab. A document can have several surface instances at once.
+
+## Text analysis callbacks
+
+`TextFileFormat` adds these optional callbacks:
+
+```lua
+highlight(self: TextFileFormat, doc: FormatDocument, parsed: buffer?) -> { FormatToken }
+diagnostics(self: TextFileFormat, doc: FormatDocument, parsed: buffer?) -> { FormatDiagnostic }
+completions(self: TextFileFormat, doc: FormatDocument, line: number, column: number, parsed: buffer?) -> { FormatCompletion }
+hover(self: TextFileFormat, doc: FormatDocument, line: number, column: number, parsed: buffer?) -> FormatHover?
+format(self: TextFileFormat, doc: FormatDocument, parsed: buffer?) -> string?
+```
+
+`format` returns the complete replacement text or `nil` for no change. Rive
+computes and applies minimal edits. The analysis callbacks are pure; keep
+surface-specific animation, scroll, and interaction state in `FormatView`.
+
+## FormatDocument
+
+Exactly one of `text` and `bytes` is present.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `name` | `string` | Display name without relying on an asset ID |
+| `extension` | `string` | Extension without the dot |
+| `text` | `string?` | Full text for a text document |
+| `bytes` | `buffer?` | Raw bytes for a binary document |
+
+Token, diagnostic, completion, and hover positions are zero-based. Document
+positions returned to Rive use byte offsets; `FormatView.selectionChanged`
+reports zero-based code-point line and column values.
+
+## FormatSurface
+
+```lua
+export type FormatSurface = {
+    kind: "pane" | "inspector",
+}
+```
+
+`"pane"` covers the editor split and a full viewer tab. `"inspector"` is the
+selected asset strip. There is no third `"viewer"` kind.
+
+## Tokens, diagnostics, completions, and hover
+
+```lua
+export type FormatToken = {
+    line: number,
+    column: number,
+    scope: FormatScope,
+    length: number?,
+}
+
+export type FormatDiagnostic = {
+    startLine: number,
+    startColumn: number,
+    endLine: number,
+    endColumn: number,
+    message: string,
+    severity: ("error" | "warning")?,
+}
+
+export type FormatCompletion = {
+    text: string,
+    startLine: number?,
+    startColumn: number?,
+    endLine: number?,
+    endColumn: number?,
+}
+
+export type FormatHover = {
+    startLine: number,
+    startColumn: number,
+    endLine: number,
+    endColumn: number,
+    preview: string?,
+    documentation: string?,
+}
+```
+
+Current `FormatScope` values are:
+
+```lua
+"none" | "keyword" | "type" | "literal" | "number" | "operator"
+| "punctuation" | "property" | "string" | "comment" | "boolean"
+| "nil" | "interp" | "function"
+```
+
+## FormatView
+
+`draw` is the view's required rendering callback. Other callbacks are optional.
+
+```lua
+draw(self: FormatView, renderer: Renderer, width: number, height: number) -> ()
+measure(self: FormatView, viewportWidth: number, viewportHeight: number) -> (number, number)
+advance(self: FormatView, seconds: number) -> boolean
+textScrolled(self: FormatView, x: number, y: number, line: number, maxLine: number) -> ()
+paneScrolled(self: FormatView, x: number, y: number) -> ()
+paneWheel(self: FormatView, dx: number, dy: number) -> ()
+pointerDown(self: FormatView, event: PointerEvent) -> ()
+pointerMove(self: FormatView, event: PointerEvent) -> ()
+pointerUp(self: FormatView, event: PointerEvent) -> ()
+documentChanged(self: FormatView, doc: FormatDocument, parsed: buffer?) -> ()
+selectionChanged(self: FormatView, line: number, column: number) -> ()
+dispose(self: FormatView) -> ()
+```
+
+`measure` drives pane scrollbars. Omit it for a fit-to-viewport or internally
+scrolling view. Return `true` from `advance` only while the view needs animation
+frames, and release per-surface resources in `dispose`.
+
+## EditorContext
+
+`EditorContext` is scoped to a FileFormat view. Asset and artboard handles are
+immutable or private to that view; they do not expose the open file's live
+state.
+
+```lua
+editor:image(name: string) -> Image?
+editor:blob(name: string) -> Blob?
+editor:artboard(name: string) -> Artboard<ViewModel?>?
+editor:hostArtboard(name: string) -> Artboard<ViewModel?>?
+editor:theme() -> EditorTheme
+editor:openUrl(url: string)
+editor:themeFont() -> Font?
+editor:defaultFont() -> Font?
+editor:codeFont() -> Font?
+editor:editorScroll() -> EditorScroll?
+editor:scrollTo(x: number, y: number) -> ()
+editor:scrollEditorTo(line: number) -> ()
+editor:requestDraw() -> ()
+```
+
+Current public docs additionally list `shader`, `canvas`, `gpuCanvas`,
+`features`, and `decodeImage`. The live built-in reference read for this audit
+ended at `requestDraw`, so treat those later GPU/image helpers as public-docs
+evidence until the selected editor exposes them.
+
+`artboard` resolves relative to the format script's file. `hostArtboard`
+always resolves in the file being edited. This distinction matters when the
+format ships in a library.
+
+### EditorTheme and EditorScroll data
+
+`editor:theme()` returns current theme values. Read them during `draw` or
+`measure` rather than caching them across frames.
+
+| `EditorTheme` field | Type |
+|---|---|
+| `scopes` | `{ [FormatScope]: EditorThemeStyle }` |
+| `background`, `divider`, `dividerHighlight` | `Color` |
+| `error`, `warning`, `lineNumber` | `Color` |
+| `fontSize`, `lineHeight` | `number` |
+
+`EditorThemeStyle` has `color: Color` and optional `weight: number?`.
+
+`editor:editorScroll()` returns `EditorScroll?` with these read-only fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `percent` | `number` | Scroll position from 0 to 1 |
+| `line` | `number` | Fractional zero-based top line |
+| `maxLine` | `number` | Top line at the end of the scroll range |
+| `cursorLine` | `number?` | Primary cursor line, when present |
+| `cursorFraction` | `number?` | Cursor position within or outside the viewport |
+
+## Runtime handoff through Blob
+
+Text documents export as ordinary Blob assets. Runtime scripts do not receive
+`FormatDocument` or `EditorContext`; they resolve the exported asset:
+
+```lua
+local document = context:blob("ReleaseNotes")
+if document then
+    if document.size == 0 then
+        print("")
+    else
+        local data = document.data
+        if data then
+            print(buffer.tostring(data))
+        end
+    end
+end
+```
+
+At `runtime-v0.1.344`, Blob exposes only `name`, `size`, and `data`;
+`Blob:asString()` does not exist. `data` is `nil` for a zero-byte Blob, so check
+`size` or guard `data` before calling `buffer.tostring`.
+
+Test the editor extension and exported Blob path separately. A functioning
+highlighter does not prove that the chosen runtime/export contains the expected
+asset name or bytes.
+
+## Boundaries
+
+- Do not expose serialized host metadata or internal asset IDs to Luau code.
+- Use `require("Name")` for script modules and `context:blob("Name")` for
+  exported documents.
+- Keep per-view state in each `FormatView`; do not hide it in pure analysis
+  callbacks.
+- Treat FileFormat callbacks as current editor contracts, then validate the
+  runtime Blob consumer in the exact release lane.
+
+## See also
+
+- [Official FileFormat reference](https://rive.app/docs/scripting/api-reference/file-format/file-format)
+- [Official TextFileFormat reference](https://rive.app/docs/scripting/api-reference/file-format/text-file-format)
+- [Assets: Blob](/api/assets#blob)
+- [Util Script Protocol](/rive/protocols/util-protocol)
+- [Test Script Protocol](/rive/protocols/test-protocol)
+- [Runtime Compatibility Baseline](/rive/runtime-compatibility)
