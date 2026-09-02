@@ -50,6 +50,10 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
   and local search `0.55.3`, updated the landing to Next.js `16.3.4`, and
   refreshed transitive locks. Remaining audit findings are upstream no-fix
   build-tool paths and are recorded in the release evidence.
+- **Reproducible production install** — the combined deployment build now runs
+  `npm ci` for the nested landing application on every build. This replaces any
+  restored Vercel dependency cache with the exact reviewed lockfile graph before
+  TypeScript checks the current singular `stateMachine` integration.
 
 ### Added
 

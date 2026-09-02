@@ -25,9 +25,11 @@ function run(cmd, cwd = ROOT) {
 
 // Step 1: Build landing page
 console.log("\n=== Building landing page ===");
-if (!existsSync(join(LANDING_DIR, "node_modules"))) {
-  run("npm install", LANDING_DIR);
-}
+// Always restore the exact lockfile graph. Vercel can restore an older
+// landing/node_modules cache even when the release updates the nested lockfile;
+// checking only for the directory's existence can therefore typecheck against
+// a stale Rive/Next dependency surface.
+run("npm ci", LANDING_DIR);
 run("npm run build", LANDING_DIR);
 
 if (!existsSync(LANDING_OUT)) {

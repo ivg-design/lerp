@@ -38,6 +38,9 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 - Updated the docs toolchain to Docusaurus `3.10.2`, local search `0.55.3`, and
   the landing to Next.js `16.3.4`; refreshed transitive locks after dependency
   audit while retaining reviewed upstream no-fix build-tool advisories.
+- Made the production build run `npm ci` for the nested landing application on
+  every build, preventing a restored Vercel cache from substituting stale Rive
+  or Next.js types for the reviewed lockfile graph.
 
 ### Added
 

@@ -21,6 +21,9 @@ The production site is hosted on Vercel at `https://forge.mograph.life/apps/lerp
 - Source repository: `https://github.com/ivg-design/lerp`
 - Production URL: `https://forge.mograph.life/apps/lerp/`
 - Production build command: `node scripts/build-with-landing.mjs`
+- Nested landing install: `npm ci` is run by the production build every time so
+  local and Vercel builds use the exact `landing/package-lock.json` graph even
+  when a prior `landing/node_modules` cache exists.
 - Release notes source: `docs/changelog.mdx`
 - Public root changelog mirror: `CHANGELOG.md`
 - GitHub release trigger: pushing a `v*` tag
@@ -95,6 +98,10 @@ node scripts/build-with-landing.mjs
 ```
 
 The build must pass before the release commit is created.
+
+Do not replace the landing `npm ci` step with an existence check for
+`landing/node_modules`. Vercel may restore that directory from an older
+deployment, and a stale type surface can disagree with the reviewed lockfile.
 
 ## 4. Commit and Push
 
