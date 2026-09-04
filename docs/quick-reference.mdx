@@ -22,8 +22,15 @@ See [Script Capability Matrix](/rive/script-capability-matrix) for a comprehensi
 
 :::info Need version-locked API status?
 See [Runtime Compatibility Baseline](/rive/runtime-compatibility) for direct
-Web `2.41.1` -> C++ `runtime-v0.1.344`, the separate landing wrapper lane, and
+Web `2.42.0` -> C++ `runtime-v0.1.344`, the separate landing wrapper lane, and
 editor/GPU tiers.
+:::
+
+:::caution GPU Canvas on Web
+Web `2.42.0` requires the experimental host option
+`enableGPUCanvas: true` when importing GPU Canvas content. It defaults to
+`false`, is fixed at `RiveFile` import, and is not a Luau global. LERP does not
+claim that RAV enables it; validate the exported file in each host.
 :::
 
 :::tip Writing scripts outside Rive?
@@ -163,7 +170,7 @@ end
 
 Unknown or non-global names return `nil`. `Context.log` is a current editor
 function property called as `context.log("message")`, but it is absent from the
-exact target's C++ Luau Context; use `print(...)` for Web `2.41.1` portability.
+exact target's C++ Luau Context; use `print(...)` for Web `2.42.0` portability.
 
 ### PropertyList Patterns
 ```lua

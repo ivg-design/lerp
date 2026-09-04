@@ -10,6 +10,40 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.4.1] — 2026-09-04
+
+### Changed
+
+- **Web compatibility refresh** — aligned current course guidance to direct
+  Web `2.42.0` at package gitHead
+  `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`. The package still embeds C++
+  `runtime-v0.1.344` at
+  `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`, so this wrapper/host update does
+  not introduce a new Luau declaration baseline.
+- **Landing alignment** — updated the bundled integration to
+  `@rive-app/react-canvas@4.34.0`, resolving Canvas `2.42.0`, while retaining
+  singular `stateMachine` configuration and leaving GPU Canvas disabled for
+  the checked-in non-GPU assets.
+- **Current and historical versioning** — updated current-facing API,
+  protocol, compatibility, and quick-reference pages to Web `2.42.0` while
+  retaining the 1.4.0 changelog and errata evidence as historical `2.41.1`
+  statements.
+
+### Added
+
+- **Experimental Web GPU Canvas host option** — documented
+  `enableGPUCanvas?: boolean` as a default-off Web import option, including
+  deferred rendering, import-fixed `RiveFile` semantics, React forwarding,
+  and the incompatibility with an explicitly forced shared offscreen renderer.
+- **Host support boundary** — kept the JavaScript option separate from Luau
+  globals and LSP declarations, and made no RAV or third-party host support
+  claim without an exported GPU Canvas fixture in that host.
+- **Errata and generated artifacts** — added `LERP-GAP-025` and regenerated
+  the course map, sitemap, AI feed, and `llms-full.txt` copies for the 1.4.1
+  compatibility candidate.
+
+---
+
 ## [1.4.0] — 2026-09-01
 
 ### Changed

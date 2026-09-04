@@ -516,7 +516,7 @@ context.log("FileFormat/editor host message")
 
 :::caution Portability boundary
 The exact C++ Luau Context in `runtime-v0.1.344` has no matching `log` atom or
-dispatch case. Use `print(...)` in portable Web `2.41.1` target scripts, and
+dispatch case. Use `print(...)` in portable Web `2.42.0` target scripts, and
 use `context.log(...)` only in an editor/host lane where the current reference
 and a focused check establish it.
 :::
@@ -678,7 +678,7 @@ context:markNeedsUpdate()
 Connects editor elements to data and code. Provides access to bound properties by type.
 
 :::warning Runtime baseline note
-At the accepted released compatibility boundary (`@rive-app/canvas@2.41.1`, C++
+At the accepted released compatibility boundary (`@rive-app/canvas@2.42.0`, C++
 `runtime-v0.1.344`), `viewModel.name` remains a documentation/source distinction
 that is not a callable Luau field in the checked binding surface.
 Use explicit property lookups (`getNumber`, `getString`, etc.) instead of relying on a `name` field.

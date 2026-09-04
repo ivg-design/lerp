@@ -45,19 +45,21 @@ LERP teaches practical Luau for Rive creators through short lessons, buildable e
 LERP now tracks a pinned runtime audit baseline so you can verify exactly which APIs were confirmed at review time.
 
 - Direct Web runtime line: Canvas, Canvas Lite, WebGL2, and Canvas Advanced
-  `2.41.1`, backed by C++ `runtime-v0.1.344`
-- Bundled landing integration: `@rive-app/react-canvas@4.33.1`, resolving
-  Canvas `2.41.1`
+  `2.42.0`, backed by C++ `runtime-v0.1.344`
+- Bundled landing integration: `@rive-app/react-canvas@4.34.0`, resolving
+  Canvas `2.42.0`
 - Released C++ runtime commit: `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`
-- Released Web package gitHead: `4ebb27c8e39c5e21210f1e60b13d3d56f2c9f104`
+- Released Web package gitHead: `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`
 - Released tag, canary, and main runtime refs agree on the accepted commit
-- Shader/GPU rollout tier: Rive Early Access editor workflow only
-- Baseline revalidated: September 1, 2026
+- Shader/GPU rollout tier: Early Access editor workflow plus Web `2.42.0`'s
+  experimental, default-off `enableGPUCanvas` host option
+- Baseline revalidated: September 4, 2026
 - Released coverage: global ViewModels, optional three-argument Layout resize
   with scale redispatch and old-callback compatibility, retired `drawCanvas`,
   pre-7.3 text compatibility, WASM/module/workspace host changes, root-owned
-  focus, nested-artboard origin/layout behavior, and Web `2.41.1`'s preferred
-  singular `stateMachine` selection
+  focus, nested-artboard origin/layout behavior, and Web `2.42.0`'s preferred
+  singular `stateMachine` selection. Web GPU Canvas remains an explicit host
+  opt-in and does not change the runtime `344` Luau surface
 - Current editor coverage: `FileFormat`/`TextFileFormat`, their document/view/
   EditorContext callbacks, `Context.log`, and `Tester.blob`, with host/runtime
   boundaries called out
@@ -73,6 +75,12 @@ Luau dispatch. The `runtime-v0.1.337` through `runtime-v0.1.344` range also
 contains importer, WASM-host, text-compatibility, command-queue, renderer, and
 Vulkan work; most of that range changes behavior or host internals rather than
 adding course APIs.
+
+Web `2.42.0` exposes `enableGPUCanvas` as an experimental JavaScript import
+option that defaults to `false`. The choice is fixed when a `RiveFile` is
+imported, and it is separate from Luau authoring and LSP declarations. LERP
+does not infer RAV support from the Web package; each host needs its own
+exported-file validation.
 
 ## What You'll Learn
 
@@ -108,7 +116,7 @@ Each section includes:
 - Click **linked terms** to see definitions
 - Use the **search** (Ctrl/Cmd + K) to find anything
 
-## Course at a Glance (Updated September 1, 2026)
+## Course at a Glance (Updated September 4, 2026)
 
 | Signal | Value | Why it matters |
 | --- | ---: | --- |

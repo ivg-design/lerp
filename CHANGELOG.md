@@ -4,6 +4,32 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.4.1] — 2026-09-04
+
+### Changed
+
+- Updated the direct Web compatibility line to `2.42.0` at package gitHead
+  `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`. Web `2.42.0` retains C++
+  `runtime-v0.1.344` at
+  `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`, so the Luau target and LSP
+  fixtures remain on runtime `344`.
+- Updated the landing to `@rive-app/react-canvas@4.34.0`, resolving
+  `@rive-app/canvas@2.42.0`, while preserving singular `stateMachine`
+  selection.
+- Updated current-facing API, protocol, and compatibility references to Web
+  `2.42.0`; retained the 1.4.0 changelog and errata evidence as historical
+  `2.41.1` statements.
+
+### Added
+
+- Documented Web `2.42.0`'s experimental, default-off `enableGPUCanvas` host
+  option, its import-fixed `RiveFile` behavior, and its separation from Luau,
+  LSP, editor packaging, and per-host support. No RAV support is claimed.
+- Added errata `LERP-GAP-025` and refreshed deterministic site and AI discovery
+  artifacts for the 1.4.1 compatibility candidate.
+
+---
+
 ## [1.4.0] — 2026-09-01
 
 ### Changed

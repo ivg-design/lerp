@@ -11,10 +11,10 @@ keywords:
 
 # LERP Rive Documentation Errata Tracker
 
-Last revalidated against the released runtime boundary: 2026-09-01 (direct
-Web `2.41.1` line -> C++ `runtime-v0.1.344`; released tag, canary, and main refs
-agree, the bundled React landing resolves Canvas `2.41.1`, and shader/GPU
-editor workflow remains Early Access only).
+Last revalidated against the released runtime boundary: 2026-09-04 (direct
+Web `2.42.0` line -> C++ `runtime-v0.1.344`; the bundled React landing resolves
+Canvas `2.42.0`, and Web GPU Canvas is an experimental, default-off host mode
+that remains separate from editor packaging and per-host support).
 Historical errata entries retain their original evidence dates.
 Last editor-reference comparison: 2026-08-31 (read-only MCP reference pass for
 `rive/interfaces`, `rive/fileFormat`, and `rive/testing`; no live-file mutation)
@@ -44,6 +44,7 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-GAP-025 | Web GPU Canvas host activation | resolved for 1.4.1; host validation required | high | Web `2.42.0` adds experimental, default-off `enableGPUCanvas` import behavior while retaining runtime `344`. It is JavaScript host configuration fixed at `RiveFile` import, not a Luau/LSP surface or proof that RAV enables GPU Canvas. |
 | LERP-GAP-024 | Pre-7.3 layout-controlled text | resolved for 1.4.0; pixel watch remains | high | Web `2.41.1` embeds runtime `344`, including the `341` compatibility repair. Every checked-in file-format `7.0` path is rendered through released Canvas and WebGL2 instead of treating static headers as pixel evidence. |
 | LERP-ERR-023 | Web state-machine selection | resolved in LERP | medium | Exact Web `2.41.1` source prefers singular `stateMachine`, while reviewed Web/React docs still teach deprecated plural `stateMachines`. LERP uses singular selection without claiming the legacy 2.x surface was removed. |
 | LERP-ERR-022 | Upstream `drawCanvas` examples | resolved in LERP | high | Current target dispatch and the current Node reference retire `drawCanvas`, while current public shader material still contains stale examples using it. LERP keeps all active rendering in `draw(self, renderer)`. |
@@ -68,6 +69,66 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-GAP-025 - Web GPU Canvas requires an explicit host import mode {#lerp-gap-025}
+
+Status: resolved for the LERP 1.4.1 candidate on 2026-09-04; live support must
+still be established separately for each host
+
+Severity: high
+
+Evidence:
+
+- The released `@rive-app/canvas@2.42.0`, `canvas-lite`, `webgl2`, and
+  `canvas-advanced` packages share gitHead
+  `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`.
+- Web `2.42.0` still embeds C++ commit
+  `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`, the tagged
+  `runtime-v0.1.344` baseline used by LERP 1.4.0. No new C++ Luau declaration
+  surface follows from this Web release.
+- The exact Canvas `2.42.0` declarations add experimental
+  `enableGPUCanvas?: boolean` parameters to `Rive`, load, and `RiveFile`
+  configuration. The option is `false` by default and imports GPU Canvas
+  content through deferred rendering.
+- A file's mode is fixed at import. When an existing `RiveFile` is supplied to
+  a `Rive` instance, the file's own setting wins. Changing the mode requires a
+  new file import.
+- React Canvas `4.34.0` forwards the option to Canvas `2.42.0`. Its wrapper
+  treats GPU Canvas recording and the shared offscreen renderer as
+  incompatible and warns/falls back when both are explicitly forced on.
+- A runtime build that cannot create a deferred session warns and imports the
+  file in immediate mode, so a configured flag is not equivalent to rendered
+  GPU Canvas output.
+- No evidence in this LERP update establishes that RAV enables the option or
+  packages GPU Canvas content, so no RAV support claim is made.
+
+Why this matters:
+
+A shader-aware Luau script can compile and still produce no GPU Canvas output
+when the JavaScript host imports the file in its default immediate mode.
+Conversely, documenting `enableGPUCanvas` as a Luau field would send authors to
+the wrong layer. Reusing an already-imported `RiveFile` also cannot toggle the
+mode after the fact.
+
+Fix implemented in LERP:
+
+- Updated the direct Web baseline to `2.42.0` while preserving runtime `344`
+  and the historical Web `2.41.1` record for LERP 1.4.0.
+- Documented the option at both the compatibility and GPU authoring layers,
+  with its experimental/default-off status and import-fixed semantics.
+- Updated the landing to React Canvas `4.34.0` / Canvas `2.42.0` but left the
+  option off because the checked-in landing assets do not require GPU Canvas.
+- Kept JavaScript host activation separate from Luau globals, LSP declarations,
+  editor shader packaging, exported-file behavior, and RAV support.
+
+Validation boundary:
+
+The package declarations and wrapper behavior establish the Web API contract.
+Standard checked-in assets can verify that the 2.42.0 Canvas and WebGL2 upgrade
+does not regress normal rendering, but a dedicated exported GPU Canvas fixture
+is still required before declaring any particular host supported.
 
 ---
 

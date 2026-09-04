@@ -23,9 +23,60 @@ Low-level GPU APIs for shader assets, custom render passes, texture sampling, MS
 This API family is early-access material. The runtime surface exists, but editor shader-asset workflow and packaging availability can vary by channel. Always guard optional shader handles and keep examples easy to disable when a workspace is not shader-enabled.
 :::
 
+:::warning Web host opt-in
+Web `2.42.0` adds the experimental JavaScript option
+`enableGPUCanvas?: boolean`. It defaults to `false`; GPU Canvas content is not
+enabled merely because a file contains a shader or the Luau analyzer recognizes
+GPU types. This is host configuration, not a Luau input or global.
+:::
+
 :::info Current naming policy
 Use `context:shader(name)` for shader lookup and `GPUCanvas.format` for render-target format. Do not use older `context:loadShader(name)` or `context:preferredCanvasFormat()` names in new LERP examples.
 :::
+
+---
+
+## Enabling GPU Canvas on Web 2.42.0 {#enabling-gpu-canvas-on-web-2420}
+
+Set `enableGPUCanvas: true` when the Web host imports a file from `src` or
+`buffer`:
+
+```ts
+const rive = new Rive({
+  src: "/animation.riv",
+  canvas,
+  enableGPUCanvas: true,
+})
+```
+
+The option makes the Web host import GPU Canvas content through deferred
+rendering. It is experimental, defaults to `false`, and is fixed at file
+import. If you create a reusable `RiveFile`, choose the mode there:
+
+```ts
+const riveFile = new RiveFile({
+  src: "/animation.riv",
+  enableGPUCanvas: true,
+})
+
+const rive = new Rive({ riveFile, canvas })
+```
+
+When a `RiveFile` is supplied, that file's setting wins; a `Rive` instance
+cannot switch the imported resources between immediate and deferred modes.
+Create a new `RiveFile` to change the mode. A deferred session records for one
+canvas, so a second `Rive` instance sharing that file re-imports it into its own
+session. If the selected runtime build cannot create a deferred session, it
+warns and imports in immediate mode; setting the flag alone is not proof that
+GPU Canvas content rendered. React Canvas `4.34.0` forwards the same option to
+Canvas `2.42.0`. Do not explicitly combine GPU Canvas with the shared offscreen
+renderer because the two rendering modes are incompatible.
+
+This option does not change the C++ `runtime-v0.1.344` Luau declarations or
+the Rive Luau LSP. It also does not establish editor packaging, export, RAV, or
+third-party host support. Test an exported GPU Canvas file in the exact host
+before relying on it. The LERP landing keeps the option off because its
+checked-in files do not require GPU Canvas.
 
 ---
 

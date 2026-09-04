@@ -32,6 +32,15 @@ Before this section, complete:
 Shader scripting is a preview / rollout-dependent surface. Runtime support, editor asset packaging, and workspace availability can move at different speeds. Treat `context:shader(name)` returning `nil` as a possible asset, packaging, or channel issue until you have verified all three.
 :::
 
+:::warning Web 2.42.0 activation boundary
+Web GPU Canvas playback is experimental and default-off. A JavaScript host
+must import the file with `enableGPUCanvas: true`; this setting is fixed at
+`RiveFile` import and does not add a Luau name. LERP does not claim that RAV
+enables this option. See [GPU Shaders: Enabling GPU Canvas on Web
+2.42.0](/api/gpu-shaders#enabling-gpu-canvas-on-web-2420) for the host-side
+configuration and validation boundary.
+:::
+
 GPU shaders give Rive scripts a low-level rendering path for custom materials, post-processing, image treatments, and 3D-style geometry. The workflow has two parts:
 
 1. A `.wgsl` shader asset in the Rive file.

@@ -18,29 +18,32 @@ claims. A declaration in one lane does not establish availability in another.
 
 ## Accepted baseline
 
-- **Audit date:** September 1, 2026
-- **Direct Web runtime packages:** `@rive-app/canvas@2.41.1`,
-  `@rive-app/canvas-lite@2.41.1`, `@rive-app/webgl2@2.41.1`, and
-  `@rive-app/canvas-advanced@2.41.1`
-- **Web package gitHead:** `4ebb27c8e39c5e21210f1e60b13d3d56f2c9f104`
+- **Audit date:** September 4, 2026
+- **Direct Web runtime packages:** `@rive-app/canvas@2.42.0`,
+  `@rive-app/canvas-lite@2.42.0`, `@rive-app/webgl2@2.42.0`, and
+  `@rive-app/canvas-advanced@2.42.0`
+- **Web package gitHead:** `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`
 - **C++ runtime:** `runtime-v0.1.344`
 - **C++ runtime commit:** `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`
 - **Runtime refs:** released tag, canary, and main all resolve to that commit
-- **Landing integration:** `@rive-app/react-canvas@4.33.1`, resolving
-  `@rive-app/canvas@2.41.1`
+- **Landing integration:** `@rive-app/react-canvas@4.34.0`, resolving
+  `@rive-app/canvas@2.42.0`
+- **Web 2.42 host delta:** experimental `enableGPUCanvas` import mode,
+  defaulting to `false`; the embedded C++ runtime and Luau surface remain
+  `runtime-v0.1.344`
 - **Public docs snapshot:** Rive's `llms-full.txt`, retrieved August 31, 2026
 - **Supporting evidence:** current editor/LSP declarations, official docs,
   runtime source, and reviewed script examples
 
 :::caution Exact target
-Course examples and the bundled React landing target Web `2.41.1` backed by
+Course examples and the bundled React landing target Web `2.42.0` backed by
 `runtime-v0.1.344`.
 :::
 
 All six checked-in
 `.riv` paths have file-format `7.0` headers and collapse to three unique
 payloads. The direct-runtime harness loads every path through both Canvas
-`2.41.1` and WebGL2 `2.41.1`, starts its first state machine, and checks that a
+`2.42.0` and WebGL2 `2.42.0`, starts its first state machine, and checks that a
 non-empty frame is rendered without a page, request, or Rive load error. Because
 all files predate format `7.3`, this run also exercises runtime `341`'s retained
 compatibility path in the accepted runtime `344`. Header inspection establishes
@@ -53,7 +56,7 @@ preview uses the preferred singular `stateMachine` option.
 |---|---|---|
 | Released runtime source | A binding, dispatch path, or behavior exists in the exact C++ target | Public docs, editor availability, or a successful exported Web run |
 | Public Rive docs | Rive publishes a signature or workflow | Presence in the exact C++ Luau target |
-| Editor reference/analyzer | The current editor exposes and checks a declaration | Availability in Web `2.41.1` or runtime execution |
+| Editor reference/analyzer | The current editor exposes and checks a declaration | Availability in Web `2.42.0` or runtime execution |
 | Live/editor execution | A focused case works in the observed editor environment | Other hosts, exports, or untested callbacks |
 | Later source | An implementation exists after the accepted runtime commit | Publication or support at the accepted target |
 | Serialized host data | Runtime/editor assets contain implementation metadata | A Luau global, type, or callable API exists |
@@ -79,8 +82,9 @@ preview uses the preferred singular `stateMachine` option.
 | Web heap views | Web bindings rebuild typed heap views from `wasmMemory` for the newer Emscripten toolchain | Embedder/runtime repair; no Luau API. |
 | WASM script-host hardening | Runtime `344` includes frame-generational collection and checked handles, keeps tier compilation/transplant tools-only, and adds native main/global ViewModel command-queue retrieval | Host behavior only; it adds no Luau or public Web-wrapper call. |
 | Pre-7.3 text compatibility | Runtime `341`'s file-version gate is retained in runtime `344` | Layout-controlled auto-sized text authored before format `7.3` uses the legacy sizing/overflow behavior. Validate pixels in real exports. |
-| Web state-machine selection | Web `2.41.1` prefers singular `stateMachine` for constructor, `load`, and `reset`; it takes priority over legacy playback parameters | Use singular selection in new integrations. Plural `stateMachines` remains callable on the 2.x line while integrations migrate. |
-| Legacy Web controls | Direct state-machine inputs, Rive/state-change events, text-run controls, and multiple playback remain present in Web `2.41.1` with deprecation guidance | Do not describe these APIs as removed. Prefer ViewModel data binding and one state machine for new work. |
+| Web state-machine selection | Web `2.42.0` prefers singular `stateMachine` for constructor, `load`, and `reset`; it takes priority over legacy playback parameters | Use singular selection in new integrations. Plural `stateMachines` remains callable on the 2.x line while integrations migrate. |
+| Legacy Web controls | Direct state-machine inputs, Rive/state-change events, text-run controls, and multiple playback remain present in Web `2.42.0` with deprecation guidance | Do not describe these APIs as removed. Prefer ViewModel data binding and one state machine for new work. |
+| Web `enableGPUCanvas` | Web `2.42.0` exposes an experimental, default-`false` host option that imports GPU Canvas content through deferred rendering | Configure it when constructing/loading a Web `Rive` or `RiveFile`; it is not a Luau global or LSP declaration. A file's mode is fixed at import, and a supplied `RiveFile` keeps its own setting. This record does not claim that RAV or any other host enables the option. |
 
 The upstream `script_dependency_test.riv` fixture contains six `ScriptAsset`
 records: one protocol converter and five dependencies marked `isModule = true`.
@@ -95,7 +99,7 @@ artboard fixture in the selected editor/export lane.
 
 ### Pre-7.3 layout-controlled text check
 
-Web `2.41.1` embeds runtime `344`, which retains runtime `341`'s repair for
+Web `2.42.0` embeds runtime `344`, which retains runtime `341`'s repair for
 layout-controlled auto-sized text authored before file format `7.3`. The LERP
 asset inventory found six checked-in `.riv` paths, three unique payloads, all
 with `7.0` headers. Because the header cannot prove whether a file contains the
@@ -135,6 +139,27 @@ therefore provide newer evidence than that snapshot.
 See [File Formats](/api/file-formats) for the callback contracts and a minimal
 `TextFileFormat` example.
 
+### Web GPU Canvas host opt-in
+
+Web `2.42.0` adds `enableGPUCanvas?: boolean` to the JavaScript `Rive`, load,
+and `RiveFile` parameter surfaces. It is experimental and `false` by default.
+When enabled for a file loaded from `src` or `buffer`, the Web host imports the
+file into a deferred rendering session so GPU Canvas content can draw.
+
+The choice is fixed when the file is imported. If an integration supplies an
+already-created `RiveFile`, that file's `enableGPUCanvas` setting wins. Create
+or load a new file to change modes. In React Canvas `4.34.0`, the same option is
+forwarded to Canvas `2.42.0`; GPU Canvas recording and the shared offscreen
+renderer are incompatible, so do not explicitly force both modes on. A build
+that cannot create a deferred session warns and falls back to immediate import;
+the flag by itself is not render evidence.
+
+This is JavaScript host configuration. It does not add a Luau name, change the
+runtime `344` declarations, or prove that an editor, exported app, RAV, or any
+other wrapper packages and enables GPU Canvas content. The LERP landing leaves
+the option off because its checked-in assets do not require it. Validate each
+host with an exported GPU Canvas fixture before calling that host supported.
+
 ## Adjacent findings and non-API boundaries
 
 | Finding | Course treatment |
@@ -145,7 +170,7 @@ See [File Formats](/api/file-formats) for the callback contracts and a minimal
 | Runtime `337` layout matrix | The generated cross-runtime matrix and test-only inspection helpers establish layout behavior. They add no Luau method beyond the scale-aware callback. |
 | State-machine import tolerance | Runtime `338` tolerates layers without Any/Exit while still requiring Entry. This importer behavior adds no LERP API and has no checked-in fixture. |
 | WASM host hardening | Runtime `339` adds frame-generational collection and checked handles; `342` restricts tier compilation/transplant to tools builds. These are released host changes, not Luau calls. |
-| Pre-7.3 text compatibility | Runtime `341` restores legacy layout-controlled text sizing/overflow by file version; direct Web `2.41.1` runtime smokes exercise the branch with the checked-in format `7.0` files. |
+| Pre-7.3 text compatibility | Runtime `341` restores legacy layout-controlled text sizing/overflow by file version; direct Web `2.42.0` runtime smokes exercise the branch with the checked-in format `7.0` files. |
 | ViewModel command queue | Runtime `343` adds native main/global ViewModel retrieval callbacks. This is a released host path, not a Luau or public Web-wrapper method. |
 | Renderer/Vulkan | Runtime `340` restructures image draw instances; `344` adds Vulkan multi-swap-chain synchronization. Neither adds a LERP call. |
 | Runtime `337` through `344` API range | No generated serialization or public Lua/Luau protocol delta beyond Layout display scale was found. |
@@ -206,24 +231,27 @@ tested independently.
 
 ## Validation record
 
-The September 1 pass used this sequence:
+The September 4 pass used this sequence:
 
-1. Verified all four direct Web `2.41.1` packages, their shared package
+1. Verified all four direct Web `2.42.0` packages, their shared package
    `gitHead`, and `runtime-v0.1.344`
    independently.
-2. Inspected the exact runtime's Luau/WASM dispatch, scripted-context bindings,
-   tests, module lifecycle, focus, layout, text, semantic, and Web heap changes.
+2. Verified that Web `2.42.0` still points to C++ commit
+   `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`, preserving the completed
+   runtime `344` Luau/WASM dispatch and lifecycle audit rather than inferring a
+   new Luau surface from a Web-wrapper release.
 3. Compared current public Rive docs, the current editor/LSP declarations,
    official-docs snapshots, runtime source, and reviewed script examples.
 4. Reconciled each accepted runtime change through `344`, preserving the `337`
    layout-matrix origin as historical detail. Layout display scale is the
    callable Luau protocol change in that range; the remaining findings are
    behavior or host internals.
-5. Reconciled Web `2.41.1` source and tests for singular `stateMachine`, legacy
-   2.x compatibility, and the associated deprecation boundary.
+5. Reconciled Web `2.42.0` declarations and wrapper behavior for singular
+   `stateMachine`, legacy 2.x compatibility, and experimental/default-off
+   `enableGPUCanvas`, including its import-fixed `RiveFile` boundary.
 6. Inventoried every checked-in `.riv` path, treated all three unique `7.0`
    payloads as possible pre-7.3 text cases, and rendered every path with Canvas
-   and WebGL2 `2.41.1` instead of treating static headers as pixel evidence.
+   and WebGL2 `2.42.0` instead of treating static headers as pixel evidence.
 7. Ran course generation, type checks, production build, route/link/anchor/feed
    checks, and focused Luau analysis, recording pre-existing toolchain
    conditions rather than converting them into API claims.
@@ -231,7 +259,7 @@ The September 1 pass used this sequence:
 ### Known validation limits
 
 - All six bundled `.riv` paths were executed through Canvas and WebGL2
-  `2.41.1`. They loaded and rendered non-empty frames, but no pre-341 reference
+  `2.42.0`. They loaded and rendered non-empty frames, but no pre-341 reference
   image was available for exact pixel comparison.
 - No focused exported Luau fixture was executed for the scripting callbacks
   documented in this rebaseline.
@@ -242,12 +270,18 @@ The September 1 pass used this sequence:
 - Final canonical analyzer runs completed without diagnostics for the existing
   runtime fixture and the binary/text FileFormat fixtures. Static acceptance
   still does not replace editor callback or exported-runtime execution.
+- No checked-in GPU Canvas export fixture exercises `enableGPUCanvas`, and no
+  RAV support claim was tested or made. The documented flag behavior is based
+  on the exact Web `2.42.0` package declarations and wrapper source.
 
 ## Historical baselines
 
 Previous LERP releases preserve their original evidence in the changelog and
 errata tracker:
 
+- **1.4.0 (September 1, 2026):** Web `2.41.1` /
+  `runtime-v0.1.344`, landing React Canvas `4.33.1`, and the initial runtime
+  `344` source and renderer rebaseline.
 - **1.3.0 (August 14, 2026):** Web `2.40.0` / `runtime-v0.1.271`, with a
   separate evidence-only `runtime-v0.1.272` canary and focused editor probes.
 - **June 4, 2026 shader audit:** Web `2.37.8` and source-level
@@ -255,7 +289,7 @@ errata tracker:
 - **May 12, 2026 audit:** Web `2.37.6` and source-level `runtime-v0.1.64`.
 
 Historical version pins describe their releases only. New examples and the
-bundled landing use the September 1 target above.
+bundled landing use the September 4 target above.
 
 ## Future re-audit checklist
 

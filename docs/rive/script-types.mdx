@@ -22,7 +22,7 @@ protocols for custom documents; those are covered separately because they do
 not attach to an artboard or run as runtime behavior scripts.
 
 :::info Runtime baseline
-This overview is aligned to direct Web `2.41.1` -> C++
+This overview is aligned to direct Web `2.42.0` -> C++
 `runtime-v0.1.344`. Current editor-only and later-source surfaces remain explicitly
 tiered. For versioned API tracking, see
 [Runtime Compatibility Baseline](/rive/runtime-compatibility).
@@ -125,7 +125,7 @@ return function(): Layout<MyLayout>
 end
 ```
 
-At the Web `2.41.1` target, Rive dispatches
+At the Web `2.42.0` target, Rive dispatches
 `resize(self, size, displayScale)`. `displayScale` is device pixels per layout
 point. A scale change after a valid size redispatches the callback; an unchanged
 scale is silent. Existing two-parameter callbacks remain compatible.
