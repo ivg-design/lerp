@@ -19,7 +19,7 @@ export default function Home() {
         <div className="nav-inner">
           <a href="/apps/lerp/" className="nav-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${BASE}/lerp_nav_marks.svg`} alt="LERP" width={404} height={100} className="nav-logo-img" />
+            <img src={`${BASE}/lerp_nav_marks.svg`} alt="LERP" fetchPriority="high" width={404} height={100} className="nav-logo-img" />
           </a>
           <div className="nav-links">
             <a href="#why">why lerp</a>

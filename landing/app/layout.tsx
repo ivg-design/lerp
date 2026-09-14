@@ -645,6 +645,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${nunito.variable} ${jetbrains.variable}`}>
       <head>
+        <link rel="preload" as="image" href={`${SITE_ROOT}lerp_nav_marks.svg`} fetchPriority="high" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
