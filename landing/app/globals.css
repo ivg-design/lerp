@@ -19,8 +19,8 @@
   --text-primary: #f0f0f2;
   --text-secondary: #8a8a96;
   --text-muted: #55555f;
-  --font-display: 'Nunito', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: var(--font-nunito), sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
   --spectrum: linear-gradient(90deg, #fefb10, #bcfb26 20%, #55e789 40%, #1cede8 60%, #a230fa);
   --spectrum-rev: linear-gradient(90deg, #a230fa, #1cede8 30%, #55e789 60%, #bcfb26 80%, #fefb10);
 }

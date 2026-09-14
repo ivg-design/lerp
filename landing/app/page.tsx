@@ -19,7 +19,7 @@ export default function Home() {
         <div className="nav-inner">
           <a href="/apps/lerp/" className="nav-logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`${BASE}/lerp_nav_marks.svg`} alt="LERP" className="nav-logo-img" />
+            <img src={`${BASE}/lerp_nav_marks.svg`} alt="LERP" width={404} height={100} className="nav-logo-img" />
           </a>
           <div className="nav-links">
             <a href="#why">why lerp</a>
@@ -34,6 +34,7 @@ export default function Home() {
         </div>
       </nav>
 
+      <main>
       {/* Hero — full-bleed Rive animation */}
       <section className="hero">
         <div className="hero-inner">
@@ -335,7 +336,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
           <div className="footer-inner">
             <div className="footer-logo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`${BASE}/lerp_footer_marks.svg`} alt="LERP — Luau Education for Rive Professionals" className="footer-logo-img" />
+              <img src={`${BASE}/lerp_footer_marks.svg`} alt="LERP — Luau Education for Rive Professionals" width={400} height={479} loading="lazy" className="footer-logo-img" />
             </div>
             <div className="footer-center">
               <span className="footer-tagline">
@@ -383,6 +384,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
 
       {/* Bottom Spectrum */}
       <div className="spectrum-line bottom" />
+      </main>
     </>
   );
 }

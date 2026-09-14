@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { JetBrains_Mono, Nunito } from "next/font/google";
 import ViewportScale from "@/components/ViewportScale";
 import SectionSnap from "@/components/SectionSnap";
 import "./globals.css";
+
+const nunito = Nunito({ subsets: ["latin"], display: "swap", variable: "--font-nunito" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], display: "swap", variable: "--font-jetbrains" });
 
 const SITE_URL = "https://forge.mograph.life/apps/lerp";
 const SITE_ROOT = `${SITE_URL}/`;
@@ -639,18 +643,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${nunito.variable} ${jetbrains.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Nunito:wght@600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&family=Caveat:wght@700&family=Space+Grotesk:wght@700&family=Bebas+Neue&family=Cormorant+Garamond:wght@700&family=Righteous&family=Satisfy&family=Josefin+Sans:wght@700&family=Abril+Fatface&family=Architects+Daughter&family=Oswald:wght@700&family=Pacifico&family=Raleway:wght@800&family=Bitter:wght@800&family=Staatliches&family=Dancing+Script:wght@700&family=Inconsolata:wght@800&family=Lobster&family=Bangers&family=Amatic+SC:wght@700&family=Archivo+Black&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

@@ -6,7 +6,7 @@ import { useRive, Layout, Fit } from "@rive-app/react-canvas";
 const MOBILE_BREAKPOINT = 767;
 
 function useIsMobilePortrait() {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
   useEffect(() => {
     function check() {
       setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
@@ -93,5 +93,7 @@ function PortraitRive() {
 export default function HeroRive() {
   const isMobile = useIsMobilePortrait();
 
+  // Wait for viewport detection so mobile does not fetch the desktop animation first.
+  if (isMobile === null) return null;
   return isMobile ? <PortraitRive /> : <DesktopRive />;
 }
