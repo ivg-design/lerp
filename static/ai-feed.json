@@ -73,7 +73,7 @@
     },
     {
       "id": "advanced-core-types",
-      "title": "Core Types",
+      "title": "Advanced Rive Drawing Core Types",
       "description": "Understanding Path, Paint, and other core drawing types in Rive",
       "url": "https://forge.mograph.life/apps/lerp/advanced/core-types",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/core-types",
@@ -244,7 +244,7 @@
     },
     {
       "id": "api-core-types",
-      "title": "Core Types",
+      "title": "Rive Core Types API Reference",
       "description": "Rive Luau API reference for Vector, Color, Mat2D, and Mat4: positions, colors, transforms, constructors, properties, and operations.",
       "url": "https://forge.mograph.life/apps/lerp/api/core-types",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/api/core-types",

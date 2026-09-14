@@ -17,6 +17,10 @@ const config: Config = {
   url: 'https://forge.mograph.life',
   baseUrl: '/apps/lerp/',
 
+  scripts: [
+    {src: '/shared/js/growth-events.js', defer: true},
+  ],
+
   organizationName: 'ivg-design',
   projectName: 'lerp',
 
@@ -281,6 +285,8 @@ const config: Config = {
             { label: 'About the Author', to: '/about-author' },
             { label: 'Methodology', to: '/editorial-methodology' },
             { label: 'Corrections', to: '/corrections-policy' },
+            { label: 'Privacy (localStorage)', to: '/privacy-local-storage' },
+            { label: 'Website Measurement', href: 'https://forge.mograph.life/measurement/' },
             { label: 'Open Source License (MIT)', to: '/open-source-license' },
             { label: 'Contribution Policy', to: '/contribution-policy' },
             { label: 'Contribution Instructions', to: '/contribution-instructions' },

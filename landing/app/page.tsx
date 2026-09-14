@@ -27,7 +27,7 @@ export default function Home() {
             <a href="#curriculum">curriculum</a>
             <a href="#faq">faq</a>
           </div>
-          <a href="/apps/lerp/getting-started/welcome" className="nav-cta nav-cta-desktop">
+          <a href="/apps/lerp/getting-started/welcome" className="nav-cta nav-cta-desktop" data-forge-action="course_start">
             <CourseCtaText startText="start learning" continueText="continue course" />
           </a>
           <MobileNav />
@@ -47,7 +47,7 @@ export default function Home() {
       <section className={introStyles.intro} aria-labelledby="course-heading">
         <h1 id="course-heading">Learn Rive Luau scripting</h1>
         <p>LERP is a free, open-source course for motion designers and developers. Build interactive Rive animations with lessons, exercises, quizzes, and an API reference.</p>
-        <a href="/apps/lerp/getting-started/welcome">Start the course →</a>
+        <a href="/apps/lerp/getting-started/welcome" data-forge-action="course_start">Start the course →</a>
       </section>
 
       {/* Spectrum Line */}
@@ -223,7 +223,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
             <span className="stat-accent" />
             <span className="stat-label">forever free</span>
             <span className="stat-desc">
-              No account. No tracking. MIT licensed.
+              No account. Course progress stays on your device. MIT licensed.
             </span>
           </div>
 
@@ -296,13 +296,13 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
           <p className="cta-sub">
             Free forever. MIT licensed. No account required.
             <br />
-            No tracking. Your progress stays on your device.
+            Course progress stays on your device.
           </p>
           <div className="cta-btns">
-            <a href="/apps/lerp/getting-started/welcome" className="btn-cta-primary">
+            <a href="/apps/lerp/getting-started/welcome" className="btn-cta-primary" data-forge-action="course_start">
               <CourseCtaText startText="start the course" continueText="continue your course" /> <span className="arrow">→</span>
             </a>
-            <a href="https://github.com/ivg-design/lerp" className="btn-cta-ghost" target="_blank" rel="noopener noreferrer">
+            <a href="https://github.com/ivg-design/lerp" className="btn-cta-ghost" target="_blank" rel="noopener noreferrer" data-forge-action="repository">
               view on github
             </a>
           </div>
@@ -311,7 +311,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
             <span className="dot-sep">·</span>
             <span>no accounts</span>
             <span className="dot-sep">·</span>
-            <span>zero telemetry</span>
+            <span>aggregate action counts only</span>
             <span className="dot-sep">·</span>
             <span>localStorage only</span>
           </div>
@@ -365,16 +365,18 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
               </div>
               <div className="footer-col">
                 <h4>community</h4>
-                <a href="https://github.com/ivg-design/lerp" target="_blank" rel="noopener noreferrer">github repo</a>
+                <a href="https://github.com/ivg-design/lerp" target="_blank" rel="noopener noreferrer" data-forge-action="repository">github repo</a>
                 <a href="https://github.com/ivg-design/lerp/issues" target="_blank" rel="noopener noreferrer">report an issue</a>
                 <a href="https://community.rive.app" target="_blank" rel="noopener noreferrer">rive community</a>
                 <a href="/apps/lerp/contribution-instructions">contribute</a>
               </div>
               <div className="footer-col">
                 <h4>trust</h4>
+                <a href="/services/">creative services</a>
                 <a href="/apps/lerp/editorial-methodology">editorial methodology</a>
                 <a href="/apps/lerp/corrections-policy">corrections policy</a>
                 <a href="/apps/lerp/privacy-local-storage">privacy (localStorage)</a>
+                <a href="/measurement/">website measurement</a>
                 <a href="/apps/lerp/open-source-license">MIT license</a>
               </div>
             </div>

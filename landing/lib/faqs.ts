@@ -38,7 +38,7 @@ export const FAQS: FAQItemData[] = [
   {
     question: "How is my progress tracked?",
     answer:
-      "LocalStorage only. No accounts, no server, no telemetry. You own your data. Progress, preferences, quiz scores — all on your device. Export anytime via JSON.",
+      "Course progress uses localStorage only. No account or server-side learner profile is required. Progress, preferences, and quiz scores stay on your device and can be exported as JSON. The website separately counts selected actions in aggregate; see the measurement disclosure.",
     accent: "lime",
   },
   {

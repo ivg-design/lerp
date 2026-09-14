@@ -14,7 +14,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 |---|---|---|---|
 | Welcome to LERP | https://forge.mograph.life/apps/lerp/ | docs/intro.mdx | Luau Education for Rive Professionals - From zero to hero |
 | About the Author | https://forge.mograph.life/apps/lerp/about-author | docs/about-author.mdx | Author credentials and background for the LERP course |
-| Core Types | https://forge.mograph.life/apps/lerp/advanced/core-types | docs/advanced/core-types.mdx | Understanding Path, Paint, and other core drawing types in Rive |
+| Advanced Rive Drawing Core Types | https://forge.mograph.life/apps/lerp/advanced/core-types | docs/advanced/core-types.mdx | Understanding Path, Paint, and other core drawing types in Rive |
 | Drawing API | https://forge.mograph.life/apps/lerp/advanced/drawing-api | docs/advanced/drawing-api.mdx | Transforms, Renderer state, and advanced drawing techniques in Rive |
 | Pointer Events | https://forge.mograph.life/apps/lerp/advanced/game-logic | docs/advanced/game-logic.mdx | Learn pointer events in Rive Luau with exercises for interactive buttons, hit testing, and gesture-driven interfaces. |
 | GPU Shaders and 3D Rendering | https://forge.mograph.life/apps/lerp/advanced/gpu-shaders | docs/advanced/gpu-shaders.mdx | Early-access GPU shader workflows, GPUCanvas rendering, WGSL assets, and 3D-style rendering patterns in Rive |
@@ -22,7 +22,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Procedural Geometry | https://forge.mograph.life/apps/lerp/advanced/procedural | docs/advanced/procedural.mdx | Dynamic Path generation, animated shapes, and particle systems in Rive |
 | ViewModels | https://forge.mograph.life/apps/lerp/advanced/viewmodels | docs/advanced/viewmodels.mdx | Binding scripts to ViewModels for reactive data-driven animations |
 | Assets | https://forge.mograph.life/apps/lerp/api/assets | docs/api/assets.mdx | Image, Blob, AudioSource, AudioSound, sampling, and Early Access GPU texture-view boundaries |
-| Core Types | https://forge.mograph.life/apps/lerp/api/core-types | docs/api/core-types.mdx | Rive Luau API reference for Vector, Color, Mat2D, and Mat4: positions, colors, transforms, constructors, properties, and operations. |
+| Rive Core Types API Reference | https://forge.mograph.life/apps/lerp/api/core-types | docs/api/core-types.mdx | Rive Luau API reference for Vector, Color, Mat2D, and Mat4: positions, colors, transforms, constructors, properties, and operations. |
 | Data & Input | https://forge.mograph.life/apps/lerp/api/data-input | docs/api/data-input.mdx | Input, Property, Context, and ViewModel for data binding |
 | Data Values | https://forge.mograph.life/apps/lerp/api/data-values | docs/api/data-values.mdx | Rive Luau API reference for typed DataValue containers and ViewModel properties, including numeric, string, boolean, and color values. |
 | Drawing | https://forge.mograph.life/apps/lerp/api/drawing | docs/api/drawing.mdx | Path, Paint, Gradient, and Renderer for custom drawing |

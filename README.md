@@ -159,7 +159,7 @@ Projects:
 - Teaches Luau through real Rive use cases
 - Uses real-time validation for exercises
 - Focuses on production-ready patterns
-- No account, no paywall, no telemetry
+- No account or paywall; course progress remains local
 - Progress is stored locally on your device
 
 ---
@@ -208,8 +208,8 @@ This is not filler content. It is meant to take learners from zero to runtime-re
 LERP is intentionally lightweight and privacy-friendly.
 
 - no account required
-- no tracking
-- no telemetry
+- course progress remains in browser localStorage
+- selected website actions are counted in aggregate; see https://forge.mograph.life/measurement/
 - progress stored locally via LocalStorage
 - exportable progress data
 

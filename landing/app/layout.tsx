@@ -167,7 +167,7 @@ const jsonLd = {
       inLanguage: "en",
       isAccessibleForFree: true,
       license: "https://opensource.org/licenses/MIT",
-      conditionsOfAccess: "No account required. No tracking. Progress stored in localStorage only.",
+      conditionsOfAccess: "No account required. Course progress is stored in localStorage on the learner's device.",
       educationalLevel: ["Beginner", "Intermediate", "Advanced"],
       audience: {
         "@type": "EducationalAudience",
@@ -573,6 +573,7 @@ export default function RootLayout({
     <html lang="en" className={`${nunito.variable} ${jetbrains.variable}`}>
       <head>
         <link rel="preload" as="image" href={`${SITE_ROOT}lerp_nav_marks.svg`} fetchPriority="high" />
+        <script src="/shared/js/growth-events.js" defer />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
