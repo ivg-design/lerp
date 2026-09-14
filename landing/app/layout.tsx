@@ -11,7 +11,7 @@ const OG_IMAGE = `${SITE_URL}/og-image_sm.png`;
 export const metadata: Metadata = {
   title: "LERP — Luau Education for Rive Professionals",
   description:
-    "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+    "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
   metadataBase: new URL(SITE_ROOT),
   alternates: {
     canonical: SITE_ROOT,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
+      "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
     url: SITE_ROOT,
     siteName: "LERP",
     type: "website",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever.",
+      "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever.",
     images: [
       {
         url: OG_IMAGE,
@@ -123,7 +123,7 @@ const jsonLd = {
       url: `${SITE_URL}/`,
       name: "LERP — Luau Education for Rive Professionals",
       description:
-        "The first interactive Luau scripting course for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+        "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#course` },
       primaryImageOfPage: {

@@ -1,0 +1,29 @@
+.intro {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 32px 48px;
+}
+
+.intro h1 {
+  scroll-margin-top: 96px;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.5vw, 48px);
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+.intro p {
+  max-width: 78ch;
+  margin-top: 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.intro a {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--brand-yellow);
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}

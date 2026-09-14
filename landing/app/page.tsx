@@ -6,6 +6,7 @@ import FAQ from "@/components/FAQ";
 import HeroRive from "@/components/HeroRive";
 import MobileNav from "@/components/MobileNav";
 import CourseCtaText from "@/components/CourseCtaText";
+import introStyles from "./course-intro.module.css";
 
 
 const BASE = "/apps/lerp";
@@ -42,6 +43,12 @@ export default function Home() {
         </div>
       </section>
 
+      <section className={introStyles.intro} aria-labelledby="course-heading">
+        <h1 id="course-heading">Learn Rive Luau scripting</h1>
+        <p>LERP is a free, open-source course for motion designers and developers. Build interactive Rive animations with lessons, exercises, quizzes, and an API reference.</p>
+        <a href="/apps/lerp/getting-started/welcome">Start the course →</a>
+      </section>
+
       {/* Spectrum Line */}
       <div className="spectrum-line" />
 
@@ -58,9 +65,8 @@ export default function Home() {
           </h2>
           <p className="wave-desc">
             Rive&apos;s scripting engine lets you add logic, data binding, and
-            interactivity to animations — but there&apos;s no structured path to
-            learn it. LERP is the first interactive course built specifically for
-            Rive&apos;s Luau runtime.
+            interactivity to animations. LERP gives you a structured, interactive
+            path to learning Rive&apos;s Luau runtime.
           </p>
 
           {/* s2-builds card */}

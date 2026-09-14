@@ -160,11 +160,11 @@ const config: Config = {
           changefreq: 'weekly',
           priority: 0.7,
           filename: 'sitemap.xml',
-          ignorePatterns: ['/tags/**', '/search', '/404.html'],
+          ignorePatterns: ['/tags/**', '/search', '/progress', '/404.html'],
           lastmod: null,
           createSitemapItems: async (params) => {
             const items = await params.defaultCreateSitemapItems(params);
-            return items.filter((item) => !item.url.endsWith('/search'));
+            return items.filter((item) => !/\/(search|progress)\/?$/.test(item.url));
           },
         },
         theme: {

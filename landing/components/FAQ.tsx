@@ -30,13 +30,13 @@ const FAQS: FAQItemData[] = [
   {
     question: "What tools do I need?",
     answer:
-      "Just the Rive Editor (free). All exercises run inside Rive. No IDE, terminal, or build tools needed.",
+      "Use the Rive Editor and follow the setup notes in each lesson. The core course does not require a separate IDE, terminal, or build toolchain.",
     accent: "purple",
   },
   {
     question: "How long does the full course take?",
     answer:
-      "At 1\u20132 lessons per day, most learners complete all 8 parts in 6\u20138 weeks. Each lesson is self-contained, so you can go at your own pace. The three capstone projects at the end take a few hours each.",
+      "Work at your own pace through the eight parts. Start with the fundamentals, use the exercises to check your understanding, and finish with the capstone projects.",
     accent: "yellow",
   },
   {
@@ -48,7 +48,7 @@ const FAQS: FAQItemData[] = [
   {
     question: "Does LERP cover runtime integration?",
     answer:
-      "LERP focuses on scripting inside the Rive Editor. Runtime integration (iOS, Android, Web, Flutter) is covered in Rive\u2019s official runtime docs. However, every script you write in LERP is production-ready and works identically in any runtime.",
+      "LERP focuses on scripting inside the Rive Editor. Runtime integration (iOS, Android, Web, Flutter) is covered in Rive\u2019s official runtime docs. Runtime and editor support varies by feature and version. Check the course compatibility baseline and validate your exported file in its target host.",
     accent: "emerald",
   },
   {

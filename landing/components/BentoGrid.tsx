@@ -13,6 +13,17 @@ interface CardData {
   lessons: string[];
 }
 
+const COURSE_STARTS: Record<string, string> = {
+  "getting-started": "getting-started/welcome",
+  "luau-fund": "fundamentals/variables",
+  "type-system": "types/intro",
+  "oop": "oop/prototype-based",
+  "rive-int": "rive/environment",
+  "advanced": "advanced/core-types",
+  "best": "best-practices/architecture",
+  "projects": "projects/interactive-button",
+};
+
 const CARDS: CardData[][] = [
   [
     {
@@ -104,9 +115,11 @@ export default function BentoGrid() {
               >
                 <span className={`bento-tag ${card.tagColor}`}>{card.tag}</span>
                 <h3 className={card.dark ? "dark" : ""}>
+                  <a href={`/apps/lerp/${COURSE_STARTS[card.id]}`} onClick={(event) => event.stopPropagation()}>
                   {card.title.split("\n").map((l, i) => (
                     <span key={i}>{i > 0 && <br />}{l}</span>
                   ))}
+                  </a>
                 </h3>
                 <p className={card.dark ? "dark" : ""}>{card.desc}</p>
                 {/* Lessons — only rendered for THIS card when expanded */}
