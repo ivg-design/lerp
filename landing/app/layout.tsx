@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Nunito } from "next/font/google";
 import ViewportScale from "@/components/ViewportScale";
 import SectionSnap from "@/components/SectionSnap";
+import { FAQS } from "@/lib/faqs";
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], display: "swap", variable: "--font-nunito" });
@@ -15,7 +16,7 @@ const OG_IMAGE = `${SITE_URL}/og-image_sm.png`;
 export const metadata: Metadata = {
   title: "LERP — Luau Education for Rive Professionals",
   description:
-    "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+    "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
   metadataBase: new URL(SITE_ROOT),
   alternates: {
     canonical: SITE_ROOT,
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
+      "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
     url: SITE_ROOT,
     siteName: "LERP",
     type: "website",
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 600,
-        alt: "LERP — Luau Education for Rive Professionals. 91 docs pages, 222 exercises, 203 quizzes.",
+        alt: "LERP — Luau Education for Rive Professionals. 90 docs and reference pages, 222 exercises, 203 quizzes.",
         type: "image/png",
       },
     ],
@@ -59,7 +60,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LERP — Luau Education for Rive Professionals",
     description:
-      "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes. Free forever.",
+      "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes. Free forever.",
     images: [
       {
         url: OG_IMAGE,
@@ -107,7 +108,7 @@ const jsonLd = {
       ],
       url: `${SITE_URL}/`,
       description:
-        "The first interactive course built specifically for Rive's Luau scripting runtime. From fundamentals to advanced protocols.",
+        "An interactive course for learning Rive's Luau scripting runtime, from fundamentals to advanced protocols.",
       inLanguage: "en",
       publisher: { "@id": `${SITE_URL}/#organization` },
       potentialAction: {
@@ -127,7 +128,7 @@ const jsonLd = {
       url: `${SITE_URL}/`,
       name: "LERP — Luau Education for Rive Professionals",
       description:
-        "Interactive Luau scripting lessons for Rive. 91 docs pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
+        "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
       isPartOf: { "@id": `${SITE_URL}/#website` },
       about: { "@id": `${SITE_URL}/#course` },
       primaryImageOfPage: {
@@ -158,7 +159,7 @@ const jsonLd = {
       name: "LERP: Luau Education for Rive Professionals",
       alternateName: "LERP",
       description:
-        "The first interactive course built specifically for Rive's Luau scripting runtime. LERP takes you from absolute beginner to confident Rive scripter through 91 docs pages, 222 hands-on exercises, and 203 quizzes — all inside the Rive Editor. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
+        "A free, self-paced course for learning Rive's Luau scripting runtime through 90 docs and reference pages, 222 hands-on exercises, and 203 quizzes. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
       url: COURSE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       creator: { "@id": `${SITE_URL}/#author` },
@@ -205,7 +206,6 @@ const jsonLd = {
       ],
       coursePrerequisites:
         "Familiarity with Rive's visual editor. No programming experience required. JavaScript, After Effects, or Unity experience helps — LERP includes comparison tables to map existing knowledge.",
-      timeRequired: "P6W",
       typicalAgeRange: "16-",
       numberOfCredits: 0,
       occupationalCredentialAwarded: "None — self-paced, open-source education",
@@ -224,13 +224,6 @@ const jsonLd = {
         "@type": "CourseInstance",
         name: "LERP Self-Paced Online Course",
         courseMode: "Online",
-        courseSchedule: {
-          "@type": "Schedule",
-          repeatFrequency: "P1D",
-          repeatCount: 42,
-          duration: "PT30M",
-        },
-        courseWorkload: "PT2H",
         instructor: { "@id": `${SITE_URL}/#author` },
         location: {
           "@type": "VirtualLocation",
@@ -435,7 +428,7 @@ const jsonLd = {
       alternateName: "I.V. Gusinski",
       jobTitle: "Motion Designer & Interactive Animation Engineer",
       description:
-        "Creator of LERP, the first interactive Luau scripting course for Rive. Specializes in motion design, interactive animation engineering, and technical education.",
+        "Creator of LERP, a Luau scripting course for Rive. Specializes in motion design, interactive animation engineering, and technical education.",
       worksFor: { "@id": `${SITE_URL}/#organization` },
       url: "https://mograph.life",
       sameAs: [
@@ -457,80 +450,14 @@ const jsonLd = {
     {
       "@type": "FAQPage",
       "@id": `${SITE_URL}/#faq`,
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "Do I need programming experience?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. Part 01 starts from zero. If you can use Rive\u2019s visual editor, you can learn scripting. JavaScript, After Effects, or Unity experience helps \u2014 LERP includes comparison tables so you can map what you already know.",
-          },
+      mainEntity: FAQS.map(({ question, answer }) => ({
+        "@type": "Question",
+        name: question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: answer,
         },
-        {
-          "@type": "Question",
-          name: "Is this the same as learning Luau?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Partially. LERP teaches Luau fundamentals, but everything is taught through Rive\u2019s scripting context \u2014 protocols, nodes, animation APIs. It\u2019s Luau for Rive, not Luau in general.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How much does LERP cost?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "$0. Forever. MIT licensed. No paywalls, no premium tiers, no accounts required.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What tools do I need for LERP?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Just the Rive Editor (free). All exercises run inside Rive. No IDE, terminal, or build tools needed.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How long does the full LERP course take?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "At 1\u20132 lessons per day, most learners complete all 8 parts in 6\u20138 weeks. Each lesson is self-contained, so you can go at your own pace. The larger projects and shader labs take a few hours each.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How is my progress tracked?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "LocalStorage only. No accounts, no server, no telemetry. You own your data. Progress, preferences, quiz scores \u2014 all on your device. Export anytime via JSON.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Does LERP cover runtime integration?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "LERP focuses on scripting inside the Rive Editor. Runtime integration (iOS, Android, Web, Flutter) is covered in Rive\u2019s official runtime docs. However, every script you write in LERP is production-ready and works identically in any runtime.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What is the difference between Rive scripts and state machines?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "State machines handle visual state transitions and blend trees. Scripts add procedural logic, data binding, physics, and custom drawing that state machines can\u2019t express. LERP teaches you how to use both together effectively.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I contribute to LERP or report errors?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. LERP is open-source on GitHub. File issues, submit corrections, or contribute lessons via pull requests.",
-          },
-        },
-      ],
+      })),
     },
 
     /* ── Curriculum ItemList (for rich snippets) ── */
