@@ -12,7 +12,7 @@ interface WordDef {
 }
 
 const WORDS: WordDef[] = [
-  { text: "interactive", fontFamily: "'Nunito', sans-serif", fontSize: "clamp(60px, 8vw, 100px)", fontWeight: 900 },
+  { text: "interactive", fontFamily: "var(--font-display)", fontSize: "clamp(60px, 8vw, 100px)", fontWeight: 900 },
   { text: "motion", fontFamily: "'Playfair Display', serif", fontSize: "clamp(68px, 9vw, 110px)", fontWeight: 700, fontStyle: "italic" },
   { text: "technical", fontFamily: "'Space Grotesk', sans-serif", fontSize: "clamp(62px, 8vw, 100px)", fontWeight: 700 },
   { text: "inventive", fontFamily: "'Caveat', cursive", fontSize: "clamp(72px, 9vw, 115px)", fontWeight: 700 },
@@ -76,12 +76,35 @@ function WordChars({ word, mode }: { word: WordDef; mode: "static" | "in" | "out
 }
 
 export default function WordRotator({ className }: { className?: string }) {
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const [nearViewport, setNearViewport] = useState(false);
   const [current, setCurrent] = useState(0);
   const [phase, setPhase] = useState<"idle" | "transition">("idle");
   const next = (current + 1) % WORDS.length;
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    const target = containerRef.current;
+    if (!target) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      setNearViewport(entry.isIntersecting);
+    }, { rootMargin: "500px" });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!nearViewport || document.getElementById("lerp-decorative-fonts")) return;
+    // The rotating display faces are needed below the fold, not on the initial render path.
+    const link = document.createElement("link");
+    link.id = "lerp-decorative-fonts";
+    link.rel = "stylesheet";
+    link.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Caveat:wght@700&family=Space+Grotesk:wght@700&family=Bebas+Neue&family=Cormorant+Garamond:wght@700&family=Righteous&family=Satisfy&family=Josefin+Sans:wght@700&family=Abril+Fatface&family=Architects+Daughter&family=Oswald:wght@700&family=Pacifico&family=Raleway:wght@800&family=Bitter:wght@800&family=Staatliches&family=Dancing+Script:wght@700&family=Inconsolata:wght@800&family=Lobster&family=Bangers&family=Amatic+SC:wght@700&family=Archivo+Black&display=swap";
+    document.head.appendChild(link);
+  }, [nearViewport]);
+
+  useEffect(() => {
+    if (!nearViewport) return;
     const iv = setInterval(() => {
       setPhase("transition");
       timerRef.current = setTimeout(() => {
@@ -93,10 +116,10 @@ export default function WordRotator({ className }: { className?: string }) {
       clearInterval(iv);
       clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [nearViewport]);
 
   return (
-    <span className={`flip-drum ${className ?? ""}`} aria-live="polite">
+    <span ref={containerRef} className={`flip-drum ${className ?? ""}`} aria-live="polite">
       {/* Current word — static or flipping out */}
       <WordChars
         word={WORDS[current]}

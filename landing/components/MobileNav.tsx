@@ -82,6 +82,7 @@ export default function MobileNav() {
         <a
           href="/apps/lerp/getting-started/welcome"
           className="nav-drawer-cta"
+          data-forge-action="course_start"
           onClick={handleLinkClick}
         >
           <CourseCtaText startText="start learning" continueText="continue course" />

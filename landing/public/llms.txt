@@ -22,7 +22,7 @@ LERP stands for **L**uau **E**ducation for **R**ive **P**rofessionals.
 - 4 guided project paths (interactive button, data-driven chart, mini-game, GPU shader labs)
 - Estimated completion: 6–8 weeks at 1–2 lessons per day
 - No account required — progress stored in localStorage only
-- No tracking, no telemetry, no cookies
+- Course progress stays in browser localStorage; selected website actions are counted in aggregate
 - MIT licensed, open source on GitHub
 
 ## Who is LERP for?
@@ -93,7 +93,7 @@ Q: Is LERP the same as learning Luau?
 A: Partially. LERP teaches Luau fundamentals through Rive's scripting context — protocols, nodes, animation APIs. It's Luau for Rive, not Luau in general.
 
 Q: How is progress tracked?
-A: localStorage only. No accounts, no server, no telemetry. All data stays on your device.
+A: Course progress uses localStorage only, with no account or server-side learner profile. Selected website actions are counted separately in aggregate; see https://forge.mograph.life/measurement/.
 
 Q: Does LERP cover runtime integration (iOS, Android, Web)?
 A: LERP focuses on scripting inside the Rive Editor. Runtime integration is in Rive's official docs. Scripts from LERP work identically in any runtime.
