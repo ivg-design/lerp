@@ -45,38 +45,56 @@ LERP teaches practical Luau for Rive creators through short lessons, buildable e
 LERP now tracks a pinned runtime audit baseline so you can verify exactly which APIs were confirmed at review time.
 
 - Direct Web runtime line: Canvas, Canvas Lite, WebGL2, and Canvas Advanced
-  `2.42.0`, backed by C++ `runtime-v0.1.344`
+  `2.42.1`, backed by C++ `runtime-v0.1.384`
 - Bundled landing integration: `@rive-app/react-canvas@4.34.0`, resolving
-  Canvas `2.42.0`
-- Released C++ runtime commit: `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`
-- Released Web package gitHead: `cb8b0d6a679746c77e33bee3f47a0fb749e25b9c`
-- Released tag, canary, and main runtime refs agree on the accepted commit
-- Shader/GPU rollout tier: Early Access editor workflow plus Web `2.42.0`'s
-  experimental, default-off `enableGPUCanvas` host option
-- Baseline revalidated: September 4, 2026
+  Canvas `2.42.0` — one wrapper patch behind the direct target above.
+  `blocked-pending-live-test`: no browser-automation tool was available in
+  this audit to load the built landing and confirm the hero `.riv` still
+  mounts after a bump, so the dependency was left unchanged. See
+  [Runtime Compatibility Baseline](/rive/runtime-compatibility#landing-integration-lag).
+- Released C++ runtime commit: `45d4d01dfd1fe70d3f9e73764538c16f63a04d07`
+- Released Web package gitHead: `e0bfcec3ccd0f1dee01686776da68f439a95cbfa`
+- Released tag differs from canary: `runtime-v0.1.399` is later-source
+  evidence only and is not taught as released
+- Shader/GPU rollout tier: Early Access editor workflow plus Web `2.42.1`'s
+  experimental, default-off `enableGPUCanvas` host option (unchanged from
+  `2.42.0`; the two Web releases share a byte-identical public `.d.ts`)
+- Baseline revalidated: September 14, 2026
 - Released coverage: global ViewModels, optional three-argument Layout resize
   with scale redispatch and old-callback compatibility, retired `drawCanvas`,
   pre-7.3 text compatibility, WASM/module/workspace host changes, root-owned
-  focus, nested-artboard origin/layout behavior, and Web `2.42.0`'s preferred
+  focus, nested-artboard origin/layout behavior, and Web `2.42.1`'s preferred
   singular `stateMachine` selection. Web GPU Canvas remains an explicit host
-  opt-in and does not change the runtime `344` Luau surface
+  opt-in and does not change the runtime `384` Luau surface
+- New in this audit (`runtime-v0.1.344` -> `runtime-v0.1.384`, all
+  runtime/source-confirmed, none add or change a Luau call): the
+  `NestedArtboardLeaf.fitToLayoutParent`, `TextInput.selectAllOnFocus`, and
+  `Text.fitFontSizeResizesBox` editor-authored serialized toggles; a
+  file-format `7.4` minor-version gate for the `fitFontSizeResizesBox`
+  behavior; a manifest-driven watermark pre-roll that auto-attaches to
+  top-level artboard instances; and correctness fixes for ViewModel
+  instance-value list binding and interrupted layout transitions. None of
+  these are editor-validated this run — see
+  [Runtime Compatibility Baseline](/rive/runtime-compatibility)
 - Current editor coverage: `FileFormat`/`TextFileFormat`, their document/view/
   EditorContext callbacks, `Context.log`, and `Tester.blob`, with host/runtime
   boundaries called out
 - Full matrix: [Runtime Compatibility Baseline](/rive/runtime-compatibility);
   validation details: [Rive Script Errata](/rive/rive-doc-errata)
 
-Runtime source, public docs, and editor rollout remain separate. Runtime `344`,
+Runtime source, public docs, and editor rollout remain separate. Runtime `384`,
 the current editor/LSP declaration, and focused runtime tests agree on
 `resize(self, size, displayScale)`. The callback is optional, scale changes are
 redispatched after a valid size, and old two-parameter callbacks keep working.
 `Context.log` remains current editor surface without a matching target C++
-Luau dispatch. The `runtime-v0.1.337` through `runtime-v0.1.344` range also
-contains importer, WASM-host, text-compatibility, command-queue, renderer, and
-Vulkan work; most of that range changes behavior or host internals rather than
-adding course APIs.
+Luau dispatch. The `runtime-v0.1.344` through `runtime-v0.1.384` range also
+contains three new editor-authored serialized toggles, a manifest watermark
+pre-roll, a data-binding/layout-transition correctness pair, and WASM-host,
+renderer, and scripting-VM-internal work (Luau debugger hooks, nested
+canvas/GPU render-pass lifetime); none of it changes a released Luau callable
+signature.
 
-Web `2.42.0` exposes `enableGPUCanvas` as an experimental JavaScript import
+Web `2.42.1` exposes `enableGPUCanvas` as an experimental JavaScript import
 option that defaults to `false`. The choice is fixed when a `RiveFile` is
 imported, and it is separate from Luau authoring and LSP declarations. LERP
 does not infer RAV support from the Web package; each host needs its own

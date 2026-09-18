@@ -11,13 +11,21 @@ keywords:
 
 # LERP Rive Documentation Errata Tracker
 
-Last revalidated against the released runtime boundary: 2026-09-04 (direct
-Web `2.42.0` line -> C++ `runtime-v0.1.344`; the bundled React landing resolves
-Canvas `2.42.0`, and Web GPU Canvas is an experimental, default-off host mode
-that remains separate from editor packaging and per-host support).
+Last revalidated against the released runtime boundary: 2026-09-14 (direct
+Web `2.42.1` line -> C++ `runtime-v0.1.384`, npm gitHead
+`e0bfcec3ccd0f1dee01686776da68f439a95cbfa`, runtime commit
+`45d4d01dfd1fe70d3f9e73764538c16f63a04d07`; the bundled React landing was
+**not** bumped this pass and still resolves Canvas `2.42.0` /
+`runtime-v0.1.344` — see LERP-GAP-026 — and Web GPU Canvas remains an
+experimental, default-off host mode, byte-identical between `2.42.0` and
+`2.42.1`, that stays separate from editor packaging and per-host support).
 Historical errata entries retain their original evidence dates.
 Last editor-reference comparison: 2026-08-31 (read-only MCP reference pass for
-`rive/interfaces`, `rive/fileFormat`, and `rive/testing`; no live-file mutation)
+`rive/interfaces`, `rive/fileFormat`, and `rive/testing`; no live-file
+mutation). **The Rive editor MCP was not connected during the 2026-09-14
+pass** — every editor-tier claim added this pass is marked
+`not editor-validated this run` rather than inferred from source alone; see
+LERP-WATCH-027.
 Initial errata tracker open date: 2026-04-26
 
 Purpose: record LERP documentation inconsistencies, inaccuracies, and materially misleading gaps discovered while validating live Rive Editor behavior and current official Rive docs.
@@ -44,6 +52,8 @@ Entries are ordered newest first (freshest updates at the top).
 
 | ID | Area | Status | Severity | Short finding |
 |---|---|---|---|---|
+| LERP-WATCH-027 | Runtime-v0.1.384 editor-authored toggles + manifest watermark | watch | medium | `NestedArtboardLeaf.fitToLayoutParent`, `TextInput.selectAllOnFocus`, `Text.fitFontSizeResizesBox`, and the manifest `watermark` auto-attach are runtime/source-confirmed for 1.4.2 but their editor-UI exposure and (for watermark) authoring-tier are `not editor-validated this run` — the Rive editor MCP was not connected. |
+| LERP-GAP-026 | Landing runtime lag vs. course direct target | open; blocked-pending-live-test | low | Course direct target moved to Web `2.42.1` / `runtime-v0.1.384` for 1.4.2; the bundled landing's `@rive-app/react-canvas@4.34.0` still resolves Canvas `2.42.0` / `runtime-v0.1.344`. No browser-automation tool was available to live-test a bump, so it was deliberately not bumped. Low risk: the `2.42.0`/`2.42.1` public `.d.ts` is byte-identical. |
 | LERP-GAP-025 | Web GPU Canvas host activation | resolved for 1.4.1; host validation required | high | Web `2.42.0` adds experimental, default-off `enableGPUCanvas` import behavior while retaining runtime `344`. It is JavaScript host configuration fixed at `RiveFile` import, not a Luau/LSP surface or proof that RAV enables GPU Canvas. |
 | LERP-GAP-024 | Pre-7.3 layout-controlled text | resolved for 1.4.0; pixel watch remains | high | Web `2.41.1` embeds runtime `344`, including the `341` compatibility repair. Every checked-in file-format `7.0` path is rendered through released Canvas and WebGL2 instead of treating static headers as pixel evidence. |
 | LERP-ERR-023 | Web state-machine selection | resolved in LERP | medium | Exact Web `2.41.1` source prefers singular `stateMachine`, while reviewed Web/React docs still teach deprecated plural `stateMachines`. LERP uses singular selection without claiming the legacy 2.x surface was removed. |
@@ -69,6 +79,94 @@ Entries are ordered newest first (freshest updates at the top).
 | LERP-GAP-003 | ViewModel context | resolved | medium | Resolved in LERP on 2026-04-26: `context:viewModel()` wording now describes immediate data-context behavior, with `context:rootViewModel()` explicitly documented for root/global state. |
 | LERP-ERR-002 | Path Effect / PathCommand | resolved | high | Resolved in LERP on 2026-04-26: Path Effect examples now use string command-name comparisons and clarify `CommandType` is not a guaranteed global table in editor scripts. |
 | LERP-ERR-001 | ListenerAction | resolved | high | Resolved in LERP on 2026-04-26: ListenerAction guidance now uses `performAction(self, listenerContext)` as preferred and marks `perform` legacy. |
+
+---
+
+## LERP-WATCH-027 - Runtime-v0.1.384 editor-authored toggles pending editor validation {#lerp-watch-027}
+
+Status: watch; needs one live Rive editor pass before promoting to `resolved`
+
+Severity: medium
+
+Evidence:
+
+- Independently verified against the exact `d619bc2a..45d4d01d` C++ diff in
+  `/Users/ivg/github/rive-runtime`:
+  - `NestedArtboardLeaf.fitToLayoutParent` (key `1098`, bool, default
+    `false`), `runtime-v0.1.358`, commit `3b2c51e2`, PR #13977 (fixing bug
+    #13692).
+  - `TextInput.selectAllOnFocus` (key `1099`, bool, default `false`),
+    `runtime-v0.1.365`, commit `8551ef2b`, PR #13997.
+  - `Text.fitFontSizeResizesBox` (key `315`, bool, default `true`) gated by
+    `File::minorVersion` `3` -> `4` (file format `7.4`), `runtime-v0.1.384`,
+    commit `45d4d01d`, PR #14074.
+  - Manifest `watermark` section (`ManifestSections::watermark`) and
+    `File::attachWatermark()`, called from `artboardDefault()`/`artboardAt()`/
+    `artboardNamed()` but deliberately not from
+    `bindableArtboardNamed()`/`bindableArtboardDefault()`,
+    `runtime-v0.1.350`, commit `d8727299`, PR #13930.
+- All four are C++ Core-model properties with `RIVE_EDITOR_CHANGING`/
+  `RIVE_EDITOR_CHANGED` editor-mutation hooks (or, for watermark, a CLI export
+  section) — i.e. editor-authored/export-time data, not a Luau accessor. None
+  appear in `include/rive/lua`, `src/lua`, or `src/scripted`.
+- The Rive editor MCP was not connected during this pass (2026-09-14), so
+  whether the current editor UI actually exposes a toggle for each of these
+  (a checkbox on `NestedArtboardLeaf`/`TextInput`/`Text`, and whichever
+  workflow sets the manifest watermark section) could not be confirmed live.
+  RFP's downstream note also flags the watermark's course-author-triggered
+  vs. editor/business-tier status as unconfirmed.
+
+Course treatment: `docs/rive/runtime-compatibility.mdx` documents all four as
+`runtime/source-confirmed` with explicit `not editor-validated this run`
+labels, and does not add a watermark-authoring lesson. No existing LERP page
+was found to assert anything contradicted by these toggles (they are new
+serialized data, not renamed/removed API), so this is a `watch`-status gap,
+not an `ERR` correction.
+
+Resolution path: connect the Rive editor MCP (or the live editor) on a future
+pass, confirm each toggle's editor UI location (or absence), confirm the
+watermark export workflow's tier, and promote to `resolved` with the observed
+UI location or an explicit "not exposed in the editor UI" finding.
+
+---
+
+## LERP-GAP-026 - Landing runtime lag vs. course direct target {#lerp-gap-026}
+
+Status: open; `blocked-pending-live-test`
+
+Severity: low
+
+Evidence:
+
+- This pass (2026-09-14) moved the course's direct Web target to `2.42.1` /
+  `runtime-v0.1.384`. `landing/package.json` still pins
+  `@rive-app/react-canvas@4.34.0`, whose lockfile resolves
+  `@rive-app/canvas@2.42.0` (`runtime-v0.1.344`) — unchanged this pass.
+- No browser-automation tool (Playwright/Puppeteer-equivalent, or any tool
+  able to load a local build and inspect console output) was available in
+  this environment. `WebFetch` explicitly cannot load `localhost`/build-server
+  URLs. `curl` alone cannot confirm a client-rendered WebGL canvas mounts or
+  that the hero `.riv` loads without console errors.
+- Per `references/lerp.md`'s instruction to bump the landing dependency only
+  with a live-test, and the suite task's explicit
+  `blocked-pending-live-test` disposition for exactly this situation, the
+  dependency was left at `4.34.0`/`2.42.0` rather than bumped unverified.
+- Risk is low: independently confirmed (`git -C rive-wasm diff
+  cb8b0d6a..e0bfcec3 -- js/src/rive_advanced.mjs.d.ts`) that the public
+  `.d.ts` is byte-identical between the npm releases resolving `2.42.0` and
+  `2.42.1`, so the landing's actual JavaScript-visible behavior does not
+  differ from the course's direct target on that axis. The two do differ on
+  the underlying C++ `runtime-v0.1.344` vs. `runtime-v0.1.384` range
+  documented on this page, none of which is Web-API-visible per RIVE-0013.
+
+Course treatment: `docs/intro.mdx`, `docs/api/gpu-shaders.mdx`, and
+`docs/rive/runtime-compatibility.mdx` (new "Landing integration lag" section)
+now say explicitly that the landing lags the direct target and why, instead
+of implying they are the same build.
+
+Resolution path: re-attempt the bump once a live-test tool is available in
+this environment, or the next time a Web release forces the question with a
+non-identical `.d.ts`.
 
 ---
 
