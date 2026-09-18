@@ -10,6 +10,63 @@ All notable changes to the LERP (Luau Education for Rive Professionals) course a
 
 ---
 
+## [1.4.2] — 2026-09-14
+
+### Changed
+
+- **Web compatibility rebaseline** — aligned current course guidance to
+  direct Web `2.42.1` at package gitHead
+  `e0bfcec3ccd0f1dee01686776da68f439a95cbfa`, backed by C++
+  `runtime-v0.1.384` at `45d4d01dfd1fe70d3f9e73764538c16f63a04d07` (previous
+  baseline: `runtime-v0.1.344` / `d619bc2a83f3c592a57eb58b9c83315142bcfbfc`).
+  Independently reviewed the exact source diff and confirmed no released
+  Luau callable signature changed in this range; the only commits touching
+  `include/rive/lua`, `src/lua`, or `src/scripted` are a VS Code Luau script
+  debugger, nested canvas/GPU render-pass reclaim ordering, and a
+  `decodeImage` memory-growth fix — all tooling/behavior-only.
+- **Runtime Compatibility Baseline rebaselined row by row** — every row in
+  `rive/runtime-compatibility` now carries its own evidence basis
+  (`runtime/source-confirmed`, `docs-confirmed`, or explicitly
+  `not editor-validated this run`); the September 4 audit moved to the
+  Historical baselines appendix with its own pixel-check evidence preserved
+  rather than silently overwritten.
+- **Current and historical versioning** — propagated the `2.42.1` /
+  `runtime-v0.1.384` pins across the intro, quick reference, API pages,
+  `rive/script-types`, `rive/script-capability-matrix`, and affected
+  `rive/protocols/*` pages, while retaining 1.4.1 and earlier changelog and
+  errata evidence as historical `2.42.0`/`2.41.1`/older statements.
+- **Landing dependency left unchanged (`blocked-pending-live-test`)** — the
+  bundled `@rive-app/react-canvas@4.34.0` (resolving Canvas `2.42.0` /
+  `runtime-v0.1.344`) was not bumped because no browser-automation tool was
+  available in this environment to live-test the built landing after a bump.
+  The gap is recorded explicitly, not silently: see `LERP-GAP-026` and
+  [Landing integration lag](/rive/runtime-compatibility#landing-integration-lag).
+  Risk is low because the `2.42.0`/`2.42.1` public `.d.ts` is byte-identical.
+- **Errata tracker** — updated "Last revalidated" metadata to 2026-09-14 /
+  `2.42.1` / `runtime-v0.1.384`, and recorded that the Rive editor MCP was
+  not connected this pass.
+
+### Added
+
+- **Four new runtime-v0.1.384 findings documented, all editor-authored/
+  export data, none a Luau API**: `NestedArtboardLeaf.fitToLayoutParent`
+  (key `1098`, Solo-parented leaf fit/alignment correction opt-in),
+  `TextInput.selectAllOnFocus` (key `1099`), `Text.fitFontSizeResizesBox`
+  (key `315`, gated by a new file-format minor version `7.4`), and a
+  manifest `watermark` section that auto-attaches a pre-roll `Watermark` to
+  top-level artboard instances (not to nested/bindable artboards).
+- **Confirmed no-impact findings recorded**: ViewModel instance-value list
+  binding and single-data-context-per-`DataBindContainer` correctness fixes
+  (behavior-only; the course's `vm:getList`/`list[index]` API is unaffected),
+  and confirmation that the GPU-canvas/deferred-rendering Web wrapper surface
+  is unchanged between `2.42.0` and `2.42.1` specifically.
+- **Errata and generated artifacts** — added `LERP-WATCH-027` (the four new
+  toggles/export data pending editor-UI validation) and `LERP-GAP-026`
+  (landing runtime lag), and regenerated the course map, sitemap, AI feed,
+  and `llms-full.txt` copies for the 1.4.2 compatibility candidate.
+
+---
+
 ## [1.4.1] — 2026-09-04
 
 ### Changed

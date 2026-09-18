@@ -22,8 +22,8 @@ Layout, Converter, and listener protocols.
 
 :::info Evidence tier
 The signatures on this page match the current public Rive docs and the current
-editor/LSP FileFormat declarations. They are not C++ runtime-v0.1.344 Context
-methods. The exact Web `2.42.0` target consumes exported text documents as Blob
+editor/LSP FileFormat declarations. They are not C++ runtime-v0.1.384 Context
+methods. The exact Web `2.42.1` target consumes exported text documents as Blob
 assets through `context:blob(name)`.
 :::
 
@@ -309,7 +309,7 @@ if document then
 end
 ```
 
-At `runtime-v0.1.344`, Blob exposes only `name`, `size`, and `data`;
+At `runtime-v0.1.384`, Blob exposes only `name`, `size`, and `data`;
 `Blob:asString()` does not exist. `data` is `nil` for a zero-byte Blob, so check
 `size` or guard `data` before calling `buffer.tostring`.
 

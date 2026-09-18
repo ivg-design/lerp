@@ -163,7 +163,7 @@ zero-byte Blob. Assigning `nil` clears the property. Repeated reads of an
 unchanged asset-valued property preserve wrapper identity; a replacement
 invalidates the cached wrapper.
 
-`runtime-v0.1.344` exposes no Blob string-conversion method. Guard `data` and
+`runtime-v0.1.384` exposes no Blob string-conversion method. Guard `data` and
 use `buffer.tostring(blob.data)` when the bytes represent text; for an empty
 Blob, `size == 0` and `data == nil`.
 
