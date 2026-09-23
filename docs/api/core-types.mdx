@@ -452,7 +452,7 @@ See [GPU Shaders](/api/gpu-shaders) for usage in render pass descriptors.
 
 A `Color` is a plain Luau `number` at runtime — an ARGB packed integer. `type(Color.rgb(255, 0, 0))` returns `"number"`, and raw packed values such as `0xFFFF0000` are accepted anywhere a `Color` is expected (`0xFFFF0000 == Color.rgb(255, 0, 0)`). Prefer the `Color.*` constructors for readability, but raw hex literals are not an error.
 
-**See Also:** [<Term>Paint</Term>](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
+**See Also:** [Paint](./drawing#paint), [Gradient](./drawing#gradient), [GradientStop](./styling#gradientstop)
 
 ---
 
@@ -622,7 +622,7 @@ local fromOrigin = Mat2D.withTranslation(50, 50)
 local combined = fromOrigin * rotate * toOrigin
 ```
 
-**See Also:** [<Term>Renderer</Term>.transform](./drawing#renderertransformmat)
+**See Also:** [Renderer.transform](./drawing#renderertransformmat)
 
 ---
 

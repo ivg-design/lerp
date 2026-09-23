@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
-title: ScriptedInterpolator Protocol
-description: Runtime-backed custom interpolation hooks for keyframe value blending
+title: Custom Easing in Rive — ScriptedInterpolator
+description: Work through quadratic easing in Rive Luau with ScriptedInterpolator. Learn factor remapping, value blending, fallback behavior and runtime compatibility.
 keywords:
   - rive
   - luau
@@ -14,11 +14,13 @@ keywords:
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
-# ScriptedInterpolator Protocol
+# Custom easing with ScriptedInterpolator
 
 ## Overview
 
-ScriptedInterpolator is a runtime-backed protocol for custom interpolation behavior.
+ScriptedInterpolator is a runtime-backed protocol for custom interpolation behavior in Rive. This lesson follows a quadratic ease-in from its input factor to the final blended value. For the callback signatures without the walkthrough, use the [Interpolation API reference](/api/interpolation).
+
+If you are choosing where a script belongs, start with [Rive script types](/rive/script-types). A custom interpolator handles easing; it does not replace a Node script's drawing or a Converter's data-binding transformation.
 
 :::info Runtime status
 This protocol is tracked against released Web `2.42.1` -> C++
@@ -26,7 +28,21 @@ This protocol is tracked against released Web `2.42.1` -> C++
 [Runtime Compatibility Baseline](/rive/runtime-compatibility).
 :::
 
-Use it when linear interpolation is not enough and you need script-defined easing at the interpolation level.
+Use it when linear interpolation is not enough and you need script-defined easing at the interpolation level. Editor availability must be checked separately: runtime support alone does not prove that your editor exposes an attachment workflow.
+
+## Follow the value through the easing curve
+
+The template below clamps the input factor to the range 0–1 and squares it. Squaring makes the early part of the transition progress more slowly. It then blends from 10 to 30 using that remapped factor:
+
+| Input factor | Squared factor | Blended value |
+|---|---|---|
+| 0 | 0 | 10 |
+| 0.25 | 0.0625 | 11.25 |
+| 0.5 | 0.25 | 15 |
+| 0.75 | 0.5625 | 21.25 |
+| 1 | 1 | 30 |
+
+At the halfway point, linear interpolation would produce 20. This ease-in produces 15, then catches up to the same endpoint. In the template, `transform` remaps the factor and `transformValue` explicitly calls it before blending the two values. Use the exercise near the end of this lesson to check that calculation.
 
 ---
 

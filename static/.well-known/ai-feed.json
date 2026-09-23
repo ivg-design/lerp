@@ -1518,8 +1518,8 @@
     },
     {
       "id": "rive-protocols-scripted-interpolator-protocol",
-      "title": "ScriptedInterpolator Protocol",
-      "description": "Runtime-backed custom interpolation hooks for keyframe value blending",
+      "title": "Custom Easing in Rive — ScriptedInterpolator",
+      "description": "Work through quadratic easing in Rive Luau with ScriptedInterpolator. Learn factor remapping, value blending, fallback behavior and runtime compatibility.",
       "url": "https://forge.mograph.life/apps/lerp/rive/protocols/scripted-interpolator-protocol",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/scripted-interpolator-protocol",
       "group": "rive",
@@ -1654,8 +1654,8 @@
     },
     {
       "id": "rive-script-types",
-      "title": "Script Types Overview",
-      "description": "All 8 Rive script types at a glance - when to use each one",
+      "title": "Rive Script Types — Choose a Luau Protocol",
+      "description": "Compare Rive Node, Layout, Converter, Path Effect and state machine scripts. Choose the right Luau protocol and follow its lesson and example.",
       "url": "https://forge.mograph.life/apps/lerp/rive/script-types",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/script-types",
       "group": "rive",

@@ -322,7 +322,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
         </div>
         <div className="cta-badge badge-zero">
           <span className="badge-label">ZERO</span>
-          <span className="badge-val">Telemetry</span>
+          <span className="badge-val">Accounts</span>
         </div>
         <div className="cta-badge badge-lessons">
           <span className="badge-label">91</span>

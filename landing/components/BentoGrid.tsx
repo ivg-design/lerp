@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./BentoGrid.module.css";
 
 interface CardData {
   id: string;
@@ -22,6 +23,82 @@ const COURSE_STARTS: Record<string, string> = {
   "advanced": "advanced/core-types",
   "best": "best-practices/architecture",
   "projects": "projects/interactive-button",
+};
+
+const LESSON_PATHS: Record<string, string[]> = {
+  "getting-started": [
+    "getting-started/welcome",
+    "getting-started/why-luau",
+    "getting-started/your-first-script",
+    "getting-started/how-rive-scripts-work"
+  ],
+  "luau-fund": [
+    "fundamentals/variables",
+    "fundamentals/data-types",
+    "fundamentals/operators",
+    "fundamentals/control-flow",
+    "fundamentals/functions",
+    "fundamentals/tables",
+    "fundamentals/iteration"
+  ],
+  "type-system": [
+    "types/intro",
+    "types/annotations",
+    "types/strict-mode",
+    "types/custom-types",
+    "types/advanced-types",
+    "types/generics",
+    "types/late-initializer"
+  ],
+  "oop": [
+    "oop/prototype-based",
+    "oop/metatables",
+    "oop/index-metamethod",
+    "oop/classes",
+    "oop/self-and-methods",
+    "oop/inheritance",
+    "oop/encapsulation",
+    "oop/patterns"
+  ],
+  "rive-int": [
+    "rive/environment",
+    "rive/script-types",
+    "rive/script-capability-matrix",
+    "rive/inputs",
+    "rive/ai-agent",
+    "rive/protocols/node-protocol",
+    "rive/protocols/node-lifecycle",
+    "rive/protocols/layout-protocol",
+    "rive/protocols/converter-protocol",
+    "rive/protocols/path-effect-protocol",
+    "rive/protocols/listener-action-protocol",
+    "rive/protocols/transition-condition-protocol",
+    "rive/protocols/scripted-interpolator-protocol",
+    "rive/protocols/util-protocol",
+    "rive/protocols/test-protocol"
+  ],
+  "advanced": [
+    "advanced/core-types",
+    "advanced/drawing-api",
+    "advanced/viewmodels",
+    "rive/protocols/listener-protocol",
+    "advanced/game-logic",
+    "advanced/instantiation",
+    "advanced/procedural",
+    "advanced/gpu-shaders"
+  ],
+  "best": [
+    "best-practices/architecture",
+    "best-practices/performance",
+    "best-practices/debugging",
+    "best-practices/resources"
+  ],
+  "projects": [
+    "projects/interactive-button",
+    "projects/data-visualization",
+    "projects/catch-the-stars",
+    "projects/gpu-shader-labs"
+  ]
 };
 
 const CARDS: CardData[][] = [
@@ -122,14 +199,28 @@ export default function BentoGrid() {
                   </a>
                 </h3>
                 <p className={card.dark ? "dark" : ""}>{card.desc}</p>
-                {/* Lessons — only rendered for THIS card when expanded */}
-                <div className="bento-expand">
+                <button
+                  type="button"
+                  className={`${styles.toggle} ${card.dark ? styles.dark : ""}`}
+                  aria-expanded={isExpanded}
+                  aria-controls={`lessons-${card.id}`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setExpanded(isExpanded ? null : card.id);
+                  }}
+                >
+                  {isExpanded ? "Close" : "Browse"} {card.lessons.length} lessons
+                  <span aria-hidden="true">{isExpanded ? "−" : "+"}</span>
+                </button>
+                <div className="bento-expand" id={`lessons-${card.id}`} inert={!isExpanded}>
                   <div className="bento-expand-inner">
                     <div className={`bento-lessons ${card.dark ? "dark" : ""}`}>
                       <span className="bento-lessons-label">lessons</span>
                       <ul>
                         {card.lessons.map((l, i) => (
-                          <li key={i}>{l}</li>
+                          <li key={i}>
+                            <a className={styles.lesson} href={`/apps/lerp/${LESSON_PATHS[card.id][i]}`} onClick={(event) => event.stopPropagation()}>{l}</a>
+                          </li>
                         ))}
                       </ul>
                     </div>
