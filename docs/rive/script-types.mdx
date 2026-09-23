@@ -1,7 +1,7 @@
 ---
 sidebar_position: 2
-title: Script Types Overview
-description: All 8 Rive script types at a glance - when to use each one
+title: Rive Script Types — Choose a Luau Protocol
+description: Compare Rive Node, Layout, Converter, Path Effect and state machine scripts. Choose the right Luau protocol and follow its lesson and example.
 keywords:
   - rive
   - luau
@@ -14,7 +14,7 @@ keywords:
 ---
 import Term from '@site/src/components/Term';
 
-# Script Types Overview
+# Choose a Rive script type
 
 Rive provides **8 runtime/course script types**, each designed for a specific
 purpose. The editor also exposes `FileFormat` and `TextFileFormat` extension
@@ -38,14 +38,29 @@ If you haven't read [How Rive Scripts Work](/getting-started/how-rive-scripts-wo
 
 ---
 
+## Start with the task
+
+Choose the protocol by what the script needs to control. Drawing new graphics and changing an existing path use different callbacks, even if the results look similar.
+
+| What you want to build | Start here | Why this fits |
+|---|---|---|
+| Draw procedural shapes or update animation logic each frame | [Node script](./protocols/node-protocol) | Owns the script's drawing and frame-update behavior. |
+| Warp an existing stroke or fill | [Path Effect script](./protocols/path-effect-protocol) | Receives the host path geometry to modify. |
+| Format a number or transform a bound value | [Converter script](./protocols/converter-protocol) | Transforms values in a data binding. |
+| Arrange and size layout children | [Layout script](./protocols/layout-protocol) | Extends Node behavior with layout measurement and resize callbacks. |
+| Run an action from a state machine listener | [ListenerAction script](./protocols/listener-action-protocol) | Runs when the configured listener triggers it. |
+| Reuse the same math in several scripts | [Util script](./protocols/util-protocol) | Exports shared functions for other scripts to require. |
+
+For advanced custom easing, the [ScriptedInterpolator lesson](./protocols/scripted-interpolator-protocol) works through factor remapping and value blending. Its runtime compatibility is documented separately from editor availability.
+
 ## The 8 Script Types
 
 | Script Type | Primary Purpose | Placement / Binding Target |
 |-------------|-----------------|-----------|
-| **[<Term>Node</Term> Script](#node-script)** | Animation logic, custom rendering | Scene script node |
+| **[Node Script](#node-script)** | Animation logic, custom rendering | Scene script node |
 | **[Layout Script](#layout-script)** | Custom layout behavior | Layout components |
 | **[Converter Script](#converter-script)** | Data transformation for bindings | Data bindings |
-| **[<Term>Path</Term> Effect Script](#path-effect-script)** | Modify path geometry | Strokes & Fills |
+| **[Path Effect Script](#path-effect-script)** | Modify path geometry | Strokes & Fills |
 | **[ListenerAction Script](#listeneraction-script)** | Custom logic on state machine listener events | State machine listeners |
 | **[TransitionCondition Script](#transitioncondition-script)** | Custom transition evaluation logic | State machine transitions |
 | **[Util Script](#util-script)** | Shared code libraries | Nothing (imported) |

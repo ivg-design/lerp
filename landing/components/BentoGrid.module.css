@@ -1,0 +1,38 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 18px;
+  padding: 8px 12px;
+  min-height: 40px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.dark { color: #020303; }
+
+.toggle:hover { background: rgb(128 128 128 / 12%); }
+
+.toggle:focus-visible,
+.lesson:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.lesson {
+  display: inline-block;
+  padding: 6px 0;
+  font-size: 13px;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-underline-offset: 3px;
+}
+
+.lesson:hover { text-decoration-thickness: 2px; }
