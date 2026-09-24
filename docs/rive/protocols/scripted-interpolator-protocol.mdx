@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
-title: Custom Easing in Rive — ScriptedInterpolator
-description: Work through quadratic easing in Rive Luau with ScriptedInterpolator. Learn factor remapping, value blending, fallback behavior and runtime compatibility.
+title: Custom Easing in Rive — Interpolator
+description: Work through quadratic easing in Rive Luau with Interpolator. Learn factor remapping, value blending, fallback behavior and runtime compatibility.
 keywords:
   - rive
   - luau
@@ -14,11 +14,11 @@ keywords:
 import Quiz from '@site/src/components/Quiz';
 import ExerciseValidator from '@site/src/components/ExerciseValidator';
 
-# Custom easing with ScriptedInterpolator
+# Custom easing with Interpolator
 
 ## Overview
 
-ScriptedInterpolator is a runtime-backed protocol for custom interpolation behavior in Rive. This lesson follows a quadratic ease-in from its input factor to the final blended value. For the callback signatures without the walkthrough, use the [Interpolation API reference](/api/interpolation).
+`Interpolator<T>` is the Luau interface for custom interpolation behavior in Rive; its C++ runtime implementation is named `ScriptedInterpolator`. This lesson follows a quadratic ease-in from its input factor to the final blended value. For the callback signatures without the walkthrough, use the [Interpolation API reference](/api/interpolation).
 
 If you are choosing where a script belongs, start with [Rive script types](/rive/script-types). A custom interpolator handles easing; it does not replace a Node script's drawing or a Converter's data-binding transformation.
 
@@ -49,14 +49,16 @@ At the halfway point, linear interpolation would produce 20. This ease-in produc
 ## Type Shape
 
 ```lua
-export type ScriptedInterpolator<T> = {
+export type Interpolator<T> = {
     init: ((self: T, context: Context) -> boolean)?,
     transform: ((self: T, factor: number) -> number)?,
     transformValue: ((self: T, valueFrom: number, valueTo: number, factor: number) -> number)?,
 } & T
 ```
 
-### Optional methods
+### Runtime callback behavior {#optional-methods}
+
+The public [Interpolator interface](https://rive.app/docs/scripting/api-reference/interfaces/interpolator) lists both callbacks as required. The accepted runtime supplies fallbacks if either is absent; the template implements both.
 
 - `transform(self, factor) -> number`
 - `transformValue(self, valueFrom, valueTo, factor) -> number`
@@ -87,7 +89,7 @@ function transformValue(self: MyInterpolator, valueFrom: number, valueTo: number
     return valueFrom + (valueTo - valueFrom) * t
 end
 
-return function(): ScriptedInterpolator<MyInterpolator>
+return function(): Interpolator<MyInterpolator>
     return {
         transform = transform,
         transformValue = transformValue,
@@ -139,7 +141,7 @@ ANSWER: 15.0
 ## Knowledge Check
 
 <Quiz
-  question="What happens if transformValue is not implemented in ScriptedInterpolator?"
+  question="What happens if transformValue is not implemented in the scripted interpolator?"
   id="scripted-interpolator-q1"
   options={[
     { text: "Runtime throws and animation stops." },
