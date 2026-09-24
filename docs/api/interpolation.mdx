@@ -1,7 +1,7 @@
 ---
 sidebar_position: 6
-title: Interpolation
-description: ScriptedInterpolator runtime API surface and callback contracts
+title: Rive Interpolator API — Luau callbacks
+description: Rive Luau Interpolator callback signatures, factor remapping, value blending and source-backed runtime fallback behavior.
 keywords:
   - rive
   - luau
@@ -12,9 +12,9 @@ keywords:
   - easing
 ---
 
-# Interpolation
+# Rive Interpolator API
 
-Runtime API surface for scripted interpolation.
+Use this reference to look up the `Interpolator<T>` callback signatures and fallback rules for custom easing in Rive Luau. For a worked quadratic ease-in, value table and exercise, follow the [custom easing lesson](/rive/protocols/scripted-interpolator-protocol).
 
 :::info Runtime baseline
 This page reflects released Web `2.42.1` -> C++ `runtime-v0.1.384`, with
@@ -23,14 +23,16 @@ source pins tracked in [Runtime Compatibility Baseline](/rive/runtime-compatibil
 
 ---
 
-## ScriptedInterpolator
+## Interpolator and the runtime class {#scriptedinterpolator}
 
-ScriptedInterpolator is a runtime-backed protocol used to customize interpolation/easing behavior.
+`Interpolator<T>` is the Luau interface name in the [official Rive reference](https://rive.app/docs/scripting/api-reference/interfaces/interpolator). `ScriptedInterpolator` names the underlying C++ runtime class; use `Interpolator<MyType>` in a script factory's return annotation.
+
+The shape below documents the accepted runtime's optional-callback behavior. The public interface documentation lists `transform` and `transformValue` as required; the example defines both. Runtime fallback support does not establish an editor attachment workflow.
 
 ### Callback contract
 
 ```lua
-export type ScriptedInterpolator<T> = {
+export type Interpolator<T> = {
     init: ((self: T, context: Context) -> boolean)?,
     transform: ((self: T, factor: number) -> number)?,
     transformValue: ((self: T, valueFrom: number, valueTo: number, factor: number) -> number)?,
@@ -41,7 +43,7 @@ export type ScriptedInterpolator<T> = {
 
 #### `transform(self, factor)`
 
-Optional factor remapping hook.
+Remaps an interpolation factor and returns a number. The example clamps the factor to 0–1 before easing; this clamp belongs to the example, not the callback signature.
 
 ```lua
 transform(self: T, factor: number): number
@@ -49,7 +51,7 @@ transform(self: T, factor: number): number
 
 #### `transformValue(self, valueFrom, valueTo, factor)`
 
-Optional direct value interpolation hook.
+Returns the blended value for `valueFrom`, `valueTo` and `factor`. The example explicitly calls `transform` here; implementing `transform` alone does not change this callback's missing-method fallback.
 
 ```lua
 transformValue(self: T, valueFrom: number, valueTo: number, factor: number): number
@@ -57,7 +59,7 @@ transformValue(self: T, valueFrom: number, valueTo: number, factor: number): num
 
 ### Runtime fallback behavior
 
-If either callback is missing or errors:
+The [pinned runtime implementation](https://github.com/rive-app/rive-runtime/blob/45d4d01dfd1fe70d3f9e73764538c16f63a04d07/src/scripted/scripted_interpolator.cpp) provides these fallbacks when a callback is absent or its call fails:
 - `transform` falls back to the input factor unchanged.
 - `transformValue` falls back to linear interpolation (`from + (to - from) * factor`).
 
@@ -82,7 +84,7 @@ function transformValue(self: EaseInOut, valueFrom: number, valueTo: number, fac
     return valueFrom + (valueTo - valueFrom) * t
 end
 
-return function(): ScriptedInterpolator<EaseInOut>
+return function(): Interpolator<EaseInOut>
     return {
         transform = transform,
         transformValue = transformValue,
@@ -95,6 +97,6 @@ end
 
 ## Related Pages
 
-- [ScriptedInterpolator Protocol](/rive/protocols/scripted-interpolator-protocol)
+- [Custom easing lesson](/rive/protocols/scripted-interpolator-protocol)
 - [Script Types Overview](/rive/script-types)
 - [Runtime Compatibility Baseline](/rive/runtime-compatibility)
