@@ -14,7 +14,7 @@ const COURSE_URL = `${SITE_URL}/getting-started/welcome`;
 const OG_IMAGE = `${SITE_URL}/og-image_sm.png`;
 
 export const metadata: Metadata = {
-  title: "LERP — Luau Education for Rive Professionals",
+  title: "Learn Rive Luau Scripting — Free LERP Course",
   description:
     "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes across 8 parts. Free forever, MIT licensed, no account required.",
   metadataBase: new URL(SITE_ROOT),
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     "Rive education",
   ],
   openGraph: {
-    title: "LERP — Luau Education for Rive Professionals",
+    title: "Learn Rive Luau Scripting — Free LERP Course",
     description:
       "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes. Free forever, MIT licensed.",
     url: SITE_ROOT,
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LERP — Luau Education for Rive Professionals",
+    title: "Learn Rive Luau Scripting — Free LERP Course",
     description:
       "Interactive Luau scripting lessons for Rive. 90 docs and reference pages, 222 exercises, 203 quizzes. Free forever.",
     images: [
@@ -110,7 +110,7 @@ const jsonLd = {
       description:
         "An interactive course for learning Rive's Luau scripting runtime, from fundamentals to advanced protocols.",
       inLanguage: "en",
-      publisher: { "@id": `${SITE_URL}/#organization` },
+      publisher: { "@id": "https://forge.mograph.life/#organization" },
       potentialAction: {
         "@type": "SearchAction",
         target: {
@@ -139,7 +139,6 @@ const jsonLd = {
       },
       inLanguage: "en",
       datePublished: "2026-03-10",
-      dateModified: "2026-03-11",
       speakable: {
         "@type": "SpeakableSpecification",
         cssSelector: [
@@ -161,9 +160,9 @@ const jsonLd = {
       description:
         "A free, self-paced course for learning Rive's Luau scripting runtime through 90 docs and reference pages, 222 hands-on exercises, and 203 quizzes. Covers Luau fundamentals, type system, OOP patterns, Rive protocols, Drawing API, ViewModels, procedural animation, physics, early-access GPU shaders, and guided projects.",
       url: COURSE_URL,
-      provider: { "@id": `${SITE_URL}/#organization` },
-      creator: { "@id": `${SITE_URL}/#author` },
-      maintainer: { "@id": `${SITE_URL}/#author` },
+      provider: { "@id": "https://forge.mograph.life/#organization" },
+      creator: { "@id": "https://forge.mograph.life/#creator" },
+      maintainer: { "@id": "https://forge.mograph.life/#creator" },
       inLanguage: "en",
       isAccessibleForFree: true,
       license: "https://opensource.org/licenses/MIT",
@@ -224,7 +223,7 @@ const jsonLd = {
         "@type": "CourseInstance",
         name: "LERP Self-Paced Online Course",
         courseMode: "Online",
-        instructor: { "@id": `${SITE_URL}/#author` },
+        instructor: { "@id": "https://forge.mograph.life/#creator" },
         location: {
           "@type": "VirtualLocation",
           url: COURSE_URL,
@@ -392,19 +391,19 @@ const jsonLd = {
             "A fast, small, safe, gradually typed embeddable scripting language derived from Lua, created by Roblox.",
         },
       ],
-      sourceOrganization: { "@id": `${SITE_URL}/#organization` },
+      sourceOrganization: { "@id": "https://forge.mograph.life/#organization" },
       image: OG_IMAGE,
     },
 
     /* ── Organization ── */
     {
       "@type": "Organization",
-      "@id": `${SITE_URL}/#organization`,
+      "@id": "https://forge.mograph.life/#organization",
       name: "IVG Design",
-      url: "https://mograph.life",
+      url: "https://forge.mograph.life/",
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/lerp_logo_mark.svg`,
+        url: "https://forge.mograph.life/public/LogoGlyph.png",
       },
       sameAs: [
         "https://forge.mograph.life",
@@ -423,14 +422,14 @@ const jsonLd = {
     /* ── Author ── */
     {
       "@type": "Person",
-      "@id": `${SITE_URL}/#author`,
+      "@id": "https://forge.mograph.life/#creator",
       name: "Ilya Gusinski",
       alternateName: "I.V. Gusinski",
       jobTitle: "Motion Designer & Interactive Animation Engineer",
       description:
         "Creator of LERP, a Luau scripting course for Rive. Specializes in motion design, interactive animation engineering, and technical education.",
-      worksFor: { "@id": `${SITE_URL}/#organization` },
-      url: "https://mograph.life",
+      worksFor: { "@id": "https://forge.mograph.life/#organization" },
+      url: "https://services.mograph.life/",
       sameAs: [
         "https://github.com/ivg-design",
         "https://www.linkedin.com/in/ivgd",

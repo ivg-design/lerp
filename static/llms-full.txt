@@ -16,7 +16,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | About the Author | https://forge.mograph.life/apps/lerp/about-author | docs/about-author.mdx | Author credentials and background for the LERP course |
 | Advanced Rive Drawing Core Types | https://forge.mograph.life/apps/lerp/advanced/core-types | docs/advanced/core-types.mdx | Understanding Path, Paint, and other core drawing types in Rive |
 | Drawing API | https://forge.mograph.life/apps/lerp/advanced/drawing-api | docs/advanced/drawing-api.mdx | Transforms, Renderer state, and advanced drawing techniques in Rive |
-| Pointer Events | https://forge.mograph.life/apps/lerp/advanced/game-logic | docs/advanced/game-logic.mdx | Learn pointer events in Rive Luau with exercises for interactive buttons, hit testing, and gesture-driven interfaces. |
+| Rive Pointer Events — Hit Testing and Interactive Buttons | https://forge.mograph.life/apps/lerp/advanced/game-logic | docs/advanced/game-logic.mdx | Learn pointer events in Rive Luau with exercises for interactive buttons, hit testing, and gesture-driven interfaces. |
 | GPU Shaders and 3D Rendering | https://forge.mograph.life/apps/lerp/advanced/gpu-shaders | docs/advanced/gpu-shaders.mdx | Early-access GPU shader workflows, GPUCanvas rendering, WGSL assets, and 3D-style rendering patterns in Rive |
 | Dynamic Instantiation | https://forge.mograph.life/apps/lerp/advanced/instantiation | docs/advanced/instantiation.mdx | Create and manage Rive artboard instances with Luau. Practice reusable components, runtime spawning, and collections of interactive objects. |
 | Procedural Geometry | https://forge.mograph.life/apps/lerp/advanced/procedural | docs/advanced/procedural.mdx | Dynamic Path generation, animated shapes, and particle systems in Rive |
@@ -40,7 +40,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Performance | https://forge.mograph.life/apps/lerp/best-practices/performance | docs/best-practices/performance.mdx |  |
 | Resources | https://forge.mograph.life/apps/lerp/best-practices/resources | docs/best-practices/resources.mdx |  |
 | API Reference | https://forge.mograph.life/apps/lerp/category/api-reference | docs/api/_category_.json | Complete Rive Luau API documentation organized by category. |
-| Changelog | https://forge.mograph.life/apps/lerp/changelog | docs/changelog.mdx | All notable changes to the LERP course |
+| LERP Course Changelog and Runtime Compatibility Updates | https://forge.mograph.life/apps/lerp/changelog | docs/changelog.mdx | Versioned changes to the free LERP Rive Luau course, including runtime compatibility baselines, corrected APIs and lesson updates. |
 | Contact & Transparency | https://forge.mograph.life/apps/lerp/contact-transparency | docs/contact-transparency.mdx | Contact paths and transparency details for LERP maintenance |
 | Contribution Instructions | https://forge.mograph.life/apps/lerp/contribution-instructions | docs/contribution-instructions.mdx | Step-by-step instructions for contributing to LERP |
 | Contribution Policy | https://forge.mograph.life/apps/lerp/contribution-policy | docs/contribution-policy.mdx | Quality and governance policy for contributing to LERP |
@@ -53,12 +53,12 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Iteration | https://forge.mograph.life/apps/lerp/fundamentals/iteration | docs/fundamentals/iteration.mdx | Loops, iterators, and collection traversal in Rive Node Scripts |
 | Operators | https://forge.mograph.life/apps/lerp/fundamentals/operators | docs/fundamentals/operators.mdx | Arithmetic, comparison, logical, and compound operators in Rive Node Scripts |
 | 1.4 Tables | https://forge.mograph.life/apps/lerp/fundamentals/tables | docs/fundamentals/tables.mdx | Arrays, dictionaries, and data structures in Rive Node Scripts |
-| 1.1 Variables, Types & Operators | https://forge.mograph.life/apps/lerp/fundamentals/variables | docs/fundamentals/variables.mdx | Declare variables, understand data types, and use operators in Rive Node Scripts |
-| How Rive Scripts Work | https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work | docs/getting-started/how-rive-scripts-work.mdx | Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide |
+| Luau Variables, Types & Operators for Rive | https://forge.mograph.life/apps/lerp/fundamentals/variables | docs/fundamentals/variables.mdx | Learn local variables, basic Luau types, operators and script-instance data in Rive Node scripts, with quizzes and coding exercises. |
+| How Rive Scripts Work | https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work | docs/getting-started/how-rive-scripts-work.mdx | Understand Rive Luau script structure, factory functions, self and lifecycle callbacks, with comparisons to JavaScript and After Effects expressions. |
 | Welcome to Rive Scripting | https://forge.mograph.life/apps/lerp/getting-started/welcome | docs/getting-started/welcome.mdx | Introduction to Rive scripting and what it enables |
 | Why Luau? | https://forge.mograph.life/apps/lerp/getting-started/why-luau | docs/getting-started/why-luau.mdx | Understand why Rive uses Luau and how its performance, safety, gradual typing, and Lua foundations fit interactive animation. |
-| Your First Rive Script | https://forge.mograph.life/apps/lerp/getting-started/your-first-script | docs/getting-started/your-first-script.mdx | A gentle introduction to Rive scripting for complete beginners - no programming experience required |
-| Glossary | https://forge.mograph.life/apps/lerp/glossary | docs/glossary.mdx | Key terms and definitions for Rive scripting with Luau |
+| Your First Rive Script | https://forge.mograph.life/apps/lerp/getting-started/your-first-script | docs/getting-started/your-first-script.mdx | Write your first Rive Luau Node script, attach it to an artboard, and understand types, inputs and callbacks through beginner exercises. |
+| Rive & Luau Scripting Glossary | https://forge.mograph.life/apps/lerp/glossary | docs/glossary.mdx | Key terms and definitions for Rive scripting with Luau |
 | 3.2 Building Classes | https://forge.mograph.life/apps/lerp/oop/classes | docs/oop/classes.mdx | Create proper class constructors with typing and methods |
 | 3.7 Encapsulation | https://forge.mograph.life/apps/lerp/oop/encapsulation | docs/oop/encapsulation.mdx | Private state patterns and closures for encapsulation in Rive |
 | The __index Metamethod | https://forge.mograph.life/apps/lerp/oop/index-metamethod | docs/oop/index-metamethod.mdx | Deep dive into __index, __newindex, and method lookup chains |
@@ -81,7 +81,7 @@ Scope: Complete documentation route inventory with page metadata for AI retrieva
 | Inputs and Data Binding | https://forge.mograph.life/apps/lerp/rive/inputs | docs/rive/inputs.mdx | Learn how to use script inputs and data binding in Rive Node Scripts |
 | Converter Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/converter-protocol | docs/rive/protocols/converter-protocol.mdx | Bidirectional data transformation for ViewModel bindings |
 | Layout Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/layout-protocol | docs/rive/protocols/layout-protocol.mdx | Programmatic control over Layout component sizing and positioning |
-| ListenerAction Script Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol | docs/rive/protocols/listener-action-protocol.mdx | Custom logic triggered by state machine listener events |
+| Rive ListenerAction Protocol — State Machine Scripts | https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol | docs/rive/protocols/listener-action-protocol.mdx | Run Luau code from Rive state machine listeners. Learn ListenerAction setup, its performAction callback, and how it differs from property listeners. |
 | Listeners | https://forge.mograph.life/apps/lerp/rive/protocols/listener-protocol | docs/rive/protocols/listener-protocol.mdx | Learn about Listener functions in Rive - property listeners, pointer events, and cross-script communication |
 | Node Lifecycle | https://forge.mograph.life/apps/lerp/rive/protocols/node-lifecycle | docs/rive/protocols/node-lifecycle.mdx | Understand when each Node script callback runs in Rive |
 | Node Protocol | https://forge.mograph.life/apps/lerp/rive/protocols/node-protocol | docs/rive/protocols/node-protocol.mdx | Learn the Node script protocol structure required for Rive animations |

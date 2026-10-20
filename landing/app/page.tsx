@@ -372,7 +372,7 @@ Every lesson maps to production workflows. You write real scripts in the Rive Ed
               </div>
               <div className="footer-col">
                 <h4>trust</h4>
-                <a href="/services/">creative services</a>
+                <a href="https://services.mograph.life/">creative services</a>
                 <a href="/apps/lerp/editorial-methodology">editorial methodology</a>
                 <a href="/apps/lerp/corrections-policy">corrections policy</a>
                 <a href="/apps/lerp/privacy-local-storage">privacy (localStorage)</a>

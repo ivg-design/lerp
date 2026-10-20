@@ -115,7 +115,7 @@
     },
     {
       "id": "advanced-game-logic",
-      "title": "Pointer Events",
+      "title": "Rive Pointer Events — Hit Testing and Interactive Buttons",
       "description": "Learn pointer events in Rive Luau with exercises for interactive buttons, hit testing, and gesture-driven interfaces.",
       "url": "https://forge.mograph.life/apps/lerp/advanced/game-logic",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/advanced/game-logic",
@@ -611,8 +611,8 @@
     },
     {
       "id": "changelog",
-      "title": "Changelog",
-      "description": "All notable changes to the LERP course",
+      "title": "LERP Course Changelog and Runtime Compatibility Updates",
+      "description": "Versioned changes to the free LERP Rive Luau course, including runtime compatibility baselines, corrected APIs and lesson updates.",
       "url": "https://forge.mograph.life/apps/lerp/changelog",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/changelog",
       "group": "root",
@@ -853,8 +853,8 @@
     },
     {
       "id": "fundamentals-variables",
-      "title": "1.1 Variables, Types & Operators",
-      "description": "Declare variables, understand data types, and use operators in Rive Node Scripts",
+      "title": "Luau Variables, Types & Operators for Rive",
+      "description": "Learn local variables, basic Luau types, operators and script-instance data in Rive Node scripts, with quizzes and coding exercises.",
       "url": "https://forge.mograph.life/apps/lerp/fundamentals/variables",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/fundamentals/variables",
       "group": "fundamentals",
@@ -875,7 +875,7 @@
     {
       "id": "getting-started-how-rive-scripts-work",
       "title": "How Rive Scripts Work",
-      "description": "Understanding WHY Rive scripts are structured the way they are - the complete beginner's guide",
+      "description": "Understand Rive Luau script structure, factory functions, self and lifecycle callbacks, with comparisons to JavaScript and After Effects expressions.",
       "url": "https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/how-rive-scripts-work",
       "group": "getting-started",
@@ -934,7 +934,7 @@
     {
       "id": "getting-started-your-first-script",
       "title": "Your First Rive Script",
-      "description": "A gentle introduction to Rive scripting for complete beginners - no programming experience required",
+      "description": "Write your first Rive Luau Node script, attach it to an artboard, and understand types, inputs and callbacks through beginner exercises.",
       "url": "https://forge.mograph.life/apps/lerp/getting-started/your-first-script",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/getting-started/your-first-script",
       "group": "getting-started",
@@ -952,7 +952,7 @@
     },
     {
       "id": "glossary",
-      "title": "Glossary",
+      "title": "Rive & Luau Scripting Glossary",
       "description": "Key terms and definitions for Rive scripting with Luau",
       "url": "https://forge.mograph.life/apps/lerp/glossary",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/glossary",
@@ -1419,8 +1419,8 @@
     },
     {
       "id": "rive-protocols-listener-action-protocol",
-      "title": "ListenerAction Script Protocol",
-      "description": "Custom logic triggered by state machine listener events",
+      "title": "Rive ListenerAction Protocol — State Machine Scripts",
+      "description": "Run Luau code from Rive state machine listeners. Learn ListenerAction setup, its performAction callback, and how it differs from property listeners.",
       "url": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol",
       "canonicalUrl": "https://forge.mograph.life/apps/lerp/rive/protocols/listener-action-protocol",
       "group": "rive",
