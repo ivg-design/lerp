@@ -59,6 +59,7 @@ const config: Config = {
         inLanguage: 'en',
         publisher: {
           '@type': 'Organization',
+          '@id': 'https://forge.mograph.life/#organization',
           name: 'IVG Design',
           url: 'https://forge.mograph.life',
         },
@@ -78,6 +79,7 @@ const config: Config = {
         inLanguage: 'en',
         provider: {
           '@type': 'Organization',
+          '@id': 'https://forge.mograph.life/#organization',
           name: 'IVG Design',
           sameAs: 'https://forge.mograph.life',
         },
@@ -95,9 +97,10 @@ const config: Config = {
         '@graph': [
           {
             '@type': 'Organization',
+            '@id': 'https://forge.mograph.life/#organization',
             name: 'IVG Design',
-            url: 'https://mograph.life',
-            logo: 'https://forge.mograph.life/apps/lerp/img/logo.svg',
+            url: 'https://forge.mograph.life/',
+            logo: 'https://forge.mograph.life/public/LogoGlyph.png',
             sameAs: [
               'https://forge.mograph.life',
               'https://github.com/ivg-design',
@@ -113,13 +116,14 @@ const config: Config = {
           },
           {
             '@type': 'Person',
+            '@id': 'https://forge.mograph.life/#creator',
             name: 'Ilya Gusinski',
             jobTitle: 'Motion Designer and Interactive Animation Engineer',
             worksFor: {
               '@type': 'Organization',
               name: 'IVG Design',
             },
-            url: 'https://mograph.life',
+            url: 'https://services.mograph.life/',
             sameAs: [
               'https://github.com/ivg-design',
               'https://www.linkedin.com/in/ivgd',
@@ -276,7 +280,7 @@ const config: Config = {
           items: [
             { label: 'Rive', href: 'https://rive.app' },
             { label: 'Luau', href: 'https://luau-lang.org' },
-            { label: 'IVG Design', href: 'https://mograph.life' },
+            { label: 'Work with me', href: 'https://services.mograph.life/' },
           ],
         },
         {
