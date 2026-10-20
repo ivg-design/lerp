@@ -155,7 +155,7 @@ export default function Home() {
 
           {/* Stat cards (moved from hero) */}
           <div className="stat-card card-77" data-repulse data-base-transform="rotate(-5deg)">
-            <span className="stat-num">91</span>
+            <span className="stat-num">90</span>
             <span className="stat-accent" />
             <span className="stat-label">docs pages</span>
             <span className="stat-desc">Lessons, reference, projects, and workflow docs.</span>
